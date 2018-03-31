@@ -1,5 +1,5 @@
 {
-  "name": "react-webpack-seed",
+  "name": "jarombek-com",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,12 +9,12 @@
     "dev": "webpack --env development",
     "start": "nodemon --watch webpack.config.js --exec \"webpack-dev-server --env development --open\""
   },
-  "repository": "git+https://github.com/AJarombek/react-webpack-seed.git",
+  "repository": "git+https://github.com/AJarombek/jarombek-com.git",
   "keywords": [],
   "author": "Andrew Jarombek",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/AJarombek/react-webpack-seed/issues"
+    "url": "https://github.com/AJarombek/jarombek-com/issues"
   },
   "jest": {
     "setupTestFrameworkScriptFile": "./test/setupTests.js",
@@ -37,7 +37,7 @@
       }
     }
   },
-  "homepage": "https://github.com/AJarombek/react-webpack-seed#readme",
+  "homepage": "https://github.com/AJarombek/jarombek-com#readme",
   "dependencies": {
     "moment": "^2.22.0",
     "prop-types": "^15.6.1",
