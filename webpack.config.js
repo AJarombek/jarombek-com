@@ -7,22 +7,58 @@
 const path = require("path");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const merge = require("webpack-merge");
+const NodemonPlugin = require("nodemon-webpack-plugin");
 
 const parts = require("./webpack.parts");
 
 // Define paths for the entry point of the app and the output directory
 const PATHS = {
-    app: path.join(__dirname, 'src'),
-    build: path.join(__dirname, 'dist/assets')
+    client: path.join(__dirname, 'src/client/index.js'),
+    clientBuild: path.join(__dirname, 'dist/client/index.js'),
+    server: path.join(__dirname, 'src/server/server'),
+    serverBuild: path.join(__dirname, 'dist/server/server')
 };
 
-const commonConfig = merge([
+const serverConfig = {
+    entry: {
+        bundle: PATHS.server
+    },
+    output: {
+        path: PATHS.serverBuild,
+        filename: '[name].js'
+    },
+    target: "node",
+    node: {
+        __dirname: false,
+        __filename: false
+    },
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /(node_modules)/,
+                loader: "babel-loader",
+                options: {
+                    cacheDirectory: true
+                }
+            }
+        ]
+    }
+};
+
+const serverDevConfig = {
+    plugins: [
+        new NodemonPlugin()
+    ]
+};
+
+const clientConfig = merge([
     {
         entry: {
-            bundle: PATHS.app
+            bundle: PATHS.client
         },
         output: {
-            path: PATHS.build,
+            path: PATHS.clientBuild,
             filename: "[name].js"
         },
         module: {
@@ -45,7 +81,7 @@ const commonConfig = merge([
         },
         plugins: [
             new HtmlWebPackPlugin({
-                template: "./src/index.html",
+                template: "./src/client/index.html",
                 filename: "./index.html"
             })
         ]
@@ -100,9 +136,13 @@ const developmentConfig = merge([
 ]);
 
 module.exports = (env) => {
-    if (env === "production") {
-        return merge(commonConfig, productionConfig);
+    if (env === "clientProduction") {
+        return merge(clientConfig, productionConfig);
+    } else if (env === "serverProduction") {
+        return merge(serverConfig);
+    } else if (env === "clientDevelopment") {
+        return merge(clientConfig, developmentConfig);
     } else {
-        return merge(commonConfig, developmentConfig);
+        return merge(serverConfig, serverDevConfig);
     }
 };

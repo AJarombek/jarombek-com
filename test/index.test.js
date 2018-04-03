@@ -7,7 +7,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 import toJSON from 'enzyme-to-json';
-import App from '../src/App';
+import App from '../src/client/App';
 
 const app = shallow(<App />);
 

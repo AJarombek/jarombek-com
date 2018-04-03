@@ -105,3 +105,11 @@ yarn add enzyme-to-json --dev
 
 # Update the installed packages based on package.json.  Shorthand for 'yarn install'
 yarn
+
+# Set up the express server for server side rendering and rest api creation
+yarn add express
+
+yarn global add node-dev
+yarn add webpack-node-dev --dev
+
+yarn add nodemon-webpack-plugin --dev
