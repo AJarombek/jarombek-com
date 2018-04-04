@@ -15,7 +15,7 @@ exports.generateSourceMaps = ({type}) => ({
  * Configure the devServer to be run in the development environment
  * @param host - the hostname to run the dev server on - defaults to localhost
  * @param port - the part number to run the dev server on - defaults to 8080
- * @returns {{devServer: {stats: string, host, port, open: boolean, overlay: boolean, hotOnly: boolean}}}
+ * @returns {{devServer: {}}}
  */
 exports.devServer = ({ host, port } = {}) => ({
     devServer: {
@@ -81,14 +81,34 @@ exports.loadSass = ({ include, exclude } = {}) => ({
 });
 
 /**
- * Extract the CSS from being inlined with the JavaScript.  This Webpack config is used in production environments
- * to generate a separate CSS bundle
+ * Load a Sass stylesheet and compile it to CSS - this version is used on the server
+ * @param include - files to whitelist for use of these loaders
+ * @param exclude - files to blacklist from these loaders
+ * @returns {{module: {rules: *[]}}}
+ */
+exports.loadServerSass = ({ include, exclude } = {}) => ({
+    module: {
+        rules: [
+            {
+                test: /\.scss$/,
+                include,
+                exclude,
+                use: ["style-loader", "css-loader", "isomorphic-sass-loader"]
+            }
+        ]
+    }
+});
+
+/**
+ * Extract the CSS from being inlined with the JavaScript.  This Webpack config is used in
+ * production environments to generate a separate CSS bundle
  * @param include - files to whitelist for use of these loaders
  * @param exclude - files to blacklist from these loaders
  * @param use - specify which loaders to use
+ * @param fallback - loader to be used if CSS is not extracted
  * @returns {{module: {rules: *[]}, plugins: *}}
  */
-exports.extractCSS = ({ include, exclude, use }) => {
+exports.extractCSS = ({ include, exclude, use, fallback }) => {
 
     const plugin = new ExtractTextPlugin({
         filename: '[name].css'
@@ -101,9 +121,9 @@ exports.extractCSS = ({ include, exclude, use }) => {
                     test: /\.scss$/,
                     include,
                     exclude,
-                    use: plugin.extract({
+                    loader: plugin.extract({
                         use,
-                        fallback: "style-loader"
+                        fallback
                     })
                 }
             ]

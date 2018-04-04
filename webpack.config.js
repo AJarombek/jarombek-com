@@ -14,43 +14,60 @@ const parts = require("./webpack.parts");
 // Define paths for the entry point of the app and the output directory
 const PATHS = {
     client: path.join(__dirname, 'src/client/index.js'),
-    clientBuild: path.join(__dirname, 'dist/client/index.js'),
-    server: path.join(__dirname, 'src/server/server'),
-    serverBuild: path.join(__dirname, 'dist/server/server')
+    clientBuild: path.join(__dirname, 'dist/client/'),
+    server: path.join(__dirname, 'src/server/server.js'),
+    serverBuild: path.join(__dirname, 'dist/server/')
 };
 
-const serverConfig = {
-    entry: {
-        bundle: PATHS.server
-    },
-    output: {
-        path: PATHS.serverBuild,
-        filename: '[name].js'
-    },
-    target: "node",
-    node: {
-        __dirname: false,
-        __filename: false
-    },
-    module: {
-        rules: [
-            {
-                test: /\.js$/,
-                exclude: /(node_modules)/,
-                loader: "babel-loader",
-                options: {
-                    cacheDirectory: true
+const serverConfig = merge([
+    {
+        entry: {
+            bundle: PATHS.server
+        },
+        output: {
+            path: PATHS.serverBuild,
+            filename: '[name].js'
+        },
+        target: "node",
+        node: {
+            __dirname: false,
+            __filename: false
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.js$/,
+                    exclude: /(node_modules)/,
+                    loader: "babel-loader",
+                    options: {
+                        cacheDirectory: true
+                    }
                 }
-            }
-        ]
-    }
-};
+            ]
+        }
+    },
+    parts.loadFonts({
+        options: {
+            name: '[name].[ext]'
+        }
+    })
+]);
 
-const serverDevConfig = {
-    plugins: [
-        new NodemonPlugin()
-    ]
-};
+const serverDevConfig = merge([
+    {
+        plugins: [
+            new NodemonPlugin()
+        ]
+    },
+    parts.loadServerSass()
+]);
+
+const serverProdConfig = merge([
+    parts.extractCSS({
+        use: ["css-loader", "sass-loader"],
+        fallback: "isomorphic-style-loader"
+    })
+]);
 
 const clientConfig = merge([
     {
@@ -94,7 +111,7 @@ const clientConfig = merge([
     })
 ]);
 
-const productionConfig = merge([
+const clientProdConfig = merge([
     {
         optimization: {
             splitChunks: {
@@ -109,7 +126,10 @@ const productionConfig = merge([
         }
     },
     parts.generateSourceMaps({ type: 'source-map' }),
-    parts.extractCSS({ use: ["css-loader", "sass-loader"]}),
+    parts.extractCSS({
+        use: ["css-loader", "sass-loader"],
+        fallback: "style-loader"
+    }),
     parts.loadImages({
         options: {
             limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
@@ -118,7 +138,7 @@ const productionConfig = merge([
     })
 ]);
 
-const developmentConfig = merge([
+const clientDevConfig = merge([
     {
         performance: {hints: false},
         output: {
@@ -137,11 +157,11 @@ const developmentConfig = merge([
 
 module.exports = (env) => {
     if (env === "clientProduction") {
-        return merge(clientConfig, productionConfig);
+        return merge(clientConfig, clientProdConfig);
     } else if (env === "serverProduction") {
-        return merge(serverConfig);
+        return merge(serverConfig, serverProdConfig);
     } else if (env === "clientDevelopment") {
-        return merge(clientConfig, developmentConfig);
+        return merge(clientConfig, clientDevConfig);
     } else {
         return merge(serverConfig, serverDevConfig);
     }

@@ -17,6 +17,7 @@ const sendHtmlPage = (req, res) => {
         </head>
         <body>
             <div id="react-container">${html}</div>
+            <script src="bundle.js"></script>
         </body>
         </html>
     `);
@@ -24,6 +25,7 @@ const sendHtmlPage = (req, res) => {
 
 const app = express();
 
+app.use(express.static('../client'));
 app.use(sendHtmlPage);
 
 const port = process.env.port || 3000;

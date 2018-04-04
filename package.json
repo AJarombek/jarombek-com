@@ -10,7 +10,8 @@
     "client:start": "nodemon --watch webpack.config.js --exec \"webpack-dev-server --env clientDevelopment --open\"",
     "server:build": "webpack --env serverProduction",
     "server:dev": "webpack --env serverDevelopment",
-    "server:start": "webpack --env serverDevelopment --watch --display-error-details"
+    "server:start": "webpack --env serverDevelopment --watch --display-error-details",
+    "server:deploy": "node ./dist/server/bundle.js"
   },
   "repository": "git+https://github.com/AJarombek/jarombek-com.git",
   "keywords": [],
@@ -43,6 +44,7 @@
   "homepage": "https://github.com/AJarombek/jarombek-com#readme",
   "dependencies": {
     "express": "^4.16.3",
+    "isomorphic-style-loader": "^4.0.0",
     "moment": "^2.22.0",
     "prop-types": "^15.6.1",
     "react": "^16.2.0",

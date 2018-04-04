@@ -113,3 +113,7 @@ yarn global add node-dev
 yarn add webpack-node-dev --dev
 
 yarn add nodemon-webpack-plugin --dev
+
+# https://blog.digitalkwarts.com/server-side-rendering-with-reactjs-react-router-v4-react-helmet-and-css-modules/
+# Perform stylesheet bundling on the server
+yarn add isomorphic-style-loader
