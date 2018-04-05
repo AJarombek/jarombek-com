@@ -6,6 +6,7 @@
 
 import React from 'react';
 import {hot} from 'react-hot-loader';
+import Button from './Button';
 
 import './App.scss';
 
@@ -21,7 +22,13 @@ class App extends React.Component {
                 <div className="title-container">
                     <p className="title">Andrew Jarombek</p>
                 </div>
-                <p className="sub-title">Hello World</p>
+                <p className="sub-title">Website Under Construction</p>
+                <Button color="primary">
+                    BLOG
+                </Button>
+                <Button color="default">
+                    INFO
+                </Button>
             </div>
         );
     }

@@ -38,7 +38,7 @@ const app = express();
 app.use(express.static(path.join(__dirname, '..')));
 app.use(sendHtmlPage);
 
-const port = process.env.port || 3000;
+const port = process.env.port || 8080;
 
 app.listen(port, () => {
    console.info(`Jarombek.com running on port ${port}`);

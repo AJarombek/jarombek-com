@@ -1,0 +1,42 @@
+/*
+ * Sass styling for the Button component
+ * @author Andrew Jarombek
+ * @since 4/4/2018
+ */
+
+@import "global";
+
+.jarbek-button {
+  border-radius: 2px;
+  background: transparent;
+  margin: 4px 2px 4px 2px;
+  box-shadow: none;
+  @include sylexiad;
+}
+
+.jarbek-button-large {
+  height: 50px;
+  width: 180px;
+  border: 1px solid;
+  font-size: 24px;
+}
+
+.jarbek-button-medium {
+  // TODO
+}
+
+.jarbek-button-small {
+  // TODO
+}
+
+@mixin jarbek-button-styles($color-style, $color) {
+  .jarbek-button.#{$color-style} {
+    border-color: $color;
+    @include transition("background", $color, $time: 2s, $speed: ease);
+    @include transition("box-shadow", 0 1px 5px #aaa);
+  }
+}
+
+@include jarbek-button-styles("color-default", $color-default);
+@include jarbek-button-styles("color-primary", darken($color-primary, 20%));
+@include jarbek-button-styles("color-secondary", darken($color-secondary, 20%));
