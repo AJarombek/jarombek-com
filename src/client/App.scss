@@ -6,6 +6,9 @@
 
 @import "global";
 
+// Reset the default browser styles
+@import "reset";
+
 body {
   background-color: white;
 }
@@ -16,9 +19,18 @@ p {
   @include sylexiad-bold;
 }
 
+.jarombek-main {
+  display: grid;
+  grid-template-columns: [start] 20% [middle-begin] 60% [middle-end] 20% [end];
+  grid-template-rows: [top] 15% [title] 25% [subtitle] 15% [blog] 10% [info] 25% [footer] 10% [bottom];
+}
+
 .title-container {
   height: 160px;
   padding-top: 5px;
+  grid-row-start: title;
+  grid-row-end: subtitle;
+  align-self: center;
 }
 
 .title {
@@ -32,5 +44,29 @@ p {
 .sub-title {
   @include sylexiad;
   font-size: 16px;
-  text-align: center;
+  margin-bottom: 40px;
+
+  grid-row-start: subtitle;
+  grid-row-end: blog;
+  align-self: start;
+  justify-self: center;
+}
+
+.blog-button {
+  grid-row-start: blog;
+  grid-row-end: info;
+  justify-self: center;
+}
+
+.info-button {
+  grid-row-start: info;
+  grid-row-end: footer;
+  justify-self: center;
+}
+
+@each $item in '.title-container', '.sub-title', '.blog-button', '.info-button' {
+  #{$item} {
+    grid-column-start: middle-begin;
+    grid-column-end: middle-end;
+  }
 }

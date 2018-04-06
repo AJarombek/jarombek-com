@@ -18,15 +18,15 @@ class App extends React.Component {
 
     render() {
         return (
-            <div>
+            <div className="jarombek-main">
                 <div className="title-container">
                     <p className="title">Andrew Jarombek</p>
                 </div>
                 <p className="sub-title">Website Under Construction</p>
-                <Button color="primary">
+                <Button className="blog-button" color="primary">
                     BLOG
                 </Button>
-                <Button color="default">
+                <Button className="info-button" color="default">
                     INFO
                 </Button>
             </div>

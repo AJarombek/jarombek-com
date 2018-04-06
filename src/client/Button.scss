@@ -7,17 +7,18 @@
 @import "global";
 
 .jarbek-button {
-  border-radius: 2px;
+  border-radius: 4px;
   background: transparent;
   margin: 4px 2px 4px 2px;
   box-shadow: none;
+  cursor: pointer;
   @include sylexiad;
 }
 
 .jarbek-button-large {
   height: 50px;
   width: 180px;
-  border: 1px solid;
+  border: 1.5px solid;
   font-size: 24px;
 }
 
@@ -32,8 +33,13 @@
 @mixin jarbek-button-styles($color-style, $color) {
   .jarbek-button.#{$color-style} {
     border-color: $color;
-    @include transition("background", $color, $time: 2s, $speed: ease);
-    @include transition("box-shadow", 0 1px 5px #aaa);
+    color: darken($color, 40%);
+    transition: background .4s, box-shadow .4s;
+
+    &:hover {
+      background: $color;
+      box-shadow: 0 1px 5px #aaa;
+    }
   }
 }
 
