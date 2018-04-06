@@ -5,5 +5,5 @@ yarn-error.log
 node_modules/*
 dist/*
 coverage/*
-src/assets/*
+src/client/assets/*
 aws.sh

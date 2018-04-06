@@ -30,7 +30,6 @@ p {
   padding-top: 5px;
   grid-row-start: title;
   grid-row-end: subtitle;
-  align-self: center;
 }
 
 .title {
@@ -39,6 +38,9 @@ p {
   text-align: center;
   margin: 5% auto;
   @include transition("color", #000, $speed: ease-in-out);
+
+  justify-self: center;
+  align-self: end;
 }
 
 .sub-title {
@@ -64,9 +66,22 @@ p {
   justify-self: center;
 }
 
-@each $item in '.title-container', '.sub-title', '.blog-button', '.info-button' {
+.footer-icon {
+  margin-top: 200px;
+
+  grid-row-start: footer;
+  grid-row-end: end;
+  align-self: end;
+  justify-self: center;
+}
+
+@each $item in '.title-container', '.sub-title', '.blog-button', '.info-button', '.footer-icon' {
   #{$item} {
     grid-column-start: middle-begin;
     grid-column-end: middle-end;
   }
+}
+
+.footer-icon img {
+  height: 60px;
 }

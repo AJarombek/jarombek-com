@@ -1,3 +1,8 @@
+/**
+ * Button component
+ * @author Andrew Jarombek
+ * @since 4/3/2018
+ */
 
 import React from 'react';
 import PropTypes from 'prop-types';

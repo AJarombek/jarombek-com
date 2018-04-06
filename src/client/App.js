@@ -9,6 +9,7 @@ import {hot} from 'react-hot-loader';
 import Button from './Button';
 
 import './App.scss';
+import TitleImage from "./TitleImage";
 
 class App extends React.Component {
 
@@ -29,6 +30,8 @@ class App extends React.Component {
                 <Button className="info-button" color="default">
                     INFO
                 </Button>
+                <TitleImage className="footer-icon" src="./assets/github.png" title="GITHUB"
+                            link="https://github.com/AJarombek"/>
             </div>
         );
     }

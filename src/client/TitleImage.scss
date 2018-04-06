@@ -1,0 +1,33 @@
+/*
+ * Sass styling for the TitleImage component
+ * @author Andrew Jarombek
+ * @since 4/5/2018
+ */
+
+@import "global";
+
+.jarbek-figure img {
+  filter: opacity(40%);
+  cursor: pointer;
+  transition: all .4s;
+}
+
+.jarbek-image-title {
+  @include dyslexie;
+  text-align: center;
+  font-size: 12px;
+  margin-top: 8px;
+  filter: opacity(0%);
+  transition: all .4s ease;
+}
+
+.jarbek-figure {
+
+  &:hover img {
+    filter: opacity(90%);
+  }
+
+  &:hover + .jarbek-image-title {
+    filter: opacity(90%);
+  }
+}
