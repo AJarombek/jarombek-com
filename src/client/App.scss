@@ -26,15 +26,14 @@ p {
 }
 
 .title-container {
-  height: 160px;
-  padding-top: 5px;
+  padding-top: 100px;
   grid-row-start: title;
   grid-row-end: subtitle;
 }
 
 .title {
   color: #333;
-  font-size: 28px;
+  font-size: 36px;
   text-align: center;
   margin: 5% auto;
   @include transition("color", #000, $speed: ease-in-out);

@@ -19,6 +19,9 @@ const PATHS = {
     serverBuild: path.join(__dirname, 'dist/server/')
 };
 
+/**
+ * Configuration specific to the Server bundles
+ */
 const serverConfig = merge([
     {
         entry: {
@@ -53,22 +56,38 @@ const serverConfig = merge([
     })
 ]);
 
+/**
+ * Configuration specific to the server bundles in a development environment
+ */
 const serverDevConfig = merge([
     {
         plugins: [
             new NodemonPlugin()
         ]
     },
-    parts.loadServerSass()
+    parts.loadServerSass(),
+    parts.loadImages()
 ]);
 
+/**
+ * Configuration specific to the server bundles in a production environment
+ */
 const serverProdConfig = merge([
     parts.extractCSS({
         use: ["css-loader", "sass-loader"],
         fallback: "isomorphic-style-loader"
+    }),
+    parts.loadImages({
+        options: {
+            limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
+            name: '[name].[ext]'
+        }
     })
 ]);
 
+/**
+ * Configuration specific to the client bundles
+ */
 const clientConfig = merge([
     {
         entry: {
@@ -111,6 +130,29 @@ const clientConfig = merge([
     })
 ]);
 
+/**
+ * Configuration specific to the client bundles in a development environment
+ */
+const clientDevConfig = merge([
+    {
+        performance: {hints: false},
+        output: {
+            sourceMapFilename: "[name].map"
+        }
+    },
+    parts.generateSourceMaps({ type: 'cheap-module-eval-source-map' }),
+    parts.devServer({
+        host: process.env.HOST,
+        port: process.env.PORT
+    }),
+    parts.hotModuleReplacement(),
+    parts.loadSass(),
+    parts.loadImages()
+]);
+
+/**
+ * Configuration specific to the client bundles in a production environment
+ */
 const clientProdConfig = merge([
     {
         optimization: {
@@ -136,23 +178,6 @@ const clientProdConfig = merge([
             name: '[name].[ext]'
         }
     })
-]);
-
-const clientDevConfig = merge([
-    {
-        performance: {hints: false},
-        output: {
-            sourceMapFilename: "[name].map"
-        }
-    },
-    parts.generateSourceMaps({ type: 'cheap-module-eval-source-map' }),
-    parts.devServer({
-        host: process.env.HOST,
-        port: process.env.PORT
-    }),
-    parts.hotModuleReplacement(),
-    parts.loadSass(),
-    parts.loadImages()
 ]);
 
 module.exports = (env) => {

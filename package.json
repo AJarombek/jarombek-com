@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "client:test": "jest --coverage --updateSnapshot",
+    "client:stats": "webpack --env clientProduction --profile --json > client-stats.json",
     "client:build": "webpack --env clientProduction",
     "client:dev": "webpack --env clientDevelopment",
     "client:start": "nodemon --watch webpack.config.js --exec \"webpack-dev-server --env clientDevelopment --open\"",
+    "server:stats": "webpack --env serverProduction --profile --json > server-stats.json",
     "server:build": "webpack --env serverProduction",
     "server:dev": "webpack --env serverDevelopment",
     "server:start": "webpack --env serverDevelopment --watch --display-error-details",

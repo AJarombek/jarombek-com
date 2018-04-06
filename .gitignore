@@ -7,3 +7,5 @@ dist/*
 coverage/*
 src/client/assets/*
 aws.sh
+client-stats.json
+server-stats.json

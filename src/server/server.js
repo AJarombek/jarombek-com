@@ -21,7 +21,7 @@ const sendHtmlPage = (req, res) => {
         <html lang="en">
         <head>
             <meta charset="utf-8">
-            <title>React.js Webpack Seed</title>
+            <title>Andrew Jarombek</title>
             <link rel="stylesheet" href="/client/bundle.css">
         </head>
         <body>
