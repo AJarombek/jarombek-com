@@ -20,10 +20,15 @@ const TitleImage = ({src, title, className, link}) =>
     </div>;
 
 TitleImage.propTypes = {
-    src: PropTypes.string.required,
-    title: PropTypes.string.required,
+    src: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
     className: PropTypes.string,
     link: PropTypes.string
+};
+
+TitleImage.defaultProps = {
+    src: "",
+    title: ""
 };
 
 export default TitleImage;

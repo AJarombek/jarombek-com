@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`App matches snapshot 1`] = `
-<div>
+<div
+  className="jarombek-main"
+>
   <div
     className="title-container"
   >
@@ -14,7 +16,54 @@ exports[`App matches snapshot 1`] = `
   <p
     className="sub-title"
   >
-    Hello World
+    Website Under Construction
+  </p>
+  <Button
+    className="blog-button"
+    color="primary"
+    size="large"
+  >
+    BLOG
+  </Button>
+  <Button
+    className="info-button"
+    color="default"
+    size="large"
+  >
+    INFO
+  </Button>
+  <TitleImage
+    className="footer-icon"
+    link="https://github.com/AJarombek"
+    src="./assets/github.png"
+    title="GITHUB"
+  />
+</div>
+`;
+
+exports[`Button matches snapshot 1`] = `
+<div>
+  <button
+    className="jarbek-button color-default jarbek-button-large"
+  />
+</div>
+`;
+
+exports[`TitleImage matches snapshot 1`] = `
+<div>
+  <figure
+    className="jarbek-figure"
+  >
+    <a>
+      <img
+        src="test-file-stub"
+      />
+    </a>
+  </figure>
+  <p
+    className="jarbek-image-title"
+  >
+    Test
   </p>
 </div>
 `;

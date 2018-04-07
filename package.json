@@ -26,13 +26,14 @@
     "setupTestFrameworkScriptFile": "./test/setupTests.js",
     "moduleNameMapper": {
       "\\.(scss)$": "jest-css-modules",
-      "\\.(png|ttf)$": "../mocks/fileMock.js"
+      "\\.(png|ttf)$": "../../mocks/fileMock.js"
     },
     "collectCoverageFrom": [
       "src/**"
     ],
     "coveragePathIgnorePatterns": [
-      "./src/index.js"
+      "./src/client/index.js",
+      "./src/server/*"
     ],
     "coverageThreshold": {
       "global": {
