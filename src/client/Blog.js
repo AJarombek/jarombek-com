@@ -12,7 +12,9 @@ import './Blog.scss';
 const Blog = () => {
     return (
         <WebsiteTemplate>
-            <p>Blog!</p>
+            <div className="jarombek-blog">
+                <p>Blog!</p>
+            </div>
         </WebsiteTemplate>
     );
 };

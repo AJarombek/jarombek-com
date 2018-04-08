@@ -24,11 +24,17 @@
 }
 
 .jarbek-button-medium {
-  // TODO
+  height: 40px;
+  width: 150px;
+  border: 1.5px solid;
+  font-size: 18px;
 }
 
 .jarbek-button-small {
-  // TODO
+  height: 30px;
+  width: 120px;
+  border: 1px solid;
+  font-size: 16px;
 }
 
 @mixin jarbek-button-styles($color-style, $color) {

@@ -10,17 +10,21 @@ import Button from "./Button";
 
 import './WebsiteNav.scss';
 
+const selectedStyle = {
+    color: "#555"
+};
+
 const WebsiteNav = () => {
     return (
         <nav className="jarombek-nav">
-            <NavLink to="/blog">
+            <NavLink to="/blog" activeStyle={selectedStyle} className="jarombek-nav-left">
                 BLOG
             </NavLink>
-            <NavLink to="/">
+            <NavLink to="/" className="jarombek-nav-middle">
                 Andrew Jarombek
             </NavLink>
-            <NavLink>
-                <Button className="subscribe-button" color="primary">
+            <NavLink to="/" className="jarombek-nav-right">
+                <Button className="subscribe-button" color="primary" size="medium">
                     SUBSCRIBE
                 </Button>
             </NavLink>
