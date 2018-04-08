@@ -6,12 +6,14 @@
 
 import React from 'react';
 import {hot} from 'react-hot-loader';
-import Button from './Button';
+import {Link} from 'react-router-dom';
 
-import './App.scss';
+import Button from './Button';
 import TitleImage from "./TitleImage";
 
-class App extends React.Component {
+import './Home.scss';
+
+class Home extends React.Component {
 
     constructor(props) {
         super(props);
@@ -24,9 +26,11 @@ class App extends React.Component {
                     <p className="title">Andrew Jarombek</p>
                 </div>
                 <p className="sub-title">Website Under Construction</p>
-                <Button className="blog-button" color="primary">
-                    BLOG
-                </Button>
+                <Link to="/blog" className="blog-button">
+                    <Button color="primary">
+                        BLOG
+                    </Button>
+                </Link>
                 <Button className="info-button" color="default">
                     INFO
                 </Button>
@@ -38,4 +42,4 @@ class App extends React.Component {
 }
 
 // Enable Hot Module Replacement on this component
-export default hot(module)(App);
+export default hot(module)(Home);

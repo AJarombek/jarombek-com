@@ -7,7 +7,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 import toJSON from 'enzyme-to-json';
-import App from '../src/client/App';
+import App from '../src/client/Home';
 import Button from '../src/client/Button';
 import TitleImage from '../src/client/TitleImage';
 
