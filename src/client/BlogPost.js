@@ -7,11 +7,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import TagList from './TagList';
 
 import './BlogPost.scss';
 
-const BlogPost = ({ title, date, tags, content, sources }) => {
-    const prereqs = tags.filter(tag => tag.prerequisite === true);
+const BlogPost = ({ title, date, tags=[], content, sources=[] }) => {
     let count = 0;
     return (
         <div className="jarombek-blog-post">
@@ -19,19 +19,16 @@ const BlogPost = ({ title, date, tags, content, sources }) => {
                 {moment(date).format('MMMM Do, YYYY')}
             </p>
             <p className="jarombek-blog-title">{title}</p>
-            <div className="jarombek-blog-prereq-tags">
-                <TagList tagList={prereqs}/>
+            <div className="jarombek-blog-tags">
+                <TagList tagList={tags}/>
             </div>
             <div className="jarombek-blog-content">
                 {content}
             </div>
-            <div className="jarombek-blog-all-tags">
-                <TagList tagList={tags}/>
-            </div>
             <div className="jarombek-blog-sources">
                 {
                     sources.forEach(src => {
-                        <p>
+                        return <p>
                         `[${count++}] ${src.content}`
                         </p>
                     })
@@ -44,7 +41,9 @@ const BlogPost = ({ title, date, tags, content, sources }) => {
 BlogPost.propTypes = {
     title: PropTypes.string.isRequired,
     date: PropTypes.instanceOf(Date).isRequired,
-    content: PropTypes.string.isRequired
+    content: PropTypes.string.isRequired,
+    tags: PropTypes.array,
+    sources: PropTypes.array
 };
 
 export default BlogPost;

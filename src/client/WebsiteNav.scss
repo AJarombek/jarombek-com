@@ -33,7 +33,9 @@
 }
 
 .jarombek-nav-left {
+  color: #666;
   font-size: 18px;
+  @include transition("color", #000, $speed: ease-in-out);
 }
 
 .jarombek-nav-right {

@@ -10,14 +10,10 @@ import Button from "./Button";
 
 import './WebsiteNav.scss';
 
-const selectedStyle = {
-    color: "#555"
-};
-
 const WebsiteNav = () => {
     return (
         <nav className="jarombek-nav">
-            <NavLink to="/blog" activeStyle={selectedStyle} className="jarombek-nav-left">
+            <NavLink to="/blog" className="jarombek-nav-left">
                 BLOG
             </NavLink>
             <NavLink to="/" className="jarombek-nav-middle">

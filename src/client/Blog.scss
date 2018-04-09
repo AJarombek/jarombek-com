@@ -5,7 +5,11 @@
  */
 
 .jarombek-blog {
-  padding-top: 80px;
+  padding-top: 140px;
+
+  display: grid;
+  grid-template-rows: [top] 100% [bottom];
+  grid-template-columns: [left] 100% [right];
 }
 
 .jarombek-blog-background {
