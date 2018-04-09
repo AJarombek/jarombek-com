@@ -3,3 +3,71 @@
  * @author Andrew Jarombek
  * @since 4/8/2018
  */
+
+@import "global";
+
+$neo4j-green: rgba(98, 179, 69, 0.6);
+$javascript-yellow: rgba(247, 223, 30, 0.6);
+
+.jarombek-tag-color-neo4j {
+  background-color: $neo4j-green;
+}
+
+.jarombek-tag-color-javascript {
+  background-color: $javascript-yellow;
+}
+
+.jarombek-tag {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.jarombek-tag div {
+  display: grid;
+  grid-template-rows: [top] 100% [bottom];
+  grid-template-columns: [image] 40px [label] calc(100% - 40px) [end];
+
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);
+
+  transition: all .4s ease;
+}
+
+.jarombek-tag:hover {
+
+  &:hover div {
+    box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+  }
+
+  &:hover div .jarombek-tag-name {
+    color: black;
+  }
+}
+
+.jarombek-tag figure {
+  // background-color: white;
+}
+
+.jarombek-tag-picture {
+  height: 40px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+
+  // Goes in this order: row-start, column-start, row-end, column-end
+  grid-area: top / image / bottom / label;
+  justify-self: center;
+  align-self: center;
+}
+
+.jarombek-tag-name {
+  @include sylexiad;
+  color: #333;
+  border-left: transparent 2px;
+  font-size: 24px;
+
+  grid-area: top / label / bottom / end;
+  justify-self: center;
+  align-self: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}

@@ -21,7 +21,13 @@ class Blog extends React.Component {
                     title: "Creating a Simple Geographical Map with Neo4j and Cypher",
                     date: moment('2017-11-06'),
                     type: "Discovery",
-                    tags: [],
+                    tags: [
+                        {
+                            name: "Neo4j",
+                            picture: "./assets/neo4j.png",
+                            color: "neo4j"
+                        }
+                    ],
                     content: "<div>Hello</div>",
                     sources: []
                 }

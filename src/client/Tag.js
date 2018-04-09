@@ -11,10 +11,12 @@ import './Tag.scss';
 
 const Tag = ({ name, picture, color }) =>
     <div className="jarombek-tag">
-        <figure>
-            <img className="jarombek-tag-picture" src={ require(`${picture}`) } />
-        </figure>
-        <p className={`jarombek-tag-name jarombek-tag-color-${color}`}>{name}</p>
+        <div className={`jarombek-tag-color-${color}`}>
+            <figure>
+                <img className="jarombek-tag-picture" src={ require(`${picture}`) } />
+            </figure>
+            <p className="jarombek-tag-name">{name}</p>
+        </div>
     </div>;
 
 Tag.propTypes = {
