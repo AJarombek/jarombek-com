@@ -11,10 +11,11 @@ import TagList from './TagList';
 
 import './BlogPost.scss';
 
-const BlogPost = ({ title, date, tags=[], content, sources=[] }) => {
+const BlogPost = ({ title, type, date, tags=[], content, sources=[] }) => {
     let count = 0;
     return (
         <div className="jarombek-blog-post">
+            <p className="jarombek-blog-type">{type.toUpperCase()}</p>
             <p className="jarombek-blog-date">
                 {moment(date).format('MMMM Do, YYYY')}
             </p>
@@ -41,6 +42,7 @@ const BlogPost = ({ title, date, tags=[], content, sources=[] }) => {
 BlogPost.propTypes = {
     title: PropTypes.string.isRequired,
     date: PropTypes.instanceOf(Date).isRequired,
+    type: PropTypes.string.isRequired,
     content: PropTypes.string.isRequired,
     tags: PropTypes.array,
     sources: PropTypes.array

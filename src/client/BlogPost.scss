@@ -3,3 +3,71 @@
  * @author Andrew Jarombek
  * @since 4/8/2018
  */
+
+@import "global";
+
+$post-margin: 0.5px;
+
+.jarombek-blog-post {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);
+  margin: {
+    left: $post-margin;
+    right: $post-margin;
+  }
+
+  display: grid;
+  grid-template-columns: [type] 15% [title-start] 70% [title-end] 15% [date];
+  grid-template-rows: [headers] 5% [title] 10% [tags] 10% [body] 65% [sources] 10% [end];
+}
+
+// Shared styles for all the headers of a blog post
+@each $header in 'type', 'date' {
+  .jarombek-blog-#{$header} {
+    @include sylexiad;
+    color: #999;
+    font-size: 18px;
+    padding-top: 20px;
+
+    justify-self: center;
+    align-self: center;
+    text-align: center;
+  }
+}
+
+.jarombek-blog-type {
+  // Goes in this order: row-start, column-start, row-end, column-end
+  grid-area: headers / type / title / title-start;
+}
+
+.jarombek-blog-date {
+  grid-area: headers / title-end / title / date;
+}
+
+.jarombek-blog-title {
+  @include sylexiad;
+  color: #333;
+  font-size: 36px;
+  padding-top: 35px;
+  padding-bottom: 20px;
+
+  grid-area: title / title-start / tags / title-end;
+  justify-self: center;
+  align-self: center;
+  text-align: center;
+}
+
+.jarombek-blog-tags {
+  grid-area: tags / title-start / body / title-end;
+  padding-bottom: 20px;
+}
+
+.jarombek-blog-content {
+  grid-area: body / title-start / sources / title-end;
+  padding-bottom: 20px;
+}
+
+.jarombek-blog-sources {
+  grid-area: sources / title-start / end / title-end;
+  padding-bottom: 20px;
+}

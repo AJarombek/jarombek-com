@@ -7,6 +7,7 @@
 import React from 'react';
 import WebsiteTemplate from './WebsiteTemplate';
 import BlogList from './BlogList';
+import moment from 'moment';
 
 import './Blog.scss';
 
@@ -15,7 +16,16 @@ class Blog extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            blogs: []
+            blogs: [
+                {
+                    title: "Creating a Simple Geographical Map with Neo4j and Cypher",
+                    date: moment('2017-11-06'),
+                    type: "Discovery",
+                    tags: [],
+                    content: "<div>Hello</div>",
+                    sources: []
+                }
+            ]
         };
     }
 

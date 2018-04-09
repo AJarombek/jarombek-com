@@ -33,6 +33,9 @@ const sendHtmlPage = ({html}) =>
     <html lang="en">
     <head>
         <meta charset="utf-8">
+        <meta name="author" content="Andrew Jarombek">
+        <meta name="description" content="Andrew Jarombek's Personal Website 
+                                            and Software Development Blog">
         <title>Andrew Jarombek</title>
         <link rel="stylesheet" href="/client/bundle.css">
     </head>
