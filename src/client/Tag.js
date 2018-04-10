@@ -21,8 +21,13 @@ const Tag = ({ name, picture, color }) =>
 
 Tag.propTypes = {
     name: PropTypes.string.isRequired,
-    picture: PropTypes.string.isRequired,
-    color: PropTypes.string.isRequired
+    picture: PropTypes.string,
+    color: PropTypes.string
+};
+
+Tag.defaultProps = {
+    picture: "./assets/jarombek.png",
+    color: "default"
 };
 
 export default Tag;

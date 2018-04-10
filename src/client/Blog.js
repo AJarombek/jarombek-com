@@ -26,6 +26,15 @@ class Blog extends React.Component {
                             name: "Neo4j",
                             picture: "./assets/neo4j.png",
                             color: "neo4j"
+                        },
+                        {
+                            name: "Graph Databases"
+                        },
+                        {
+                            name: "Cypher Query Language"
+                        },
+                        {
+                            name: "NoSQL"
                         }
                     ],
                     content: "<div>Hello</div>",

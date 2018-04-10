@@ -8,6 +8,7 @@
 
 $neo4j-green: rgba(98, 179, 69, 0.6);
 $javascript-yellow: rgba(247, 223, 30, 0.6);
+$default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-neo4j {
   background-color: $neo4j-green;
@@ -17,9 +18,15 @@ $javascript-yellow: rgba(247, 223, 30, 0.6);
   background-color: $javascript-yellow;
 }
 
+.jarombek-tag-color-default {
+  background-color: $default;
+}
+
 .jarombek-tag {
   display: inline-block;
   cursor: pointer;
+  margin-right: 10px;
+  margin-bottom: 10px;
 }
 
 .jarombek-tag div {
@@ -50,8 +57,9 @@ $javascript-yellow: rgba(247, 223, 30, 0.6);
 
 .jarombek-tag-picture {
   height: 40px;
-  margin-top: 2px;
-  margin-bottom: 2px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 5px;
 
   // Goes in this order: row-start, column-start, row-end, column-end
   grid-area: top / image / bottom / label;
