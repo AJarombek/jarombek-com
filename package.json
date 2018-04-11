@@ -47,6 +47,7 @@
   "homepage": "https://github.com/AJarombek/jarombek-com#readme",
   "dependencies": {
     "express": "^4.16.3",
+    "highlightjs": "^9.10.0",
     "isomorphic-style-loader": "^4.0.0",
     "moment": "^2.22.0",
     "prop-types": "^15.6.1",

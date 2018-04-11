@@ -120,3 +120,6 @@ yarn add isomorphic-style-loader
 
 # Adding routing to the react application
 yarn add react-router-dom
+
+# Syntax highlighting for blog posts
+yarn add highlightjs
