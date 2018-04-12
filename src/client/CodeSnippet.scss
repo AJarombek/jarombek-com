@@ -12,9 +12,29 @@
 
   display: block;
   overflow-x: auto;
-  padding: 0.5em;
-  color: #abb2bf;
+  padding: 1em 0.5em 1em 1em;
+  color: #ddd;
+  font-size: 18px;
+  white-space: pre;
+  line-height: 1.4;
+
   background-image: url("./assets/triangles.png");
+  border-radius: 2px;
+
+  transition: all .4s ease;
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);
+}
+
+.hljs:hover {
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.8);
+}
+
+.hljs:before {
+  content: attr(title);
+  display: block;
+  font-size: 14px;
+  color: #aaa;
+  float: right;
 }
 
 .hljs-comment,

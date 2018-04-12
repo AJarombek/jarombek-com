@@ -10,21 +10,36 @@ import hljs from 'highlightjs';
 
 import './CodeSnippet.scss';
 
-const CodeSnippet = ({ language, children }) => {
-    hljs.initHighlightingOnLoad();
-    return <figure className="jarombek-code-snippet">
-        <code className={`cpp hljs`}>
-            {children}
-        </code>
-    </figure> };
+class CodeSnippet extends React.Component {
 
-CodeSnippet.propTypes = {
-    language: PropTypes.string.isRequired,
-    children: PropTypes.any
-};
+    constructor() {
+        super();
 
-CodeSnippet.defaultProps = {
-    language: "javascript"
-};
+        this.languages = [];
+    }
+
+    static propTypes = {
+        language: PropTypes.string.isRequired,
+        children: PropTypes.any
+    };
+
+    static defaultProps = {
+        language: "javascript"
+    };
+
+    componentDidMount() {
+        hljs.initHighlightingOnLoad();
+        hljs.highlightBlock(this.highlightedCode);
+    }
+
+    render() {
+        const { language, children } = this.props;
+        return <figure className="jarombek-code-snippet">
+                 <code title="Cypher" ref={code => this.highlightedCode = code} className={`cpp hljs`}>
+                    {children}
+                 </code>
+               </figure>;
+    }
+}
 
 export default CodeSnippet;

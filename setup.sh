@@ -123,3 +123,6 @@ yarn add react-router-dom
 
 # Syntax highlighting for blog posts
 yarn add highlightjs
+
+# Stage 0 JavaScript for the static class properties
+yarn add babel-preset-stage-0 --dev

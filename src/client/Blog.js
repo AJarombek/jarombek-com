@@ -70,26 +70,18 @@ class Blog extends React.Component {
                             <p>
                                 You can also create multiple vertices from a single <code className="jarombek-inline-code">CREATE</code> statement.  I will utilize this to populate the counties towns and cities:
                             </p>
-                            <figure>
-                        <pre className="line-numbers">
-                            <code className="language-clike" title="Cypher">{`CREATE (:City {name: 'Bridgeport'}),
+                           <CodeSnippet>{`CREATE (:City {name: 'Bridgeport'}),
     (:City {name: 'Danbury'}),
     ...
     
 CREATE (:Town {name: 'Bethel'}),
     (:Town {name: 'Brookfield'}),
-    ...`}</code>
-                        </pre>
-                            </figure>
+    ...`}</CodeSnippet>
                             <p>
                                 Before I create any relationships, I want to make life easier and group together cities and towns under one common label.  After all they are
                                 both considered settlements.
                             </p>
-                            <figure>
-                        <pre className="line-numbers">
-                            <code className="language-clike" title="Cypher">{`MATCH (s) WHERE s:City OR s:Town SET s:Settlement`}</code>
-                        </pre>
-                            </figure>
+                            <CodeSnippet>{`MATCH (s) WHERE s:City OR s:Town SET s:Settlement`}</CodeSnippet>
                             <p>
                                 I introduced some new keywords here. Most important of them is <code className="jarombek-inline-code">MATCH</code> which queries the database based on some ASCII Art that I pass it.
                                 The <code className="jarombek-inline-code">(...)</code> token represents a node in the database which I assign to variable <code className="jarombek-inline-code">s</code>.  So this query says "for each vertex in the
@@ -99,11 +91,7 @@ CREATE (:Town {name: 'Bethel'}),
                             <p>
                                 Now it is time for the fun part: relationships.  Lets create a relationship between all the settlements and the state of Connecticut:
                             </p>
-                            <figure>
-                        <pre className="line-numbers">
-                            <code className="language-clike" title="Cypher">{`MATCH (ct:State), (s:Settlement) MERGE (ct)<-[:IN]-(s)`}</code>
-                        </pre>
-                            </figure>
+                            <CodeSnippet>{`MATCH (ct:State), (s:Settlement) MERGE (ct)<-[:IN]-(s)`}</CodeSnippet>
                             <p>
                                 As you likely guessed, the ASCII art for a relationship is <code className="jarombek-inline-code">{`<-[:IN]-`}</code> where the arrow shows the direction of the relationship.  We also give the
                                 relationship a label, in this case <code className="jarombek-inline-code">:IN</code>.  We could also give a relationship properties just like you would a vertex.  This is what I meant by 'relationships are
@@ -117,9 +105,7 @@ CREATE (:Town {name: 'Bethel'}),
                                 For the final step of this graph we want to create relationships between all the neighboring towns.  This is a long query so I'll just show a snippet (the full code
                                 for this and the other snippets can be found <a href="https://github.com/AJarombek/jarombek-com-submittions/blob/master/Discoveries/2017/11-Nov/11-6-Neo4j-Create/Source/neo4j-create.cql">HERE</a>):
                             </p>
-                            <figure>
-                        <pre className="line-numbers">
-                            <code className="language-clike" title="Cypher">{`MATCH (greenwich:Settlement {name: 'Greenwich'}),
+                            <CodeSnippet>{`MATCH (greenwich:Settlement {name: 'Greenwich'}),
     (stamford:Settlement {name: 'Stamford'}),
     (newcannan:Settlement {name: 'New Cannan'}),
     (darien:Settlement {name: 'Darien'}),
@@ -127,9 +113,7 @@ CREATE (:Town {name: 'Bethel'}),
 CREATE (greenwich)-[:NEIGHBORS_OF]->(stamford),
     (stamford)-[:NEIGHBORS_OF]->(newcannan),
     (stamford)-[:NEIGHBORS_OF]->(darien),
-    ...`}</code>
-                        </pre>
-                            </figure>
+    ...`}</CodeSnippet>
                             <p>
                                 In this code we first want to give variables for all the settlement nodes by their name.  Then we want to create neighbors relationships between towns that
                                 share borders.  One thing that I questioned when writing this code is 'why cant their be bi-directional relationships?'  It turns out at the time of this writing
