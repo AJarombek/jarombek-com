@@ -15,7 +15,23 @@ class CodeSnippet extends React.Component {
     constructor() {
         super();
 
-        this.languages = [];
+        this.defaultLanguage = {
+            title: "",
+            highlightClass: "javascript"
+        };
+
+        this.languages = [
+            {
+                prop: "cypher",
+                title: "Cypher",
+                highlightClass: "javascript"
+            },
+            {
+                prop: "javascript",
+                title: "JavaScript",
+                highlightClass: "javascript"
+            }
+        ];
     }
 
     static propTypes = {
@@ -23,22 +39,36 @@ class CodeSnippet extends React.Component {
         children: PropTypes.any
     };
 
-    static defaultProps = {
-        language: "javascript"
-    };
-
     componentDidMount() {
         hljs.initHighlightingOnLoad();
         hljs.highlightBlock(this.highlightedCode);
     }
 
+    languageInfo(language) {
+        const matchedLanguage = this.languages.filter(
+            lang => lang.prop === language || lang.title === language
+        )[0];
+
+        if (matchedLanguage === null || matchedLanguage === undefined) {
+            return this.defaultLanguage;
+        } else {
+            return matchedLanguage;
+        }
+    }
+
     render() {
         const { language, children } = this.props;
-        return <figure className="jarombek-code-snippet">
-                 <code title="Cypher" ref={code => this.highlightedCode = code} className={`cpp hljs`}>
-                    {children}
-                 </code>
-               </figure>;
+
+        const { title, highlightClass } = this.languageInfo(language);
+
+        return (
+           <figure className="jarombek-code-snippet">
+             <code title={title} ref={code => this.highlightedCode = code}
+                   className={`${highlightClass} hljs`}>
+                {children}
+             </code>
+           </figure>
+        );
     }
 }
 
