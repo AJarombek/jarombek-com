@@ -28,11 +28,13 @@ const BlogPost = ({ title, type, date, tags=[], content, sources=[] }) => {
             </div>
             <div className="jarombek-blog-sources">
                 {
-                    sources.forEach(src => {
-                        return <p>
-                        `[${count++}] ${src.content}`
+                    sources.map(src =>
+                        <p key={count} className="jarombek-blog-source">
+                            {`[${++count}] ${src.startName}`}
+                                <a href={`${src.link}`}>{`${src.linkName}`}</a>
+                            {`${src.endName}`}
                         </p>
-                    })
+                    )
                 }
             </div>
         </div>

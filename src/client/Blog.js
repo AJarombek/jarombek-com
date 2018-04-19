@@ -38,6 +38,20 @@ class Blog extends React.Component {
                             name: "NoSQL"
                         }
                     ],
+                    sources: [
+                        {
+                            startName: "Ian Robinson, Jim Webber & Emil Eifrem, ",
+                            endName: " (Beijing: O'Reilly, 2015), 6",
+                            linkName: "Graph Databases",
+                            link: "http://shop.oreilly.com/product/0636920028246.do"
+                        },
+                        {
+                            startName: "",
+                            endName: "., 152",
+                            linkName: "Ibid",
+                            link: "http://shop.oreilly.com/product/0636920028246.do"
+                        }
+                    ],
                     content:
                         <div>
                             <p>
@@ -127,8 +141,7 @@ CREATE (greenwich)-[:NEIGHBORS_OF]->(stamford),
                             <p>
                                 I will look further at Neo4j and build off this graph in future discoveries.  I hope this shows you just how simple it is to build a graph database!
                             </p>
-                        </div>,
-                    sources: []
+                        </div>
                 }
             ]
         };
