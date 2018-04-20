@@ -1,4 +1,6 @@
 import express from 'express';
+import mongoose from 'mongoose';
+import helmet from 'helmet';
 import path from 'path';
 import React from 'react';
 import {renderToString} from 'react-dom/server';
@@ -12,6 +14,14 @@ import Home from "../client/Home";
  * @author Andrew Jarombek
  * @since 4/3/2018
  */
+
+mongoose.connect('mongodb://127.0.0.1/jarombekcom');
+
+// Mongoose model objects for MongoDB schemas
+const Post = require('./model/post');
+
+// API CRUD routes for a MongoDB collection
+const postRouter = require('./route/postRouter')(Post);
 
 global.React = React;
 
@@ -57,6 +67,9 @@ const respond = (req, res) => {
 };
 
 const app = express();
+
+app.use(helmet({}));
+app.use('/api/post', postRouter);
 
 app.use(express.static(path.join(__dirname, '..')));
 app.use(respond);

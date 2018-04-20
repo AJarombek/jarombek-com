@@ -126,3 +126,14 @@ yarn add highlightjs
 
 # Stage 0 JavaScript for the static class properties
 yarn add babel-preset-stage-0 --dev
+
+# Install react-redux to allow the app to follow the flux pattern
+yarn add react-redux
+
+# Update the current version of yarn to latest
+curl -o- -L https://yarnpkg.com/install.sh | bash
+
+# Mongoose to use MongoDB and add schemas to the schemaless MongoDB collections
+# Helmet to protect our API endpoints HTTP requests
+yarn add mongoose
+yarn add helmet
