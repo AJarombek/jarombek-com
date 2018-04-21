@@ -8,6 +8,9 @@ import {StaticRouter, Switch, Route} from 'react-router-dom';
 import Blog from "../client/Blog";
 import Home from "../client/Home";
 
+import Post from "./model/post";
+import postRoute from "./route/postRouter";
+
 /**
  * The main file for the Express/Node.js server.  The server provides an API and
  * server side rendering
@@ -17,11 +20,8 @@ import Home from "../client/Home";
 
 mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 
-// Mongoose model objects for MongoDB schemas
-const Post = require('./model/post');
-
 // API CRUD routes for a MongoDB collection
-const postRouter = require('./route/postRouter')(Post);
+const postRouter = postRoute(Post);
 
 global.React = React;
 

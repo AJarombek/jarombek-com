@@ -137,3 +137,6 @@ curl -o- -L https://yarnpkg.com/install.sh | bash
 # Helmet to protect our API endpoints HTTP requests
 yarn add mongoose
 yarn add helmet
+
+# Isomorphic fetch will work both on the server and in the browser
+yarn add isomorphic-fetch
