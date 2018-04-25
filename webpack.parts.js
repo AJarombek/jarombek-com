@@ -93,7 +93,7 @@ exports.loadServerSass = ({ include, exclude } = {}) => ({
                 test: /\.scss$/,
                 include,
                 exclude,
-                use: ["style-loader", "css-loader", "isomorphic-sass-loader"]
+                use: ["isomorphic-style-loader", "css-loader", "sass-loader"]
             }
         ]
     }

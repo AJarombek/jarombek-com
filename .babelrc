@@ -1,4 +1,14 @@
 {
-  "presets": ["env", "stage-0", "react"],
+  "presets": [
+    [
+      "env", {
+        "targets": {
+          "node": "current"
+        }
+      }
+    ],
+    "stage-0",
+    "react"
+  ],
   "plugins": ["react-hot-loader/babel"]
 }
