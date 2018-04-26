@@ -30,6 +30,16 @@ class CodeSnippet extends React.Component {
                 prop: "javascript",
                 title: "JavaScript",
                 highlightClass: "javascript"
+            },
+            {
+                prop: "json",
+                title: "JSON",
+                highlightClass: "json"
+            },
+            {
+                prop: "bash",
+                title: "Bash",
+                highlightClass: "bash"
             }
         ];
     }

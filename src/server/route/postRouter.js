@@ -16,7 +16,7 @@ const routes = (Post) => {
             find().catch(error => res.status(500).send(error));
 
             async function find() {
-                const posts = await Post.find().exec();
+                const posts = await Post.find().sort({date: -1}).exec();
 
                 res.json(posts);
             }
