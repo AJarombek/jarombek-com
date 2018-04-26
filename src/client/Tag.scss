@@ -10,6 +10,13 @@ $neo4j-green: rgba(98, 179, 69, 0.6);
 $nodejs-green: rgba(141, 201, 76, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
+$python-yellow: rgba(249, 239, 180, 0.6);
+$sql-blue: rgba(33, 115, 199, 0.6);
+$java-blue: rgba(219, 231, 243, 0.6);
+$java8-blue: rgba(244, 247, 249, 0.6);
+$c-blue: rgba(168, 185, 204, 0.6);
+$swift-red: rgba(236, 69, 72, 0.6);
+$php-purple: rgba(118, 122, 179, 0.6);
 $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-neo4j {
@@ -26,6 +33,34 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-ecmascript6 {
   background-color: $ecmascript6-yellow;
+}
+
+.jarombek-tag-color-python {
+  background-color: $python-yellow;
+}
+
+.jarombek-tag-color-sql {
+  background-color: $sql-blue;
+}
+
+.jarombek-tag-color-java {
+  background-color: $java-blue;
+}
+
+.jarombek-tag-color-java8 {
+  background-color: $java8-blue;
+}
+
+.jarombek-tag-color-c {
+  background-color: lighten($c-blue, 10%);
+}
+
+.jarombek-tag-color-swift {
+  background-color: lighten($swift-red, 10%);
+}
+
+.jarombek-tag-color-php {
+  background-color: lighten($php-purple, 10%);
 }
 
 .jarombek-tag-color-default {
@@ -67,6 +102,7 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-picture {
   height: 40px;
+  max-width: 45px;
   margin-top: 5px;
   margin-bottom: 5px;
   margin-left: 5px;

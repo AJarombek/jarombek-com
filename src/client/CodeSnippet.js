@@ -40,6 +40,31 @@ class CodeSnippet extends React.Component {
                 prop: "bash",
                 title: "Bash",
                 highlightClass: "bash"
+            },
+            {
+                prop: "java",
+                title: "Java",
+                highlightClass: "java"
+            },
+            {
+                prop: "swift",
+                title: "Swift",
+                highlightClass: "swift"
+            },
+            {
+                prop: "python",
+                title: "Python",
+                highlightClass: "python"
+            },
+            {
+                prop: "php",
+                title: "PHP",
+                highlightClass: "php"
+            },
+            {
+                prop: "c",
+                title: "C",
+                highlightClass: "cpp"
             }
         ];
     }
