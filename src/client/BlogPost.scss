@@ -84,14 +84,21 @@ $inline-gray: rgba(204, 204, 204, 0.25);
 
   @include sylexiad;
 
-  p {
-    font-size: 24px;
+  h5, p {
     color: #333;
     letter-spacing: 0.7px;
-    line-height: 1.5;
 
     padding-top: 15px;
     padding-bottom: 15px;
+  }
+
+  p {
+    font-size: 24px;
+    line-height: 1.5;
+  }
+
+  h5 {
+    font-size: 36px;
   }
 
   a {

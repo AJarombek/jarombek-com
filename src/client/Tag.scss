@@ -8,6 +8,8 @@
 
 $neo4j-green: rgba(98, 179, 69, 0.6);
 $nodejs-green: rgba(141, 201, 76, 0.6);
+$mongodb-green: rgba(98, 172, 82, 0.6);
+$vim-green: rgba(69, 153, 53, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
 $python-yellow: rgba(249, 239, 180, 0.6);
@@ -25,6 +27,14 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-nodejs {
   background-color: $nodejs-green;
+}
+
+.jarombek-tag-color-mongodb {
+  background-color: lighten($mongodb-green, 10%);
+}
+
+.jarombek-tag-color-vim {
+  background-color: lighten($vim-green, 10%);
 }
 
 .jarombek-tag-color-javascript {
