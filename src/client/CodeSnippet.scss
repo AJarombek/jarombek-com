@@ -7,6 +7,11 @@
 
 @import "global";
 
+.jarombek-code-snippet {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
 .hljs {
   @include fantasque-bold;
 
