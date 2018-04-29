@@ -65,6 +65,21 @@ class CodeSnippet extends React.Component {
                 prop: "c",
                 title: "C",
                 highlightClass: "cpp"
+            },
+            {
+                prop: "ejs",
+                title: "EJS",
+                highlightClass: "javascript"
+            },
+            {
+                prop: "html",
+                title: "HTML",
+                highlightClass: "html"
+            },
+            {
+                prop: "typescript",
+                title: "TypeScript",
+                highlightClass: "typescript"
             }
         ];
     }

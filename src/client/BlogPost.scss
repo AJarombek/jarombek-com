@@ -112,6 +112,10 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     font-size: 16px;
   }
 
+  strong {
+    @include sylexiad-bold;
+  }
+
   code.jarombek-inline-code {
     @include fantasque-bold;
     font-size: 20px;

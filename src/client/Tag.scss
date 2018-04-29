@@ -18,9 +18,13 @@ $sql-blue: rgba(33, 115, 199, 0.6);
 $java-blue: rgba(219, 231, 243, 0.6);
 $java8-blue: rgba(244, 247, 249, 0.6);
 $c-blue: rgba(168, 185, 204, 0.6);
+$typescript-blue: rgba(37, 122, 204, 0.6);
+$css-blue: rgba(38, 77, 228, 0.6);
 $swift-red: rgba(236, 69, 72, 0.6);
 $mongoose-red: rgba(157, 56, 56, 0.6);
 $gulp-red: rgba(212, 74, 71, 0.6);
+$angular-red: rgba(222, 52, 50, 0.6);
+$html-orange: rgba(239, 101, 55, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $express-gray: rgba(224, 226, 228, 0.6);
 $default: rgba(204, 204, 204, 0.6);
@@ -73,6 +77,14 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($c-blue, 10%);
 }
 
+.jarombek-tag-color-typescript {
+  background-color: lighten($typescript-blue, 10%);
+}
+
+.jarombek-tag-color-css {
+  background-color: lighten($css-blue, 10%);
+}
+
 .jarombek-tag-color-swift {
   background-color: lighten($swift-red, 10%);
 }
@@ -83,6 +95,14 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-gulp {
   background-color: lighten($gulp-red, 10%);
+}
+
+.jarombek-tag-color-angular {
+  background-color: lighten($angular-red, 10%);
+}
+
+.jarombek-tag-color-html {
+  background-color: lighten($html-orange, 10%);
 }
 
 .jarombek-tag-color-php {
