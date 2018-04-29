@@ -80,6 +80,21 @@ class CodeSnippet extends React.Component {
                 prop: "typescript",
                 title: "TypeScript",
                 highlightClass: "typescript"
+            },
+            {
+                prop: "sql",
+                title: "SQL",
+                highlightClass: "sql"
+            },
+            {
+                prop: "yaml",
+                title: "YAML",
+                highlightClass: "yaml"
+            },
+            {
+                prop: "sass",
+                title: "Sass",
+                highlightClass: "sass"
             }
         ];
     }
