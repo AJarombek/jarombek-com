@@ -175,7 +175,8 @@ const clientProdConfig = merge([
     parts.loadImages({
         options: {
             limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
-            name: 'server/[name].[ext]'
+            name: 'server/[name].[ext]',
+            publicPath: 'http://localhost:8080/'
         }
     })
 ]);

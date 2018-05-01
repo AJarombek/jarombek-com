@@ -16,6 +16,7 @@ const RoutedApp = () => (
     <Router>
         <Switch>
             <Route exact path="/" component={Home} />
+            <Route path="/blog/:name" component={Blog}/>
             <Route path="/blog" component={Blog}/>
             <Route component={Home}/>
         </Switch>

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /**
  * Blog component
  * @author Andrew Jarombek
@@ -5,6 +6,7 @@
  */
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import fetch from 'isomorphic-fetch';
 import WebsiteTemplate from './WebsiteTemplate';
 import BlogList from './BlogList';
@@ -17,16 +19,69 @@ class Blog extends React.Component {
     constructor(props) {
         super(props);
         console.log('Inside Blog constructor');
+        this.postsCache = null;
+        this.prefix = "";
         this.state = {};
     }
 
+    static ALL_POSTS_PREFIX = "";
+    static ONE_POST_PREFIX = "../";
+
+    static PropTypes = {
+        match: PropTypes.object.isRequired
+    };
+
     componentDidMount() {
-        if (!this.state.posts) {
-            console.info("Fetching Posts...");
-            this.fetchPosts();
+        console.info("Inside Blog ComponentDidMount");
+
+        console.info(this.props);
+
+        const {name} = this.props.match.params;
+
+        if (name) {
+            console.info(`Fetching Post with name ${name}`);
+            this.fetchPost(name);
+            this.prefix = Blog.ONE_POST_PREFIX;
         } else {
-            console.info("State Already Set");
-            console.info(JSON.stringify(this.state));
+            console.info(`Fetching All Posts`);
+            this.fetchPosts();
+            this.prefix = Blog.ALL_POSTS_PREFIX;
+        }
+    }
+
+    componentWillReceiveProps(nextProps) {
+        console.info("Inside Blog ComponentWillReceiveProps");
+
+        const {name} = nextProps.match.params;
+
+        if (!this.state.posts && !this.postsCache) {
+            console.info("Fetching Posts...");
+
+            if (name) {
+                this.fetchPost(nextProps.params.name);
+                this.prefix = Blog.ONE_POST_PREFIX;
+            } else {
+                this.fetchPosts();
+                this.prefix = Blog.ALL_POSTS_PREFIX;
+            }
+
+        } else {
+            if (name) {
+                const existingPost = this.postsCache.filter(post =>
+                    post.name === name);
+
+                if (existingPost.length >= 1) {
+                    this.setState({posts: existingPost});
+                } else {
+                    this.fetchPost(name);
+                }
+
+                this.prefix = Blog.ONE_POST_PREFIX;
+
+            } else {
+                this.fetchPosts();
+                this.prefix = Blog.ALL_POSTS_PREFIX;
+            }
         }
     }
 
@@ -36,6 +91,18 @@ class Blog extends React.Component {
             .then(json => {
                 console.info(`Posts JSON: ${JSON.stringify(json)}`);
                 const posts = this.createPostsJSX(json);
+                this.setState({posts});
+                this.postsCache = posts;
+            })
+            .catch(err => console.error(err));
+    }
+
+    fetchPost(name) {
+        fetch(`http://localhost:8080/api/post/${name}`)
+            .then(res => res.json())
+            .then(json => {
+                console.info(`Posts JSON: ${JSON.stringify(json)}`);
+                const posts = [this.createPostJSX(json)];
                 this.setState({posts});
             })
             .catch(err => console.error(err));
@@ -62,7 +129,6 @@ class Blog extends React.Component {
     }
 
     createContentJSX(content) {
-        console.log(JSON.stringify(content));
         if (content) {
             return content.map(e => {
                     let Tag = e.el;
@@ -79,7 +145,9 @@ class Blog extends React.Component {
                     }
 
                     if (Tag === 'img') {
-                        return <Tag key={e.toString()} { ...attributes } />
+                        const {src, ...others} = attributes;
+                        return <Tag key={e.toString()} src={ require(`${src}`) }
+                                    { ...others } />
                     }
 
                     return <Tag key={e.toString()} { ...attributes }>{value}{

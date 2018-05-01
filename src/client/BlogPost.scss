@@ -58,18 +58,24 @@ $inline-gray: rgba(204, 204, 204, 0.25);
 }
 
 .jarombek-blog-title {
-  @include sylexiad;
-  color: #333;
-  font-size: 48px;
   padding-top: 35px;
   padding-bottom: 50px;
+  text-decoration: none;
+
+  cursor: pointer;
 
   grid-area: title / title-start / tags / title-end;
   justify-self: center;
   align-self: center;
+}
+
+.jarombek-blog-title-content {
+  @include sylexiad;
+  color: #333;
+  font-size: 48px;
+
   text-align: center;
 
-  cursor: pointer;
   @include transition(color, #111);
 }
 
@@ -119,6 +125,12 @@ $inline-gray: rgba(204, 204, 204, 0.25);
 
   strong {
     @include sylexiad-bold;
+  }
+
+  .jarombek-blog-image {
+    max-width: 100%;
+    display: block;
+    margin: auto;
   }
 
   code.jarombek-inline-code {

@@ -22,6 +22,7 @@ $c-blue: rgba(168, 185, 204, 0.6);
 $typescript-blue: rgba(37, 122, 204, 0.6);
 $css-blue: rgba(38, 77, 228, 0.6);
 $webpack-blue: rgba(157, 186, 232, 0.6);
+$react-blue: rgba(97, 218, 250, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
 $bootstrap-purple: rgba(85, 39, 76, 0.6);
@@ -100,6 +101,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-css {
   background-color: lighten($css-blue, 10%);
+}
+
+.jarombek-tag-color-react {
+  background-color: $react-blue;
 }
 
 .jarombek-tag-color-swift {
