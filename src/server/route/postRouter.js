@@ -10,13 +10,32 @@ const routes = (Post) => {
 
     const postRouter = express.Router();
 
+    let postCountCache = null;
+
     postRouter.route('/')
         .get((req, res) => {
+
+            let {page, limit} = req.query;
+
+            page = page || 1;
+            limit = limit || 5;
+
+            const skip = (page - 1) * limit;
 
             find().catch(error => res.status(500).send(error));
 
             async function find() {
-                const posts = await Post.find().sort({date: -1}).exec();
+
+                if (!postCountCache) {
+                    postCountCache = await Post.count({});
+                }
+
+                const posts = await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
+
+                const {first, prev, next, last} =
+                    generateLinks(postCountCache, page, limit, '/api/post');
+
+                res.set('Link', `${first}${prev}${next}${last}`);
 
                 res.json(posts);
             }
@@ -47,5 +66,31 @@ const routes = (Post) => {
 
     return postRouter;
 };
+
+function generateLinks(count, page, limit, url) {
+    const location = page * limit;
+
+    let first = '';
+    let prev = '';
+    let next = '';
+    let last = '';
+
+    if (page > 1) {
+        prev = `<${url}?page=${page - 1}&limit=${limit}>; rel="prev";`;
+        first = `<${url}?page=1&limit=${limit}>; rel="first";`;
+    }
+
+    if (location + limit < count) {
+        next = `<${url}?page=${page + 1}&limit=${limit}>; rel="next";`;
+        last = `<${url}?page=1&limit=${Math.ceil(count / parseFloat(limit))}>; rel="last";`;
+    }
+
+    return {
+        first,
+        prev,
+        next,
+        last
+    }
+}
 
 module.exports = routes;
