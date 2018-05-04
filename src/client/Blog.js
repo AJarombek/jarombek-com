@@ -20,12 +20,12 @@ class Blog extends React.Component {
         super(props);
         console.log('Inside Blog constructor');
         this.postsCache = null;
-        this.prefix = "";
+        this.page = Blog.ALL_POSTS;
         this.state = {};
     }
 
-    static ALL_POSTS_PREFIX = "";
-    static ONE_POST_PREFIX = "../";
+    static ALL_POSTS = 0;
+    static ONE_POST = 1;
 
     static PropTypes = {
         match: PropTypes.object.isRequired
@@ -39,13 +39,15 @@ class Blog extends React.Component {
         const {name} = this.props.match.params;
 
         if (name) {
+            this.setState({page: Blog.ONE_POST});
+
             console.info(`Fetching Post with name ${name}`);
             this.fetchPost(name);
-            this.prefix = Blog.ONE_POST_PREFIX;
         } else {
+            this.setState({page: Blog.ALL_POSTS});
+
             console.info(`Fetching All Posts`);
             this.fetchPosts();
-            this.prefix = Blog.ALL_POSTS_PREFIX;
         }
     }
 
@@ -59,10 +61,10 @@ class Blog extends React.Component {
 
             if (name) {
                 this.fetchPost(nextProps.params.name);
-                this.prefix = Blog.ONE_POST_PREFIX;
+                this.setState({page: Blog.ONE_POST});
             } else {
                 this.fetchPosts();
-                this.prefix = Blog.ALL_POSTS_PREFIX;
+                this.setState({page: Blog.ALL_POSTS});
             }
 
         } else {
@@ -76,18 +78,28 @@ class Blog extends React.Component {
                     this.fetchPost(name);
                 }
 
-                this.prefix = Blog.ONE_POST_PREFIX;
+                this.setState({page: Blog.ONE_POST});
 
             } else {
                 this.fetchPosts();
-                this.prefix = Blog.ALL_POSTS_PREFIX;
+                this.setState({page: Blog.ALL_POSTS});
             }
         }
     }
 
     fetchPosts() {
         fetch('http://localhost:8080/api/post')
-            .then(res => res.json())
+            .then(res => {
+                const link = res.headers.get('Link');
+                const total = res.headers.get('X-Total-Count');
+                console.info(`Link Header: ${link}`);
+                console.info(`X-Total-Count Header: ${total}`);
+
+                const {prev, next} = this.parseLinks(link);
+                this.setState({prev, next});
+
+                return res.json();
+            })
             .then(json => {
                 console.info(`Posts JSON: ${JSON.stringify(json)}`);
                 const posts = this.createPostsJSX(json);
@@ -158,6 +170,33 @@ class Blog extends React.Component {
             return null;
         }
 
+    }
+
+    parseLinks(links) {
+        // Regular Expression to Parse Links
+        const globalRegex = /<([a-z0-9/?&=]+)>; rel="(\w+)"/g;
+        const regex = /<([a-z0-9/?&=]+)>; rel="(\w+)"/;
+
+        const matches = links.match(globalRegex);
+
+        const linksObject = this.generateLinks(matches, regex);
+        console.info(linksObject);
+        return linksObject;
+    }
+
+    generateLinks(list, regex) {
+        if (list.length === 0) {
+            return {};
+        }
+
+        const [link, ...remaining] = list;
+
+        const [, url, destination] = link.match(regex);
+
+        return {
+            [`${destination}`]: url,
+            ...this.generateLinks(remaining, regex)
+        }
     }
 
     render() {

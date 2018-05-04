@@ -36,6 +36,7 @@ const routes = (Post) => {
                     generateLinks(postCountCache, page, limit, '/api/post');
 
                 res.set('Link', `${first}${prev}${next}${last}`);
+                res.set('X-Total-Count', postCountCache);
 
                 res.json(posts);
             }
@@ -82,7 +83,7 @@ function generateLinks(count, page, limit, url) {
 
     if (location + limit < count) {
         next = `<${url}?page=${page + 1}&limit=${limit}>; rel="next";`;
-        last = `<${url}?page=1&limit=${Math.ceil(count / parseFloat(limit))}>; rel="last";`;
+        last = `<${url}?page=${Math.ceil(count / parseFloat(limit))}&limit=${limit}>; rel="last";`;
     }
 
     return {
