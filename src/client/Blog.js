@@ -22,7 +22,10 @@ class Blog extends React.Component {
     constructor(props) {
         super(props);
         console.log('Inside Blog constructor');
+
         this.postsCache = null;
+        this.nextCache = null;
+
         this.page = Blog.ALL_POSTS;
         this.state = {};
     }
@@ -54,6 +57,17 @@ class Blog extends React.Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        console.info("Inside Blog componentDidUpdate");
+
+        if (this.props.location.pathname !== '/blog' &&
+            this.props.location.pathname !== prevProps.location.pathname) {
+
+            console.info("Scrolling to Top");
+            window.scrollTo(0, 0);
+        }
+    }
+
     componentWillReceiveProps(nextProps) {
         console.info("Inside Blog ComponentWillReceiveProps");
 
@@ -81,11 +95,18 @@ class Blog extends React.Component {
                     this.fetchPost(name);
                 }
 
-                this.setState({page: Blog.ONE_POST, prev: null, next: null});
+                this.setState({
+                    page: Blog.ONE_POST,
+                    prev: null,
+                    next: null
+                });
 
             } else {
-                this.fetchPosts();
-                this.setState({page: Blog.ALL_POSTS});
+                this.setState({
+                    posts: this.postsCache,
+                    page: Blog.ALL_POSTS,
+                    next: this.nextCache
+                });
             }
         }
     }
@@ -100,6 +121,7 @@ class Blog extends React.Component {
 
                 const {prev, next} = this.parseLinks(link);
                 this.setState({prev, next});
+                this.nextCache = next;
 
                 return res.json();
             })
@@ -108,7 +130,7 @@ class Blog extends React.Component {
 
                 // You cant perform a spread operator in an array on null,
                 // so create an empty array if no posts exist
-                const existingPosts = this.state.posts ? this.state.posts : [];
+                const existingPosts = this.postsCache ? this.postsCache : [];
 
                 const posts = [
                     ...existingPosts,
@@ -130,17 +152,8 @@ class Blog extends React.Component {
             })
             .then(json => {
                 console.info(`Posts JSON: ${JSON.stringify(json)}`);
-                const posts = [this.createPostJSX(json)];
-                this.setState({posts});
-
-                const existingPosts = this.state.posts ? this.state.posts : [];
-
-                const allPosts = [
-                    posts,
-                    ...existingPosts
-                ];
-
-                this.postsCache = this.uniquePosts(allPosts);
+                const post = this.createPostJSX(json);
+                this.setState({posts: [post]});
             })
             .catch(err => console.error(err));
     }
