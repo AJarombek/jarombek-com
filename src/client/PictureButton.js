@@ -9,11 +9,12 @@ import PropTypes from 'prop-types';
 
 import './PictureButton.scss';
 
-const Button = ({activeColor, passiveColor, size, picture, children, className}) => {
+const Button = ({activeColor, passiveColor, size, picture, children, className, onClick}) => {
     return (
         <div className={className}>
             <button className={`jarbek-button active-color-${activeColor}
-                                passive-color-${passiveColor} jarbek-button-${size}`}>
+                                passive-color-${passiveColor} jarbek-button-${size}`}
+                    onClick={onClick}>
                 <div className={`jarbek-picture-button`}>
                     <div className={`jarbek-pb-picture`}>
                         <img src={ require(`${picture}`) } />
@@ -33,7 +34,8 @@ Button.propTypes = {
     size: PropTypes.string,
     picture: PropTypes.string,
     children: PropTypes.any,
-    className: PropTypes.string
+    className: PropTypes.string,
+    onClick: PropTypes.func
 };
 
 Button.defaultProps = {

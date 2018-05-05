@@ -17,8 +17,10 @@ const routes = (Post) => {
 
             let {page, limit} = req.query;
 
-            page = page || 1;
-            limit = limit || 5;
+            // the unary + coerces the strings to numbers.  It is the fastest way to
+            // convert strings to numbers in JavaScript
+            page = +page || 1;
+            limit = +limit || 5;
 
             const skip = (page - 1) * limit;
 

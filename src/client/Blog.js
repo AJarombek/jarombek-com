@@ -42,7 +42,7 @@ class Blog extends React.Component {
         const {name} = this.props.match.params;
 
         if (name) {
-            this.setState({page: Blog.ONE_POST});
+            this.setState({page: Blog.ONE_POST, prev: null, next: null});
 
             console.info(`Fetching Post with name ${name}`);
             this.fetchPost(name);
@@ -64,7 +64,7 @@ class Blog extends React.Component {
 
             if (name) {
                 this.fetchPost(nextProps.params.name);
-                this.setState({page: Blog.ONE_POST});
+                this.setState({page: Blog.ONE_POST, prev: null, next: null});
             } else {
                 this.fetchPosts();
                 this.setState({page: Blog.ALL_POSTS});
@@ -81,7 +81,7 @@ class Blog extends React.Component {
                     this.fetchPost(name);
                 }
 
-                this.setState({page: Blog.ONE_POST});
+                this.setState({page: Blog.ONE_POST, prev: null, next: null});
 
             } else {
                 this.fetchPosts();
@@ -105,9 +105,20 @@ class Blog extends React.Component {
             })
             .then(json => {
                 console.info(`Posts JSON: ${JSON.stringify(json)}`);
-                const posts = this.createPostsJSX(json);
-                this.setState({posts});
-                this.postsCache = posts;
+
+                // You cant perform a spread operator in an array on null,
+                // so create an empty array if no posts exist
+                const existingPosts = this.state.posts ? this.state.posts : [];
+
+                const posts = [
+                    ...existingPosts,
+                    ...this.createPostsJSX(json)
+                ];
+
+                const uniquePosts = this.uniquePosts(posts);
+
+                this.setState({posts: uniquePosts});
+                this.postsCache = uniquePosts;
             })
             .catch(err => console.error(err));
     }
@@ -115,13 +126,21 @@ class Blog extends React.Component {
     fetchPost(name) {
         fetch(`http://localhost:8080/api/post/${name}`)
             .then(res => {
-                this.setState({prev: null, next: null});
                 return res.json();
             })
             .then(json => {
                 console.info(`Posts JSON: ${JSON.stringify(json)}`);
                 const posts = [this.createPostJSX(json)];
                 this.setState({posts});
+
+                const existingPosts = this.state.posts ? this.state.posts : [];
+
+                const allPosts = [
+                    posts,
+                    ...existingPosts
+                ];
+
+                this.postsCache = this.uniquePosts(allPosts);
             })
             .catch(err => console.error(err));
     }
@@ -202,11 +221,19 @@ class Blog extends React.Component {
         return {
             [`${destination}`]: url,
             ...this.generateLinks(remaining, regex)
-        }
+        };
+    }
+
+    uniquePosts(posts) {
+        const postsMap = new Map(posts.map((p) => [p.name, p]));
+
+        console.info(postsMap);
+
+        return [ ...postsMap.values() ];
     }
 
     render() {
-        const {posts} = this.state;
+        const {posts, next} = this.state;
         console.log('Inside Blog Render');
         console.info(this.state);
         return (
@@ -217,7 +244,8 @@ class Blog extends React.Component {
                         { (this.state.next) ?
                             <PictureButton className="jarombek-blog-next" activeColor="default"
                                            passiveColor="white" size="xl"
-                                           picture="./assets/arrow.png">
+                                           picture="./assets/arrow.png"
+                                           onClick={() => this.fetchPosts(next)}>
                                 Load More
                             </PictureButton> :
                             <Link className="jarombek-blog-next" to='/'>

@@ -27,7 +27,7 @@ global.React = React;
 
 const renderComponentsToHTML = (url) => ({
     html: renderToString(
-        <StaticRouter location={url} context={{}}>
+        <StaticRouter onUpdate={() => window.scrollTo(0, 0)} location={url} context={{}}>
             <Switch>
                 <Route exact path="/" component={Home} />
                 <Route path="/blog/:name" component={Blog}/>

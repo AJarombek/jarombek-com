@@ -13,7 +13,7 @@ import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 window.React = React;
 
 const RoutedApp = () => (
-    <Router>
+    <Router onUpdate={() => window.scrollTo(0, 0)}>
         <Switch>
             <Route exact path="/" component={Home} />
             <Route path="/blog/:name" component={Blog}/>
