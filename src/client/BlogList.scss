@@ -15,7 +15,7 @@
 
   // Shorthand for grid-template styles
   // Goes in this order: row-start, column-start, row-end, column-end
-  grid-area: top / left / bottom / right;
+  grid-area: top / left / bottom-blog / right;
   justify-self: center;
   align-self: center;
 }

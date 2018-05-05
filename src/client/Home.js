@@ -27,11 +27,11 @@ class Home extends React.Component {
                 </div>
                 <p className="sub-title">Website Under Construction</p>
                 <Link to="/blog" className="blog-button">
-                    <Button color="primary">
+                    <Button activeColor="primary">
                         BLOG
                     </Button>
                 </Link>
-                <Button className="info-button" color="default">
+                <Button className="info-button" activeColor="default">
                     INFO
                 </Button>
                 <TitleImage className="footer-icon" src="./assets/github.png" title="GITHUB"

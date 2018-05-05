@@ -9,8 +9,16 @@
   padding-bottom: 60px;
 
   display: grid;
-  grid-template-rows: [top] 100% [bottom];
+  grid-template-rows: [top] 95% [bottom-blog] 5% [bottom];
   grid-template-columns: [left] 100% [right];
+}
+
+.jarombek-blog-next {
+  grid-area: bottom-blog / left / bottom / right;
+  justify-self: center;
+  align-self: center;
+
+  text-align: center;
 }
 
 .jarombek-blog-background {

@@ -7,9 +7,12 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Link} from 'react-router-dom';
 import fetch from 'isomorphic-fetch';
 import WebsiteTemplate from './WebsiteTemplate';
 import BlogList from './BlogList';
+import PictureButton from './PictureButton';
+import TitleImage from './TitleImage';
 import CodeSnippet from './CodeSnippet';
 
 import './Blog.scss';
@@ -87,8 +90,8 @@ class Blog extends React.Component {
         }
     }
 
-    fetchPosts() {
-        fetch('http://localhost:8080/api/post')
+    fetchPosts(url='/api/post') {
+        fetch(`http://localhost:8080${url}`)
             .then(res => {
                 const link = res.headers.get('Link');
                 const total = res.headers.get('X-Total-Count');
@@ -111,7 +114,10 @@ class Blog extends React.Component {
 
     fetchPost(name) {
         fetch(`http://localhost:8080/api/post/${name}`)
-            .then(res => res.json())
+            .then(res => {
+                this.setState({prev: null, next: null});
+                return res.json();
+            })
             .then(json => {
                 console.info(`Posts JSON: ${JSON.stringify(json)}`);
                 const posts = [this.createPostJSX(json)];
@@ -208,6 +214,17 @@ class Blog extends React.Component {
                 <div className="jarombek-blog-background">
                     <div className="jarombek-blog">
                         <BlogList blogList={posts} />
+                        { (this.state.next) ?
+                            <PictureButton className="jarombek-blog-next" activeColor="default"
+                                           passiveColor="white" size="xl"
+                                           picture="./assets/arrow.png">
+                                Load More
+                            </PictureButton> :
+                            <Link className="jarombek-blog-next" to='/'>
+                                <TitleImage className="footer-icon" src="./assets/jarombek.png"
+                                            title="HOME" />
+                            </Link>
+                        }
                     </div>
                 </div>
             </WebsiteTemplate>

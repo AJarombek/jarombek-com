@@ -20,7 +20,7 @@ const WebsiteNav = () => {
                 Andrew Jarombek
             </NavLink>
             <NavLink to="/" className="jarombek-nav-right">
-                <Button className="subscribe-button" color="primary" size="medium">
+                <Button className="subscribe-button" activeColor="primary" size="medium">
                     SUBSCRIBE
                 </Button>
             </NavLink>
