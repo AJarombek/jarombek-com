@@ -105,6 +105,16 @@ $inline-gray: rgba(204, 204, 204, 0.25);
 
   h5 {
     font-size: 36px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+
+  h6 {
+    font-size: 32px;
+    @include fantasque-bold;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    color: #333;
   }
 
   a {
@@ -145,6 +155,12 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     margin-left: 2px;
 
     background: $inline-gray;
+  }
+
+  code.jarombek-header-code {
+    @include fantasque-bold;
+    font-size: 32px;
+    color: #333;
   }
 }
 

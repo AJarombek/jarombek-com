@@ -83,7 +83,7 @@ function generateLinks(count, page, limit, url) {
         first = `<${url}?page=1&limit=${limit}>; rel="first";`;
     }
 
-    if (location + limit < count) {
+    if (location < count) {
         next = `<${url}?page=${page + 1}&limit=${limit}>; rel="next";`;
         last = `<${url}?page=${Math.ceil(count / parseFloat(limit))}&limit=${limit}>; rel="last";`;
     }
