@@ -25,6 +25,11 @@ const postRouter = postRoute(Post);
 
 global.React = React;
 
+/**
+ * Server side render the HTML using React.  Decide what to render with React Router
+ * @param url - the url of the HTTP request
+ * @returns {{html: *}} - HTML specific to this route
+ */
 const renderComponentsToHTML = (url) => ({
     html: renderToString(
         <StaticRouter location={url} context={{}}>
@@ -38,6 +43,11 @@ const renderComponentsToHTML = (url) => ({
     )
 });
 
+/**
+ * Place the route specific HTML inside a generic HTML template
+ * @param html - the route specific HTML
+ * @returns {string} - HTML to be sent in the response
+ */
 const sendHtmlPage = ({html}) =>
     `
     <!DOCTYPE html>
@@ -58,9 +68,20 @@ const sendHtmlPage = ({html}) =>
     </html>
     `;
 
+/**
+ * First render the HTML components of the page based on the URL.  Then place this HTML body inside
+ * a generic HTML template to return
+ * @param url - the url of the HTTP request
+ * @returns {string} - HTML to be sent in the response
+ */
 const htmlResponse = (url) =>
     sendHtmlPage(renderComponentsToHTML(url));
 
+/**
+ * Take the url passed in and render the HTML appropriately.  Then send it back in the response
+ * @param req - HTTP request
+ * @param res - HTTP response
+ */
 const respond = (req, res) => {
     const response = htmlResponse(req.url);
     console.info(response);
@@ -73,6 +94,8 @@ app.use(helmet({}));
 app.use('/api/post', postRouter);
 
 app.use(express.static(path.join(__dirname, '..')));
+
+// Send the HTML and JavaScript bundle
 app.use(respond);
 
 const port = process.env.port || 8080;

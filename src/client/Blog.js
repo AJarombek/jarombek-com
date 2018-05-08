@@ -23,10 +23,15 @@ class Blog extends React.Component {
         super(props);
         console.log('Inside Blog constructor');
 
+        // Cache the posts loaded from the server for when the state gets cleared
         this.postsCache = null;
+
+        // Cache the next link from the server for when the state gets cleared
         this.nextCache = null;
 
+        // The type of page we are viewing.  It can be a single post or many posts
         this.page = Blog.ALL_POSTS;
+
         this.state = {};
     }
 
@@ -37,13 +42,20 @@ class Blog extends React.Component {
         match: PropTypes.object.isRequired
     };
 
+    /**
+     * Called when the component first mounts.  Here is where we should make setup API calls
+     * and initialize the state
+     */
     componentDidMount() {
         console.info("Inside Blog ComponentDidMount");
 
         console.info(this.props);
 
+        // Get the post name from the props.  This is populated by react router
         const {name} = this.props.match.params;
 
+        // If the post name exists, this page will display a single post.
+        // Otherwise it will display many posts
         if (name) {
             this.setState({page: Blog.ONE_POST, prev: null, next: null});
 
@@ -57,9 +69,16 @@ class Blog extends React.Component {
         }
     }
 
+    /**
+     * Called after the component updated.
+     * @param prevProps - the props of the component before the update occurred
+     */
     componentDidUpdate(prevProps) {
         console.info("Inside Blog componentDidUpdate");
 
+        // Check to see if we are on a page displaying a single post.
+        // If so, scroll to the top of the page.  This is needed because by default
+        // react router will change routes and not scroll back to the top
         if (this.props.location.pathname !== '/blog' &&
             this.props.location.pathname !== prevProps.location.pathname) {
 
@@ -68,27 +87,43 @@ class Blog extends React.Component {
         }
     }
 
+    /**
+     * Called when the component is about to receive new props
+     * @param nextProps - the props that are about to replace the existing props
+     */
     componentWillReceiveProps(nextProps) {
         console.info("Inside Blog ComponentWillReceiveProps");
 
         const {name} = nextProps.match.params;
 
+        // When the props change, we want to change the posts that are displayed
+        // First check to see if posts are currently in the state or the cache
         if (!this.state.posts && !this.postsCache) {
             console.info("Fetching Posts...");
 
+            // If the posts are NOT in the state or cache, fetch them from the API
             if (name) {
                 this.fetchPost(nextProps.params.name);
-                this.setState({page: Blog.ONE_POST, prev: null, next: null});
+
+                this.setState({
+                    page: Blog.ONE_POST,
+                    prev: null,
+                    next: null
+                });
             } else {
                 this.fetchPosts();
                 this.setState({page: Blog.ALL_POSTS});
             }
 
         } else {
+            // If the posts are in the state or cache, we can reuse the existing posts
             if (name) {
+
+                // If the page is displaying a single post, try to find it in the cache
                 const existingPost = this.postsCache.filter(post =>
                     post.name === name);
 
+                // If you find it, set it to the state otherwise fetch it from the API
                 if (existingPost.length >= 1) {
                     this.setState({posts: existingPost});
                 } else {
@@ -102,6 +137,8 @@ class Blog extends React.Component {
                 });
 
             } else {
+                // If the page is displaying multiple posts, simply set the state to whatever
+                // is in the caches
                 this.setState({
                     posts: this.postsCache,
                     page: Blog.ALL_POSTS,
@@ -111,6 +148,10 @@ class Blog extends React.Component {
         }
     }
 
+    /**
+     * Fetch multiple posts from the API and add it to the state/cache
+     * @param url - optional url parameter.  It will default to a param-less url
+     */
     fetchPosts(url='/api/post') {
         fetch(`http://localhost:8080${url}`)
             .then(res => {
@@ -119,7 +160,9 @@ class Blog extends React.Component {
                 console.info(`Link Header: ${link}`);
                 console.info(`X-Total-Count Header: ${total}`);
 
+                // The only important link headers to us are prev and next
                 const {prev, next} = this.parseLinks(link);
+
                 this.setState({prev, next});
                 this.nextCache = next;
 
@@ -134,9 +177,10 @@ class Blog extends React.Component {
 
                 const posts = [
                     ...existingPosts,
-                    ...this.createPostsJSX(json)
+                    ...this.createPostsJSX(json) // Transform JSON to JSX
                 ];
 
+                // Ensure that no posts are duplicates
                 const uniquePosts = this.uniquePosts(posts);
 
                 this.setState({posts: uniquePosts});
@@ -145,6 +189,10 @@ class Blog extends React.Component {
             .catch(err => console.error(err));
     }
 
+    /**
+     * Fetch a single post from the API and set it to the state
+     * @param name - the name of the post in MongoDB
+     */
     fetchPost(name) {
         fetch(`http://localhost:8080/api/post/${name}`)
             .then(res => {
@@ -158,6 +206,13 @@ class Blog extends React.Component {
             .catch(err => console.error(err));
     }
 
+    /**
+     * Transform a list of posts from JSON to an object where the content property is JSX
+     * so it can be displayed in the DOM
+     * @param posts - a list of posts in JSON
+     * @returns null if the posts is falsey, an array of posts in with the content
+     * property in JSX form if posts is truthy
+     */
     createPostsJSX(posts) {
         if (posts) {
             return posts.map(post => this.createPostJSX(post));
@@ -166,6 +221,20 @@ class Blog extends React.Component {
         }
     }
 
+    /**
+     * Creates a JavaScript object for a post where the content property has been
+     * transformed from JSON to JSX
+     * @param name - the name of the post (this is what is displayed in the URL)
+     * @param title - the title of the post
+     * @param date - the date the post was created
+     * @param type - the type of post [Blog, Discovery]
+     * @param tags - the tags for the post, these are the different technologies discussed
+     * @param content - JSON representation of the content of the post.
+     * This will be transformed to JSX
+     * @param sources - the sources of information for the post
+     * @returns {{name: *, title: *, date: *, type: *, tags: *, content: *, sources: *}}
+     * - JavaScript object representing a post
+     */
     createPostJSX({name, title, date, type, tags, content, sources}) {
         return {
             name,
@@ -178,6 +247,11 @@ class Blog extends React.Component {
         }
     }
 
+    /**
+     * Transform a JSON representation of HTML into JSX
+     * @param content - the JSON representation of HTML
+     * @returns null if content is falsey, JSX if content is truthy
+     */
     createContentJSX(content) {
         if (content) {
             return content.map(e => {
@@ -186,14 +260,20 @@ class Blog extends React.Component {
                     const children = e.children;
                     const value = e.value;
 
+                    // The #text element simply represents any plain text in the HTML
                     if (Tag === '#text') {
                         return value;
                     }
 
+                    // If the element is the React component CodeSnippet, replace the string
+                    // with the Component reference.
                     if (Tag === 'codesnippet') {
                         Tag = CodeSnippet;
                     }
 
+                    // If the tag is img there is no closing tag and we have to treat it
+                    // differently.  Also we have to require() the image so that Webpack
+                    // will pick it up when creating the dependency graph
                     if (Tag === 'img') {
                         const {src, ...others} = attributes;
                         return <Tag key={e.toString()} src={ require(`${src}`) }
@@ -210,6 +290,11 @@ class Blog extends React.Component {
 
     }
 
+    /**
+     * Parse the Link HTTP response header
+     * @param links - string representation of the Link header
+     * @returns {{}|*} - an object with all the links
+     */
     parseLinks(links) {
         // Regular Expression to Parse Links
         const globalRegex = /<([a-z0-9/?&=]+)>; rel="(\w+)"/g;
@@ -222,7 +307,16 @@ class Blog extends React.Component {
         return linksObject;
     }
 
+    /**
+     * Generate an object containing all the links from the HTTP header
+     * @param list - a list of all the links
+     * @param regex - the regular expression that will match the Link header
+     * @returns {{}} - an object of all the links where the rel is the property name and the
+     * contents of the angle brackets is the property value
+     */
     generateLinks(list, regex) {
+
+        // Base case when list is empty
         if (list.length === 0) {
             return {};
         }
@@ -231,20 +325,29 @@ class Blog extends React.Component {
 
         const [, url, destination] = link.match(regex);
 
+        // Recursively generateLinks until the list is empty
         return {
             [`${destination}`]: url,
             ...this.generateLinks(remaining, regex)
         };
     }
 
+    /**
+     * Ensure that all the posts in the array are unique
+     * @param posts - an array of posts
+     * @returns {*[]} - an array of posts where each name property is unique
+     */
     uniquePosts(posts) {
         const postsMap = new Map(posts.map((p) => [p.name, p]));
 
-        console.info(postsMap);
+        console.debug(postsMap);
 
         return [ ...postsMap.values() ];
     }
 
+    /**
+     * Render the JSX
+     */
     render() {
         const {posts, next} = this.state;
         console.log('Inside Blog Render');
