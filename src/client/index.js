@@ -27,3 +27,5 @@ render(
     <RoutedApp />,
     document.getElementById('react-container')
 );
+
+export default RoutedApp;

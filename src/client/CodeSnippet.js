@@ -109,6 +109,11 @@ class CodeSnippet extends React.Component {
         hljs.highlightBlock(this.highlightedCode);
     }
 
+    /**
+     * Get the object representing a language
+     * @param language - a string representing a language
+     * @returns {*}
+     */
     languageInfo(language) {
         const matchedLanguage = this.languages.filter(
             lang => lang.prop === language || lang.title === language
