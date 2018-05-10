@@ -63,7 +63,7 @@ class Blog extends React.Component {
             this.fetchPostAndUpdate(name)
                 .catch(err => {
                     console.error(err);
-                    return {posts: null};
+                    this.setState({posts: []});
                 });
 
         } else {
@@ -72,7 +72,7 @@ class Blog extends React.Component {
             this.fetchPostsAndUpdate()
                 .catch(err => {
                     console.error(err);
-                    return {posts: null};
+                    this.setState({posts: []});
                 });
 
         }
@@ -115,14 +115,14 @@ class Blog extends React.Component {
                 this.fetchPostAndUpdate(nextProps.params.name)
                     .catch(err => {
                         console.error(err);
-                        return {posts: null};
+                        this.setState({posts: []});
                     });
 
             } else {
                 this.fetchPostsAndUpdate()
                     .catch(err => {
                         console.error(err);
-                        return {posts: null};
+                        this.setState({posts: []});
                     });
             }
 
@@ -136,22 +136,39 @@ class Blog extends React.Component {
 
                 // If you find it, set it to the state otherwise fetch it from the API
                 if (existingPost.length >= 1) {
-                    this.setState({posts: existingPost});
+                    this.setState({
+                        posts: existingPost,
+                        next: null,
+                        prev: null
+                    });
                 } else {
                     this.fetchPostAndUpdate(name)
                         .catch(err => {
                             console.error(err);
-                            return {posts: null};
+                            this.setState({posts: []});
                         });
                 }
 
             } else {
-                // If the page is displaying multiple posts, simply set the state to whatever
-                // is in the caches
-                this.setState({
-                    posts: this.postsCache,
-                    next: this.nextCache
-                });
+
+                // Make sure the cache isn't empty.  This case can happen if the user is
+                // coming from an individual post and hasn't yet visited the main post page
+                if (this.postsCache) {
+
+                    // If the page is displaying multiple posts and the cache has contents,
+                    // simply set the state to whatever is in the caches
+                    this.setState({
+                        posts: this.postsCache,
+                        next: this.nextCache
+                    });
+                } else {
+                    // Otherwise make a fresh API call
+                    this.fetchPostsAndUpdate()
+                        .catch(err => {
+                            console.error(err);
+                            this.setState({posts: []});
+                        });
+                }
             }
         }
     }

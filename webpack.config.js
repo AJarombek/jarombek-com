@@ -7,6 +7,7 @@
 const path = require("path");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const merge = require("webpack-merge");
+const webpack = require("webpack");
 const NodemonPlugin = require("nodemon-webpack-plugin");
 
 const parts = require("./webpack.parts");
@@ -18,6 +19,10 @@ const PATHS = {
     server: path.join(__dirname, 'src/server/server.js'),
     serverBuild: path.join(__dirname, 'dist/server/')
 };
+
+const PUBLIC_PATH = (process.env.NODE_ENV === 'production') ?
+    'https://jarombek.com/' :
+    'http://localhost:8080/';
 
 /**
  * Configuration specific to the Server bundles
@@ -62,7 +67,10 @@ const serverConfig = merge([
 const serverDevConfig = merge([
     {
         plugins: [
-            new NodemonPlugin()
+            new NodemonPlugin(),
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: 'development'
+            })
         ]
     },
     parts.loadServerSass(),
@@ -135,6 +143,11 @@ const clientConfig = merge([
  */
 const clientDevConfig = merge([
     {
+        plugins: [
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: 'development'
+            })
+        ],
         performance: {hints: false},
         output: {
             sourceMapFilename: "[name].map"
@@ -176,7 +189,7 @@ const clientProdConfig = merge([
         options: {
             limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
             name: 'server/[name].[ext]',
-            publicPath: 'http://localhost:8080/'
+            publicPath: PUBLIC_PATH
         }
     })
 ]);
