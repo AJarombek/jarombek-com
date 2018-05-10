@@ -23,6 +23,13 @@ class Blog extends React.Component {
         super(props);
         console.log('Inside Blog constructor');
 
+        this.baseUrl = (process.env.NODE_ENV === 'production') ?
+            'https://jarombek.com' :
+            'http://localhost:8080';
+
+        console.info(`The environment: ${process.env.NODE_ENV}`);
+        console.info(`The URL to call: ${this.baseUrl}`);
+
         // Cache the posts loaded from the server for when the state gets cleared
         this.postsCache = null;
 
@@ -155,7 +162,7 @@ class Blog extends React.Component {
      * @returns {Promise<void>}
      */
     async fetchPostsAndUpdate(url='/api/post') {
-        const {posts, prev, next} = await Blog.fetchPosts(url, this.postsCache);
+        const {posts, prev, next} = await Blog.fetchPosts(this.baseUrl, url, this.postsCache);
         console.info(posts);
 
         this.postsCache = posts;
@@ -170,13 +177,15 @@ class Blog extends React.Component {
 
     /**
      * Fetch multiple posts from the API
+     * @param baseUrl - the base of the url dependent on the environment
      * @param url - the url of the API call to make
      * @param existingPosts - the existing posts cached by the component
      * @return {Promise<{posts: *[], prev, next}>} - Once resolved, will return an
      * object with the posts, previous page of posts, and next page of posts
      */
-    static async fetchPosts(url, existingPosts) {
-        const response = await fetch(`http://localhost:8080${url}`);
+    static async fetchPosts(baseUrl, url, existingPosts) {
+
+        const response = await fetch(`${baseUrl}${url}`);
 
         const link = response.headers.get('Link');
         const total = response.headers.get('X-Total-Count');
@@ -215,7 +224,7 @@ class Blog extends React.Component {
      * @return
      */
     async fetchPostAndUpdate(name) {
-        const {posts} = await Blog.fetchPost(name);
+        const {posts} = await Blog.fetchPost(this.baseUrl, name);
         console.info(posts);
 
         this.setState({
@@ -227,11 +236,12 @@ class Blog extends React.Component {
 
     /**
      * Fetch a single post from the API
+     * @param baseUrl - the base of the url dependent on the environment
      * @param name - the name of the post in MongoDB
      * @return {Promise<{posts: *[]}>} - Once resolved, will return an object with the posts
      */
-    static async fetchPost(name) {
-        const response = await fetch(`http://localhost:8080/api/post/${name}`);
+    static async fetchPost(baseUrl, name) {
+        const response = await fetch(`${baseUrl}${name}`);
 
         const json = await response.json();
 
