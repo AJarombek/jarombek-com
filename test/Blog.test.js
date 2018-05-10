@@ -87,31 +87,28 @@ fetchMock.mock('http://localhost:8080/api/post', manyResponse);
 test(`Mock of Fetch Returns As Expected`, async () => {
 
     const response = await Blog.fetchPost(`may-9-2018-test`);
-    expect(response).toHaveProperty(`posts`,
+    expect(response.posts[0]).toHaveProperty(`sources`,
         [
             {
-                "content":[],
-                "date":"2018-05-09T16:00:00.000Z",
-                "name":"may-9-2018-test",
-                "sources":[
-                    {
-                        "endName":" End",
-                        "link":"http://jarombek.com",
-                        "linkName":"Link",
-                        "startName":"Start "
-                    }
-                ],
-                "tags":[
-                    {
-                        "color":"javascript",
-                        "name":"JavaScript",
-                        "picture":"./assets/js.png"
-                    }
-                ],
-                "title":"Test",
-                "type":"Discovery"
+                "endName":" End",
+                "link":"http://jarombek.com",
+                "linkName":"Link",
+                "startName":"Start "
             }
         ]);
+
+    expect(response.posts[0]).toHaveProperty(`tags`,
+        [
+            {
+                "color":"javascript",
+                "name":"JavaScript",
+                "picture":"./assets/js.png"
+            }
+        ]);
+
+    expect(response.posts[0]).toHaveProperty(`name`, 'may-9-2018-test');
+    expect(response.posts[0]).toHaveProperty(`title`, 'Test');
+    expect(response.posts[0]).toHaveProperty(`type`, 'Discovery');
 });
 
 
