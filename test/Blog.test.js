@@ -86,7 +86,7 @@ fetchMock.mock('http://localhost:8080/api/post', manyResponse);
 
 test(`Mock of Fetch Returns As Expected`, async () => {
 
-    const response = await Blog.fetchPost(`may-9-2018-test`);
+    const response = await Blog.fetchPost(`http://localhost:8080`, `may-9-2018-test`);
     expect(response.posts[0]).toHaveProperty(`sources`,
         [
             {
