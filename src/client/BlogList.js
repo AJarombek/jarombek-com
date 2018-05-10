@@ -15,7 +15,7 @@ const BlogList = ({ blogList=[] }) =>
         { (blogList.length === 0) ?
             <p className="jarombek-blog-none">No Posts Found</p> :
             blogList.map(blog =>
-                <BlogPost key={blog.toString()} {...blog} />
+                <BlogPost key={blog.name} {...blog} />
             )
         }
     </div>;

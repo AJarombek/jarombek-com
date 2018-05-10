@@ -15,7 +15,7 @@ const TagList = ({ tagList=[] }) =>
         { (tagList.length === 0) ?
             <p>No Tags</p> :
             tagList.map(tag =>
-                <Tag key={tag.toString()} {...tag} />
+                <Tag key={tag.name} {...tag} />
             )
         }
     </div>;
