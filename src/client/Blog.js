@@ -241,7 +241,7 @@ class Blog extends React.Component {
      * @return {Promise<{posts: *[]}>} - Once resolved, will return an object with the posts
      */
     static async fetchPost(baseUrl, name) {
-        const response = await fetch(`${baseUrl}${name}`);
+        const response = await fetch(`${baseUrl}/api/post/${name}`);
 
         const json = await response.json();
 
