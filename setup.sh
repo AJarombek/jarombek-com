@@ -140,3 +140,6 @@ yarn add helmet
 
 # Isomorphic fetch will work both on the server and in the browser
 yarn add isomorphic-fetch
+
+# Mock the Fetch API in the Jest tests
+yarn add fetch-mock --dev

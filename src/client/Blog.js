@@ -38,7 +38,7 @@ class Blog extends React.Component {
     static ALL_POSTS = 0;
     static ONE_POST = 1;
 
-    static PropTypes = {
+    static propTypes = {
         match: PropTypes.object.isRequired
     };
 
@@ -57,15 +57,23 @@ class Blog extends React.Component {
         // If the post name exists, this page will display a single post.
         // Otherwise it will display many posts
         if (name) {
-            this.setState({page: Blog.ONE_POST, prev: null, next: null});
 
             console.info(`Fetching Post with name ${name}`);
-            this.fetchPost(name);
+            this.fetchPostAndUpdate(name)
+                .catch(err => {
+                    console.error(err);
+                    return {posts: null};
+                });
+
         } else {
-            this.setState({page: Blog.ALL_POSTS});
 
             console.info(`Fetching All Posts`);
-            this.fetchPosts();
+            this.fetchPostsAndUpdate()
+                .catch(err => {
+                    console.error(err);
+                    return {posts: null};
+                });
+
         }
     }
 
@@ -103,16 +111,18 @@ class Blog extends React.Component {
 
             // If the posts are NOT in the state or cache, fetch them from the API
             if (name) {
-                this.fetchPost(nextProps.params.name);
+                this.fetchPostAndUpdate(nextProps.params.name)
+                    .catch(err => {
+                        console.error(err);
+                        return {posts: null};
+                    });
 
-                this.setState({
-                    page: Blog.ONE_POST,
-                    prev: null,
-                    next: null
-                });
             } else {
-                this.fetchPosts();
-                this.setState({page: Blog.ALL_POSTS});
+                this.fetchPostsAndUpdate()
+                    .catch(err => {
+                        console.error(err);
+                        return {posts: null};
+                    });
             }
 
         } else {
@@ -127,14 +137,12 @@ class Blog extends React.Component {
                 if (existingPost.length >= 1) {
                     this.setState({posts: existingPost});
                 } else {
-                    this.fetchPost(name);
+                    this.fetchPostAndUpdate(name)
+                        .catch(err => {
+                            console.error(err);
+                            return {posts: null};
+                        });
                 }
-
-                this.setState({
-                    page: Blog.ONE_POST,
-                    prev: null,
-                    next: null
-                });
 
             } else {
                 // If the page is displaying multiple posts, simply set the state to whatever
@@ -151,59 +159,96 @@ class Blog extends React.Component {
     /**
      * Fetch multiple posts from the API and add it to the state/cache
      * @param url - optional url parameter.  It will default to a param-less url
+     * @returns {Promise<void>}
      */
-    fetchPosts(url='/api/post') {
-        fetch(`http://localhost:8080${url}`)
-            .then(res => {
-                const link = res.headers.get('Link');
-                const total = res.headers.get('X-Total-Count');
-                console.info(`Link Header: ${link}`);
-                console.info(`X-Total-Count Header: ${total}`);
+    async fetchPostsAndUpdate(url='/api/post') {
+        const {posts, prev, next} = await Blog.fetchPosts(url, this.postsCache);
+        console.info(posts);
 
-                // The only important link headers to us are prev and next
-                const {prev, next} = this.parseLinks(link);
+        this.postsCache = posts;
+        this.nextCache = next;
 
-                this.setState({prev, next});
-                this.nextCache = next;
+        this.setState({
+            posts,
+            page: Blog.ALL_POSTS,
+            prev,
+            next
+        });
+    }
 
-                return res.json();
-            })
-            .then(json => {
-                console.info(`Posts JSON: ${JSON.stringify(json)}`);
+    /**
+     * Fetch multiple posts from the API
+     * @param url - the url of the API call to make
+     * @param existingPosts - the existing posts cached by the component
+     * @return {Promise<{posts: *[], prev, next}>} - Once resolved, will return an
+     * object with the posts, previous page of posts, and next page of posts
+     */
+    static async fetchPosts(url, existingPosts) {
+        const response = await fetch(`http://localhost:8080${url}`);
 
-                // You cant perform a spread operator in an array on null,
-                // so create an empty array if no posts exist
-                const existingPosts = this.postsCache ? this.postsCache : [];
+        const link = response.headers.get('Link');
+        const total = response.headers.get('X-Total-Count');
+        console.info(`Link Header: ${link}`);
+        console.info(`X-Total-Count Header: ${total}`);
 
-                const posts = [
-                    ...existingPosts,
-                    ...this.createPostsJSX(json) // Transform JSON to JSX
-                ];
+        // The only important link headers to us are prev and next
+        const {prev, next} = Blog.parseLinks(link);
 
-                // Ensure that no posts are duplicates
-                const uniquePosts = this.uniquePosts(posts);
+        const json = await response.json();
 
-                this.setState({posts: uniquePosts});
-                this.postsCache = uniquePosts;
-            })
-            .catch(err => console.error(err));
+        console.info(`Posts JSON: ${JSON.stringify(json)}`);
+
+        // You cant perform a spread operator in an array on null,
+        // so create an empty array if no posts exist
+        existingPosts = existingPosts || [];
+
+        const posts = [
+            ...existingPosts,
+            ...Blog.createPostsJSX(json) // Transform JSON to JSX
+        ];
+
+        // Ensure that no posts are duplicates
+        const uniquePosts = Blog.uniquePosts(posts);
+
+        return {
+            posts: uniquePosts,
+            prev,
+            next
+        };
     }
 
     /**
      * Fetch a single post from the API and set it to the state
      * @param name - the name of the post in MongoDB
+     * @return
      */
-    fetchPost(name) {
-        fetch(`http://localhost:8080/api/post/${name}`)
-            .then(res => {
-                return res.json();
-            })
-            .then(json => {
-                console.info(`Posts JSON: ${JSON.stringify(json)}`);
-                const post = this.createPostJSX(json);
-                this.setState({posts: [post]});
-            })
-            .catch(err => console.error(err));
+    async fetchPostAndUpdate(name) {
+        const {posts} = await Blog.fetchPost(name);
+        console.info(posts);
+
+        this.setState({
+            posts,
+            page: Blog.ONE_POST,
+            prev: null,
+            next: null
+        });
+    }
+
+    /**
+     * Fetch a single post from the API
+     * @param name - the name of the post in MongoDB
+     * @return {Promise<{posts: *[]}>} - Once resolved, will return an object with the posts
+     */
+    static async fetchPost(name) {
+        const response = await fetch(`http://localhost:8080/api/post/${name}`);
+
+        const json = await response.json();
+
+        console.info(`Posts JSON: ${JSON.stringify(json)}`);
+
+        const post = Blog.createPostJSX(json);
+
+        return {posts: [post]};
     }
 
     /**
@@ -213,9 +258,9 @@ class Blog extends React.Component {
      * @returns null if the posts is falsey, an array of posts in with the content
      * property in JSX form if posts is truthy
      */
-    createPostsJSX(posts) {
+    static createPostsJSX(posts) {
         if (posts) {
-            return posts.map(post => this.createPostJSX(post));
+            return posts.map(post => Blog.createPostJSX(post));
         } else {
             return null;
         }
@@ -235,14 +280,14 @@ class Blog extends React.Component {
      * @returns {{name: *, title: *, date: *, type: *, tags: *, content: *, sources: *}}
      * - JavaScript object representing a post
      */
-    createPostJSX({name, title, date, type, tags, content, sources}) {
+    static createPostJSX({name, title, date, type, tags, content, sources}) {
         return {
             name,
             title,
             date,
             type,
             tags,
-            content: this.createContentJSX(content),
+            content: Blog.createContentJSX(content),
             sources
         }
     }
@@ -252,7 +297,7 @@ class Blog extends React.Component {
      * @param content - the JSON representation of HTML
      * @returns null if content is falsey, JSX if content is truthy
      */
-    createContentJSX(content) {
+    static createContentJSX(content) {
         if (content) {
             return content.map(e => {
                     let Tag = e.el;
@@ -281,7 +326,7 @@ class Blog extends React.Component {
                     }
 
                     return <Tag key={e.toString()} { ...attributes }>{value}{
-                        (children) ? this.createContentJSX(children) : ""
+                        (children) ? Blog.createContentJSX(children) : ""
                     }</Tag>;
                 });
         } else {
@@ -293,16 +338,16 @@ class Blog extends React.Component {
     /**
      * Parse the Link HTTP response header
      * @param links - string representation of the Link header
-     * @returns {{}|*} - an object with all the links
+     * @returns {{}} - an object with all the links
      */
-    parseLinks(links) {
+    static parseLinks(links) {
         // Regular Expression to Parse Links
         const globalRegex = /<([a-z0-9/?&=]+)>; rel="(\w+)"/g;
         const regex = /<([a-z0-9/?&=]+)>; rel="(\w+)"/;
 
         const matches = links.match(globalRegex);
 
-        const linksObject = this.generateLinks(matches, regex);
+        const linksObject = Blog.generateLinks(matches, regex);
         console.info(linksObject);
         return linksObject;
     }
@@ -314,7 +359,7 @@ class Blog extends React.Component {
      * @returns {{}} - an object of all the links where the rel is the property name and the
      * contents of the angle brackets is the property value
      */
-    generateLinks(list, regex) {
+    static generateLinks(list, regex) {
 
         // Base case when list is empty
         if (list.length === 0) {
@@ -328,7 +373,7 @@ class Blog extends React.Component {
         // Recursively generateLinks until the list is empty
         return {
             [`${destination}`]: url,
-            ...this.generateLinks(remaining, regex)
+            ...Blog.generateLinks(remaining, regex)
         };
     }
 
@@ -337,7 +382,7 @@ class Blog extends React.Component {
      * @param posts - an array of posts
      * @returns {*[]} - an array of posts where each name property is unique
      */
-    uniquePosts(posts) {
+    static uniquePosts(posts) {
         const postsMap = new Map(posts.map((p) => [p.name, p]));
 
         console.debug(postsMap);
@@ -361,7 +406,11 @@ class Blog extends React.Component {
                             <PictureButton className="jarombek-blog-next" activeColor="default"
                                            passiveColor="white" size="xl"
                                            picture="./assets/arrow.png"
-                                           onClick={() => this.fetchPosts(next)}>
+                                           onClick={() => this.fetchPostsAndUpdate(next)
+                                                               .catch(err => {
+                                                                   console.error(err);
+                                                                   return {posts: null};
+                                                               })}>
                                 Load More
                             </PictureButton> :
                             <Link className="jarombek-blog-next" to='/'>

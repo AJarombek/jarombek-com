@@ -12,9 +12,12 @@ import './TitleImage.scss';
 const TitleImage = ({src, title, className, link}) =>
     <div className={className}>
         <figure className="jarbek-figure">
-            <a href={link}>
+            { (link) ?
+                <a href={link}>
+                    <img src={ require(`${src}`) } />
+                </a> :
                 <img src={ require(`${src}`) } />
-            </a>
+            }
         </figure>
         <p className="jarbek-image-title">{title}</p>
     </div>;

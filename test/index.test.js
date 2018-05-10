@@ -69,9 +69,11 @@ const blogListView = <BlogList
 const app = shallow(<App />);
 const button = shallow(<Button/>);
 const titleImage = shallow(<TitleImage src="./assets/github.png" title="Test"/>);
+const titleImageLink = shallow(<TitleImage src="./assets/github.png"
+                                           title="Test"
+                                           link="jarombek.com"/>);
 const websiteNav = shallow(<WebsiteNav />);
 const websiteTemplate = shallow(<WebsiteTemplate><p>Hello</p></WebsiteTemplate>);
-// const codeSnippet = shallow(<CodeSnippet language="javascript">test()</CodeSnippet>);
 const tag = shallow(<Tag name="JavaScript" color="javascript" />);
 const tagList = shallow(tagListView);
 const tagListEmpty = shallow(<TagList/>);
@@ -95,6 +97,10 @@ test('TitleImage matches snapshot', () => {
     expect(toJSON(titleImage)).toMatchSnapshot();
 });
 
+test('TitleImage with Link matches snapshot', () => {
+    expect(toJSON(titleImageLink)).toMatchSnapshot();
+});
+
 test('WebsiteNav matches snapshot', () => {
     expect(toJSON(websiteNav)).toMatchSnapshot();
 });
@@ -102,11 +108,6 @@ test('WebsiteNav matches snapshot', () => {
 test('WebsiteTemplate matches snapshot', () => {
     expect(toJSON(websiteTemplate)).toMatchSnapshot();
 });
-
-/*
-test('CodeSnippet matches snapshot', () => {
-    expect(toJSON(codeSnippet)).toMatchSnapshot();
-});*/
 
 test('Tag matches snapshot', () => {
     expect(toJSON(tag)).toMatchSnapshot();

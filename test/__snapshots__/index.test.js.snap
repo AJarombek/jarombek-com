@@ -54,7 +54,7 @@ exports[`BlogList matches snapshot 1`] = `
 >
   <BlogPost
     content=""
-    date={2018-05-09T01:21:58.251Z}
+    date={2018-05-09T22:50:46.500Z}
     id={1}
     key="1"
     name="Test"
@@ -76,7 +76,7 @@ exports[`BlogPost No Sources matches snapshot 1`] = `
   <p
     className="jarombek-blog-date"
   >
-    May 8th, 2018
+    May 9th, 2018
   </p>
   <Link
     className="jarombek-blog-title"
@@ -117,7 +117,7 @@ exports[`BlogPost matches snapshot 1`] = `
   <p
     className="jarombek-blog-date"
   >
-    May 8th, 2018
+    May 9th, 2018
   </p>
   <Link
     className="jarombek-blog-title"
@@ -261,7 +261,26 @@ exports[`TitleImage matches snapshot 1`] = `
   <figure
     className="jarbek-figure"
   >
-    <a>
+    <img
+      src="test-file-stub"
+    />
+  </figure>
+  <p
+    className="jarbek-image-title"
+  >
+    Test
+  </p>
+</div>
+`;
+
+exports[`TitleImage with Link matches snapshot 1`] = `
+<div>
+  <figure
+    className="jarbek-figure"
+  >
+    <a
+      href="jarombek.com"
+    >
       <img
         src="test-file-stub"
       />
