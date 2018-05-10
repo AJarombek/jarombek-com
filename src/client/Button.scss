@@ -8,12 +8,18 @@
 
 .jarbek-button {
   border-radius: 4px;
-  background: transparent;
   margin: 4px 2px 4px 2px;
   box-shadow: none;
   cursor: pointer;
   outline: none;
   @include sylexiad;
+}
+
+.jarbek-button-xl {
+  height: 70px;
+  width: 240px;
+  border: 1.5px solid;
+  font-size: 28px;
 }
 
 .jarbek-button-large {
@@ -24,11 +30,17 @@
 }
 
 .jarbek-button-medium {
-  // TODO
+  height: 40px;
+  width: 150px;
+  border: 1.5px solid;
+  font-size: 18px;
 }
 
 .jarbek-button-small {
-  // TODO
+  height: 30px;
+  width: 120px;
+  border: 1px solid;
+  font-size: 16px;
 }
 
 @mixin jarbek-button-styles($color-style, $color) {
@@ -44,6 +56,14 @@
   }
 }
 
-@include jarbek-button-styles("color-default", $color-default);
-@include jarbek-button-styles("color-primary", darken($color-primary, 20%));
-@include jarbek-button-styles("color-secondary", darken($color-secondary, 20%));
+@include jarbek-button-styles("active-color-default", $color-default);
+@include jarbek-button-styles("active-color-primary", darken($color-primary, 20%));
+@include jarbek-button-styles("active-color-secondary", darken($color-secondary, 20%));
+
+.passive-color-default {
+  background: transparent;
+}
+
+.passive-color-white {
+  background: white;
+}

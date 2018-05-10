@@ -1,5 +1,5 @@
 /**
- * Sass styling for the App component
+ * Sass styling for the Home component
  * @author Andrew Jarombek
  * @since 3/22/2018
  */
@@ -13,7 +13,7 @@ body {
   background-color: white;
 }
 
-p {
+.title {
   font-weight: bold;
   color: gray;
   @include sylexiad-bold;

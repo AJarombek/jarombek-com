@@ -1,0 +1,29 @@
+/*
+ * Sass styling for the Blog component
+ * @author Andrew Jarombek
+ * @since 4/8/2018
+ */
+
+.jarombek-blog {
+  padding-top: 100px;
+  padding-bottom: 60px;
+
+  display: grid;
+  grid-template-rows: [top] 95% [bottom-blog] 5% [bottom];
+  grid-template-columns: [left] 100% [right];
+}
+
+.jarombek-blog-next {
+  grid-area: bottom-blog / left / bottom / right;
+  justify-self: center;
+  align-self: center;
+
+  text-align: center;
+
+  text-decoration: none;
+  color: #333;
+}
+
+.jarombek-blog-background {
+  background-image: url("./assets/blizzard.png") !important;
+}

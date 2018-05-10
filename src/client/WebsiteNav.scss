@@ -1,0 +1,49 @@
+/*
+ * Sass styling for the WebsiteNav component
+ * @author Andrew Jarombek
+ * @since 4/8/2018
+ */
+
+@import "global";
+
+// Reset the default browser styles
+@import "reset";
+
+.jarombek-nav {
+  @include sylexiad-bold;
+
+  position: fixed;
+  box-shadow: 0 1px 5px #aaa;
+  border-radius: 0;
+  width: 100%;
+  height: 70px;
+  background-color: white;
+
+  display: grid;
+  grid-template-columns: [start] 20% [begin-title] 60% [end-title] 20% [end];
+  grid-template-rows: [start] 100% [end];
+}
+
+@each $nav in 'left', 'right', 'middle' {
+  .jarombek-nav-#{$nav} {
+    text-decoration: none;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+.jarombek-nav-left {
+  color: #666;
+  font-size: 18px;
+  @include transition("color", #000, $speed: ease-in-out);
+}
+
+.jarombek-nav-right {
+
+}
+
+.jarombek-nav-middle {
+  color: #333;
+  font-size: 32px;
+  @include transition("color", #000, $speed: ease-in-out);
+}

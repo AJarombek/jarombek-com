@@ -18,16 +18,23 @@ exports[`App matches snapshot 1`] = `
   >
     Website Under Construction
   </p>
-  <Button
+  <Link
     className="blog-button"
-    color="primary"
-    size="large"
+    replace={false}
+    to="/blog"
   >
-    BLOG
-  </Button>
+    <Button
+      activeColor="primary"
+      passiveColor="default"
+      size="large"
+    >
+      BLOG
+    </Button>
+  </Link>
   <Button
+    activeColor="default"
     className="info-button"
-    color="default"
+    passiveColor="default"
     size="large"
   >
     INFO
@@ -41,10 +48,210 @@ exports[`App matches snapshot 1`] = `
 </div>
 `;
 
+exports[`BlogList matches snapshot 1`] = `
+<div
+  className="jarombek-blog-list"
+>
+  <BlogPost
+    content={Array []}
+    date="2018-05-10"
+    id={1}
+    key="[object Object]"
+    name="Test"
+    title="Test"
+    type="Discovery"
+  />
+</div>
+`;
+
+exports[`BlogPost No Sources matches snapshot 1`] = `
+<div
+  className="jarombek-blog-post"
+>
+  <p
+    className="jarombek-blog-type"
+  >
+    DISCOVERY
+  </p>
+  <p
+    className="jarombek-blog-date"
+  >
+    May 10th, 2018
+  </p>
+  <Link
+    className="jarombek-blog-title"
+    replace={false}
+    to="/blog/Test"
+  >
+    <p
+      className="jarombek-blog-title-content"
+    >
+      Test
+    </p>
+  </Link>
+  <div
+    className="jarombek-blog-tags"
+  >
+    <TagList
+      tagList={Array []}
+    />
+  </div>
+  <div
+    className="jarombek-blog-content"
+  />
+  <div
+    className="jarombek-blog-sources"
+  />
+</div>
+`;
+
+exports[`BlogPost matches snapshot 1`] = `
+<div
+  className="jarombek-blog-post"
+>
+  <p
+    className="jarombek-blog-type"
+  >
+    DISCOVERY
+  </p>
+  <p
+    className="jarombek-blog-date"
+  >
+    May 10th, 2018
+  </p>
+  <Link
+    className="jarombek-blog-title"
+    replace={false}
+    to="/blog/Test"
+  >
+    <p
+      className="jarombek-blog-title-content"
+    >
+      Test
+    </p>
+  </Link>
+  <div
+    className="jarombek-blog-tags"
+  >
+    <TagList
+      tagList={Array []}
+    />
+  </div>
+  <div
+    className="jarombek-blog-content"
+  />
+  <div
+    className="jarombek-blog-sources"
+  >
+    <p
+      className="jarombek-blog-source"
+      key="0"
+    >
+      [1] Start
+      <a
+        href="jarombek.com"
+      >
+        Link
+      </a>
+      End
+    </p>
+  </div>
+</div>
+`;
+
 exports[`Button matches snapshot 1`] = `
 <div>
   <button
-    className="jarbek-button color-default jarbek-button-large"
+    className="jarbek-button passive-color-default
+                                active-color-default jarbek-button-large"
+  />
+</div>
+`;
+
+exports[`Empty BlogList matches snapshot 1`] = `
+<div
+  className="jarombek-blog-list"
+>
+  <p
+    className="jarombek-blog-none"
+  >
+    No Posts Found
+  </p>
+</div>
+`;
+
+exports[`Empty TagList matches snapshot 1`] = `
+<div
+  className="jarombek-tag-list"
+>
+  <p>
+    No Tags
+  </p>
+</div>
+`;
+
+exports[`PictureButton matches snapshot 1`] = `
+<div>
+  <button
+    className="jarbek-button active-color-default
+                                passive-color-undefined jarbek-button-large"
+  >
+    <div
+      className="jarbek-picture-button"
+    >
+      <div
+        className="jarbek-pb-picture"
+      >
+        <img
+          src={
+            Object {
+              "default": [Function],
+            }
+          }
+        />
+      </div>
+      <div
+        className="jarbek-pb-text"
+      >
+        Test
+      </div>
+    </div>
+  </button>
+</div>
+`;
+
+exports[`Tag matches snapshot 1`] = `
+<div
+  className="jarombek-tag"
+>
+  <div
+    className="jarombek-tag-color-javascript"
+  >
+    <figure>
+      <img
+        className="jarombek-tag-picture"
+        src="test-file-stub"
+      />
+    </figure>
+    <p
+      className="jarombek-tag-name"
+    >
+      JavaScript
+    </p>
+  </div>
+</div>
+`;
+
+exports[`TagList matches snapshot 1`] = `
+<div
+  className="jarombek-tag-list"
+>
+  <Tag
+    color="javascript"
+    id="js"
+    key="[object Object]"
+    name="JavaScript"
+    picture=""
   />
 </div>
 `;
@@ -54,7 +261,26 @@ exports[`TitleImage matches snapshot 1`] = `
   <figure
     className="jarbek-figure"
   >
-    <a>
+    <img
+      src="test-file-stub"
+    />
+  </figure>
+  <p
+    className="jarbek-image-title"
+  >
+    Test
+  </p>
+</div>
+`;
+
+exports[`TitleImage with Link matches snapshot 1`] = `
+<div>
+  <figure
+    className="jarbek-figure"
+  >
+    <a
+      href="jarombek.com"
+    >
       <img
         src="test-file-stub"
       />
@@ -64,6 +290,55 @@ exports[`TitleImage matches snapshot 1`] = `
     className="jarbek-image-title"
   >
     Test
+  </p>
+</div>
+`;
+
+exports[`WebsiteNav matches snapshot 1`] = `
+<nav
+  className="jarombek-nav"
+>
+  <NavLink
+    activeClassName="active"
+    ariaCurrent="true"
+    className="jarombek-nav-left"
+    to="/blog"
+  >
+    BLOG
+  </NavLink>
+  <NavLink
+    activeClassName="active"
+    ariaCurrent="true"
+    className="jarombek-nav-middle"
+    to="/"
+  >
+    Andrew Jarombek
+  </NavLink>
+  <NavLink
+    activeClassName="active"
+    ariaCurrent="true"
+    className="jarombek-nav-right"
+    to="/"
+  >
+    <Button
+      activeColor="primary"
+      className="subscribe-button"
+      passiveColor="default"
+      size="medium"
+    >
+      SUBSCRIBE
+    </Button>
+  </NavLink>
+</nav>
+`;
+
+exports[`WebsiteTemplate matches snapshot 1`] = `
+<div
+  className="jarombek-template"
+>
+  <WebsiteNav />
+  <p>
+    Hello
   </p>
 </div>
 `;

@@ -117,3 +117,29 @@ yarn add nodemon-webpack-plugin --dev
 # https://blog.digitalkwarts.com/server-side-rendering-with-reactjs-react-router-v4-react-helmet-and-css-modules/
 # Perform stylesheet bundling on the server
 yarn add isomorphic-style-loader
+
+# Adding routing to the react application
+yarn add react-router-dom
+
+# Syntax highlighting for blog posts
+yarn add highlightjs
+
+# Stage 0 JavaScript for the static class properties
+yarn add babel-preset-stage-0 --dev
+
+# Install react-redux to allow the app to follow the flux pattern
+yarn add react-redux
+
+# Update the current version of yarn to latest
+curl -o- -L https://yarnpkg.com/install.sh | bash
+
+# Mongoose to use MongoDB and add schemas to the schemaless MongoDB collections
+# Helmet to protect our API endpoints HTTP requests
+yarn add mongoose
+yarn add helmet
+
+# Isomorphic fetch will work both on the server and in the browser
+yarn add isomorphic-fetch
+
+# Mock the Fetch API in the Jest tests
+yarn add fetch-mock --dev
