@@ -7,12 +7,13 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 import toJSON from 'enzyme-to-json';
+import moment from 'moment';
+
 import App from '../src/client/Home';
 import Button from '../src/client/Button';
 import TitleImage from '../src/client/TitleImage';
 import WebsiteNav from '../src/client/WebsiteNav';
 import WebsiteTemplate from "../src/client/WebsiteTemplate";
-import CodeSnippet from "../src/client/CodeSnippet";
 import Tag from "../src/client/Tag";
 import TagList from "../src/client/TagList";
 import PictureButton from "../src/client/PictureButton";
@@ -32,9 +33,9 @@ const tagListView = <TagList
 
 const blogPostView = <BlogPost
         name="Test" title="Test"
-        date={ new Date() }
+        date={ moment().format('YYYY-MM-DD') }
         type="Discovery"
-        content=""
+        content={[]}
         sources={
            [{
                startName: "Start",
@@ -48,9 +49,9 @@ const blogPostView = <BlogPost
 const blogPostNoSourcesView = <BlogPost
         name="Test"
         title="Test"
-        date={ new Date() }
+        date={ moment().format('YYYY-MM-DD') }
         type="Discovery"
-        content=""
+        content={[]}
     />;
 
 const blogListView = <BlogList
@@ -59,9 +60,9 @@ const blogListView = <BlogList
                 id: 1,
                 name: "Test",
                 title: "Test",
-                date: new Date(),
+                date: moment().format('YYYY-MM-DD'),
                 type: "Discovery",
-                content: ""
+                content: []
             }]
         }
     />;

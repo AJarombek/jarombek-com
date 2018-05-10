@@ -53,10 +53,10 @@ exports[`BlogList matches snapshot 1`] = `
   className="jarombek-blog-list"
 >
   <BlogPost
-    content=""
-    date={2018-05-09T22:50:46.500Z}
+    content={Array []}
+    date="2018-05-10"
     id={1}
-    key="1"
+    key="[object Object]"
     name="Test"
     title="Test"
     type="Discovery"
@@ -76,7 +76,7 @@ exports[`BlogPost No Sources matches snapshot 1`] = `
   <p
     className="jarombek-blog-date"
   >
-    May 9th, 2018
+    May 10th, 2018
   </p>
   <Link
     className="jarombek-blog-title"
@@ -117,7 +117,7 @@ exports[`BlogPost matches snapshot 1`] = `
   <p
     className="jarombek-blog-date"
   >
-    May 9th, 2018
+    May 10th, 2018
   </p>
   <Link
     className="jarombek-blog-title"
@@ -249,7 +249,7 @@ exports[`TagList matches snapshot 1`] = `
   <Tag
     color="javascript"
     id="js"
-    key="js"
+    key="[object Object]"
     name="JavaScript"
     picture=""
   />

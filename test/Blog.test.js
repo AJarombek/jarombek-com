@@ -10,48 +10,121 @@ import Blog from "../src/client/Blog";
 import toJSON from "enzyme-to-json";
 import {MemoryRouter} from 'react-router-dom';
 import fetchMock from 'fetch-mock';
+import 'isomorphic-fetch';
 
-fetchMock.get('*', JSON.stringify({
-    name: "may-9-2018-test",
-    title: "Test",
-    date: new Date('2018-05-09T12:00:00'),
-    type: "Discovery",
-    tags: [
-        {
-            name: "JavaScript",
-            picture: "./assets/js.png",
-            color: "javascript"
-        }
-    ],
-    content: "",
-    sources: [
-        {
-            startName: "Start ",
-            endName: " End",
-            linkName: "Link",
-            link: "http://jarombek.com"
-        }
-    ]
-}));
+const oneResponse = {
+    body: {
+        name: "may-9-2018-test",
+        title: "Test",
+        date: new Date('2018-05-09T12:00:00'),
+        type: "Discovery",
+        tags: [
+            {
+                name: "JavaScript",
+                picture: "./assets/js.png",
+                color: "javascript"
+            }
+        ],
+        content: [],
+        sources: [
+            {
+                startName: "Start ",
+                endName: " End",
+                linkName: "Link",
+                link: "http://jarombek.com"
+            }
+        ]
+    },
+    headers: {
+        'Link': `</api/post?page=2&limit=5>; rel="next";`
+    }
+};
 
-const blog = mount(<MemoryRouter>
-                     <Blog match={ {params: { name: "Hey"} } } location={{pathname: ''}} />
-                   </MemoryRouter>);
+const manyResponse = {
+    body: [{
+        name: "may-10-2018-test",
+        title: "Test",
+        date: new Date('2018-05-10T12:00:00'),
+        type: "Discovery",
+        tags: [
+            {
+                id: "1",
+                name: "JavaScript",
+                picture: "./assets/js.png",
+                color: "javascript"
+            }
+        ],
+        content: [{
+            "el":"p",
+            "attributes":null,
+            "value":null,
+            "children":[
+                {
+                    "el":"#text",
+                    "attributes":null,
+                    "value":"Hello Test.",
+                    "children":null
+                }
+            ]
+        }],
+        sources: [
+            {
+                startName: "Start ",
+                endName: " End",
+                linkName: "Link",
+                link: "http://jarombek.com"
+            }
+        ]
+    }],
+    headers: {
+        'Link': `</api/post?page=2&limit=5>; rel="next";`
+    }
+};
+
+fetchMock.mock('http://localhost:8080/api/post/may-9-2018-test', oneResponse);
+fetchMock.mock('http://localhost:8080/api/post', manyResponse);
 
 test(`Mock of Fetch Returns As Expected`, async () => {
-    const response = await fetchResponseJson(`http://foo.bar`)
-    expect(response).toHaveProperty(`Rick`, `I turned myself into a pickle, Morty!`)
-})
+
+    const response = await Blog.fetchPost(`may-9-2018-test`);
+    expect(response).toHaveProperty(`posts`,
+        [
+            {
+                "content":[],
+                "date":"2018-05-09T16:00:00.000Z",
+                "name":"may-9-2018-test",
+                "sources":[
+                    {
+                        "endName":" End",
+                        "link":"http://jarombek.com",
+                        "linkName":"Link",
+                        "startName":"Start "
+                    }
+                ],
+                "tags":[
+                    {
+                        "color":"javascript",
+                        "name":"JavaScript",
+                        "picture":"./assets/js.png"
+                    }
+                ],
+                "title":"Test",
+                "type":"Discovery"
+            }
+        ]);
+});
+
 
 test('Test Component Lifecycle', async () => {
-    const wrapper = shallow(<Blog match={ {params: { name: null } } } location={{pathname: ''}} />);
-
-    await wrapper.instance().componentDidMount();
+    const wrapper = mount(
+        <MemoryRouter>
+            <Blog match={ {params: { name: null } } } location={{pathname: ''}} />
+        </MemoryRouter>
+    );
 
     expect(wrapper.find('.jarombek-blog')).toHaveLength(1);
-
-    expect(wrapper.state()).toHaveProperty('page', 0);
 });
+
 
 test('Unique Posts removes duplicates', () => {
     expect(Blog.uniquePosts([{name: 'a', content: 'test1'},

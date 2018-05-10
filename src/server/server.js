@@ -59,6 +59,7 @@ const sendHtmlPage = ({html}) =>
                                             and Software Development Blog">
         <title>Andrew Jarombek</title>
         <link rel="stylesheet" href="/client/bundle.css">
+        <link rel="icon" href="/server/jarombek.png">
     </head>
     <body>
         <div id="react-container">${html}</div>

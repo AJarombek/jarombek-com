@@ -47,9 +47,9 @@ const BlogPost = ({ name, title, type, date, tags=[], content, sources=[] }) => 
 BlogPost.propTypes = {
     name: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
-    date: PropTypes.instanceOf(Date).isRequired,
+    date: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
-    content: PropTypes.string.isRequired,
+    content: PropTypes.array.isRequired,
     tags: PropTypes.array,
     sources: PropTypes.array
 };

@@ -8,7 +8,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Link} from 'react-router-dom';
-import fetch from 'isomorphic-fetch';
+import 'isomorphic-fetch';
 import WebsiteTemplate from './WebsiteTemplate';
 import BlogList from './BlogList';
 import PictureButton from './PictureButton';
@@ -29,14 +29,8 @@ class Blog extends React.Component {
         // Cache the next link from the server for when the state gets cleared
         this.nextCache = null;
 
-        // The type of page we are viewing.  It can be a single post or many posts
-        this.page = Blog.ALL_POSTS;
-
         this.state = {};
     }
-
-    static ALL_POSTS = 0;
-    static ONE_POST = 1;
 
     static propTypes = {
         match: PropTypes.object.isRequired
@@ -149,7 +143,6 @@ class Blog extends React.Component {
                 // is in the caches
                 this.setState({
                     posts: this.postsCache,
-                    page: Blog.ALL_POSTS,
                     next: this.nextCache
                 });
             }
@@ -170,7 +163,6 @@ class Blog extends React.Component {
 
         this.setState({
             posts,
-            page: Blog.ALL_POSTS,
             prev,
             next
         });
@@ -228,7 +220,6 @@ class Blog extends React.Component {
 
         this.setState({
             posts,
-            page: Blog.ONE_POST,
             prev: null,
             next: null
         });
