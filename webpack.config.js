@@ -19,6 +19,10 @@ const PATHS = {
     serverBuild: path.join(__dirname, 'dist/server/')
 };
 
+const PUBLIC_PATH = (process.env.NODE_ENV === 'production') ?
+    'https://jarombek.com/' :
+    'http://localhost:8080/';
+
 /**
  * Configuration specific to the Server bundles
  */
@@ -176,7 +180,7 @@ const clientProdConfig = merge([
         options: {
             limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
             name: 'server/[name].[ext]',
-            publicPath: 'http://localhost:8080/'
+            publicPath: PUBLIC_PATH
         }
     })
 ]);

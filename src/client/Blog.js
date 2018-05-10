@@ -63,7 +63,7 @@ class Blog extends React.Component {
             this.fetchPostAndUpdate(name)
                 .catch(err => {
                     console.error(err);
-                    return {posts: null};
+                    this.setState({posts: null});
                 });
 
         } else {
@@ -72,7 +72,7 @@ class Blog extends React.Component {
             this.fetchPostsAndUpdate()
                 .catch(err => {
                     console.error(err);
-                    return {posts: null};
+                    this.setState({posts: null});
                 });
 
         }
@@ -115,14 +115,14 @@ class Blog extends React.Component {
                 this.fetchPostAndUpdate(nextProps.params.name)
                     .catch(err => {
                         console.error(err);
-                        return {posts: null};
+                        this.setState({posts: null});
                     });
 
             } else {
                 this.fetchPostsAndUpdate()
                     .catch(err => {
                         console.error(err);
-                        return {posts: null};
+                        this.setState({posts: null});
                     });
             }
 
@@ -136,12 +136,16 @@ class Blog extends React.Component {
 
                 // If you find it, set it to the state otherwise fetch it from the API
                 if (existingPost.length >= 1) {
-                    this.setState({posts: existingPost});
+                    this.setState({
+                        posts: existingPost,
+                        next: null,
+                        prev: null
+                    });
                 } else {
                     this.fetchPostAndUpdate(name)
                         .catch(err => {
                             console.error(err);
-                            return {posts: null};
+                            this.setState({posts: null});
                         });
                 }
 
