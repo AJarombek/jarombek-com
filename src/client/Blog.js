@@ -14,6 +14,7 @@ import BlogList from './BlogList';
 import PictureButton from './PictureButton';
 import TitleImage from './TitleImage';
 import CodeSnippet from './CodeSnippet';
+import Definition from './Definition';
 
 import './Blog.scss';
 
@@ -332,6 +333,11 @@ class Blog extends React.Component {
                     // with the Component reference.
                     if (Tag === 'codesnippet') {
                         Tag = CodeSnippet;
+                    }
+
+                    // Do a similar replacement if the element is the React component Definition
+                    if (Tag === 'definition') {
+                        Tag = Definition;
                     }
 
                     // If the tag is img there is no closing tag and we have to treat it
