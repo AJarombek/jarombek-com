@@ -13,7 +13,7 @@ import './BlogList.scss';
 const BlogList = ({ blogList=[] }) =>
     <div className="jarombek-blog-list">
         { (blogList.length === 0) ?
-            <p className="jarombek-blog-none">No Posts Found</p> :
+            <p className="jarombek-blog-none"> </p> :
             blogList.map(blog =>
                 <BlogPost key={blog.name} {...blog} />
             )

@@ -177,7 +177,7 @@ $default: rgba(204, 204, 204, 0.6);
 .jarombek-tag div {
   display: grid;
   grid-template-rows: [top] 100% [bottom];
-  grid-template-columns: [image] 40px [label] calc(100% - 40px) [end];
+  grid-template-columns: [image] 40px [label] calc(100% - 39px) [end];
 
   border-radius: 3px;
   box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);
