@@ -7,6 +7,7 @@
 import React from 'react';
 import {hot} from 'react-hot-loader';
 import {Link} from 'react-router-dom';
+import {Helmet} from 'react-helmet';
 
 import Button from './Button';
 import TitleImage from "./TitleImage";
@@ -22,6 +23,13 @@ class Home extends React.Component {
     render() {
         return (
             <div className="jarombek-main">
+                <Helmet>
+                    <title>Andrew Jarombek</title>
+                    <meta name="author" content="Andrew Jarombek" />
+                    <meta name="description"
+                          content={`Andrew Jarombek's Personal Website and
+                            Software Development Blog`} />
+                </Helmet>
                 <div className="title-container">
                     <p className="title">Andrew Jarombek</p>
                 </div>

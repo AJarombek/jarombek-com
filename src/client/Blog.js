@@ -9,6 +9,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Link} from 'react-router-dom';
 import 'isomorphic-fetch';
+import {Helmet} from 'react-helmet';
+
 import WebsiteTemplate from './WebsiteTemplate';
 import BlogList from './BlogList';
 import PictureButton from './PictureButton';
@@ -39,6 +41,8 @@ class Blog extends React.Component {
 
         this.state = {};
     }
+
+    static pageType = Object.freeze({SINGLE: 0, MANY: 1});
 
     static propTypes = {
         match: PropTypes.object.isRequired
@@ -189,7 +193,8 @@ class Blog extends React.Component {
         this.setState({
             posts,
             prev,
-            next
+            next,
+            page: Blog.pageType.MANY
         });
     }
 
@@ -248,7 +253,8 @@ class Blog extends React.Component {
         this.setState({
             posts,
             prev: null,
-            next: null
+            next: null,
+            page: Blog.pageType.SINGLE
         });
     }
 
@@ -425,6 +431,20 @@ class Blog extends React.Component {
             <WebsiteTemplate>
                 <div className="jarombek-blog-background">
                     <div className="jarombek-blog">
+                        { (this.state.page === Blog.pageType.SINGLE) ?
+                            <Helmet>
+                                <title>{posts[0].title}</title>
+                                <meta name="author" content="Andrew Jarombek" />
+                                <meta name="description" content={posts[0].description || ""} />
+                            </Helmet>:
+                            <Helmet>
+                                <title>Andrew Jarombek&#39;s Software Development Blog</title>
+                                <meta name="author" content="Andrew Jarombek" />
+                                <meta name="description"
+                                      content={`Andrew Jarombek's Software Development Blog &
+                                        Discovery Posts`} />
+                            </Helmet>
+                        }
                         <BlogList blogList={posts} />
                         { (this.state.next) ?
                             <PictureButton className="jarombek-blog-next" activeColor="default"

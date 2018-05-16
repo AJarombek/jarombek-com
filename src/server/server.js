@@ -5,6 +5,8 @@ import path from 'path';
 import React from 'react';
 import {renderToString} from 'react-dom/server';
 import {StaticRouter, Switch, Route} from 'react-router-dom';
+import {Helmet} from 'react-helmet';
+
 import Blog from "../client/Blog";
 import Home from "../client/Home";
 
@@ -48,16 +50,16 @@ const renderComponentsToHTML = (url) => ({
  * @param html - the route specific HTML
  * @returns {string} - HTML to be sent in the response
  */
-const sendHtmlPage = ({html}) =>
-    `
+const sendHtmlPage = ({html}) => {
+    const helmet = Helmet.renderStatic();
+
+    return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="author" content="Andrew Jarombek">
-        <meta name="description" content="Andrew Jarombek's Personal Website 
-                                            and Software Development Blog">
-        <title>Andrew Jarombek</title>
+        ${helmet.title.toString()}
+        ${helmet.meta.toString()}
         <link rel="stylesheet" href="/client/bundle.css">
         <link rel="icon" href="/server/jarombek.png">
     </head>
@@ -67,7 +69,8 @@ const sendHtmlPage = ({html}) =>
         <script src="/client/bundle.js"></script>
     </body>
     </html>
-    `;
+    `
+};
 
 /**
  * First render the HTML components of the page based on the URL.  Then place this HTML body inside
