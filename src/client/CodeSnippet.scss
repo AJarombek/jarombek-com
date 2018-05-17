@@ -10,6 +10,8 @@
 .jarombek-code-snippet {
   margin-top: 15px;
   margin-bottom: 15px;
+  position: relative;
+  z-index: 1;
 }
 
 .hljs {
@@ -39,7 +41,8 @@
   display: block;
   font-size: 14px;
   color: #aaa;
-  float: right;
+  position: absolute;
+  right: 3%;
 }
 
 .hljs-comment,

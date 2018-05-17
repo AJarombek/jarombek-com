@@ -81,6 +81,13 @@ const serverDevConfig = merge([
  * Configuration specific to the server bundles in a production environment
  */
 const serverProdConfig = merge([
+    {
+        plugins: [
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: 'production'
+            })
+        ]
+    },
     parts.extractCSS({
         use: ["css-loader", "sass-loader"],
         fallback: "isomorphic-style-loader"
@@ -178,7 +185,12 @@ const clientProdConfig = merge([
                     }
                 }
             }
-        }
+        },
+        plugins: [
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: 'production'
+            })
+        ]
     },
     parts.generateSourceMaps({ type: 'source-map' }),
     parts.extractCSS({

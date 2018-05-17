@@ -29,6 +29,8 @@ class Home extends React.Component {
                     <meta name="description"
                           content={`Andrew Jarombek's Personal Website and
                             Software Development Blog`} />
+                    <link rel="canonical" href="https://jarombek.com" />
+                    <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                 </Helmet>
                 <div className="title-container">
                     <p className="title">Andrew Jarombek</p>

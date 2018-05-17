@@ -436,6 +436,9 @@ class Blog extends React.Component {
                                 <title>{posts[0].title}</title>
                                 <meta name="author" content="Andrew Jarombek" />
                                 <meta name="description" content={posts[0].description || ""} />
+                                <link rel="canonical"
+                                      href={`https://jarombek.com/blog/${posts[0].name}`} />
+                                <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                             </Helmet>:
                             <Helmet>
                                 <title>Andrew Jarombek&#39;s Software Development Blog</title>
@@ -443,6 +446,8 @@ class Blog extends React.Component {
                                 <meta name="description"
                                       content={`Andrew Jarombek's Software Development Blog &
                                         Discovery Posts`} />
+                                <link rel="canonical" href="https://jarombek.com/blog" />
+                                <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                             </Helmet>
                         }
                         <BlogList blogList={posts} />

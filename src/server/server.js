@@ -60,8 +60,8 @@ const sendHtmlPage = ({html}) => {
         <meta charset="utf-8">
         ${helmet.title.toString()}
         ${helmet.meta.toString()}
+        ${helmet.link.toString()}
         <link rel="stylesheet" href="/client/bundle.css">
-        <link rel="icon" href="/server/jarombek.png">
     </head>
     <body>
         <div id="react-container">${html}</div>

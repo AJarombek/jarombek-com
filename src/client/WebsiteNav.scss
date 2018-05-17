@@ -22,6 +22,8 @@
   display: grid;
   grid-template-columns: [start] 20% [begin-title] 60% [end-title] 20% [end];
   grid-template-rows: [start] 100% [end];
+
+  z-index: 2;
 }
 
 @each $nav in 'left', 'right', 'middle' {
