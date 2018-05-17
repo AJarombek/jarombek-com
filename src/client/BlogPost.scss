@@ -32,6 +32,16 @@ $inline-gray: rgba(204, 204, 204, 0.25);
   display: grid;
   grid-template-columns: [type] 15% [title-start] 70% [title-end] 15% [date];
   grid-template-rows: [headers] 5% [title] 10% [tags] 10% [body] 65% [sources] 10% [end];
+
+  // For small desktop screens, reduce the padding on the side of the post contents in half
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    grid-template-columns: [type] 7.5% [title-start] 85% [title-end] 7.5% [date];
+  }
+
+  // For mobile screens, make the padding on the side of posts nearly non-existent
+  @media screen and (max-width: $width-mobile) {
+    grid-template-columns: [type] 2% [title-start] 96% [title-end] 2% [date];
+  }
 }
 
 // Shared styles for all the headers of a blog post
@@ -48,13 +58,21 @@ $inline-gray: rgba(204, 204, 204, 0.25);
   }
 }
 
-.jarombek-blog-type {
+.jarombek-blog-headers {
   // Goes in this order: row-start, column-start, row-end, column-end
-  grid-area: headers / type / title / title-start;
+  grid-area: headers / type / title / date;
+
+  display: grid;
+  grid-template-columns: [type] 25% [title-start] 50% [title-end] 25% [date];
+  grid-template-rows: [top] 100% [bottom];
+}
+
+.jarombek-blog-type {
+  grid-area: top / type / bottom / title-start;
 }
 
 .jarombek-blog-date {
-  grid-area: headers / title-end / title / date;
+  grid-area: top / title-end / bottom / date;
 }
 
 .jarombek-blog-title {

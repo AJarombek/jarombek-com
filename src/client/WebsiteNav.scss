@@ -24,6 +24,15 @@
   grid-template-rows: [start] 100% [end];
 
   z-index: 2;
+
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    grid-template-columns: [start] 30% [begin-title] 40% [end-title] 30% [end];
+  }
+
+  // Mobile screens remove the left container from the grid
+  @media screen and (max-width: $width-mobile) {
+    grid-template-columns: [start] 0 [begin-title] 60% [end-title] 40% [end];
+  }
 }
 
 @each $nav in 'left', 'right', 'middle' {
@@ -38,6 +47,11 @@
   color: #666;
   font-size: 18px;
   @include transition("color", #000, $speed: ease-in-out);
+
+  // Make the blog link invisible on mobile screens
+  @media screen and (max-width: $width-mobile) {
+    visibility: hidden;
+  }
 }
 
 .jarombek-nav-right {
@@ -48,4 +62,10 @@
   color: #333;
   font-size: 32px;
   @include transition("color", #000, $speed: ease-in-out);
+
+  // Move the website title from the middle to the left on mobile screens
+  @media screen and (max-width: $width-mobile) {
+    justify-self: left;
+    margin-left: 50px;
+  }
 }

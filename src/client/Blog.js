@@ -437,7 +437,9 @@ class Blog extends React.Component {
                             <Helmet>
                                 <title>{posts[0].title}</title>
                                 <meta name="author" content="Andrew Jarombek" />
-                                <meta name="description" content={posts[0].description || ""} />
+                                <meta name="description"
+                                      content={posts[0].description ||
+                                        `Andrew Jarombek Blog Post: ${posts[0].title}`} />
                                 <link rel="canonical"
                                       href={`https://jarombek.com/blog/${posts[0].name}`} />
                                 <link rel="icon" href={ require(`./assets/jarombek.png`) } />

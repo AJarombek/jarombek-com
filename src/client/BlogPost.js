@@ -16,10 +16,12 @@ const BlogPost = ({ name, title, type, date, tags=[], content, sources=[] }) => 
     let count = 0;
     return (
         <div className="jarombek-blog-post">
-            <p className="jarombek-blog-type">{type.toUpperCase()}</p>
-            <p className="jarombek-blog-date">
-                {moment(date).format('MMMM Do, YYYY')}
-            </p>
+            <div className="jarombek-blog-headers">
+                <p className="jarombek-blog-type">{type.toUpperCase()}</p>
+                <p className="jarombek-blog-date">
+                    {moment(date).format('MMMM Do, YYYY')}
+                </p>
+            </div>
             <Link className="jarombek-blog-title" to={`/blog/${name}`}>
                 <p className="jarombek-blog-title-content">{title}</p>
             </Link>
