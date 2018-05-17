@@ -144,7 +144,8 @@ class Blog extends React.Component {
                     this.setState({
                         posts: existingPost,
                         next: null,
-                        prev: null
+                        prev: null,
+                        page: Blog.pageType.SINGLE
                     });
                 } else {
                     this.fetchPostAndUpdate(name)
@@ -164,7 +165,8 @@ class Blog extends React.Component {
                     // simply set the state to whatever is in the caches
                     this.setState({
                         posts: this.postsCache,
-                        next: this.nextCache
+                        next: this.nextCache,
+                        page: Blog.pageType.MANY
                     });
                 } else {
                     // Otherwise make a fresh API call
@@ -439,7 +441,7 @@ class Blog extends React.Component {
                                 <link rel="canonical"
                                       href={`https://jarombek.com/blog/${posts[0].name}`} />
                                 <link rel="icon" href={ require(`./assets/jarombek.png`) } />
-                            </Helmet>:
+                            </Helmet> :
                             <Helmet>
                                 <title>Andrew Jarombek&#39;s Software Development Blog</title>
                                 <meta name="author" content="Andrew Jarombek" />
