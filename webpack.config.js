@@ -20,9 +20,9 @@ const PATHS = {
     serverBuild: path.join(__dirname, 'dist/server/')
 };
 
-const PUBLIC_PATH = (process.env.NODE_ENV === 'production') ?
-    'https://jarombek.com/' :
-    'http://localhost:8080/';
+const PUBLIC_PATH = (process.env.NODE_ENV === 'development') ?
+    'http://localhost:8080/' :
+    'https://jarombek.com/';
 
 /**
  * Configuration specific to the Server bundles
