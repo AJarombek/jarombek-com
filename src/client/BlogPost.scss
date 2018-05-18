@@ -146,9 +146,11 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     font-size: 16px;
   }
 
-  span {
+  span.code-span {
     white-space: pre;
     @include fantasque-bold;
+    font-size: 14px;
+    word-wrap: break-word;
   }
 
   strong {
@@ -192,6 +194,7 @@ $inline-gray: rgba(204, 204, 204, 0.25);
   @include sylexiad;
   font-size: 18px;
   line-height: 1.5;
+  word-wrap: break-word;
 
   a {
     @extend .link-style;
