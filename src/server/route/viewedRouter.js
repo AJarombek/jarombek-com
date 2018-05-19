@@ -58,29 +58,33 @@ const routes = (Viewed, Post, Audit) => {
 
                 const viewed = await Viewed.findOne({item_id: updatedPost._id}).exec();
                 console.info(`Viewed: ${viewed}`);
+                let newViewed;
 
                 // If the viewed document already exists, update it.  Otherwise create it
                 if (viewed) {
                     console.info(`Already Viewed`);
 
-                    const updatedViewed = {...viewed, views: updatedPost.views};
+                    const updatedViewed = {...viewed.toObject(), views: updatedPost.views};
+                    console.info(`Updated Viewed ${updatedViewed}`);
 
                     await Viewed.update(
                         {name: viewed.name},
                         updatedViewed
                     );
 
+                    newViewed = await Viewed.findOne({name: viewed.name}).exec();
+
                 } else {
                     console.info(`Never Viewed, Creating New Viewed Document`);
 
-                    const newViewed = new Viewed({
+                    const newViewedObject = new Viewed({
                         item_id: updatedPost._id,
                         name: updatedPost.name,
                         type: 'post',
                         views: updatedPost.views
                     });
 
-                    await Viewed.create(newViewed);
+                    newViewed = await Viewed.create(newViewedObject);
                 }
 
                 // Add a document to the audit collection saying that someone viewed the post
@@ -93,7 +97,7 @@ const routes = (Viewed, Post, Audit) => {
 
                 await Audit.create(audit);
 
-                res.json(updatedPost);
+                res.json(newViewed);
             }
         });
 

@@ -34,7 +34,7 @@ const BlogPost = ({ name, title, type, date, tags=[], content, sources=[] }) => 
             <div className="jarombek-blog-sources">
                 {
                     sources.map(src =>
-                        <p key={count} className="jarombek-blog-source">
+                        <p key={src.toString()} className="jarombek-blog-source">
                             {`[${++count}] ${src.startName}`}
                                 <a href={`${src.link}`}>{`${src.linkName}`}</a>
                             {`${src.endName}`}
