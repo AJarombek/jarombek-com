@@ -33,7 +33,7 @@ class Home extends React.Component {
                     <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                 </Helmet>
                 <div className="title-container">
-                    <p className="title">Andrew Jarombek</p>
+                    <h1 className="title">Andrew Jarombek</h1>
                 </div>
                 <p className="sub-title">Website Under Construction</p>
                 <Link to="/blog" className="blog-button">
