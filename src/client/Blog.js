@@ -19,6 +19,7 @@ import CodeSnippet from './CodeSnippet';
 import Definition from './Definition';
 
 import './Blog.scss';
+import Loading from "./Loading";
 
 class Blog extends React.Component {
 
@@ -178,6 +179,29 @@ class Blog extends React.Component {
                 }
             }
         }
+    }
+
+    /**
+     * Fetch multiple posts from the API and also set the loadingNextPosts state
+     * during the API call.  This will allow the component to display a loading
+     * animation while the API call is made.
+     * @param nextUrl - the url to load the next batch of posts
+     * @return {Promise<void>}
+     */
+    async loadNextPosts(nextUrl) {
+        this.setState({loadingNext: true});
+
+        await this.fetchPostsAndUpdate(nextUrl)
+            .catch(err => {
+                console.error(err);
+                this.setState({
+                    posts: null,
+                    loadingNext: false,
+                    next: null
+                });
+            });
+
+        this.setState({loadingNext: false});
     }
 
     /**
@@ -492,16 +516,16 @@ class Blog extends React.Component {
                         }
                         <BlogList blogList={posts} />
                         { (this.state.next) ?
-                            <PictureButton className="jarombek-blog-next" activeColor="default"
-                                           passiveColor="white" size="xl"
-                                           picture="./assets/arrow.png"
-                                           onClick={() => this.fetchPostsAndUpdate(next)
-                                                               .catch(err => {
-                                                                   console.error(err);
-                                                                   return {posts: null};
-                                                               })}>
-                                Load More
-                            </PictureButton> :
+                            (this.state.loadingNext) ?
+                                <div className="jarombek-loading-next">
+                                    <Loading />
+                                </div> :
+                                <PictureButton className="jarombek-blog-next" activeColor="default"
+                                               passiveColor="white" size="xl"
+                                               picture="./assets/arrow.png"
+                                               onClick={() => this.loadNextPosts(next)}>
+                                    Load More
+                                </PictureButton> :
                             <Link className="jarombek-blog-next" to='/'>
                                 <TitleImage className="footer-icon" src="./assets/jarombek.png"
                                             title="HOME" />
