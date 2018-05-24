@@ -143,3 +143,5 @@ yarn add isomorphic-fetch
 
 # Mock the Fetch API in the Jest tests
 yarn add fetch-mock --dev
+
+yarn add babel-polyfill

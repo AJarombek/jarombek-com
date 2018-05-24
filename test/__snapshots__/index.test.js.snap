@@ -4,14 +4,39 @@ exports[`App matches snapshot 1`] = `
 <div
   className="jarombek-main"
 >
+  <HelmetWrapper
+    defer={true}
+    encodeSpecialCharacters={true}
+  >
+    <title>
+      Andrew Jarombek
+    </title>
+    <meta
+      content="Andrew Jarombek"
+      name="author"
+    />
+    <meta
+      content="Andrew Jarombek's Personal Website and
+                            Software Development Blog"
+      name="description"
+    />
+    <link
+      href="https://jarombek.com"
+      rel="canonical"
+    />
+    <link
+      href="test-file-stub"
+      rel="icon"
+    />
+  </HelmetWrapper>
   <div
     className="title-container"
   >
-    <p
+    <h1
       className="title"
     >
       Andrew Jarombek
-    </p>
+    </h1>
   </div>
   <p
     className="sub-title"
@@ -54,9 +79,9 @@ exports[`BlogList matches snapshot 1`] = `
 >
   <BlogPost
     content={Array []}
-    date="2018-05-10"
+    date="2018-05-23"
     id={1}
-    key="[object Object]"
+    key="Test"
     name="Test"
     title="Test"
     type="Discovery"
@@ -68,16 +93,20 @@ exports[`BlogPost No Sources matches snapshot 1`] = `
 <div
   className="jarombek-blog-post"
 >
-  <p
-    className="jarombek-blog-type"
+  <div
+    className="jarombek-blog-headers"
   >
-    DISCOVERY
-  </p>
-  <p
-    className="jarombek-blog-date"
-  >
-    May 10th, 2018
-  </p>
+    <p
+      className="jarombek-blog-type"
+    >
+      DISCOVERY
+    </p>
+    <p
+      className="jarombek-blog-date"
+    >
+      May 23rd, 2018
+    </p>
+  </div>
   <Link
     className="jarombek-blog-title"
     replace={false}
@@ -109,16 +138,20 @@ exports[`BlogPost matches snapshot 1`] = `
 <div
   className="jarombek-blog-post"
 >
-  <p
-    className="jarombek-blog-type"
+  <div
+    className="jarombek-blog-headers"
   >
-    DISCOVERY
-  </p>
-  <p
-    className="jarombek-blog-date"
-  >
-    May 10th, 2018
-  </p>
+    <p
+      className="jarombek-blog-type"
+    >
+      DISCOVERY
+    </p>
+    <p
+      className="jarombek-blog-date"
+    >
+      May 23rd, 2018
+    </p>
+  </div>
   <Link
     className="jarombek-blog-title"
     replace={false}
@@ -145,7 +178,7 @@ exports[`BlogPost matches snapshot 1`] = `
   >
     <p
       className="jarombek-blog-source"
-      key="0"
+      key="[object Object]"
     >
       [1] Start
       <a
@@ -168,15 +201,30 @@ exports[`Button matches snapshot 1`] = `
 </div>
 `;
 
+exports[`Definition matches snapshot 1`] = `
+<div
+  className="jarombek-def"
+>
+  <p
+    className="jarombek-def-word"
+  >
+    Snapshot Testing
+  </p>
+  <p
+    className="jarombek-def-desc"
+  >
+     
+  </p>
+</div>
+`;
+
 exports[`Empty BlogList matches snapshot 1`] = `
 <div
   className="jarombek-blog-list"
 >
-  <p
+  <Loading
     className="jarombek-blog-none"
-  >
-    No Posts Found
-  </p>
+  />
 </div>
 `;
 
@@ -249,7 +297,7 @@ exports[`TagList matches snapshot 1`] = `
   <Tag
     color="javascript"
     id="js"
-    key="[object Object]"
+    key="JavaScript"
     name="JavaScript"
     picture=""
   />

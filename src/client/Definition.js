@@ -9,15 +9,15 @@ import PropTypes from 'prop-types';
 
 import './Definition.scss';
 
-const Tag = ({ word, children }) =>
+const Definition = ({ word, children }) =>
     <div className="jarombek-def">
         <p className="jarombek-def-word">{word}</p>
         <p className="jarombek-def-desc">{children}</p>
     </div>;
 
-Tag.propTypes = {
+Definition.propTypes = {
     children: PropTypes.any,
-    word: PropTypes.string.required
+    word: PropTypes.string.isRequired
 };
 
-export default Tag;
+export default Definition;

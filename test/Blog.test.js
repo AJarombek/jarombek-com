@@ -84,6 +84,8 @@ const manyResponse = {
 fetchMock.mock('http://localhost:8080/api/post/may-9-2018-test', oneResponse);
 fetchMock.mock('http://localhost:8080/api/post', manyResponse);
 
+fetchMock.mock('http://localhost:8080/api/viewed/post/may-10-2018-test', {});
+
 test(`Mock of Fetch Returns As Expected`, async () => {
 
     const response = await Blog.fetchPost(`http://localhost:8080`, `may-9-2018-test`);
