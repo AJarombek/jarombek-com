@@ -64,6 +64,8 @@ const sendHtmlPage = ({html}) => {
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=700">
+        <meta name="google-site-verification"
+              content="axpbkHOqG9cnq6gACXKtvjaAbcEvsQ_01zoGQcA3y_M" />
         ${helmet.title.toString()}
         ${helmet.meta.toString()}
         ${helmet.link.toString()}

@@ -500,8 +500,6 @@ class Blog extends React.Component {
                                 <meta name="description"
                                       content={posts[0].description ||
                                         `Andrew Jarombek Blog Post: ${posts[0].title}`} />
-                                <meta name="google-site-verification"
-                                      content="axpbkHOqG9cnq6gACXKtvjaAbcEvsQ_01zoGQcA3y_M" />
                                 <link rel="canonical"
                                       href={`https://jarombek.com/blog/${posts[0].name}`} />
                                 <link rel="icon" href={ require(`./assets/jarombek.png`) } />
@@ -512,8 +510,6 @@ class Blog extends React.Component {
                                 <meta name="description"
                                       content={`Andrew Jarombek's Software Development Blog &
                                         Discovery Posts`} />
-                                <meta name="google-site-verification"
-                                      content="axpbkHOqG9cnq6gACXKtvjaAbcEvsQ_01zoGQcA3y_M" />
                                 <link rel="canonical" href="https://jarombek.com/blog" />
                                 <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                             </Helmet>
