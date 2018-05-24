@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "client:test": "jest --coverage --updateSnapshot",
+    "client:server:test": "jest --coverage --updateSnapshot",
     "client:stats": "webpack --env clientProduction --profile --json > client-stats.json",
     "client:build": "webpack --env clientProduction",
     "client:dev": "webpack --env clientDevelopment",
@@ -32,8 +32,7 @@
       "src/**"
     ],
     "coveragePathIgnorePatterns": [
-      "./src/client/index.js",
-      "./src/server/*"
+      "./src/client/index.js"
     ],
     "coverageThreshold": {
       "global": {
@@ -91,6 +90,7 @@
     "react-test-renderer": "^16.2.0",
     "sass-loader": "^6.0.7",
     "style-loader": "^0.20.3",
+    "supertest": "^3.1.0",
     "uglifyjs-webpack-plugin": "^1.2.4",
     "url-loader": "^1.0.1",
     "webpack-cli": "^2.0.12",

@@ -96,7 +96,7 @@ const htmlResponse = (url) =>
  */
 const respond = (req, res) => {
     const response = htmlResponse(req.url);
-    console.info(response);
+    console.debug(response);
     res.status(200).send(response);
 };
 
@@ -113,7 +113,7 @@ app.use(respond);
 
 const port = process.env.port || 8080;
 
-app.listen(port, () => {
+module.exports = app.listen(port, () => {
    console.info(`Jarombek.com running on port ${port}`);
    console.info(__dirname);
 });

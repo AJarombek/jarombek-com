@@ -22,7 +22,7 @@ const routes = (Viewed, Post, Audit) => {
         async function find() {
 
             const post = await Post.findOne({name: req.params.name}).exec();
-            console.info(`Post with matching name: ${post}`);
+            console.info(`Post with matching name: ${post.name}`);
 
             if (post) {
                 req.post = post;
@@ -41,7 +41,7 @@ const routes = (Viewed, Post, Audit) => {
 
             async function update() {
 
-                console.info(`Adding View to Post: ${req.post}`);
+                console.info(`Adding View to Post: ${req.post.name}`);
                 const {views} = req.post;
                 console.info(`Views: ${views}`);
                 const postAdditionalView = {...req.post.toObject(), views: views + 1};
@@ -65,7 +65,7 @@ const routes = (Viewed, Post, Audit) => {
                     console.info(`Already Viewed`);
 
                     const updatedViewed = {...viewed.toObject(), views: updatedPost.views};
-                    console.info(`Updated Viewed ${updatedViewed}`);
+                    console.info(`Updated Viewed ${JSON.stringify(updatedViewed)}`);
 
                     await Viewed.update(
                         {name: viewed.name},

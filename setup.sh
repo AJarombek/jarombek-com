@@ -144,4 +144,9 @@ yarn add isomorphic-fetch
 # Mock the Fetch API in the Jest tests
 yarn add fetch-mock --dev
 
+# Polyfill so google crawlers can use ES6+ features
 yarn add babel-polyfill
+
+# Add server side testing dependencies
+yarn add mocha --dev
+yarn add supertest --dev
