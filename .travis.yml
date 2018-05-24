@@ -6,6 +6,9 @@ node_js:
 services:
   - mongodb
 
+before_script:
+  - mongo jarombekcom --eval 'db.posts.insert({name: "test-post"});'
+
 script:
   - yarn client:server:test
 
