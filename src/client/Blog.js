@@ -9,13 +9,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Link} from 'react-router-dom';
 import 'isomorphic-fetch';
+import {Helmet} from 'react-helmet';
+
 import WebsiteTemplate from './WebsiteTemplate';
 import BlogList from './BlogList';
 import PictureButton from './PictureButton';
 import TitleImage from './TitleImage';
 import CodeSnippet from './CodeSnippet';
+import Definition from './Definition';
 
 import './Blog.scss';
+import Loading from "./Loading";
 
 class Blog extends React.Component {
 
@@ -38,6 +42,8 @@ class Blog extends React.Component {
 
         this.state = {};
     }
+
+    static pageType = Object.freeze({SINGLE: 0, MANY: 1});
 
     static propTypes = {
         match: PropTypes.object.isRequired
@@ -139,7 +145,8 @@ class Blog extends React.Component {
                     this.setState({
                         posts: existingPost,
                         next: null,
-                        prev: null
+                        prev: null,
+                        page: Blog.pageType.SINGLE
                     });
                 } else {
                     this.fetchPostAndUpdate(name)
@@ -159,7 +166,8 @@ class Blog extends React.Component {
                     // simply set the state to whatever is in the caches
                     this.setState({
                         posts: this.postsCache,
-                        next: this.nextCache
+                        next: this.nextCache,
+                        page: Blog.pageType.MANY
                     });
                 } else {
                     // Otherwise make a fresh API call
@@ -174,21 +182,50 @@ class Blog extends React.Component {
     }
 
     /**
+     * Fetch multiple posts from the API and also set the loadingNextPosts state
+     * during the API call.  This will allow the component to display a loading
+     * animation while the API call is made.
+     * @param nextUrl - the url to load the next batch of posts
+     * @return {Promise<void>}
+     */
+    async loadNextPosts(nextUrl) {
+        this.setState({loadingNext: true});
+
+        await this.fetchPostsAndUpdate(nextUrl)
+            .catch(err => {
+                console.error(err);
+                this.setState({
+                    posts: null,
+                    loadingNext: false,
+                    next: null
+                });
+            });
+
+        this.setState({loadingNext: false});
+    }
+
+    /**
      * Fetch multiple posts from the API and add it to the state/cache
      * @param url - optional url parameter.  It will default to a param-less url
      * @returns {Promise<void>}
      */
     async fetchPostsAndUpdate(url='/api/post') {
-        const {posts, prev, next} = await Blog.fetchPosts(this.baseUrl, url, this.postsCache);
+        const {posts, prev, next, loaded} =
+            await Blog.fetchPosts(this.baseUrl, url, this.postsCache);
+
         console.info(posts);
 
         this.postsCache = posts;
         this.nextCache = next;
 
+        // Increment the viewed count for the loaded posts
+        Blog.viewedPosts(loaded, this.baseUrl);
+
         this.setState({
             posts,
             prev,
-            next
+            next,
+            page: Blog.pageType.MANY
         });
     }
 
@@ -198,7 +235,8 @@ class Blog extends React.Component {
      * @param url - the url of the API call to make
      * @param existingPosts - the existing posts cached by the component
      * @return {Promise<{posts: *[], prev, next}>} - Once resolved, will return an
-     * object with the posts, previous page of posts, and next page of posts
+     * object with the posts, previous page of posts, next page of posts, and a list
+     * of the fetched posts names
      */
     static async fetchPosts(baseUrl, url, existingPosts) {
 
@@ -220,9 +258,16 @@ class Blog extends React.Component {
         // so create an empty array if no posts exist
         existingPosts = existingPosts || [];
 
+        // Transform JSON to JSX
+        const addedPosts = Blog.createPostsJSX(json);
+
+        // Create a list of all the new posts that were loaded from the API
+        const loaded = addedPosts.map(post => post.name);
+        console.info(`Names of Posts in Posts JSON: ${loaded}`);
+
         const posts = [
             ...existingPosts,
-            ...Blog.createPostsJSX(json) // Transform JSON to JSX
+            ...addedPosts
         ];
 
         // Ensure that no posts are duplicates
@@ -231,23 +276,27 @@ class Blog extends React.Component {
         return {
             posts: uniquePosts,
             prev,
-            next
+            next,
+            loaded
         };
     }
 
     /**
      * Fetch a single post from the API and set it to the state
      * @param name - the name of the post in MongoDB
-     * @return
      */
     async fetchPostAndUpdate(name) {
-        const {posts} = await Blog.fetchPost(this.baseUrl, name);
+        const {posts, loaded} = await Blog.fetchPost(this.baseUrl, name);
         console.info(posts);
+
+        // Increment the viewed count for the fetched post
+        Blog.viewedPost(loaded, this.baseUrl);
 
         this.setState({
             posts,
             prev: null,
-            next: null
+            next: null,
+            page: Blog.pageType.SINGLE
         });
     }
 
@@ -256,6 +305,7 @@ class Blog extends React.Component {
      * @param baseUrl - the base of the url dependent on the environment
      * @param name - the name of the post in MongoDB
      * @return {Promise<{posts: *[]}>} - Once resolved, will return an object with the posts
+     * and the fetched post name
      */
     static async fetchPost(baseUrl, name) {
         const response = await fetch(`${baseUrl}/api/post/${name}`);
@@ -266,7 +316,7 @@ class Blog extends React.Component {
 
         const post = Blog.createPostJSX(json);
 
-        return {posts: [post]};
+        return {posts: [post], loaded: post.name};
     }
 
     /**
@@ -332,6 +382,11 @@ class Blog extends React.Component {
                     // with the Component reference.
                     if (Tag === 'codesnippet') {
                         Tag = CodeSnippet;
+                    }
+
+                    // Do a similar replacement if the element is the React component Definition
+                    if (Tag === 'definition') {
+                        Tag = Definition;
                     }
 
                     // If the tag is img there is no closing tag and we have to treat it
@@ -409,6 +464,25 @@ class Blog extends React.Component {
     }
 
     /**
+     * Take a list of viewed posts and increment the view count on the server
+     * @param names - a list of post names that were viewed
+     * @param baseUrl - the base of the url dependent on the environment
+     */
+    static viewedPosts(names, baseUrl) {
+        names.forEach(name => this.viewedPost(name, baseUrl));
+    }
+
+    /**
+     * Take a post name and increment the count for the corresponding post on the server
+     * @param name - a post name that was viewed
+     * @param baseUrl - the base of the url dependent on the environment
+     */
+    static viewedPost(name, baseUrl) {
+        console.info(`PUT ${baseUrl}/api/viewed/post/${name}`);
+        fetch(`${baseUrl}/api/viewed/post/${name}`, {method: 'PUT'});
+    }
+
+    /**
      * Render the JSX
      */
     render() {
@@ -419,18 +493,39 @@ class Blog extends React.Component {
             <WebsiteTemplate>
                 <div className="jarombek-blog-background">
                     <div className="jarombek-blog">
+                        { (this.state.page === Blog.pageType.SINGLE) ?
+                            <Helmet>
+                                <title>{posts[0].title}</title>
+                                <meta name="author" content="Andrew Jarombek" />
+                                <meta name="description"
+                                      content={posts[0].description ||
+                                        `Andrew Jarombek Blog Post: ${posts[0].title}`} />
+                                <link rel="canonical"
+                                      href={`https://jarombek.com/blog/${posts[0].name}`} />
+                                <link rel="icon" href={ require(`./assets/jarombek.png`) } />
+                            </Helmet> :
+                            <Helmet>
+                                <title>Andrew Jarombek&#39;s Software Development Blog</title>
+                                <meta name="author" content="Andrew Jarombek" />
+                                <meta name="description"
+                                      content={`Andrew Jarombek's Software Development Blog &
+                                        Discovery Posts`} />
+                                <link rel="canonical" href="https://jarombek.com/blog" />
+                                <link rel="icon" href={ require(`./assets/jarombek.png`) } />
+                            </Helmet>
+                        }
                         <BlogList blogList={posts} />
                         { (this.state.next) ?
-                            <PictureButton className="jarombek-blog-next" activeColor="default"
-                                           passiveColor="white" size="xl"
-                                           picture="./assets/arrow.png"
-                                           onClick={() => this.fetchPostsAndUpdate(next)
-                                                               .catch(err => {
-                                                                   console.error(err);
-                                                                   return {posts: null};
-                                                               })}>
-                                Load More
-                            </PictureButton> :
+                            (this.state.loadingNext) ?
+                                <div className="jarombek-loading-next">
+                                    <Loading />
+                                </div> :
+                                <PictureButton className="jarombek-blog-next" activeColor="default"
+                                               passiveColor="white" size="xl"
+                                               picture="./assets/arrow.png"
+                                               onClick={() => this.loadNextPosts(next)}>
+                                    Load More
+                                </PictureButton> :
                             <Link className="jarombek-blog-next" to='/'>
                                 <TitleImage className="footer-icon" src="./assets/jarombek.png"
                                             title="HOME" />

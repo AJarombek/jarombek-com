@@ -51,7 +51,11 @@ const PostSchema = new Schema({
     },
     sources: [{
         type: SourceSchema
-    }]
+    }],
+    views: {
+        type: Number,
+        default: 0
+    }
 });
 
 PostSchema.index({date: 1});

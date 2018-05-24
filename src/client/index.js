@@ -9,6 +9,7 @@ import {render} from 'react-dom';
 import Home from './Home';
 import Blog from './Blog';
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
+import 'babel-polyfill';
 
 window.React = React;
 

@@ -24,7 +24,7 @@ const routes = (Post) => {
             // the unary + coerces the strings to numbers.  It is the fastest way to
             // convert strings to numbers in JavaScript
             page = +page || 1;
-            limit = +limit || 5;
+            limit = +limit || 2;
 
             // Get the starting point within a MongoDB collection to query
             const skip = (page - 1) * limit;

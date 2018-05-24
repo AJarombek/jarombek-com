@@ -19,6 +19,7 @@ import TagList from "../src/client/TagList";
 import PictureButton from "../src/client/PictureButton";
 import BlogPost from "../src/client/BlogPost";
 import BlogList from "../src/client/BlogList";
+import Definition from "../src/client/Definition";
 
 /* App Component */
 
@@ -67,6 +68,14 @@ const websiteTemplate = shallow(<WebsiteTemplate><p>Hello</p></WebsiteTemplate>)
 
 test('WebsiteTemplate matches snapshot', () => {
     expect(toJSON(websiteTemplate)).toMatchSnapshot();
+});
+
+/* Definition Component */
+
+const definition = shallow(<Definition word="Snapshot Testing" > </Definition>);
+
+test('Definition matches snapshot', () => {
+    expect(toJSON(definition)).toMatchSnapshot();
 });
 
 /* Tag Component */

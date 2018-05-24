@@ -9,6 +9,7 @@ const HtmlWebPackPlugin = require("html-webpack-plugin");
 const merge = require("webpack-merge");
 const webpack = require("webpack");
 const NodemonPlugin = require("nodemon-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const parts = require("./webpack.parts");
 
@@ -20,9 +21,9 @@ const PATHS = {
     serverBuild: path.join(__dirname, 'dist/server/')
 };
 
-const PUBLIC_PATH = (process.env.NODE_ENV === 'production') ?
-    'https://jarombek.com/' :
-    'http://localhost:8080/';
+const PUBLIC_PATH = (process.env.NODE_ENV === 'development') ?
+    'http://localhost:8080/' :
+    'https://jarombek.com/';
 
 /**
  * Configuration specific to the Server bundles
@@ -52,7 +53,12 @@ const serverConfig = merge([
                     }
                 }
             ]
-        }
+        },
+        plugins: [
+            new CopyWebpackPlugin([
+                { from: path.join(__dirname, '/src/server/sitemap.xml'), to: 'sitemap.xml' }
+            ])
+        ]
     },
     parts.loadFonts({
         options: {
@@ -81,6 +87,13 @@ const serverDevConfig = merge([
  * Configuration specific to the server bundles in a production environment
  */
 const serverProdConfig = merge([
+    {
+        plugins: [
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: 'production'
+            })
+        ]
+    },
     parts.extractCSS({
         use: ["css-loader", "sass-loader"],
         fallback: "isomorphic-style-loader"
@@ -178,7 +191,12 @@ const clientProdConfig = merge([
                     }
                 }
             }
-        }
+        },
+        plugins: [
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: 'production'
+            })
+        ]
     },
     parts.generateSourceMaps({ type: 'source-map' }),
     parts.extractCSS({

@@ -7,15 +7,7 @@
 @import "global";
 
 .jarombek-blog-none {
-  @include sylexiad;
-  font-size: 24px;
   height: 100vh;
-
-  text-align: center;
-
-  // Shorthand for grid-template styles
-  // Goes in this order: row-start, column-start, row-end, column-end
-  grid-area: top / left / bottom-blog / right;
-  justify-self: center;
-  align-self: center;
+  margin: 0 auto;
+  padding-top: 50px;
 }

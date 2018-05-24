@@ -1,0 +1,56 @@
+/*
+ * Sass styling for the Loading component
+ * @author Andrew Jarombek
+ * @since 5/20/2018
+ */
+
+@import "global";
+
+$circle-dimension: 45px;
+
+.jarbek-loading {
+  width: 200px;
+
+  display: grid;
+
+  // The "fr" unit defines a fraction of leftover space.
+  // When all the values are "1fr" they all have equal length.
+  // https://www.w3.org/TR/css3-grid-layout/#fr-unit
+  grid-template-columns: [start-1] 1fr [start-2] 1fr [start-3] 1fr [end];
+  grid-template-rows: [top] 100% [bottom];
+}
+
+.jarbek-loading-circle {
+  background-color: $color-secondary;
+
+  width: $circle-dimension;
+  height: $circle-dimension;
+
+  border-radius: 50%;
+  margin: 5px;
+
+  opacity: 0;
+  animation: fade 1s infinite;
+}
+
+// Keyframes defines rules for intermediate points of an animation
+@keyframes fade {
+  0% { opacity: 0 }
+  20% { opacity: 1 }
+  100% { opacity: 0 }
+}
+
+.jarbek-first-loading-circle {
+  // Goes in this order: row-start, column-start, row-end, column-end
+  grid-area: top / start-1 / bottom / start-2;
+}
+
+.jarbek-second-loading-circle {
+  grid-area: top / start-2 / bottom / start-3;
+  animation-delay: 0.25s;
+}
+
+.jarbek-third-loading-circle {
+  grid-area: top / start-3 / bottom / end;
+  animation-delay: 0.5s;
+}

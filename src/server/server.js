@@ -5,11 +5,17 @@ import path from 'path';
 import React from 'react';
 import {renderToString} from 'react-dom/server';
 import {StaticRouter, Switch, Route} from 'react-router-dom';
+import {Helmet} from 'react-helmet';
+
 import Blog from "../client/Blog";
 import Home from "../client/Home";
 
+import Audit from "./model/audit";
 import Post from "./model/post";
 import postRoute from "./route/postRouter";
+import Viewed from "./model/viewed";
+import viewedRoute from "./route/viewedRouter";
+
 
 /**
  * The main file for the Express/Node.js server.  The server provides an API and
@@ -22,6 +28,7 @@ mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 
 // API CRUD routes for a MongoDB collection
 const postRouter = postRoute(Post);
+const viewedRouter = viewedRoute(Viewed, Post, Audit);
 
 global.React = React;
 
@@ -48,18 +55,21 @@ const renderComponentsToHTML = (url) => ({
  * @param html - the route specific HTML
  * @returns {string} - HTML to be sent in the response
  */
-const sendHtmlPage = ({html}) =>
-    `
+const sendHtmlPage = ({html}) => {
+    const helmet = Helmet.renderStatic();
+
+    return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="author" content="Andrew Jarombek">
-        <meta name="description" content="Andrew Jarombek's Personal Website 
-                                            and Software Development Blog">
-        <title>Andrew Jarombek</title>
+        <meta name="viewport" content="width=700">
+        <meta name="google-site-verification"
+              content="axpbkHOqG9cnq6gACXKtvjaAbcEvsQ_01zoGQcA3y_M" />
+        ${helmet.title.toString()}
+        ${helmet.meta.toString()}
+        ${helmet.link.toString()}
         <link rel="stylesheet" href="/client/bundle.css">
-        <link rel="icon" href="/server/jarombek.png">
     </head>
     <body>
         <div id="react-container">${html}</div>
@@ -67,7 +77,8 @@ const sendHtmlPage = ({html}) =>
         <script src="/client/bundle.js"></script>
     </body>
     </html>
-    `;
+    `
+};
 
 /**
  * First render the HTML components of the page based on the URL.  Then place this HTML body inside
@@ -85,7 +96,7 @@ const htmlResponse = (url) =>
  */
 const respond = (req, res) => {
     const response = htmlResponse(req.url);
-    console.info(response);
+    console.debug(response);
     res.status(200).send(response);
 };
 
@@ -93,6 +104,7 @@ const app = express();
 
 app.use(helmet({}));
 app.use('/api/post', postRouter);
+app.use('/api/viewed', viewedRouter);
 
 app.use(express.static(path.join(__dirname, '..')));
 
@@ -101,7 +113,7 @@ app.use(respond);
 
 const port = process.env.port || 8080;
 
-app.listen(port, () => {
+module.exports = app.listen(port, () => {
    console.info(`Jarombek.com running on port ${port}`);
    console.info(__dirname);
 });

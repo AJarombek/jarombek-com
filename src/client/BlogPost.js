@@ -16,10 +16,12 @@ const BlogPost = ({ name, title, type, date, tags=[], content, sources=[] }) => 
     let count = 0;
     return (
         <div className="jarombek-blog-post">
-            <p className="jarombek-blog-type">{type.toUpperCase()}</p>
-            <p className="jarombek-blog-date">
-                {moment(date).format('MMMM Do, YYYY')}
-            </p>
+            <div className="jarombek-blog-headers">
+                <p className="jarombek-blog-type">{type.toUpperCase()}</p>
+                <p className="jarombek-blog-date">
+                    {moment(date).format('MMMM Do, YYYY')}
+                </p>
+            </div>
             <Link className="jarombek-blog-title" to={`/blog/${name}`}>
                 <p className="jarombek-blog-title-content">{title}</p>
             </Link>
@@ -32,7 +34,7 @@ const BlogPost = ({ name, title, type, date, tags=[], content, sources=[] }) => 
             <div className="jarombek-blog-sources">
                 {
                     sources.map(src =>
-                        <p key={count} className="jarombek-blog-source">
+                        <p key={src.toString()} className="jarombek-blog-source">
                             {`[${++count}] ${src.startName}`}
                                 <a href={`${src.link}`}>{`${src.linkName}`}</a>
                             {`${src.endName}`}

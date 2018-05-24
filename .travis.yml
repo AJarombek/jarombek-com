@@ -3,8 +3,14 @@ node_js:
   - '9.2'
   - '8.0'
 
+services:
+  - mongodb
+
+before_script:
+  - mongo jarombekcom --eval 'db.posts.insert({name: "test-post"});'
+
 script:
-  - yarn client:test
+  - yarn client:server:test
 
 notifications:
   email:

@@ -7,6 +7,7 @@
 import React from 'react';
 import {hot} from 'react-hot-loader';
 import {Link} from 'react-router-dom';
+import {Helmet} from 'react-helmet';
 
 import Button from './Button';
 import TitleImage from "./TitleImage";
@@ -22,8 +23,17 @@ class Home extends React.Component {
     render() {
         return (
             <div className="jarombek-main">
+                <Helmet>
+                    <title>Andrew Jarombek</title>
+                    <meta name="author" content="Andrew Jarombek" />
+                    <meta name="description"
+                          content={`Andrew Jarombek's Personal Website and
+                            Software Development Blog`} />
+                    <link rel="canonical" href="https://jarombek.com" />
+                    <link rel="icon" href={ require(`./assets/jarombek.png`) } />
+                </Helmet>
                 <div className="title-container">
-                    <p className="title">Andrew Jarombek</p>
+                    <h1 className="title">Andrew Jarombek</h1>
                 </div>
                 <p className="sub-title">Website Under Construction</p>
                 <Link to="/blog" className="blog-button">

@@ -1,0 +1,31 @@
+/**
+ * Sass styling for the Definition component
+ * @author Andrew Jarombek
+ * @since 5/13/2018
+ */
+
+@import "global";
+
+.jarombek-def {
+
+  background-color: #eee;
+  border-radius: 2px;
+  padding: 25px;
+
+  margin-bottom: 20px;
+  margin-top: 20px;
+
+  transition: all .4s ease;
+
+  &:hover {
+    box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+  }
+
+  .jarombek-def-word {
+    @include dyslexie;
+    text-decoration: underline;
+    text-decoration-color: #ddd;
+  }
+
+  .jarombek-def-desc {}
+}
