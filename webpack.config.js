@@ -9,6 +9,7 @@ const HtmlWebPackPlugin = require("html-webpack-plugin");
 const merge = require("webpack-merge");
 const webpack = require("webpack");
 const NodemonPlugin = require("nodemon-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const parts = require("./webpack.parts");
 
@@ -52,7 +53,12 @@ const serverConfig = merge([
                     }
                 }
             ]
-        }
+        },
+        plugins: [
+            new CopyWebpackPlugin([
+                { from: path.join(__dirname, '/src/server/sitemap.xml'), to: 'sitemap.xml' }
+            ])
+        ]
     },
     parts.loadFonts({
         options: {

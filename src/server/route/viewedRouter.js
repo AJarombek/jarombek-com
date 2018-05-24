@@ -56,7 +56,7 @@ const routes = (Viewed, Post, Audit) => {
 
                 // Also update the viewed collection with the additional view
 
-                const viewed = await Viewed.findOne({item_id: updatedPost._id}).exec();
+                const viewed = await Viewed.findOne({name: updatedPost.name}).exec();
                 console.info(`Viewed: ${viewed}`);
                 let newViewed;
 
@@ -78,8 +78,8 @@ const routes = (Viewed, Post, Audit) => {
                     console.info(`Never Viewed, Creating New Viewed Document`);
 
                     const newViewedObject = new Viewed({
-                        item_id: updatedPost._id,
                         name: updatedPost.name,
+                        date: updatedPost.date,
                         type: 'post',
                         views: updatedPost.views
                     });

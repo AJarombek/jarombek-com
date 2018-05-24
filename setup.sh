@@ -148,5 +148,7 @@ yarn add fetch-mock --dev
 yarn add babel-polyfill
 
 # Add server side testing dependencies
-yarn add mocha --dev
 yarn add supertest --dev
+
+# Webpack plugin to copy a file to a new directory
+yarn add copy-webpack-plugin --dev
