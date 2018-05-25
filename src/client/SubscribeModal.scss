@@ -1,0 +1,35 @@
+/*
+ * Sass styling for the SubscribeModal component
+ * @author Andrew Jarombek
+ * @since 5/24/2018
+ */
+
+@import "global";
+
+$modal-backdrop: rgba(0, 0, 0, 0.3);
+
+.jarbek-modal {
+  background: white;
+  border-radius: 3px;
+  top: 50%;
+  left: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.jarbek-modal-backdrop {
+  width: 100vw;
+  height: 100vh;
+  z-index: 9;
+
+  top: 0;
+  left: 0;
+
+  overflow: hidden;
+  position: fixed;
+  cursor: pointer;
+}
+
+.jarbek-modal-backdrop-visible {
+  background-color: $modal-backdrop;
+}

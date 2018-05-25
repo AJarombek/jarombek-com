@@ -17,6 +17,7 @@ import PictureButton from './PictureButton';
 import TitleImage from './TitleImage';
 import CodeSnippet from './CodeSnippet';
 import Definition from './Definition';
+import SubscribeModal from './SubscribeModal';
 
 import './Blog.scss';
 import Loading from "./Loading";
@@ -490,7 +491,7 @@ class Blog extends React.Component {
         console.log('Inside Blog Render');
         console.info(this.state);
         return (
-            <WebsiteTemplate>
+            <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
                 <div className="jarombek-blog-background">
                     <div className="jarombek-blog">
                         { (this.state.page === Blog.pageType.SINGLE) ?
@@ -533,6 +534,9 @@ class Blog extends React.Component {
                         }
                     </div>
                 </div>
+                { (this.state.subscribing) ?
+                    <SubscribeModal /> : null
+                }
             </WebsiteTemplate>
         );
     }
