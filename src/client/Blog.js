@@ -40,7 +40,11 @@ class Blog extends React.Component {
         // Cache the next link from the server for when the state gets cleared
         this.nextCache = null;
 
-        this.state = {};
+        // Only set an empty state if it does not already exist -
+        // it may have been set on the server side render
+        if (!this.state) {
+            this.state = {};
+        }
     }
 
     static pageType = Object.freeze({SINGLE: 0, MANY: 1});
@@ -524,7 +528,7 @@ class Blog extends React.Component {
                                 <meta name="author" content="Andrew Jarombek" />
                                 <meta name="description"
                                       content={posts[0].description ||
-                                        `Andrew Jarombek Blog Post: ${posts[0].title}`} />
+                                        `${posts[0].title} | Andrew Jarombek`} />
                                 <link rel="canonical"
                                       href={`https://jarombek.com/blog/${posts[0].name}`} />
                                 <link rel="icon" href={ require(`./assets/jarombek.png`) } />
