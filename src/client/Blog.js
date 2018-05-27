@@ -40,18 +40,43 @@ class Blog extends React.Component {
         // Cache the next link from the server for when the state gets cleared
         this.nextCache = null;
 
-        this.state = {};
+        // Only set an empty state if it does not already exist -
+        // it may have been set on the server side render
+        if (!this.state) {
+            this.state = {};
+        }
     }
 
     static pageType = Object.freeze({SINGLE: 0, MANY: 1});
 
     static propTypes = {
-        match: PropTypes.object.isRequired
+        match: PropTypes.object.isRequired,
+        posts: PropTypes.object
     };
+
+    /**
+     * Called when a component is about to mount.  Here we check if an initial state was passed
+     * down from the server and act accordingly.
+     * NOTE: This lifecycle call IS made on server side React.  This is simply a preparation
+     * call before interacting with the DOM
+     */
+    componentWillMount() {
+        console.info("Inside Blog ComponentWillMount");
+
+        if (this.props.posts) {
+            console.info(`Mounting Component with Post in State: ${this.props.posts.name}`);
+            this.setState({
+                posts: [Blog.createPostJSX(this.props.posts)],
+                page: Blog.pageType.SINGLE
+            });
+        }
+    }
 
     /**
      * Called when the component first mounts.  Here is where we should make setup API calls
      * and initialize the state
+     * NOTE: This lifecycle call is NOT made on server side React.  Mounting occurs while
+     * interacting with the DOM, so this only happens on client side code
      */
     componentDidMount() {
         console.info("Inside Blog ComponentDidMount");
@@ -65,12 +90,16 @@ class Blog extends React.Component {
         // Otherwise it will display many posts
         if (name) {
 
-            console.info(`Fetching Post with name ${name}`);
-            this.fetchPostAndUpdate(name)
-                .catch(err => {
-                    console.error(err);
-                    this.setState({posts: []});
-                });
+            if (!this.state.posts) {
+                console.info(`Fetching Post with name ${name}`);
+                this.fetchPostAndUpdate(name)
+                    .catch(err => {
+                        console.error(err);
+                        this.setState({posts: []});
+                    });
+            } else {
+                console.info(`Post Was in Initial State`);
+            }
 
         } else {
 
@@ -499,7 +528,7 @@ class Blog extends React.Component {
                                 <meta name="author" content="Andrew Jarombek" />
                                 <meta name="description"
                                       content={posts[0].description ||
-                                        `Andrew Jarombek Blog Post: ${posts[0].title}`} />
+                                        `${posts[0].title} | Andrew Jarombek`} />
                                 <link rel="canonical"
                                       href={`https://jarombek.com/blog/${posts[0].name}`} />
                                 <link rel="icon" href={ require(`./assets/jarombek.png`) } />
