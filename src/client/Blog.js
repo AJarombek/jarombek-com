@@ -17,7 +17,7 @@ import PictureButton from './PictureButton';
 import TitleImage from './TitleImage';
 import CodeSnippet from './CodeSnippet';
 import Definition from './Definition';
-import SubscribeModal from './SubscribeModal';
+import Modal from './Modal';
 
 import './Blog.scss';
 import Loading from "./Loading";
@@ -535,7 +535,9 @@ class Blog extends React.Component {
                     </div>
                 </div>
                 { (this.state.subscribing) ?
-                    <SubscribeModal /> : null
+                    <Modal clickBackground={() => this.setState({subscribing: false})}>
+                        <p>Hello Modal</p>
+                    </Modal> : null
                 }
             </WebsiteTemplate>
         );
