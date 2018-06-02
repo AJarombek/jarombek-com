@@ -7,6 +7,7 @@
 import React from 'react';
 
 import './Subscribe.scss';
+import Button from "./Button";
 
 class Subscribe extends React.Component {
 
@@ -37,6 +38,9 @@ class Subscribe extends React.Component {
                     <div className="jarbek-input jarbek-input-password">
                         <input type="password" name="password" placeholder="Password" />
                     </div>
+                    <Button className="jarbek-input-submit" size="long" activeColor="primary">
+                        SUBSCRIBE
+                    </Button>
                 </div>
             </div>
         );

@@ -18,7 +18,8 @@
 }
 
 .jarbek-divider {
-  padding: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
 }
 
 .jarbek-divider div {
@@ -34,14 +35,25 @@
 
 .jarbek-input {
   width: 500px;
-  height: 40px;
+  height: 45px;
+  padding: 5px;
 }
 
 .jarbek-input input {
   @include dyslexie;
 
-  width: 100%;
-  height: 100%;
+  width: 94%;
+  padding-right: 3%;
+  padding-left: 3%;
+  height: 40px;
+
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 14px;
+}
+
+.jarbek-input input::placeholder {
+  color: #bbb;
 }
 
 .jarbek-input input[type="email"] {
@@ -59,4 +71,11 @@
 
 .jarbek-input input[type="password"] {
   grid-area: password / left / button / right;
+}
+
+.jarbek-input-submit {
+  grid-area: button / left / bottom / right;
+  justify-self: center;
+  align-self: center;
+  padding-top: 30px;
 }

@@ -13,7 +13,7 @@ const Modal = ({backdrop, children, clickBackground}) => {
     return (
         <div onClick={clickBackground} className={`jarbek-modal-backdrop
                     ${backdrop ? "jarbek-modal-backdrop-visible" : ""}`}>
-            <div className="jarbek-modal">
+            <div className="jarbek-modal" onClick={(e) => e.stopPropagation()}>
                 {children}
             </div>
         </div>
