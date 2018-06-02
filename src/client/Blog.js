@@ -21,6 +21,7 @@ import Modal from './Modal';
 
 import './Blog.scss';
 import Loading from "./Loading";
+import Subscribe from "./Subscribe";
 
 class Blog extends React.Component {
 
@@ -536,7 +537,7 @@ class Blog extends React.Component {
                 </div>
                 { (this.state.subscribing) ?
                     <Modal clickBackground={() => this.setState({subscribing: false})}>
-                        <p>Hello Modal</p>
+                        <Subscribe />
                     </Modal> : null
                 }
             </WebsiteTemplate>
