@@ -52,6 +52,11 @@
   font-size: 14px;
 }
 
+.jarbek-input input:focus {
+  outline: none;
+  border: 1px solid darken($color-secondary, 40%);
+}
+
 .jarbek-input input::placeholder {
   color: #bbb;
 }
