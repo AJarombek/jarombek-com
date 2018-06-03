@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import helmet from 'helmet';
+const bodyParser = require('body-parser');
 import path from 'path';
 import React from 'react';
 import {renderToString} from 'react-dom/server';
@@ -105,6 +106,8 @@ const respond = (req, res) => {
 const app = express();
 
 app.use(helmet({}));
+app.use(bodyParser.json({limit: '50mb'}));
+
 app.use('/api/post', postRouter);
 app.use('/api/viewed', viewedRouter);
 app.use('/api/user', userRouter);

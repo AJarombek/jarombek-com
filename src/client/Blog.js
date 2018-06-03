@@ -537,7 +537,7 @@ class Blog extends React.Component {
                 </div>
                 { (this.state.subscribing) ?
                     <Modal clickBackground={() => this.setState({subscribing: false})}>
-                        <Subscribe />
+                        <Subscribe exit={() => this.setState({subscribing: false})} />
                     </Modal> : null
                 }
             </WebsiteTemplate>

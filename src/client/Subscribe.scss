@@ -85,6 +85,14 @@
   padding-bottom: 5px;
 }
 
+.jarbek-input-completed {
+  grid-area: email / left / button / right;
+  @include sylexiad;
+  color: #999;
+  font-size: 20px;
+  text-align: center;
+}
+
 .jarbek-input input[type="email"] {
   // Goes in this order: row-start, column-start, row-end, column-end
   grid-area: email / left / email-comment / right;

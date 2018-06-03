@@ -24,38 +24,42 @@ const routes = (User, Audit) => {
         })
         .post((req, res) => {
 
+            console.info(`Request Body: ${JSON.stringify(req.body)}`);
+
             const user = new User(req.body);
             console.info(`Creating User: ${user}`);
 
             // First make sure that the user exists and that it has a password
-            if (user !== undefined && user.password) {
+            if (user !== undefined && user.hash) {
 
                 // Then hash and salt the password with bcrypt - second parameter
                 // is the salt rounds, third is a callback while in progress.  We
                 // pass null to automatically generate a salt and because we don't
                 // need any progress updates
-                bcrypt.hash(user.password, null, null, (err, hash) => {
+                bcrypt.hash(user.hash, null, null, (err, hash) => {
                     if (err) {
                         console.error(err);
-                        res.status(500).send(err);
+                        res.status(500).json({error: err});
                     } else {
 
+                        console.info(`Original User ${JSON.stringify(user)}`);
+
                         const hashedUser = {
-                            ...user,
+                            ...user.toObject(),
                             hash
                         };
 
-                        console.info('About to call insert()');
+                        console.info(`Hashed User ${JSON.stringify(hashedUser)}`);
 
                         // Insert the new user
-                        insert(hashedUser).catch(() =>
-                            res.status(500).send("User Creation Failed")
+                        insert(hashedUser).catch((e) =>
+                            res.status(500).json({error: `User Creation Failed: ${e}`})
                         );
                     }
                 });
 
             } else {
-                res.status(500).send("Error: User must have a Password");
+                res.status(500).json({error: "User must have a Password"});
             }
 
             async function insert(user) {
@@ -65,7 +69,7 @@ const routes = (User, Audit) => {
 
                 if (existingUser) {
                     console.info(`User already exists with email ${user.email}`);
-                    res.status(400).send('User already exists.');
+                    res.status(400).json({error: 'User already exists'});
                 } else {
 
                     // The email isn't in use, so create the new user!
