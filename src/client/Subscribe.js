@@ -8,11 +8,16 @@ import React from 'react';
 
 import './Subscribe.scss';
 import Button from "./Button";
+import SubmitStatus from "./SubmitStatus";
 
 class Subscribe extends React.Component {
 
     constructor() {
         super();
+
+        this.baseUrl = (process.env.NODE_ENV === 'production') ?
+            'https://jarombek.com' :
+            'http://localhost:8080';
 
         this.state = {};
     }
@@ -97,14 +102,48 @@ class Subscribe extends React.Component {
 
         if (emailValid && firstNameValid &&
             lastNameValid && passwordValid) {
+
             console.info(`Valid ${email} ${firstName} ${lastName} ${password}`);
+
+            this.setState({
+                submitStatus: SubmitStatus.SUBMIT_VALID
+            });
+
+            Subscribe.createUser(email, firstName, lastName, password, this.baseUrl)
+                .then(() => {
+                    this.setState({submitStatus: SubmitStatus.SUBMIT_SUCCESS});
+                })
+                .catch(err => {
+                    console.error(err);
+                    this.setState({submitStatus: SubmitStatus.SUBMIT_FAIL});
+                });
+
         } else {
             console.info("Invalid");
+            this.setState({
+                submitStatus: SubmitStatus.SUBMIT_INVALID
+            });
         }
     }
 
+    static async createUser(email, firstName, lastName, password, baseUrl) {
+        console.info(`POST ${baseUrl}/api/user`);
+        fetch(
+            `${baseUrl}/api/user`,
+            {
+                method: 'POST',
+                body: JSON.stringify({
+                    email,
+                    firstName,
+                    lastName,
+                    password
+                })
+            },
+        );
+    }
+
     render() {
-        const {emailValid, email, firstNameValid, firstName,
+        const {submitStatus, emailValid, email, firstNameValid, firstName,
             lastNameValid, lastName, passwordValid, passwordProperLength,
             passwordContainsLetter, passwordContainsNonLetter, password} = this.state;
         console.info(this.state);
@@ -116,7 +155,9 @@ class Subscribe extends React.Component {
                 </div>
                 <div className="jarbek-subscribe-form">
                     <div className="jarbek-input jarbek-input-email">
-                        <input type="email" name="email" autoComplete="username"
+                        <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
+                                && !emailValid ? "jarbek-input-warning": "" }
+                               type="email" name="email" autoComplete="username"
                                placeholder="Email" onChange={(e) => this.onChangeEmail(e)} />
                     </div>
                     <div className="jarbek-input-email-comment">
@@ -135,7 +176,9 @@ class Subscribe extends React.Component {
                         }
                     </div>
                     <div className="jarbek-input jarbek-input-first">
-                        <input type="text" name="first" placeholder="First Name"
+                        <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
+                                && !firstNameValid ? "jarbek-input-warning": "" }
+                               type="text" name="first" placeholder="First Name"
                                onChange={(e) => this.onChangeFirstName(e)} />
                     </div>
                     <div className="jarbek-input-first-name-comment">
@@ -151,7 +194,9 @@ class Subscribe extends React.Component {
                         }
                     </div>
                     <div className="jarbek-input jarbek-input-last">
-                        <input type="text" name="last" placeholder="Last Name"
+                        <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
+                                && !lastNameValid ? "jarbek-input-warning": "" }
+                               type="text" name="last" placeholder="Last Name"
                                onChange={(e) => this.onChangeLastName(e)} />
                     </div>
                     <div className="jarbek-input-last-name-comment">
@@ -167,7 +212,9 @@ class Subscribe extends React.Component {
                         }
                     </div>
                     <div className="jarbek-input jarbek-input-password">
-                        <input type="password" name="password" placeholder="Password"
+                        <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
+                                && !passwordValid ? "jarbek-input-warning": "" }
+                               type="password" name="password" placeholder="Password"
                                onChange={(e) => this.onChangePassword(e)} />
                     </div>
                     <div className="jarbek-input-password-comment">

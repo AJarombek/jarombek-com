@@ -67,11 +67,15 @@
 }
 
 .jarbek-input-valid {
-  color: darken($color-secondary, 20%);
+  color: darken($color-secondary, 30%);
 }
 
 .jarbek-input-invalid {
   color: darken($color-invalid, 10%);
+}
+
+.jarbek-input-warning {
+  border: 1px solid $color-invalid !important;
 }
 
 .jarbek-input-comment-active {
