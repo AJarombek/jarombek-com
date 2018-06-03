@@ -152,3 +152,6 @@ yarn add supertest --dev
 
 # Webpack plugin to copy a file to a new directory
 yarn add copy-webpack-plugin --dev
+
+# Bcrypt for hashing passwords
+yarn add bcrypt-nodejs

@@ -12,10 +12,11 @@ import Home from "../client/Home";
 
 import Audit from "./model/audit";
 import Post from "./model/post";
-import postRoute from "./route/postRouter";
 import Viewed from "./model/viewed";
+import User from "./model/user";
+import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
-
+import userRoute from "./route/userRouter";
 
 /**
  * The main file for the Express/Node.js server.  The server provides an API and
@@ -29,6 +30,7 @@ mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 // API CRUD routes for a MongoDB collection
 const postRouter = postRoute(Post);
 const viewedRouter = viewedRoute(Viewed, Post, Audit);
+const userRouter = userRoute(User, Audit);
 
 global.React = React;
 
@@ -105,6 +107,7 @@ const app = express();
 app.use(helmet({}));
 app.use('/api/post', postRouter);
 app.use('/api/viewed', viewedRouter);
+app.use('/api/user', userRouter);
 
 app.use(express.static(path.join(__dirname, '..')));
 
