@@ -123,8 +123,14 @@ class Subscribe extends React.Component {
             });
 
             Subscribe.createUser(email, firstName, lastName, password, this.baseUrl)
-                .then(() => {
-                    this.setState({submitStatus: SubmitStatus.SUBMIT_SUCCESS});
+                .then((status) => {
+                    if (status === 201) {
+                        this.setState({submitStatus: SubmitStatus.SUBMIT_SUCCESS});
+                    } else if (status === 400) {
+                        this.setState({submitStatus: SubmitStatus.SUBMIT_NO_CHANGE});
+                    } else {
+                        this.setState({submitStatus: SubmitStatus.SUBMIT_FAIL});
+                    }
                 })
                 .catch(err => {
                     console.error(err);
@@ -155,11 +161,13 @@ class Subscribe extends React.Component {
             },
         );
 
-        console.debug(response);
+        console.info(response);
 
         const json = await response.json();
 
         console.info(`User JSON: ${JSON.stringify(json)}`);
+
+        return response.status;
     }
 
     render() {
@@ -174,7 +182,8 @@ class Subscribe extends React.Component {
                     <div> </div>
                 </div>
                 { submitStatus === SubmitStatus.SUBMIT_FAIL ||
-                    submitStatus === SubmitStatus.SUBMIT_SUCCESS ?
+                    submitStatus === SubmitStatus.SUBMIT_SUCCESS ||
+                    submitStatus === SubmitStatus.SUBMIT_NO_CHANGE ?
                     <div className="jarbek-subscribe-form">
                         { submitStatus === SubmitStatus.SUBMIT_SUCCESS ?
                             <p className="jarbek-input-completed">
@@ -184,10 +193,14 @@ class Subscribe extends React.Component {
                                 Development!  For additional information you can contact me at
                                 andrew@jarombek.com.
                             </p>:
-                            <p className="jarbek-input-completed">
-                                Something went wrong!  Note: This error message is a feature,
-                                not a bug.
-                            </p>
+                            (submitStatus === SubmitStatus.SUBMIT_NO_CHANGE) ?
+                                <p className="jarbek-input-completed">
+                                    This email is already subscribed!
+                                </p>:
+                                <p className="jarbek-input-completed">
+                                    Something went wrong!  Note: This error message is a feature,
+                                    not a bug.
+                                </p>
                         }
                         <Button className="jarbek-input-submit" size="long"
                                 activeColor="primary" onClick={() => this.props.exit()}>
@@ -307,8 +320,7 @@ class Subscribe extends React.Component {
                             }
                         </div>
                         { submitStatus === SubmitStatus.SUBMIT ||
-                        submitStatus === SubmitStatus.SUBMIT_VALID ||
-                        submitStatus === SubmitStatus.SUBMIT_INVALID ?
+                        submitStatus === SubmitStatus.SUBMIT_VALID ?
 
                             <Loading className="jarbek-input-submit" />:
                             <Button className="jarbek-input-submit" size="long"
