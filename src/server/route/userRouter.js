@@ -6,6 +6,10 @@
 
 const express = require('express');
 const bcrypt = require('bcrypt-nodejs');
+const uuid = require('uuid/v4');
+const base64 = require('base64-url');
+
+const emails = require('../aws/emails');
 
 const routes = (User, Audit) => {
 
@@ -44,15 +48,25 @@ const routes = (User, Audit) => {
 
                         console.info(`Original User ${JSON.stringify(user)}`);
 
+                        const verify_cd = base64.encode(uuid());
+                        const unsub_cd = base64.encode(uuid());
+
                         const hashedUser = {
                             ...user.toObject(),
-                            hash
+                            hash,
+                            verify_cd,
+                            unsub_cd
                         };
 
                         console.info(`Hashed User ${JSON.stringify(hashedUser)}`);
 
                         // Insert the new user
-                        insert(hashedUser).catch((e) =>
+                        insert(hashedUser).then(() => {
+
+                            // If the insert succeeds, send a welcome email
+                            emails.sendWelcomeEmail(verify_cd, unsub_cd);
+
+                        }).catch((e) =>
                             res.status(500).json({error: `User Creation Failed: ${e}`})
                         );
                     }

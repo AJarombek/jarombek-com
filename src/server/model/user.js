@@ -29,9 +29,21 @@ const UserSchema = new Schema({
         type: String,
         required: true
     },
+    verify_cd: {
+        type: String,
+        required: true
+    },
+    unsub_cd: {
+        type: String,
+        required: true
+    },
+    verified: {
+        type: Boolean,
+        default: false
+    },
     deleted: {
-        type: Number,
-        default: 0
+        type: Boolean,
+        default: false
     }
 });
 

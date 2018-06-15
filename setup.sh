@@ -155,3 +155,7 @@ yarn add copy-webpack-plugin --dev
 
 # Bcrypt for hashing passwords
 yarn add bcrypt-nodejs
+
+# Used to create URL friendly base64 encodings of unique identifiers
+yarn add uuid
+yarn add base64-url

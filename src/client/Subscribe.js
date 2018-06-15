@@ -189,7 +189,7 @@ class Subscribe extends React.Component {
                             <p className="jarbek-input-completed">
                                 Thank you for subscribing!  I sent an email confirming your
                                 subscription.  Emails are sent once a month
-                                with everything I have been working on in Software
+                                with everything I have worked on related to Software
                                 Development!  For additional information you can contact me at
                                 andrew@jarombek.com.
                             </p>:
