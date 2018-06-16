@@ -64,7 +64,7 @@ const routes = (User, Audit) => {
                         insert(hashedUser).then(() => {
 
                             // If the insert succeeds, send a welcome email
-                            emails.sendWelcomeEmail(verify_cd, unsub_cd);
+                            emails.sendWelcomeEmail(hashedUser.email, verify_cd, unsub_cd);
 
                         }).catch((e) =>
                             res.status(500).json({error: `User Creation Failed: ${e}`})
