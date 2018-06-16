@@ -10,6 +10,8 @@ import {Helmet} from 'react-helmet';
 
 import Blog from "../client/Blog";
 import Home from "../client/Home";
+import Unsub from "../client/Unsub";
+import Verify from "../client/Verify";
 
 import Audit from "./model/audit";
 import Post from "./model/post";
@@ -47,6 +49,8 @@ const renderComponentsToHTML = (url) => ({
                 <Route exact path="/" component={Home} />
                 <Route path="/blog/:name" component={Blog}/>
                 <Route path="/blog" component={Blog}/>
+                <Route path="/verify/:code" component={Verify}/>
+                <Route path="/unsub/:code" component={Unsub}/>
                 <Route component={Home}/>
             </Switch>
         </StaticRouter>

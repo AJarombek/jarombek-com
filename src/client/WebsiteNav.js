@@ -11,7 +11,7 @@ import Button from "./Button";
 import './WebsiteNav.scss';
 import PropTypes from "prop-types";
 
-const WebsiteNav = ({subscribeAction}) => {
+const WebsiteNav = ({subscribeAction, hideSubscribe}) => {
     return (
         <nav className="jarombek-nav">
             <NavLink to="/blog" className="jarombek-nav-left">
@@ -20,21 +20,26 @@ const WebsiteNav = ({subscribeAction}) => {
             <NavLink to="/" className="jarombek-nav-middle">
                 Andrew Jarombek
             </NavLink>
-            <div className="jarombek-nav-right" onClick={subscribeAction}>
-                <Button className="subscribe-button" activeColor="primary" size="medium">
-                    SUBSCRIBE
-                </Button>
-            </div>
+            { hideSubscribe ?
+                <div className="jarombek-nav-right" onClick={subscribeAction}>
+                    <Button className="subscribe-button" activeColor="primary" size="medium">
+                        SUBSCRIBE
+                    </Button>
+                </div>:
+                <div className="jarombek-nav-right"> </div>
+            }
         </nav>
     );
 };
 
 WebsiteNav.propTypes = {
-    subscribeAction: PropTypes.func
+    subscribeAction: PropTypes.func,
+    hideSubscribe: PropTypes.bool
 };
 
 WebsiteNav.defaultProps = {
-    subscribeAction: f=>f
+    subscribeAction: f=>f,
+    hideSubscribe: false
 };
 
 export default WebsiteNav;

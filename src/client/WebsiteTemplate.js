@@ -10,10 +10,10 @@ import PropTypes from "prop-types";
 
 import './WebsiteTemplate.scss';
 
-const WebsiteTemplate = ({children, subscribeAction}) => {
+const WebsiteTemplate = ({children, subscribeAction, hideSubscribe}) => {
     return (
         <div className="jarombek-template">
-            <WebsiteNav subscribeAction={subscribeAction} />
+            <WebsiteNav hideSubscribe={hideSubscribe} subscribeAction={subscribeAction} />
             {children}
         </div>
     );
@@ -21,11 +21,13 @@ const WebsiteTemplate = ({children, subscribeAction}) => {
 
 WebsiteTemplate.propTypes = {
     children: PropTypes.any,
-    subscribeAction: PropTypes.func
+    subscribeAction: PropTypes.func,
+    hideSubscribe: PropTypes.bool
 };
 
 WebsiteTemplate.defaultProps = {
-    subscribeAction: f=>f
+    subscribeAction: f=>f,
+    hideSubscribe: false
 };
 
 export default WebsiteTemplate;

@@ -66,9 +66,9 @@ const routes = (User, Audit) => {
                             // If the insert succeeds, send a welcome email
                             emails.sendWelcomeEmail(hashedUser.email, verify_cd, unsub_cd);
 
-                        }).catch((e) =>
-                            res.status(500).json({error: `User Creation Failed: ${e}`})
-                        );
+                        }, (reason) => {
+                            console.error(`User Creation Failed: ${reason}`);
+                        });
                     }
                 });
 
@@ -84,6 +84,7 @@ const routes = (User, Audit) => {
                 if (existingUser) {
                     console.info(`User already exists with email ${user.email}`);
                     res.status(400).json({error: 'User already exists'});
+                    throw Error('User already exists');
                 } else {
 
                     // The email isn't in use, so create the new user!
