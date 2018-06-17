@@ -10,8 +10,10 @@ const uuid = require('uuid/v4');
 const base64 = require('base64-url');
 
 const emails = require('../aws/emails');
+const User = require('../model/user');
+const Audit = require('../model/audit');
 
-const routes = (User, Audit) => {
+const routes = () => {
 
     const userRouter = express.Router();
 
@@ -109,24 +111,16 @@ const routes = (User, Audit) => {
     // Route middleware for an existing user
     userRouter.use('/user/:email', (req, res, next) => {
 
-        find().catch(error => res.status(500).send(error));
-
-        /**
-         * Call of findOne() query on the User collection in MongoDB with a specific user email
-         * @returns {Promise<void>}
-         */
-        async function find() {
-
-            const user = await User.findOne({email: req.params.email}).exec();
+        findUserByEmail(req.params.email).next((user) => {
             console.info(`User with matching email: ${user.email}`);
-
-            if (user) {
-                req.user = user;
-                next();
-            } else {
-                res.status(404).send("Error: No User found with given email");
-            }
-        }
+            req.user = user;
+            next();
+        }, (reason) => {
+            res.status(404).json({
+                error: "No User found with given email",
+                message: reason
+            });
+        });
     });
 
     userRouter.route('/user/:email')
@@ -161,7 +155,68 @@ const routes = (User, Audit) => {
             }
         });
 
+    userRouter.route('/verify/:code')
+        .patch((req, res) => {
+            verifyUser(req.params.code).then((user) => {
+                res.status(200).json(user);
+            }, (reason) => {
+                res.status(400).json({
+                    error: "Failed to Verify user",
+                    message: reason
+                });
+            });
+        });
+
     return userRouter;
 };
+
+/**
+ * Make a findOne() query on the User collection in MongoDB with a specific user email
+ * @param email - the email of a user to search for
+ * @return {Promise<*>}
+ */
+async function findUserByEmail(email) {
+    return await User.findOne({email}).exec();
+}
+
+async function findUserByVerifyCode(code) {
+    return await User.findOne({code}).exec();
+}
+
+async function verifyUser(code) {
+    const user = findUserByVerifyCode(code);
+
+    console.info(`User with verification code: ${JSON.stringify(user.toObject())}`);
+
+    if (user.email) {
+
+        if (user.verified === false) {
+            const verifiedUser = {
+                ...user.toObject(),
+                verified: true
+            };
+
+            await User.update({email: user.email}, verifiedUser).exec();
+
+            const updatedUser = findUserByEmail(user.email);
+
+            const audit = new Audit({
+                item_id: updatedUser._id,
+                type: 'user',
+                message: `Updated User ${updatedUser.email}`,
+                source: 'Jarombek.com NodeJS/Express API'
+            });
+
+            await Audit.create(audit);
+
+            return updatedUser;
+
+        } else {
+            throw `User already verified with email: ${user.email}`;
+        }
+    } else {
+        throw `User does not exist with verification code: ${code}`;
+    }
+}
 
 module.exports = routes;

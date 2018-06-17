@@ -40,10 +40,42 @@ class Verify extends React.Component {
 
             console.info(`Verifying user with code: ${code}`);
             this.setState({status: VerifyStatus.VERIFYING});
+
+            Verify.verifyUser(code, this.baseUrl).then((status) => {
+                console.info(status);
+
+                if (status === 200) {
+                    this.setState({status: VerifyStatus.VERIFY_SUCCESS});
+                } else {
+                    this.setState({status: VerifyStatus.VERIFY_FAILURE});
+                }
+            }, (reason) => {
+                console.error(reason);
+                this.setState({status: VerifyStatus.VERIFY_FAILURE});
+            });
+
         } else {
             console.info('No Code Supplied.');
             this.setState({status: VerifyStatus.NO_CODE});
         }
+    }
+
+    static async verifyUser(code, baseUrl) {
+        console.info(`PATCH ${baseUrl}/api/user/verify/${code}`);
+        const response = await fetch(
+            `${baseUrl}/api/user/verify/${code}`,
+            {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({})
+            }
+        );
+
+        console.info(response);
+        const json = await response.json();
+        console.info(`Updated User JSON: ${JSON.stringify(json)}`);
+
+        return response.status;
     }
 
     render() {
@@ -62,7 +94,9 @@ class Verify extends React.Component {
                             (status === VerifyStatus.VERIFY_FAILURE) ?
 
                                 <div className="jarombek-verify-content jarombek-verify-error">
-                                    <p>&#x2718; Verification Failure!</p>
+                                    <p className="jarombek-verify-title">
+                                        &#x2718; Verification Failure!
+                                    </p>
                                     <p className="jarombek-verify-thin-text">
                                         The verification code is invalid or was already used.
                                     </p>

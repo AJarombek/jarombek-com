@@ -34,6 +34,7 @@
   text-align: center;
 
   padding-bottom: 10px;
+  font-size: 20px;
 }
 
 .jarombek-verify-footer {
@@ -54,10 +55,15 @@
 
 .jarombek-verify-thin-text {
   @include sylexiad;
+  font-size: 18px;
 }
 
 .jarombek-verify-error {
   color: darken($color-invalid, 10%);
+}
+
+.jarombek-verify-title {
+  padding-bottom: 10px;
 }
 
 .jarombek-verify-success {
