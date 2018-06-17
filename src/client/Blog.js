@@ -493,7 +493,7 @@ class Blog extends React.Component {
         console.info(this.state);
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
-                <div className="jarombek-blog-background">
+                <div className="jarombek-background">
                     <div className="jarombek-blog">
                         { (this.state.page === Blog.pageType.SINGLE) ?
                             <Helmet>

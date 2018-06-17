@@ -8,6 +8,7 @@ import React from 'react';
 
 import './Unsub.scss';
 import PropTypes from "prop-types";
+import WebsiteTemplate from "./WebsiteTemplate";
 
 class Unsub extends React.Component {
 
@@ -22,20 +23,20 @@ class Unsub extends React.Component {
     }
 
     static propTypes = {
-        exit: PropTypes.func
-    };
-
-    static defaultProps = {
-        exit: f=>f
+        match: PropTypes.object.isRequired
     };
 
     render() {
         const {_} = this.state;
         console.debug(this.state);
         return (
-            <div>
+            <WebsiteTemplate hideSubscribe={true}>
+                <div className="jarombek-background">
+                    {
 
-            </div>
+                    }
+                </div>
+            </WebsiteTemplate>
         );
     }
 }

@@ -8,7 +8,7 @@ import React from 'react';
 
 import './Subscribe.scss';
 import Button from "./Button";
-import SubmitStatus from "./SubmitStatus";
+import SubmitStatus from "./status/SubmitStatus";
 import Loading from "./Loading";
 import PropTypes from "prop-types";
 

@@ -94,3 +94,7 @@ $width-small-desktop: 980px;
     #{$property}: $result;
   }
 }
+
+.jarombek-background {
+  background-image: url("./assets/blizzard.png") !important;
+}

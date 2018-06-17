@@ -20,7 +20,7 @@ const WebsiteNav = ({subscribeAction, hideSubscribe}) => {
             <NavLink to="/" className="jarombek-nav-middle">
                 Andrew Jarombek
             </NavLink>
-            { hideSubscribe ?
+            { (!hideSubscribe) ?
                 <div className="jarombek-nav-right" onClick={subscribeAction}>
                     <Button className="subscribe-button" activeColor="primary" size="medium">
                         SUBSCRIBE
