@@ -95,6 +95,11 @@ class CodeSnippet extends React.Component {
                 prop: "sass",
                 title: "Sass",
                 highlightClass: "sass"
+            },
+            {
+                prop: "css",
+                title: "CSS",
+                highlightClass: "css"
             }
         ];
     }

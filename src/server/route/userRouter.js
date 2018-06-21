@@ -109,7 +109,7 @@ const routes = () => {
         });
 
     // Route middleware for an existing user
-    userRouter.use('/user/:email', (req, res, next) => {
+    userRouter.use('/filter/:email', (req, res, next) => {
 
         findUserByEmail(req.params.email).next((user) => {
             console.info(`User with matching email: ${user.email}`);
@@ -123,7 +123,7 @@ const routes = () => {
         });
     });
 
-    userRouter.route('/user/:email')
+    userRouter.route('/filter/:email')
         .get((req, res) => {
             res.json(req.user);
         })
@@ -157,6 +157,7 @@ const routes = () => {
 
     userRouter.route('/verify/:code')
         .patch((req, res) => {
+            console.info(`Verify code param: ${req.params.code}`);
             verifyUser(req.params.code).then((user) => {
                 res.status(200).json(user);
             }, (reason) => {
@@ -179,18 +180,33 @@ async function findUserByEmail(email) {
     return await User.findOne({email}).exec();
 }
 
+/**
+ * Make a findOne() query on the User collection in MongoDB with a specific
+ * verification code
+ * @param code - the verification code of a user to search for
+ * @return {Promise<*>}
+ */
 async function findUserByVerifyCode(code) {
-    return await User.findOne({code}).exec();
+    return await User.findOne({verify_cd: code}).exec();
 }
 
+/**
+ * Verify a user and audit the update of the user in the database.  Will throw
+ * an error if the user was already verified or if the user does not exist with
+ * the given verification code.
+ * @param code - the users verification code
+ * @return {Promise<*>}
+ */
 async function verifyUser(code) {
-    const user = findUserByVerifyCode(code);
+    const user = await findUserByVerifyCode(code);
 
     console.info(`User with verification code: ${JSON.stringify(user.toObject())}`);
 
+    // If the user has an email property we can assume it is valid
     if (user.email) {
 
         if (user.verified === false) {
+
             const verifiedUser = {
                 ...user.toObject(),
                 verified: true
@@ -203,7 +219,7 @@ async function verifyUser(code) {
             const audit = new Audit({
                 item_id: updatedUser._id,
                 type: 'user',
-                message: `Updated User ${updatedUser.email}`,
+                message: `Updated/Verified User ${updatedUser.email}`,
                 source: 'Jarombek.com NodeJS/Express API'
             });
 
