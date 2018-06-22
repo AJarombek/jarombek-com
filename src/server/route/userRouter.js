@@ -53,6 +53,8 @@ const routes = () => {
                         const verify_cd = base64.encode(uuid());
                         const unsub_cd = base64.encode(uuid());
 
+                        console.info(`UUID: ${uuid()}`);
+
                         const hashedUser = {
                             ...user.toObject(),
                             hash,
@@ -80,7 +82,9 @@ const routes = () => {
 
             async function insert(user) {
                 console.info(`Email: ${user.email}`);
-                const existingUser = await User.findOne({email: user.email}).exec();
+
+                const existingUser = await findUserByEmail(user.email);
+
                 console.info(`User: ${user}`);
 
                 if (existingUser) {
@@ -157,12 +161,23 @@ const routes = () => {
 
     userRouter.route('/verify/:code')
         .patch((req, res) => {
-            console.info(`Verify code param: ${req.params.code}`);
             verifyUser(req.params.code).then((user) => {
                 res.status(200).json(user);
             }, (reason) => {
                 res.status(400).json({
                     error: "Failed to Verify user",
+                    message: reason
+                });
+            });
+        });
+
+    userRouter.route('/unsub/:code')
+        .patch((req, res) => {
+            unsubUser(req.params.code).then((user) => {
+                res.status(200).json(user);
+            }, (reason) => {
+                res.status(400).json({
+                    error: "Failed to Unsubscribe user",
                     message: reason
                 });
             });
@@ -177,7 +192,10 @@ const routes = () => {
  * @return {Promise<*>}
  */
 async function findUserByEmail(email) {
-    return await User.findOne({email}).exec();
+    return await User.findOne({
+        email,
+        deleted: false
+    }).exec();
 }
 
 /**
@@ -188,6 +206,16 @@ async function findUserByEmail(email) {
  */
 async function findUserByVerifyCode(code) {
     return await User.findOne({verify_cd: code}).exec();
+}
+
+/**
+ * Make a findOne() query on the User collection in MongoDB with a specific
+ * unsubscription code
+ * @param code - the unsubscription code of a user to search for
+ * @return {Promise<*>}
+ */
+async function findUserByUnsubCode(code) {
+    return await User.findOne({unsub_cd: code}).exec();
 }
 
 /**
@@ -207,12 +235,17 @@ async function verifyUser(code) {
 
         if (user.verified === false) {
 
+            const {_id, ...userObject} = user.toObject();
+
             const verifiedUser = {
-                ...user.toObject(),
+                ...userObject,
                 verified: true
             };
 
-            await User.update({email: user.email}, verifiedUser).exec();
+            await User.update({
+                email: user.email,
+                deleted: false
+            }, verifiedUser).exec();
 
             const updatedUser = findUserByEmail(user.email);
 
@@ -232,6 +265,49 @@ async function verifyUser(code) {
         }
     } else {
         throw `User does not exist with verification code: ${code}`;
+    }
+}
+
+async function unsubUser(code) {
+    const user = await findUserByUnsubCode(code);
+
+    console.info(`User with unsubscription code: ${JSON.stringify(user.toObject())}`);
+
+    // If the user has an email property we can assume it is valid
+    if (user.email) {
+
+        if (user.deleted === false) {
+
+            const {_id, ...userObject} = user.toObject();
+
+            const deletedUser = {
+                ...userObject,
+                deleted: true
+            };
+
+            await User.update({
+                email: user.email, 
+                deleted: false
+            }, deletedUser).exec();
+
+            const updatedUser = findUserByEmail(user.email);
+
+            const audit = new Audit({
+                item_id: updatedUser._id,
+                type: 'user',
+                message: `Deleted User ${updatedUser.email}`,
+                source: 'Jarombek.com NodeJS/Express API'
+            });
+
+            await Audit.create(audit);
+
+            return updatedUser;
+
+        } else {
+            throw `User already deleted with email: ${user.email}`;
+        }
+    } else {
+        throw `User does not exist with unsubscription code: ${code}`;
     }
 }
 

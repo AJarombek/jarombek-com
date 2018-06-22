@@ -8,8 +8,12 @@ import React from 'react';
 
 import './Unsub.scss';
 import PropTypes from "prop-types";
-import WebsiteTemplate from "./WebsiteTemplate";
 import UnsubStatus from "./status/UserStatus";
+import {Link} from 'react-router-dom';
+
+import WebsiteTemplate from "./WebsiteTemplate";
+import Loading from "./Loading";
+import TitleImage from './TitleImage';
 
 class Unsub extends React.Component {
 
@@ -90,14 +94,41 @@ class Unsub extends React.Component {
     }
 
     render() {
-        const {_} = this.state;
+        const {status} = this.state;
         console.debug(this.state);
         return (
             <WebsiteTemplate hideSubscribe={true}>
-                <div className="jarombek-background">
-                    {
+                <div className="jarombek-background jarombek-verify-background">
+                    <div className="jarombek-verify">
+                        <div>
+                        { (status === UnsubStatus.NO_CODE) ?
 
-                    }
+                            <p className="jarombek-verify-content jarombek-verify-error">
+                                &#x2718; No Unsubscription Code!
+                            </p>:
+                            (status === UnsubStatus.UNSUBSCRIBE_FAILURE) ?
+
+                                <div className="jarombek-verify-content jarombek-verify-error">
+                                    <p className="jarombek-verify-title">
+                                        &#x2718; Unsubscription Failure!
+                                    </p>
+                                    <p className="jarombek-verify-thin-text">
+                                        The unsubscription code is invalid or was already used.
+                                    </p>
+                                </div>:
+                                (status === UnsubStatus.UNSUBSCRIBE_SUCCESS) ?
+
+                                    <p className="jarombek-verify-content jarombek-verify-success">
+                                        &#x2714; You are Unsubscribed.  Thank you
+                                        for visiting my website!
+                                    </p>:
+                                    <Loading className="jarombek-verify-content" />
+                        }
+                        <Link className="jarombek-verify-footer" to='/'>
+                            <TitleImage src="./assets/jarombek.png" title="HOME" />
+                        </Link>
+                        </div>
+                    </div>
                 </div>
             </WebsiteTemplate>
         );
