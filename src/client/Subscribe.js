@@ -37,6 +37,13 @@ class Subscribe extends React.Component {
     static NAME_REGEX = /^[^0-9~!@#$%^&*()?<>:;[\]{}|\\]+$/;
     static PASSWORD_REGEX = /((?=.*[a-zA-Z])(?=.*[^a-zA-Z]))/;
 
+    /**
+     * Actions to perform when the email field is changed.  If the email in the input
+     * field matches the valid email regex, the state property {emailValid} of the component is
+     * set to true.  Otherwise, it is set to false.  The state is also updated with the new
+     * email value.
+     * @param e - the React event that occurred (which corresponds to a DOM event)
+     */
     onChangeEmail(e) {
         const email = e.target.value;
         if (email.match(Subscribe.EMAIL_REGEX)) {
@@ -52,6 +59,13 @@ class Subscribe extends React.Component {
         }
     }
 
+    /**
+     * Actions to perform when the first name field is changed.  If the first name
+     * input matches the name regex, the state property {firstNameValid} of the component
+     * is set to true.  Otherwise, it is set to false.  The state is also updated with the new
+     * first name value.
+     * @param e - the React event that occurred (which corresponds to a DOM event)
+     */
     onChangeFirstName(e) {
         const firstName = e.target.value;
         if (firstName.match(Subscribe.NAME_REGEX)) {
@@ -67,6 +81,13 @@ class Subscribe extends React.Component {
         }
     }
 
+    /**
+     * Actions to perform when the last name field is changed.  If the last name
+     * input matches the name regex, the state property {lastNameValid} of the component
+     * is set to true.  Otherwise, it is set to false.  The state is also updated with the new
+     * last name value.
+     * @param e - the React event that occurred (which corresponds to a DOM event)
+     */
     onChangeLastName(e) {
         const lastName = e.target.value;
         if (lastName.match(Subscribe.NAME_REGEX)) {
@@ -82,6 +103,13 @@ class Subscribe extends React.Component {
         }
     }
 
+    /**
+     * Actions to perform when the password field is changed.  If the password
+     * input matches the password regex and its length is greater or equal to 8,
+     * the state property {passwordNameValid} of the component is set to true.  Otherwise,
+     * it is set to false.  The state is also updated with the new password value.
+     * @param e - the React event that occurred (which corresponds to a DOM event)
+     */
     onChangePassword(e) {
         const password = e.target.value;
         if (password.match(Subscribe.PASSWORD_REGEX) && password.length >= 8) {
@@ -106,7 +134,14 @@ class Subscribe extends React.Component {
         }
     }
 
+    /**
+     * Actions to perform when the form is submitted.  If all the fields in the form
+     * are valid, an API call is made to create a new user.  Depending on the status of the
+     * form submission, the {submitStatus} state is changed accordingly
+     */
     onSubmit() {
+
+        // The status of the form is that it has just been submitted
         this.setState({submitStatus: SubmitStatus.SUBMIT});
 
         const {emailValid, email, firstNameValid,
@@ -118,12 +153,12 @@ class Subscribe extends React.Component {
 
             console.info(`Valid ${email} ${firstName} ${lastName} ${password}`);
 
-            this.setState({
-                submitStatus: SubmitStatus.SUBMIT_VALID
-            });
+            // The status of the form is that the form inputs are valid and an API call can be made
+            this.setState({submitStatus: SubmitStatus.SUBMIT_VALID});
 
             Subscribe.createUser(email, firstName, lastName, password, this.baseUrl)
                 .then((status) => {
+                    // The success of the API is dependent on the HTTP status code
                     if (status === 201) {
                         this.setState({submitStatus: SubmitStatus.SUBMIT_SUCCESS});
                     } else if (status === 400) {
@@ -145,6 +180,15 @@ class Subscribe extends React.Component {
         }
     }
 
+    /**
+     * Call the API to create a new user.
+     * @param email - the users email
+     * @param firstName - the users first name
+     * @param lastName - the users last name
+     * @param password - the users non-hashed password
+     * @param baseUrl - the base of the url dependent on the environment
+     * @return {Promise<number>} - a promise containing the HTTP response status code once resolved
+     */
     static async createUser(email, firstName, lastName, password, baseUrl) {
         console.info(`POST ${baseUrl}/api/user`);
         const response = await fetch(
@@ -162,9 +206,7 @@ class Subscribe extends React.Component {
         );
 
         console.info(response);
-
         const json = await response.json();
-
         console.info(`User JSON: ${JSON.stringify(json)}`);
 
         return response.status;

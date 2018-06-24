@@ -268,6 +268,13 @@ async function verifyUser(code) {
     }
 }
 
+/**
+ * Unsubscribe a user and audit the update of the user in the database.  Will throw
+ * an error if the user was already deleted (unsubscribed) or if the user does not exist with
+ * the given unsubscription code.
+ * @param code - the users unsubscription code
+ * @return {Promise<*>}
+ */
 async function unsubUser(code) {
     const user = await findUserByUnsubCode(code);
 
@@ -286,7 +293,7 @@ async function unsubUser(code) {
             };
 
             await User.update({
-                email: user.email, 
+                email: user.email,
                 deleted: false
             }, deletedUser).exec();
 
