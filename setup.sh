@@ -159,3 +159,6 @@ yarn add bcrypt-nodejs
 # Used to create URL friendly base64 encodings of unique identifiers
 yarn add uuid
 yarn add base64-url
+
+# Mocking for unit tests
+yarn add sinon --dev

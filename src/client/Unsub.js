@@ -10,6 +10,7 @@ import './Unsub.scss';
 import PropTypes from "prop-types";
 import UnsubStatus from "./status/UserStatus";
 import {Link} from 'react-router-dom';
+import {Helmet} from 'react-helmet';
 
 import WebsiteTemplate from "./WebsiteTemplate";
 import Loading from "./Loading";
@@ -95,10 +96,20 @@ class Unsub extends React.Component {
 
     render() {
         const {status} = this.state;
+        const {code} = this.props.match.params;
         console.debug(this.state);
         return (
             <WebsiteTemplate hideSubscribe={true}>
                 <div className="jarombek-background jarombek-verify-background">
+                    <Helmet>
+                        <title>Andrew Jarombek - User Unsubscription</title>
+                        <meta name="author" content="Andrew Jarombek" />
+                        <meta name="description"
+                              content="Remove a user that was subscribed to the website" />
+                        <link rel="canonical"
+                              href={`https://jarombek.com/unsub/${code}`} />
+                        <link rel="icon" href={ require(`./assets/jarombek.png`) } />
+                    </Helmet>
                     <div className="jarombek-verify">
                         <div>
                         { (status === UnsubStatus.NO_CODE) ?

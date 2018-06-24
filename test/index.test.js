@@ -179,4 +179,3 @@ test('Empty BlogList matches snapshot', () => {
 test('BlogList matches snapshot', () => {
     expect(toJSON(blogList)).toMatchSnapshot();
 });
-
