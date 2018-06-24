@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import helmet from 'helmet';
+const bodyParser = require('body-parser');
 import path from 'path';
 import React from 'react';
 import {renderToString} from 'react-dom/server';
@@ -9,13 +10,16 @@ import {Helmet} from 'react-helmet';
 
 import Blog from "../client/Blog";
 import Home from "../client/Home";
+import Unsub from "../client/Unsub";
+import Verify from "../client/Verify";
 
 import Audit from "./model/audit";
 import Post from "./model/post";
-import postRoute from "./route/postRouter";
 import Viewed from "./model/viewed";
+import User from "./model/user";
+import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
-
+import userRoute from "./route/userRouter";
 
 /**
  * The main file for the Express/Node.js server.  The server provides an API and
@@ -29,6 +33,7 @@ mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 // API CRUD routes for a MongoDB collection
 const postRouter = postRoute(Post);
 const viewedRouter = viewedRoute(Viewed, Post, Audit);
+const userRouter = userRoute(User, Audit);
 
 global.React = React;
 
@@ -59,6 +64,8 @@ const renderComponentsToHTML = async (url) => {
                         (props) => <Blog {...props} {...{posts: post}}/>
                     }/>
                     <Route path="/blog" component={Blog}/>
+                    <Route path="/verify/:code" component={Verify}/>
+                    <Route path="/unsub/:code" component={Unsub}/>
                     <Route component={Home}/>
                 </Switch>
             </StaticRouter>
@@ -151,8 +158,11 @@ const respond = async (req, res) => {
 const app = express();
 
 app.use(helmet({}));
+app.use(bodyParser.json({limit: '50mb'}));
+
 app.use('/api/post', postRouter);
 app.use('/api/viewed', viewedRouter);
+app.use('/api/user', userRouter);
 
 app.use(express.static(path.join(__dirname, '..')));
 

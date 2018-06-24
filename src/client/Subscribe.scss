@@ -1,0 +1,134 @@
+/*
+ * Sass styling for the PictureButton component
+ * @author Andrew Jarombek
+ * @since 5/4/2018
+ */
+
+@import "global";
+
+.jarbek-subscribe {
+  padding: 20px;
+  margin: 10px 0 10px 0;
+}
+
+.jarbek-subscribe-title {
+  @include sylexiad;
+  font-size: 28px;
+  text-align: center;
+}
+
+.jarbek-divider {
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.jarbek-divider div {
+  border-bottom: 1px solid $color-default;
+}
+
+.jarbek-subscribe-form {
+  display: grid;
+  grid-template-rows: [email] 10% [email-comment] 10% [first-name] 10%
+                      [first-name-comment] 10% [last-name] 10% [last-name-comment] 10%
+                      [password] 10% [password-comment] 10% [button] 20% [bottom];
+  grid-template-columns: [left] 100% [right];
+}
+
+.jarbek-input {
+  width: 500px;
+  height: 45px;
+  padding: 5px;
+}
+
+.jarbek-input input {
+  @include dyslexie;
+
+  width: 94%;
+  padding-right: 3%;
+  padding-left: 3%;
+  height: 40px;
+
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 14px;
+}
+
+.jarbek-input input:focus {
+  outline: none;
+  border: 1px solid darken($color-secondary, 40%);
+}
+
+.jarbek-input input::placeholder {
+  color: #bbb;
+}
+
+.jarbek-input-valid, .jarbek-input-invalid {
+  @include sylexiad;
+}
+
+.jarbek-input-valid {
+  color: darken($color-secondary, 30%);
+}
+
+.jarbek-input-invalid {
+  color: darken($color-invalid, 10%);
+}
+
+.jarbek-input-warning {
+  border: 1px solid $color-invalid !important;
+}
+
+.jarbek-input-comment-active {
+
+  padding-left: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.jarbek-input-completed {
+  grid-area: email / left / button / right;
+  @include sylexiad;
+  color: #999;
+  font-size: 20px;
+  text-align: center;
+}
+
+.jarbek-input input[type="email"] {
+  // Goes in this order: row-start, column-start, row-end, column-end
+  grid-area: email / left / email-comment / right;
+}
+
+.jarbek-input-email-comment {
+  grid-area: email-comment / left / first-name / right;
+}
+
+.jarbek-input input[type="first"] {
+  grid-area: first-name / left / first-name-comment / right;
+}
+
+.jarbek-input-first-name-comment {
+  grid-area: first-name-comment / left / last-name / right;
+}
+
+.jarbek-input input[type="last"] {
+  grid-area: last-name / left / last-name-comment / right;
+}
+
+.jarbek-input-last-name-comment {
+  grid-area: last-name-comment / left / password / right;
+}
+
+.jarbek-input input[type="password"] {
+  grid-area: password / left / password-comment / right;
+}
+
+.jarbek-input-password-comment {
+  grid-area: password-comment / left / button / right;
+}
+
+.jarbek-input-submit {
+  grid-area: button / left / bottom / right;
+  justify-self: center;
+  align-self: center;
+  padding-top: 30px;
+}

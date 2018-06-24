@@ -1,0 +1,74 @@
+/*
+ * Sass styling for the Verify component
+ * @author Andrew Jarombek
+ * @since 6/16/2018
+ */
+
+@import "global";
+
+.jarombek-verify-background {
+  height: 100vh;
+}
+
+.jarombek-verify {
+  padding-top: 100px;
+  padding-left: 25%;
+  padding-right: 25%;
+}
+
+.jarombek-verify > div {
+  display: grid;
+  grid-template-columns: [left] 100% [right];
+  grid-template-rows: [top] 1fr [footer] 1fr [end];
+
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);
+}
+
+.jarombek-verify-content {
+  @include sylexiad-bold;
+
+  grid-area: top / left / footer / right;
+  justify-self: center;
+  align-self: center;
+  text-align: center;
+
+  padding-bottom: 10px;
+  padding-left: 30px;
+  padding-right: 30px;
+
+  font-size: 20px;
+}
+
+.jarombek-verify-footer {
+  grid-area: footer / left / end / right;
+  justify-self: center;
+  align-self: end;
+
+  padding-bottom: 20px;
+  padding-top: 20px;
+
+  color: #333;
+  text-decoration: none;
+}
+
+.jarombek-verify-footer img {
+  height: 60px;
+}
+
+.jarombek-verify-thin-text {
+  @include sylexiad;
+  font-size: 18px;
+}
+
+.jarombek-verify-error {
+  color: darken($color-invalid, 10%);
+}
+
+.jarombek-verify-title {
+  padding-bottom: 10px;
+}
+
+.jarombek-verify-success {
+  color: darken($color-secondary, 30%);
+}

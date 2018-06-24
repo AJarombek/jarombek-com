@@ -50,6 +50,7 @@ exports[`App matches snapshot 1`] = `
   >
     <Button
       activeColor="primary"
+      onClick={[Function]}
       passiveColor="default"
       size="large"
     >
@@ -59,6 +60,7 @@ exports[`App matches snapshot 1`] = `
   <Button
     activeColor="default"
     className="info-button"
+    onClick={[Function]}
     passiveColor="default"
     size="large"
   >
@@ -79,7 +81,7 @@ exports[`BlogList matches snapshot 1`] = `
 >
   <BlogPost
     content={Array []}
-    date="2018-05-23"
+    date="2018-06-24"
     id={1}
     key="Test"
     name="Test"
@@ -104,7 +106,7 @@ exports[`BlogPost No Sources matches snapshot 1`] = `
     <p
       className="jarombek-blog-date"
     >
-      May 23rd, 2018
+      June 24th, 2018
     </p>
   </div>
   <Link
@@ -149,7 +151,7 @@ exports[`BlogPost matches snapshot 1`] = `
     <p
       className="jarombek-blog-date"
     >
-      May 23rd, 2018
+      June 24th, 2018
     </p>
   </div>
   <Link
@@ -197,6 +199,7 @@ exports[`Button matches snapshot 1`] = `
   <button
     className="jarbek-button passive-color-default
                                 active-color-default jarbek-button-large"
+    onClick={[Function]}
   />
 </div>
 `;
@@ -362,21 +365,20 @@ exports[`WebsiteNav matches snapshot 1`] = `
   >
     Andrew Jarombek
   </NavLink>
-  <NavLink
-    activeClassName="active"
-    ariaCurrent="true"
+  <div
     className="jarombek-nav-right"
-    to="/"
+    onClick={[Function]}
   >
     <Button
       activeColor="primary"
       className="subscribe-button"
+      onClick={[Function]}
       passiveColor="default"
       size="medium"
     >
       SUBSCRIBE
     </Button>
-  </NavLink>
+  </div>
 </nav>
 `;
 
@@ -384,7 +386,10 @@ exports[`WebsiteTemplate matches snapshot 1`] = `
 <div
   className="jarombek-template"
 >
-  <WebsiteNav />
+  <WebsiteNav
+    hideSubscribe={false}
+    subscribeAction={[Function]}
+  />
   <p>
     Hello
   </p>

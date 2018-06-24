@@ -152,3 +152,13 @@ yarn add supertest --dev
 
 # Webpack plugin to copy a file to a new directory
 yarn add copy-webpack-plugin --dev
+
+# Bcrypt for hashing passwords
+yarn add bcrypt-nodejs
+
+# Used to create URL friendly base64 encodings of unique identifiers
+yarn add uuid
+yarn add base64-url
+
+# Mocking for unit tests
+yarn add sinon --dev

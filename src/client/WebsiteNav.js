@@ -9,8 +9,9 @@ import {NavLink} from 'react-router-dom';
 import Button from "./Button";
 
 import './WebsiteNav.scss';
+import PropTypes from "prop-types";
 
-const WebsiteNav = () => {
+const WebsiteNav = ({subscribeAction, hideSubscribe}) => {
     return (
         <nav className="jarombek-nav">
             <NavLink to="/blog" className="jarombek-nav-left">
@@ -19,13 +20,26 @@ const WebsiteNav = () => {
             <NavLink to="/" className="jarombek-nav-middle">
                 Andrew Jarombek
             </NavLink>
-            <NavLink to="/" className="jarombek-nav-right">
-                <Button className="subscribe-button" activeColor="primary" size="medium">
-                    SUBSCRIBE
-                </Button>
-            </NavLink>
+            { (!hideSubscribe) ?
+                <div className="jarombek-nav-right" onClick={subscribeAction}>
+                    <Button className="subscribe-button" activeColor="primary" size="medium">
+                        SUBSCRIBE
+                    </Button>
+                </div>:
+                <div className="jarombek-nav-right"> </div>
+            }
         </nav>
     );
+};
+
+WebsiteNav.propTypes = {
+    subscribeAction: PropTypes.func,
+    hideSubscribe: PropTypes.bool
+};
+
+WebsiteNav.defaultProps = {
+    subscribeAction: f=>f,
+    hideSubscribe: false
 };
 
 export default WebsiteNav;

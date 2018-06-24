@@ -17,7 +17,7 @@ const AuditSchema = new Schema({
     type: {
         type: String,
         required: true,
-        enum: ['post']
+        enum: ['post', 'user']
     },
     message: {
         type: String,

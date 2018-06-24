@@ -5,9 +5,8 @@
  */
 
 import React from 'react';
-import {mount, shallow} from 'enzyme';
+import {mount} from 'enzyme';
 import Blog from "../src/client/Blog";
-import toJSON from "enzyme-to-json";
 import {MemoryRouter} from 'react-router-dom';
 import fetchMock from 'fetch-mock';
 import 'isomorphic-fetch';

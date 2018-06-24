@@ -32,20 +32,23 @@
       "src/**"
     ],
     "coveragePathIgnorePatterns": [
-      "./src/client/index.js"
+      "./src/client/index.js",
+      "./src/client/status/*"
     ],
     "coverageThreshold": {
       "global": {
-        "branches": 60,
-        "functions": 60,
-        "lines": 60,
-        "statements": 60
+        "branches": 35,
+        "functions": 40,
+        "lines": 45,
+        "statements": 45
       }
     }
   },
   "homepage": "https://github.com/AJarombek/jarombek-com#readme",
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "base64-url": "^2.2.0",
+    "bcrypt-nodejs": "^0.0.3",
     "express": "^4.16.3",
     "helmet": "^3.12.0",
     "highlightjs": "^9.10.0",
@@ -60,6 +63,7 @@
     "react-hot-loader": "^4.0.0",
     "react-redux": "^5.0.7",
     "react-router-dom": "^4.2.2",
+    "uuid": "^3.2.1",
     "webpack": "^4.1.1"
   },
   "devDependencies": {
@@ -90,6 +94,7 @@
     "nodemon-webpack-plugin": "^0.1.6",
     "react-test-renderer": "^16.2.0",
     "sass-loader": "^6.0.7",
+    "sinon": "^6.0.0",
     "style-loader": "^0.20.3",
     "supertest": "^3.1.0",
     "uglifyjs-webpack-plugin": "^1.2.4",

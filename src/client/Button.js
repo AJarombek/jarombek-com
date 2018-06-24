@@ -9,11 +9,12 @@ import PropTypes from 'prop-types';
 
 import './Button.scss';
 
-const Button = ({passiveColor, activeColor, size, children, className}) => {
+const Button = ({passiveColor, activeColor, size, children, className, onClick}) => {
     return (
         <div className={className}>
             <button className={`jarbek-button passive-color-${passiveColor}
-                                active-color-${activeColor} jarbek-button-${size}`}>
+                                active-color-${activeColor} jarbek-button-${size}`}
+                    onClick={onClick}>
                 {children}
             </button>
         </div>
@@ -25,13 +26,15 @@ Button.propTypes = {
     passiveColor: PropTypes.string,
     size: PropTypes.string,
     children: PropTypes.any,
-    className: PropTypes.string
+    className: PropTypes.string,
+    onClick: PropTypes.func
 };
 
 Button.defaultProps = {
     activeColor: 'default',
     passiveColor: 'default',
-    size: 'large'
+    size: 'large',
+    onClick: f=>f
 };
 
 export default Button;
