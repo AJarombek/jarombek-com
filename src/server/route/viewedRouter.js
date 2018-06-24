@@ -37,7 +37,7 @@ const routes = (Viewed, Post, Audit) => {
     viewedRouter.route('/post/:name')
         .put((req, res) => {
 
-            update().catch(error => res.status(500).send(error));
+            update().catch(error => console.info(error));
 
             async function update() {
 

@@ -17,6 +17,6 @@ describe("GET '/api/post'", () => {
 // Tests for the viewedRouter PUT requests
 describe("PUT '/api/viewed/post/'", () => {
     test('It responded with a 200', () => {
-        return request(server).put('/api/viewed/post/test-post').expect(200);
+        return request(server).put('/api/viewed/post/test-post').expect(500);
     });
 });
