@@ -46,17 +46,20 @@ class Subscribe extends React.Component {
      */
     onChangeEmail(e) {
         const email = e.target.value;
-        if (email.match(Subscribe.EMAIL_REGEX)) {
-            this.setState({
-                email,
-                emailValid: true
-            });
-        } else {
-            this.setState({
-                email,
-                emailValid: false
-            });
-        }
+        this.setState(Subscribe.validateEmail(email));
+    }
+
+    /**
+     * Validate an email address based on the email regex
+     * @param email - the email address that needs validating
+     * @return {{email: *, emailValid}} - an object literal with the email address in one
+     * property and whether the email is valid in another
+     */
+    static validateEmail(email) {
+        return {
+            email,
+            emailValid: !!email.match(Subscribe.EMAIL_REGEX)
+        };
     }
 
     /**
@@ -68,17 +71,20 @@ class Subscribe extends React.Component {
      */
     onChangeFirstName(e) {
         const firstName = e.target.value;
-        if (firstName.match(Subscribe.NAME_REGEX)) {
-            this.setState({
-                firstName,
-                firstNameValid: true
-            });
-        } else {
-            this.setState({
-                firstName,
-                firstNameValid: false
-            });
-        }
+        this.setState(Subscribe.validateFirstName(firstName));
+    }
+
+    /**
+     * Validate a first name based on the name regex
+     * @param firstName - the name that needs validating
+     * @return {{email: *, emailValid}} - an object literal with the first name in one
+     * property and whether the first name is valid in another
+     */
+    static validateFirstName(firstName) {
+        return {
+            firstName,
+            firstNameValid: !!firstName.match(Subscribe.NAME_REGEX)
+        };
     }
 
     /**
@@ -90,17 +96,20 @@ class Subscribe extends React.Component {
      */
     onChangeLastName(e) {
         const lastName = e.target.value;
-        if (lastName.match(Subscribe.NAME_REGEX)) {
-            this.setState({
-                lastName,
-                lastNameValid: true
-            });
-        } else {
-            this.setState({
-                lastName,
-                lastNameValid: false
-            });
-        }
+        this.setState(Subscribe.validateLastName(lastName));
+    }
+
+    /**
+     * Validate a last name based on the name regex
+     * @param lastName - the name that needs validating
+     * @return {{email: *, emailValid}} - an object literal with the last name in one
+     * property and whether the last name is valid in another
+     */
+    static validateLastName(lastName) {
+        return {
+            lastName,
+            lastNameValid: !!lastName.match(Subscribe.NAME_REGEX)
+        };
     }
 
     /**
@@ -112,26 +121,29 @@ class Subscribe extends React.Component {
      */
     onChangePassword(e) {
         const password = e.target.value;
-        if (password.match(Subscribe.PASSWORD_REGEX) && password.length >= 8) {
-            this.setState({
-                password,
-                passwordValid: true,
-                passwordProperLength: true,
-                passwordContainsNonLetter: true,
-                passwordContainsLetter: true
-            });
-        } else {
-            const passwordContainsNonLetter = password.match(/[^a-zA-Z]+/);
-            const passwordContainsLetter = password.match(/[a-zA-Z]+/);
-            const passwordValidLength = password.length >= 8;
-            this.setState({
-                password,
-                passwordValid: false,
-                passwordProperLength: passwordValidLength,
-                passwordContainsNonLetter,
-                passwordContainsLetter
-            });
-        }
+        this.setState(Subscribe.validatePassword(password));
+    }
+
+    /**
+     * Validate a password based on the password regex
+     * @param password - the password that needs validating
+     * @return {{email: *, emailValid}} - an object literal with the password in one
+     * property and whether the password is valid in another
+     */
+    static validatePassword(password) {
+
+        const passwordValid = !!password.match(Subscribe.PASSWORD_REGEX) && password.length >= 8;
+        const passwordProperLength = password.length >= 8;
+        const passwordContainsNonLetter = !!password.match(/[^a-zA-Z]+/);
+        const passwordContainsLetter = !!password.match(/[a-zA-Z]+/);
+
+        return {
+            password,
+            passwordValid,
+            passwordProperLength,
+            passwordContainsNonLetter,
+            passwordContainsLetter
+        };
     }
 
     /**

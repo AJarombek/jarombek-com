@@ -32,7 +32,8 @@
       "src/**"
     ],
     "coveragePathIgnorePatterns": [
-      "./src/client/index.js"
+      "./src/client/index.js",
+      "./src/client/status/*"
     ],
     "coverageThreshold": {
       "global": {
