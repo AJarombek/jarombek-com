@@ -62,7 +62,8 @@ const serverConfig = merge([
     },
     parts.loadFonts({
         options: {
-            name: '[name].[ext]'
+            name: 'assets/[name].[ext]',
+            publicPath: PUBLIC_PATH
         }
     })
 ]);
@@ -79,7 +80,10 @@ const serverDevConfig = merge([
             })
         ]
     },
-    parts.loadServerSass(),
+    parts.extractCSS({
+        use: ["css-loader", "sass-loader"],
+        fallback: "isomorphic-style-loader"
+    }),
     parts.loadImages()
 ]);
 
@@ -101,7 +105,7 @@ const serverProdConfig = merge([
     parts.loadImages({
         options: {
             limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
-            name: 'server/[name].[ext]',
+            name: 'assets/[name].[ext]',
             publicPath: PUBLIC_PATH
         }
     })
@@ -147,7 +151,8 @@ const clientConfig = merge([
     parts.lintJavaScript({ options: {emitWarning: true}}),
     parts.loadFonts({
         options: {
-            name: '[name].[ext]'
+            name: 'assets/[name].[ext]',
+            publicPath: PUBLIC_PATH
         }
     })
 ]);
@@ -173,7 +178,10 @@ const clientDevConfig = merge([
         port: process.env.PORT
     }),
     parts.hotModuleReplacement(),
-    parts.loadSass(),
+    parts.extractCSS({
+        use: ["css-loader", "sass-loader"],
+        fallback: "isomorphic-style-loader"
+    }),
     parts.loadImages()
 ]);
 
@@ -207,7 +215,7 @@ const clientProdConfig = merge([
     parts.loadImages({
         options: {
             limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
-            name: 'server/[name].[ext]',
+            name: 'assets/[name].[ext]',
             publicPath: PUBLIC_PATH
         }
     })

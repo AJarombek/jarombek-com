@@ -13,7 +13,7 @@ const Tag = ({ name, picture, color }) =>
     <div className="jarombek-tag">
         <div className={`jarombek-tag-color-${color}`}>
             <figure>
-                <img className="jarombek-tag-picture" src={ require(`${picture}`) } />
+                <img className="jarombek-tag-picture" src={picture} />
             </figure>
             <p className="jarombek-tag-name">{name}</p>
         </div>

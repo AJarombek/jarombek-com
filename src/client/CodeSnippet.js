@@ -105,8 +105,12 @@ class CodeSnippet extends React.Component {
     }
 
     static propTypes = {
-        language: PropTypes.string.isRequired,
+        language: PropTypes.string,
         children: PropTypes.any
+    };
+
+    static defaultProps = {
+        language: null
     };
 
     componentDidMount() {
