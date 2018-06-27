@@ -57,7 +57,10 @@ const serverConfig = merge([
         plugins: [
             new CopyWebpackPlugin([
                 { from: path.join(__dirname, '/src/server/sitemap.xml'), to: 'sitemap.xml' }
-            ])
+            ]),
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: 'production'
+            })
         ]
     },
     parts.loadFonts({
@@ -74,10 +77,7 @@ const serverConfig = merge([
 const serverDevConfig = merge([
     {
         plugins: [
-            new NodemonPlugin(),
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'development'
-            })
+            new NodemonPlugin()
         ]
     },
     parts.extractCSS({
@@ -145,6 +145,9 @@ const clientConfig = merge([
             new HtmlWebPackPlugin({
                 template: "./src/client/index.html",
                 filename: "./index.html"
+            }),
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: 'production'
             })
         ]
     },

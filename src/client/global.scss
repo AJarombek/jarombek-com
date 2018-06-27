@@ -12,30 +12,6 @@ $color-invalid: #ffa496;
 $width-mobile: 700px;
 $width-small-desktop: 980px;
 
-@font-face {
-  font-family: Sylexiad;
-  font-weight: normal;
-  src: url("https://asset.jarombek.com/fonts/SylexiadSansThin.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: Sylexiad-Bold;
-  font-weight: bold;
-  src: url("https://asset.jarombek.com/fonts/SylexiadSansThin-Bold.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: Dyslexie;
-  font-weight: bold;
-  src: url("https://asset.jarombek.com/fonts/dyslexie-bold.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: Fantasque-Bold;
-  font-weight: bold;
-  src: url("https://asset.jarombek.com/fonts/FantasqueSansMono-Bold.ttf") format("truetype");
-}
-
 /**
  * A mixin that sets the font to sylexiad
  */
@@ -96,5 +72,5 @@ $width-small-desktop: 980px;
 }
 
 .jarombek-background {
-  background-image: url("./assets/blizzard.png") !important;
+  background-image: url("assets/blizzard.png") !important;
 }

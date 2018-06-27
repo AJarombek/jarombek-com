@@ -14,6 +14,14 @@ import Blog from './Blog';
 import Verify from './Verify';
 import Unsub from "./Unsub";
 
+if (process.env.NODE_ENV === 'development') {
+    import('./styles/fontsDev.scss');
+}
+
+if (process.env.NODE_ENV === 'production') {
+    import('./styles/fontsProd.scss');
+}
+
 window.React = React;
 
 const RoutedApp = () => (

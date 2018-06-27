@@ -26,7 +26,7 @@ Tag.propTypes = {
 };
 
 Tag.defaultProps = {
-    picture: "./assets/jarombek.png",
+    picture: "https://asset.jarombek.com/jarombek.png",
     color: "default"
 };
 

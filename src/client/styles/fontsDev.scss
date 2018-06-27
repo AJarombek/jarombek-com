@@ -1,0 +1,29 @@
+/*
+ * Fonts to use in a local development environment
+ * @author Andrew Jarombek
+ * @since 6/27/2018
+ */
+
+@font-face {
+  font-family: Sylexiad;
+  font-weight: normal;
+  src: url("http://localhost:8080/client/assets/SylexiadSansThin.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Sylexiad-Bold;
+  font-weight: bold;
+  src: url("http://localhost:8080/client/assets/SylexiadSansThin-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Dyslexie;
+  font-weight: bold;
+  src: url("http://localhost:8080/client/assets/dyslexie-bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Fantasque-Bold;
+  font-weight: bold;
+  src: url("http://localhost:8080/client/assets/FantasqueSansMono-Bold.ttf") format("truetype");
+}
