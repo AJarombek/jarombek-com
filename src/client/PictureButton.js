@@ -7,8 +7,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import './PictureButton.scss';
-
 const PictureButton = ({activeColor, passiveColor, size, picture,
                            children, className, onClick}) => {
     return (

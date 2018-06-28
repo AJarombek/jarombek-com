@@ -5,8 +5,6 @@
  */
 
 import React from 'react';
-
-import './Verify.scss';
 import PropTypes from "prop-types";
 import VerifyStatus from "./status/UserStatus";
 import {Link} from 'react-router-dom';

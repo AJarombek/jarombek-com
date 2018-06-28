@@ -25,6 +25,10 @@ const PUBLIC_PATH = (process.env.NODE_ENV === 'development') ?
     'http://localhost:8080/' :
     'https://jarombek.com/';
 
+const ENV = (process.env.NODE_ENV === 'development') ?
+    JSON.stringify('development') :
+    JSON.stringify('production');
+
 /**
  * Configuration specific to the Server bundles
  */
@@ -58,9 +62,10 @@ const serverConfig = merge([
             new CopyWebpackPlugin([
                 { from: path.join(__dirname, '/src/server/sitemap.xml'), to: 'sitemap.xml' }
             ]),
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'production'
-            })
+            new webpack.DefinePlugin({
+                'process.env.NODE_ENV': ENV
+            }),
+
         ]
     },
     parts.loadFonts({
@@ -91,13 +96,6 @@ const serverDevConfig = merge([
  * Configuration specific to the server bundles in a production environment
  */
 const serverProdConfig = merge([
-    {
-        plugins: [
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'production'
-            })
-        ]
-    },
     parts.extractCSS({
         use: ["css-loader", "sass-loader"],
         fallback: "isomorphic-style-loader"
@@ -146,8 +144,8 @@ const clientConfig = merge([
                 template: "./src/client/index.html",
                 filename: "./index.html"
             }),
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'production'
+            new webpack.DefinePlugin({
+                'process.env.NODE_ENV': ENV
             })
         ]
     },
@@ -165,11 +163,6 @@ const clientConfig = merge([
  */
 const clientDevConfig = merge([
     {
-        plugins: [
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'development'
-            })
-        ],
         performance: {hints: false},
         output: {
             sourceMapFilename: "[name].map"
@@ -203,12 +196,7 @@ const clientProdConfig = merge([
                     }
                 }
             }
-        },
-        plugins: [
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'production'
-            })
-        ]
+        }
     },
     parts.generateSourceMaps({ type: 'source-map' }),
     parts.extractCSS({

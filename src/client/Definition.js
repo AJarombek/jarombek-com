@@ -7,8 +7,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import './Definition.scss';
-
 const Definition = ({ word, children }) =>
     <div className="jarombek-def">
         <p className="jarombek-def-word">{word}</p>

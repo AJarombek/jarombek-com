@@ -8,8 +8,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import hljs from 'highlightjs';
 
-import './CodeSnippet.scss';
-
 class CodeSnippet extends React.Component {
 
     constructor() {

@@ -10,8 +10,6 @@ import {Link} from 'react-router-dom';
 import moment from 'moment';
 import TagList from './TagList';
 
-import './BlogPost.scss';
-
 const BlogPost = ({ name, title, type, date, tags=[], content, sources=[] }) => {
     let count = 0;
     return (

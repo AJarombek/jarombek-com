@@ -173,3 +173,7 @@ export NODE_ENV=development
 yarn client:dev
 yarn server:dev
 yarn server:deploy
+
+# Used for setting global styles defined in JavaScript.  This allows for
+# dynamic styles depending on the environment
+yarn add styled-components

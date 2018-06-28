@@ -62,8 +62,8 @@
     "react-dom": "^16.2.0",
     "react-helmet": "^5.2.0",
     "react-hot-loader": "^4.0.0",
-    "react-redux": "^5.0.7",
     "react-router-dom": "^4.2.2",
+    "styled-components": "^3.3.3",
     "uuid": "^3.2.1",
     "webpack": "^4.1.1"
   },
@@ -75,6 +75,7 @@
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
+    "babili-webpack-plugin": "^0.1.2",
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.11",
     "enzyme": "^3.3.0",

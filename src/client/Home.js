@@ -12,8 +12,6 @@ import {Helmet} from 'react-helmet';
 import Button from './Button';
 import TitleImage from "./TitleImage";
 
-import './Home.scss';
-
 class Home extends React.Component {
 
     constructor(props) {

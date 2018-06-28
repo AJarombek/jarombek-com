@@ -4,7 +4,8 @@
  * @since 4/4/2018
  */
 
-@import "global";
+@import "./styles/mixins/sylexiad";
+@import "./styles/variables";
 
 .jarbek-button {
   border-radius: 4px;

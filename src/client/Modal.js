@@ -5,8 +5,6 @@
  */
 
 import React from 'react';
-
-import './Modal.scss';
 import PropTypes from "prop-types";
 
 // Empty function in case the onClick event is undefined

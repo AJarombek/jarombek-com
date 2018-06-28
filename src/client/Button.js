@@ -7,8 +7,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import './Button.scss';
-
 const Button = ({passiveColor, activeColor, size, children, className, onClick}) => {
     return (
         <div className={className}>

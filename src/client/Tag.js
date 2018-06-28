@@ -7,8 +7,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import './Tag.scss';
-
 const Tag = ({ name, picture, color }) =>
     <div className="jarombek-tag">
         <div className={`jarombek-tag-color-${color}`}>

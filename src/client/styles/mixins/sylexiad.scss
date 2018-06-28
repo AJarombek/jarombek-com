@@ -1,0 +1,16 @@
+@mixin sylexiad {
+  font: {
+    family: 'Sylexiad', Helvetica, sans-serif !important;
+    weight: normal;
+    style: normal;
+  }
+  letter-spacing: 0.4px;
+}
+
+@mixin sylexiad-bold {
+  font: {
+    family: 'Sylexiad-Bold', Helvetica, sans-serif !important;
+    weight: bold;
+    style: normal;
+  }
+}

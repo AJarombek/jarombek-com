@@ -5,8 +5,6 @@
  */
 
 import React from 'react';
-
-import './Unsub.scss';
 import PropTypes from "prop-types";
 import UnsubStatus from "./status/UserStatus";
 import {Link} from 'react-router-dom';

@@ -7,8 +7,6 @@
 import React from 'react';
 import {NavLink} from 'react-router-dom';
 import Button from "./Button";
-
-import './WebsiteNav.scss';
 import PropTypes from "prop-types";
 
 const WebsiteNav = ({subscribeAction, hideSubscribe}) => {

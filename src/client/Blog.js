@@ -18,8 +18,6 @@ import TitleImage from './TitleImage';
 import CodeSnippet from './CodeSnippet';
 import Definition from './Definition';
 import Modal from './Modal';
-
-import './Blog.scss';
 import Loading from "./Loading";
 import Subscribe from "./Subscribe";
 
