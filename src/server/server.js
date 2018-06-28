@@ -20,6 +20,7 @@ import User from "./model/user";
 import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
 import userRoute from "./route/userRouter";
+import gs from "../client/globalStyles";
 
 /**
  * The main file for the Express/Node.js server.  The server provides an API and
@@ -83,6 +84,14 @@ const renderComponentsToHTML = async (url) => {
 const sendHtmlPage = async ({html, post}) => {
     const helmet = Helmet.renderStatic();
 
+    let globalStyles = '';
+
+    if (process.env.NODE_ENV === 'development') {
+        globalStyles = gs.dev;
+    } else {
+        globalStyles = gs.prod;
+    }
+
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -95,6 +104,9 @@ const sendHtmlPage = async ({html, post}) => {
         ${helmet.meta.toString()}
         ${helmet.link.toString()}
         <link rel="stylesheet" href="/client/bundle.css">
+        <style>
+          ${globalStyles}
+        </style>
     </head>
     <body>
         <div id="react-container">${html}</div>

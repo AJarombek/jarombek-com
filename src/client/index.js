@@ -14,69 +14,25 @@ import Home from './Home';
 import Blog from './Blog';
 import Verify from './Verify';
 import Unsub from "./Unsub";
+import gs from "./globalStyles";
+
+let globalStyles = '';
 
 if (process.env.NODE_ENV === 'development') {
-    injectGlobal`
-      @font-face {
-        font-family: Sylexiad;
-        font-weight: normal;
-        src: url("http://localhost:8080/client/assets/SylexiadSansThin.ttf") format("truetype");
-      }
-    
-      @font-face {
-        font-family: Sylexiad-Bold;
-        font-weight: bold;
-        src: url("http://localhost:8080/client/assets/SylexiadSansThin-Bold.ttf") 
-            format("truetype");
-      }
-    
-      @font-face {
-        font-family: Dyslexie;
-        font-weight: bold;
-        src: url("http://localhost:8080/client/assets/dyslexie-bold.ttf") 
-            format("truetype");
-      }
-    
-      @font-face {
-        font-family: Fantasque-Bold;
-        font-weight: bold;
-        src: url("http://localhost:8080/client/assets/FantasqueSansMono-Bold.ttf") 
-            format("truetype");
-      }
-    `;
+    globalStyles = gs.dev;
 } else {
-    injectGlobal`
-      @font-face {
-        font-family: Sylexiad;
-        font-weight: normal;
-        src: url("https://asset.jarombek.com/fonts/SylexiadSansThin.ttf") format("truetype");
-      }
-    
-      @font-face {
-        font-family: Sylexiad-Bold;
-        font-weight: bold;
-        src: url("https://asset.jarombek.com/fonts/SylexiadSansThin-Bold.ttf") format("truetype");
-      }
-    
-      @font-face {
-        font-family: Dyslexie;
-        font-weight: bold;
-        src: url("https://asset.jarombek.com/fonts/dyslexie-bold.ttf") format("truetype");
-      }
-    
-      @font-face {
-        font-family: Fantasque-Bold;
-        font-weight: bold;
-        src: url("https://asset.jarombek.com/fonts/FantasqueSansMono-Bold.ttf") format("truetype");
-      }
-    `;
+    globalStyles = gs.prod;
 }
 
 // import './index.scss';
 
 window.React = React;
 
-const RoutedApp = () => (
+const RoutedApp = () => {
+
+    injectGlobal`${globalStyles}`;
+
+    return (
     <Router>
         <Switch>
             <Route exact path="/" component={Home} />
@@ -87,7 +43,7 @@ const RoutedApp = () => (
             <Route component={Home}/>
         </Switch>
     </Router>
-);
+)};
 
 render(
     <RoutedApp />,

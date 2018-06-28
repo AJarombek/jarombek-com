@@ -1,3 +1,6 @@
+/**
+ * A mixin that sets the font to sylexiad
+ */
 @mixin sylexiad {
   font: {
     family: 'Sylexiad', Helvetica, sans-serif !important;
@@ -7,6 +10,9 @@
   letter-spacing: 0.4px;
 }
 
+/**
+ * A mixin that sets the font to sylexiad bold
+ */
 @mixin sylexiad-bold {
   font: {
     family: 'Sylexiad-Bold', Helvetica, sans-serif !important;
