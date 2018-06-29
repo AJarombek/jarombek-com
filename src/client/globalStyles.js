@@ -39,25 +39,25 @@ globalStyles.prod = `
   @font-face {
     font-family: Sylexiad;
     font-weight: normal;
-    src: url("http://asset.jarombek.com/fonts/SylexiadSansThin.ttf") format("truetype");
+    src: url("https://asset.jarombek.com/fonts/SylexiadSansThin.ttf") format("truetype");
   }
 
   @font-face {
     font-family: Sylexiad-Bold;
     font-weight: bold;
-    src: url("http://asset.jarombek.com/fonts/SylexiadSansThin-Bold.ttf") format("truetype");
+    src: url("https://asset.jarombek.com/fonts/SylexiadSansThin-Bold.ttf") format("truetype");
   }
 
   @font-face {
     font-family: Dyslexie;
     font-weight: bold;
-    src: url("http://asset.jarombek.com/fonts/dyslexie-bold.ttf") format("truetype");
+    src: url("https://asset.jarombek.com/fonts/dyslexie-bold.ttf") format("truetype");
   }
 
   @font-face {
     font-family: Fantasque-Bold;
     font-weight: bold;
-    src: url("http://asset.jarombek.com/fonts/FantasqueSansMono-Bold.ttf") format("truetype");
+    src: url("https://asset.jarombek.com/fonts/FantasqueSansMono-Bold.ttf") format("truetype");
   }
 `;
 
