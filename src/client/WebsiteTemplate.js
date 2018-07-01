@@ -8,8 +8,6 @@ import React from 'react';
 import WebsiteNav from './WebsiteNav';
 import PropTypes from "prop-types";
 
-import './WebsiteTemplate.scss';
-
 const WebsiteTemplate = ({children, subscribeAction, hideSubscribe}) => {
     return (
         <div className="jarombek-template">

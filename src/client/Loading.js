@@ -5,8 +5,6 @@
  */
 
 import React from 'react';
-
-import './Loading.scss';
 import PropTypes from "prop-types";
 
 const Loading = ({className}) =>

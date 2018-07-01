@@ -12,8 +12,6 @@ import {Helmet} from 'react-helmet';
 import Button from './Button';
 import TitleImage from "./TitleImage";
 
-import './Home.scss';
-
 class Home extends React.Component {
 
     constructor(props) {
@@ -21,6 +19,7 @@ class Home extends React.Component {
     }
 
     render() {
+
         return (
             <div className="jarombek-main">
                 <Helmet>

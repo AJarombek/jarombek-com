@@ -9,8 +9,6 @@ import PropTypes from 'prop-types';
 import BlogPost from './BlogPost';
 import Loading from './Loading';
 
-import './BlogList.scss';
-
 const BlogList = ({ blogList=[] }) =>
     <div className="jarombek-blog-list">
         { (blogList.length === 0) ?

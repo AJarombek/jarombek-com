@@ -162,3 +162,18 @@ yarn add base64-url
 
 # Mocking for unit tests
 yarn add sinon --dev
+
+# Parsing HTTP Post request bodies
+yarn add body-parser
+
+# Set the node environment to development for proper Webpack builds
+export NODE_ENV=development
+
+# Build with webpack for dev environment bundles and deploy locally
+yarn client:dev
+yarn server:dev
+yarn server:deploy
+
+# Used for setting global styles defined in JavaScript.  This allows for
+# dynamic styles depending on the environment
+yarn add styled-components

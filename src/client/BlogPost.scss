@@ -4,7 +4,10 @@
  * @since 4/8/2018
  */
 
-@import "global";
+@import "./styles/mixins/sylexiad";
+@import "./styles/mixins/fantasque";
+@import "./styles/mixins/transition";
+@import "./styles/variables";
 
 $post-margin: 0.5px;
 

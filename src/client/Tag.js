@@ -7,13 +7,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import './Tag.scss';
-
 const Tag = ({ name, picture, color }) =>
     <div className="jarombek-tag">
         <div className={`jarombek-tag-color-${color}`}>
             <figure>
-                <img className="jarombek-tag-picture" src={ require(`${picture}`) } />
+                <img className="jarombek-tag-picture" src={picture} />
             </figure>
             <p className="jarombek-tag-name">{name}</p>
         </div>
@@ -26,7 +24,7 @@ Tag.propTypes = {
 };
 
 Tag.defaultProps = {
-    picture: "./assets/jarombek.png",
+    picture: "https://asset.jarombek.com/jarombek.png",
     color: "default"
 };
 

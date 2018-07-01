@@ -9,7 +9,6 @@ const bcrypt = require('bcrypt-nodejs');
 const uuid = require('uuid/v4');
 const base64 = require('base64-url');
 
-const emails = require('../aws/emails');
 const User = require('../model/user');
 const Audit = require('../model/audit');
 

@@ -8,26 +8,42 @@ import React from 'react';
 import {render} from 'react-dom';
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 import 'babel-polyfill';
+import { injectGlobal } from 'styled-components';
 
 import Home from './Home';
 import Blog from './Blog';
 import Verify from './Verify';
 import Unsub from "./Unsub";
+import gs from "./globalStyles";
+
+let globalStyles = '';
+
+if (process.env.NODE_ENV === 'development') {
+    globalStyles = gs.dev;
+} else {
+    globalStyles = gs.prod;
+}
+
+// import './index.scss';
 
 window.React = React;
 
-const RoutedApp = () => (
+const RoutedApp = () => {
+
+    injectGlobal`${globalStyles}`;
+
+    return (
     <Router>
         <Switch>
             <Route exact path="/" component={Home} />
             <Route path="/blog/:name" render={(props) => <Blog {...props} {...window.__STATE__}/>}/>
             <Route path="/blog" component={Blog}/>
             <Route path="/verify/:code" component={Verify}/>
-            <Route path="/unsub/:code" component={Unsub}/>
+            <Route path="/unsub/:code" component={Unsub} />
             <Route component={Home}/>
         </Switch>
     </Router>
-);
+)};
 
 render(
     <RoutedApp />,

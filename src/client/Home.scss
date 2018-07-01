@@ -4,10 +4,8 @@
  * @since 3/22/2018
  */
 
-@import "global";
-
-// Reset the default browser styles
-@import "reset";
+@import "./styles/mixins/sylexiad";
+@import "./styles/mixins/transition";
 
 body {
   background-color: white;

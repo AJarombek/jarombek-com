@@ -7,8 +7,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import './TitleImage.scss';
-
 const TitleImage = ({src, title, className, link}) =>
     <div className={className}>
         <figure className="jarbek-figure">

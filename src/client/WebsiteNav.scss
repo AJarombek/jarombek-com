@@ -4,10 +4,9 @@
  * @since 4/8/2018
  */
 
-@import "global";
-
-// Reset the default browser styles
-@import "reset";
+@import "./styles/mixins/sylexiad";
+@import "./styles/mixins/transition";
+@import "./styles/variables";
 
 .jarombek-nav {
   @include sylexiad-bold;

@@ -25,6 +25,10 @@ const PUBLIC_PATH = (process.env.NODE_ENV === 'development') ?
     'http://localhost:8080/' :
     'https://jarombek.com/';
 
+const ENV = (process.env.NODE_ENV === 'development') ?
+    JSON.stringify('development') :
+    JSON.stringify('production');
+
 /**
  * Configuration specific to the Server bundles
  */
@@ -57,12 +61,17 @@ const serverConfig = merge([
         plugins: [
             new CopyWebpackPlugin([
                 { from: path.join(__dirname, '/src/server/sitemap.xml'), to: 'sitemap.xml' }
-            ])
+            ]),
+            new webpack.DefinePlugin({
+                'process.env.NODE_ENV': ENV
+            }),
+
         ]
     },
     parts.loadFonts({
         options: {
-            name: '[name].[ext]'
+            name: 'assets/[name].[ext]',
+            publicPath: PUBLIC_PATH
         }
     })
 ]);
@@ -73,13 +82,13 @@ const serverConfig = merge([
 const serverDevConfig = merge([
     {
         plugins: [
-            new NodemonPlugin(),
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'development'
-            })
+            new NodemonPlugin()
         ]
     },
-    parts.loadServerSass(),
+    parts.extractCSS({
+        use: ["css-loader", "sass-loader"],
+        fallback: "isomorphic-style-loader"
+    }),
     parts.loadImages()
 ]);
 
@@ -87,13 +96,6 @@ const serverDevConfig = merge([
  * Configuration specific to the server bundles in a production environment
  */
 const serverProdConfig = merge([
-    {
-        plugins: [
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'production'
-            })
-        ]
-    },
     parts.extractCSS({
         use: ["css-loader", "sass-loader"],
         fallback: "isomorphic-style-loader"
@@ -101,7 +103,7 @@ const serverProdConfig = merge([
     parts.loadImages({
         options: {
             limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
-            name: 'server/[name].[ext]',
+            name: 'assets/[name].[ext]',
             publicPath: PUBLIC_PATH
         }
     })
@@ -141,13 +143,17 @@ const clientConfig = merge([
             new HtmlWebPackPlugin({
                 template: "./src/client/index.html",
                 filename: "./index.html"
+            }),
+            new webpack.DefinePlugin({
+                'process.env.NODE_ENV': ENV
             })
         ]
     },
     parts.lintJavaScript({ options: {emitWarning: true}}),
     parts.loadFonts({
         options: {
-            name: '[name].[ext]'
+            name: 'assets/[name].[ext]',
+            publicPath: PUBLIC_PATH
         }
     })
 ]);
@@ -157,11 +163,6 @@ const clientConfig = merge([
  */
 const clientDevConfig = merge([
     {
-        plugins: [
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'development'
-            })
-        ],
         performance: {hints: false},
         output: {
             sourceMapFilename: "[name].map"
@@ -173,7 +174,10 @@ const clientDevConfig = merge([
         port: process.env.PORT
     }),
     parts.hotModuleReplacement(),
-    parts.loadSass(),
+    parts.extractCSS({
+        use: ["css-loader", "sass-loader"],
+        fallback: "isomorphic-style-loader"
+    }),
     parts.loadImages()
 ]);
 
@@ -192,12 +196,7 @@ const clientProdConfig = merge([
                     }
                 }
             }
-        },
-        plugins: [
-            new webpack.EnvironmentPlugin({
-                NODE_ENV: 'production'
-            })
-        ]
+        }
     },
     parts.generateSourceMaps({ type: 'source-map' }),
     parts.extractCSS({
@@ -207,7 +206,7 @@ const clientProdConfig = merge([
     parts.loadImages({
         options: {
             limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
-            name: 'server/[name].[ext]',
+            name: 'assets/[name].[ext]',
             publicPath: PUBLIC_PATH
         }
     })

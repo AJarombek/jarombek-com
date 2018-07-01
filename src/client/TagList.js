@@ -8,8 +8,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Tag from './Tag';
 
-import './TagList.scss';
-
 const TagList = ({ tagList=[] }) =>
     <div className="jarombek-tag-list">
         { (tagList.length === 0) ?

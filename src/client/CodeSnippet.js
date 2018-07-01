@@ -8,8 +8,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import hljs from 'highlightjs';
 
-import './CodeSnippet.scss';
-
 class CodeSnippet extends React.Component {
 
     constructor() {
@@ -105,8 +103,12 @@ class CodeSnippet extends React.Component {
     }
 
     static propTypes = {
-        language: PropTypes.string.isRequired,
+        language: PropTypes.string,
         children: PropTypes.any
+    };
+
+    static defaultProps = {
+        language: null
     };
 
     componentDidMount() {

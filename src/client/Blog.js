@@ -18,8 +18,6 @@ import TitleImage from './TitleImage';
 import CodeSnippet from './CodeSnippet';
 import Definition from './Definition';
 import Modal from './Modal';
-
-import './Blog.scss';
 import Loading from "./Loading";
 import Subscribe from "./Subscribe";
 
@@ -399,40 +397,37 @@ class Blog extends React.Component {
     static createContentJSX(content) {
         if (content) {
             return content.map(e => {
-                    let Tag = e.el;
-                    const attributes = e.attributes;
-                    const children = e.children;
-                    const value = e.value;
+                let Tag = e.el;
+                const attributes = e.attributes;
+                const children = e.children;
+                const value = e.value;
 
-                    // The #text element simply represents any plain text in the HTML
-                    if (Tag === '#text') {
-                        return value;
-                    }
+                // The #text element simply represents any plain text in the HTML
+                if (Tag === '#text') {
+                    return value;
+                }
 
-                    // If the element is the React component CodeSnippet, replace the string
-                    // with the Component reference.
-                    if (Tag === 'codesnippet') {
-                        Tag = CodeSnippet;
-                    }
+                // If the element is the React component CodeSnippet, replace the string
+                // with the Component reference.
+                if (Tag === 'codesnippet') {
+                    Tag = CodeSnippet;
+                }
 
-                    // Do a similar replacement if the element is the React component Definition
-                    if (Tag === 'definition') {
-                        Tag = Definition;
-                    }
+                // Do a similar replacement if the element is the React component Definition
+                if (Tag === 'definition') {
+                    Tag = Definition;
+                }
 
-                    // If the tag is img there is no closing tag and we have to treat it
-                    // differently.  Also we have to require() the image so that Webpack
-                    // will pick it up when creating the dependency graph
-                    if (Tag === 'img') {
-                        const {src, ...others} = attributes;
-                        return <Tag key={e.toString()} src={ require(`${src}`) }
-                                    { ...others } />
-                    }
+                // If the tag is img there is no closing tag and we have to treat it differently.
+                if (Tag === 'img') {
+                    const {src, ...others} = attributes;
+                    return <Tag key={e.toString()} src={src} { ...others } />
+                }
 
-                    return <Tag key={e.toString()} { ...attributes }>{value}{
-                        (children) ? Blog.createContentJSX(children) : ""
-                    }</Tag>;
-                });
+                return <Tag key={e.toString()} { ...attributes }>{value}{
+                    (children) ? Blog.createContentJSX(children) : ""
+                }</Tag>;
+            });
         } else {
             return null;
         }
