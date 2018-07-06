@@ -11,6 +11,7 @@ const base64 = require('base64-url');
 
 const User = require('../model/user');
 const Audit = require('../model/audit');
+const emails = require('../aws/emails');
 
 const routes = () => {
 
