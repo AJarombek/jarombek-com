@@ -98,6 +98,11 @@ class CodeSnippet extends React.Component {
                 prop: "css",
                 title: "CSS",
                 highlightClass: "css"
+            },
+            {
+                prop: "groovy",
+                title: "Groovy",
+                highlightClass: "groovy"
             }
         ];
     }
