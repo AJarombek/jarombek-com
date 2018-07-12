@@ -1,0 +1,31 @@
+/*
+ * Sass styling for the Button component
+ * @author Andrew Jarombek
+ * @since 7/11/2018
+ */
+
+@import "./styles/mixins/dyslexie";
+
+$primary-table-color: #e2eaea;
+$secondary-table-color: #edf9fb;
+
+.jarombek-comparison-table {
+  display: grid;
+}
+
+.jarombek-ct-header-color-default-primary {
+  background-color: darken($primary-table-color, 10%);
+}
+
+.jarombek-ct-title {
+  @include dyslexie;
+  font-size: 24px;
+}
+
+.jarombek-ct-primary-color-default-primary > .jarombek-ct-body:nth-child(even) {
+  background-color: $primary-table-color;
+}
+
+.jarombek-ct-secondary-color-default-secondary > .jarombek-ct-body:nth-child(odd) {
+  background-color: $secondary-table-color;
+}
