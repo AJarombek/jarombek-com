@@ -1,0 +1,28 @@
+/*
+ * Sass styling for the ComparisonTableEntry component
+ * @author Andrew Jarombek
+ * @since 7/11/2018
+ */
+
+.jarombek-comparison-table-entry {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.jarombek-ct-entry-content h5 {
+  font-size: 26px !important;
+  text-align: center;
+}
+
+.jarombek-ct-entry-content h5 > code {
+  font-size: 26px !important;
+}
+
+.jarombek-ct-entry-content p {
+  font-size: 20px !important;
+}
+
+.jarombek-ct-entry-content p > code {
+  font-size: 16px !important;
+  word-wrap: break-word;
+}

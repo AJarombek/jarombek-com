@@ -28,8 +28,8 @@ ComparisonTable.propTypes = {
 };
 
 ComparisonTable.defaultProps = {
-    primaryColor: "default-primary",
-    secondaryColor: "default-secondary"
+    primaryColor: "default",
+    secondaryColor: "default"
 };
 
 export default ComparisonTable;

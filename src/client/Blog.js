@@ -20,6 +20,8 @@ import Definition from './Definition';
 import Modal from './Modal';
 import Loading from "./Loading";
 import Subscribe from "./Subscribe";
+import ComparisonTable from "./ComparisonTable";
+import ComparisonTableEntry from "./ComparisonTableEntry";
 
 class Blog extends React.Component {
 
@@ -407,15 +409,22 @@ class Blog extends React.Component {
                     return value;
                 }
 
-                // If the element is the React component CodeSnippet, replace the string
-                // with the Component reference.
+                // If the element a React component, replace the string with the
+                // Component reference.
                 if (Tag === 'codesnippet') {
                     Tag = CodeSnippet;
                 }
 
-                // Do a similar replacement if the element is the React component Definition
                 if (Tag === 'definition') {
                     Tag = Definition;
+                }
+
+                if (Tag === 'comparisontable') {
+                    Tag = ComparisonTable
+                }
+
+                if (Tag === 'comparisontableentry') {
+                    Tag = ComparisonTableEntry
                 }
 
                 // If the tag is img there is no closing tag and we have to treat it differently.
