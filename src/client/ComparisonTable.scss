@@ -1,0 +1,42 @@
+/*
+ * Sass styling for the Button component
+ * @author Andrew Jarombek
+ * @since 7/11/2018
+ */
+
+@import "./styles/mixins/dyslexie";
+
+$header-color: #e4e4e4;
+$primary-table-color: #e2eaea;
+$secondary-table-color: #edf9fb;
+
+.jarombek-comparison-table {
+
+}
+
+.jarombek-ct-header-color-default {
+  background-color: $header-color;
+}
+
+.jarombek-ct-title {
+  @include dyslexie;
+  font-size: 26px !important;
+  text-align: center;
+}
+
+.jarombek-ct-body {
+  display: grid;
+
+  // auto-fill means "as many as will fit"
+  // minmax() in this case says the grid track will be no less than 350px and no more than 1fr
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-gap: 5px;
+}
+
+.jarombek-ct-primary-color-default > .jarombek-comparison-table-entry:nth-child(even) {
+  background-color: $primary-table-color;
+}
+
+.jarombek-ct-secondary-color-default > .jarombek-comparison-table-entry:nth-child(odd) {
+  background-color: $secondary-table-color;
+}
