@@ -29,7 +29,7 @@ $secondary-table-color: #edf9fb;
 
   // auto-fill means "as many as will fit"
   // minmax() in this case says the grid track will be no less than 350px and no more than 1fr
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   grid-gap: 5px;
 }
 
