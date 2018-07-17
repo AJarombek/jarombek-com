@@ -115,7 +115,7 @@ const routes = () => {
     // Route middleware for an existing user
     userRouter.use('/filter/:email', (req, res, next) => {
 
-        findUserByEmail(req.params.email).next((user) => {
+        findUserByEmail(req.params.email).then((user) => {
             console.info(`User with matching email: ${user.email}`);
             req.user = user;
             next();
