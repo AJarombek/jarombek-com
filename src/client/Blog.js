@@ -15,13 +15,11 @@ import WebsiteTemplate from './WebsiteTemplate';
 import BlogList from './BlogList';
 import PictureButton from './PictureButton';
 import TitleImage from './TitleImage';
-import CodeSnippet from './CodeSnippet';
-import Definition from './Definition';
 import Modal from './Modal';
 import Loading from "./Loading";
 import Subscribe from "./Subscribe";
-import ComparisonTable from "./ComparisonTable";
-import ComparisonTableEntry from "./ComparisonTableEntry";
+import BlogDelegator from "./BlogDelegator";
+import JSXConverter from "./JSXConverter";
 
 class Blog extends React.Component {
 
@@ -68,7 +66,7 @@ class Blog extends React.Component {
         if (this.props.posts) {
             console.info(`Mounting Component with Post in State: ${this.props.posts.name}`);
             this.setState({
-                posts: [Blog.createPostJSX(this.props.posts)],
+                posts: [JSXConverter.createPostJSX(this.props.posts)],
                 page: Blog.pageType.SINGLE
             });
         }
@@ -242,7 +240,7 @@ class Blog extends React.Component {
      */
     async fetchPostsAndUpdate(url='/api/post') {
         const {posts, prev, next, loaded} =
-            await Blog.fetchPosts(this.baseUrl, url, this.postsCache);
+            await BlogDelegator.fetchPosts(this.baseUrl, url, this.postsCache);
 
         console.info(posts);
 
@@ -250,7 +248,7 @@ class Blog extends React.Component {
         this.nextCache = next;
 
         // Increment the viewed count for the loaded posts
-        Blog.viewedPosts(loaded, this.baseUrl);
+        BlogDelegator.viewedPosts(loaded, this.baseUrl);
 
         this.setState({
             posts,
@@ -261,67 +259,15 @@ class Blog extends React.Component {
     }
 
     /**
-     * Fetch multiple posts from the API
-     * @param baseUrl - the base of the url dependent on the environment
-     * @param url - the url of the API call to make
-     * @param existingPosts - the existing posts cached by the component
-     * @return {Promise<{posts: *[], prev, next}>} - Once resolved, will return an
-     * object with the posts, previous page of posts, next page of posts, and a list
-     * of the fetched posts names
-     */
-    static async fetchPosts(baseUrl, url, existingPosts) {
-
-        const response = await fetch(`${baseUrl}${url}`);
-
-        const link = response.headers.get('Link');
-        const total = response.headers.get('X-Total-Count');
-        console.info(`Link Header: ${link}`);
-        console.info(`X-Total-Count Header: ${total}`);
-
-        // The only important link headers to us are prev and next
-        const {prev, next} = Blog.parseLinks(link);
-
-        const json = await response.json();
-
-        console.info(`Posts JSON: ${JSON.stringify(json)}`);
-
-        // You cant perform a spread operator in an array on null,
-        // so create an empty array if no posts exist
-        existingPosts = existingPosts || [];
-
-        // Transform JSON to JSX
-        const addedPosts = Blog.createPostsJSX(json);
-
-        // Create a list of all the new posts that were loaded from the API
-        const loaded = addedPosts.map(post => post.name);
-        console.info(`Names of Posts in Posts JSON: ${loaded}`);
-
-        const posts = [
-            ...existingPosts,
-            ...addedPosts
-        ];
-
-        // Ensure that no posts are duplicates
-        const uniquePosts = Blog.uniquePosts(posts);
-
-        return {
-            posts: uniquePosts,
-            prev,
-            next,
-            loaded
-        };
-    }
-
-    /**
      * Fetch a single post from the API and set it to the state
      * @param name - the name of the post in MongoDB
      */
     async fetchPostAndUpdate(name) {
-        const {posts, loaded} = await Blog.fetchPost(this.baseUrl, name);
+        const {posts, loaded} = await BlogDelegator.fetchPost(this.baseUrl, name);
         console.info(posts);
 
         // Increment the viewed count for the fetched post
-        Blog.viewedPost(loaded, this.baseUrl);
+        BlogDelegator.viewedPost(loaded, this.baseUrl);
 
         this.setState({
             posts,
@@ -329,192 +275,6 @@ class Blog extends React.Component {
             next: null,
             page: Blog.pageType.SINGLE
         });
-    }
-
-    /**
-     * Fetch a single post from the API
-     * @param baseUrl - the base of the url dependent on the environment
-     * @param name - the name of the post in MongoDB
-     * @return {Promise<{posts: *[]}>} - Once resolved, will return an object with the posts
-     * and the fetched post name
-     */
-    static async fetchPost(baseUrl, name) {
-        const response = await fetch(`${baseUrl}/api/post/${name}`);
-
-        const json = await response.json();
-
-        console.info(`Posts JSON: ${JSON.stringify(json)}`);
-
-        const post = Blog.createPostJSX(json);
-
-        return {posts: [post], loaded: post.name};
-    }
-
-    /**
-     * Transform a list of posts from JSON to an object where the content property is JSX
-     * so it can be displayed in the DOM
-     * @param posts - a list of posts in JSON
-     * @returns null if the posts is falsey, an array of posts in with the content
-     * property in JSX form if posts is truthy
-     */
-    static createPostsJSX(posts) {
-        if (posts) {
-            return posts.map(post => Blog.createPostJSX(post));
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Creates a JavaScript object for a post where the content property has been
-     * transformed from JSON to JSX
-     * @param name - the name of the post (this is what is displayed in the URL)
-     * @param title - the title of the post
-     * @param date - the date the post was created
-     * @param type - the type of post [Blog, Discovery]
-     * @param tags - the tags for the post, these are the different technologies discussed
-     * @param content - JSON representation of the content of the post.
-     * This will be transformed to JSX
-     * @param sources - the sources of information for the post
-     * @returns {{name: *, title: *, date: *, type: *, tags: *, content: *, sources: *}}
-     * - JavaScript object representing a post
-     */
-    static createPostJSX({name, title, date, type, tags, content, sources}) {
-        return {
-            name,
-            title,
-            date,
-            type,
-            tags,
-            content: Blog.createContentJSX(content),
-            sources
-        }
-    }
-
-    /**
-     * Transform a JSON representation of HTML into JSX
-     * @param content - the JSON representation of HTML
-     * @returns null if content is falsey, JSX if content is truthy
-     */
-    static createContentJSX(content) {
-        if (content) {
-            return content.map(e => {
-                let Tag = e.el;
-                const attributes = e.attributes;
-                const children = e.children;
-                const value = e.value;
-
-                // The #text element simply represents any plain text in the HTML
-                if (Tag === '#text') {
-                    return value;
-                }
-
-                // If the element a React component, replace the string with the
-                // Component reference.
-                if (Tag === 'codesnippet') {
-                    Tag = CodeSnippet;
-                }
-
-                if (Tag === 'definition') {
-                    Tag = Definition;
-                }
-
-                if (Tag === 'comparisontable') {
-                    Tag = ComparisonTable
-                }
-
-                if (Tag === 'comparisontableentry') {
-                    Tag = ComparisonTableEntry
-                }
-
-                // If the tag is img there is no closing tag and we have to treat it differently.
-                if (Tag === 'img') {
-                    const {src, ...others} = attributes;
-                    return <Tag key={e.toString()} src={src} { ...others } />
-                }
-
-                return <Tag key={e.toString()} { ...attributes }>{value}{
-                    (children) ? Blog.createContentJSX(children) : ""
-                }</Tag>;
-            });
-        } else {
-            return null;
-        }
-
-    }
-
-    /**
-     * Parse the Link HTTP response header
-     * @param links - string representation of the Link header
-     * @returns {{}} - an object with all the links
-     */
-    static parseLinks(links) {
-        // Regular Expression to Parse Links
-        const globalRegex = /<([a-z0-9/?&=]+)>; rel="(\w+)"/g;
-        const regex = /<([a-z0-9/?&=]+)>; rel="(\w+)"/;
-
-        const matches = links.match(globalRegex);
-
-        const linksObject = Blog.generateLinks(matches, regex);
-        console.info(linksObject);
-        return linksObject;
-    }
-
-    /**
-     * Generate an object containing all the links from the HTTP header
-     * @param list - a list of all the links
-     * @param regex - the regular expression that will match the Link header
-     * @returns {{}} - an object of all the links where the rel is the property name and the
-     * contents of the angle brackets is the property value
-     */
-    static generateLinks(list, regex) {
-
-        // Base case when list is empty
-        if (list.length === 0) {
-            return {};
-        }
-
-        const [link, ...remaining] = list;
-
-        const [, url, destination] = link.match(regex);
-
-        // Recursively generateLinks until the list is empty
-        return {
-            [`${destination}`]: url,
-            ...Blog.generateLinks(remaining, regex)
-        };
-    }
-
-    /**
-     * Ensure that all the posts in the array are unique
-     * @param posts - an array of posts
-     * @returns {*[]} - an array of posts where each name property is unique
-     */
-    static uniquePosts(posts) {
-        const postsMap = new Map(posts.map((p) => [p.name, p]));
-
-        console.debug(postsMap);
-
-        return [ ...postsMap.values() ];
-    }
-
-    /**
-     * Take a list of viewed posts and increment the view count on the server
-     * @param names - a list of post names that were viewed
-     * @param baseUrl - the base of the url dependent on the environment
-     */
-    static viewedPosts(names, baseUrl) {
-        names.forEach(name => this.viewedPost(name, baseUrl));
-    }
-
-    /**
-     * Take a post name and increment the count for the corresponding post on the server
-     * @param name - a post name that was viewed
-     * @param baseUrl - the base of the url dependent on the environment
-     */
-    static viewedPost(name, baseUrl) {
-        console.info(`PUT ${baseUrl}/api/viewed/post/${name}`);
-        fetch(`${baseUrl}/api/viewed/post/${name}`, {method: 'PUT'});
     }
 
     /**
