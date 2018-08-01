@@ -103,6 +103,11 @@ class CodeSnippet extends React.Component {
                 prop: "groovy",
                 title: "Groovy",
                 highlightClass: "groovy"
+            },
+            {
+                prop: "batch",
+                title: "Batch",
+                highlightClass: "bash"
             }
         ];
     }

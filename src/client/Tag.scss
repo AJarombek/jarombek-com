@@ -38,6 +38,7 @@ $rabbitmq-orange: rgba(239, 100, 55, 0.6);
 $yaml-orange: rgba(239, 145, 62, 0.6);
 $express-gray: rgba(224, 226, 228, 0.6);
 $json-gray: rgba(121, 119, 119, 0.6);
+$batch-gray: rgba(206, 215, 220, 0.6);
 $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-neo4j {
@@ -166,6 +167,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-json {
   background-color: lighten($json-gray, 10%);
+}
+
+.jarombek-tag-color-batch {
+  background-color: lighten($batch-gray, 10%);
 }
 
 .jarombek-tag-color-default {
