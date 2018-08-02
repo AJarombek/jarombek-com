@@ -7,7 +7,6 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Link} from 'react-router-dom';
 import 'isomorphic-fetch';
 import {Helmet} from 'react-helmet';
 import queryString from 'query-string';
@@ -15,6 +14,7 @@ import queryString from 'query-string';
 import WebsiteTemplate from './WebsiteTemplate';
 import Loading from "./Loading";
 import Modal from './Modal';
+import BlogPreview from "./BlogPreview";
 import Subscribe from "./Subscribe";
 import BlogDelegator from "./BlogDelegator";
 import JSXConverter from "./JSXConverter";
@@ -159,12 +159,14 @@ class BlogList extends React.Component {
                             <link rel="canonical" href="https://jarombek.com/blog" />
                             <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                         </Helmet>
-                        { (posts) ?
-                            posts.map(post =>
-                                <BlogPreview key={post.name} {...post} />
-                            ):
-                            <Loading className="jarombek-blog-none" />
-                        }
+                        <div className="jarombek-posts-grid">
+                            { (posts) ?
+                                posts.map(post =>
+                                    <BlogPreview key={post.name} {...post} />
+                                ):
+                                <Loading className="jarombek-blog-none" />
+                            }
+                        </div>
                         <p>
                             Place Footer Here
                         </p>

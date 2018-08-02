@@ -1,0 +1,93 @@
+/*
+ * Sass styling for the BlogPreview component
+ * @author Andrew Jarombek
+ * @since 8/2/2018
+ */
+
+@import "./styles/variables";
+@import "styles/mixins/sylexiads";
+@import "./styles/mixins/transition";
+
+.jarombek-blog-preview {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);
+
+  display: grid;
+  grid-template-columns: 1fr 8fr 1fr;
+  grid-template-areas:
+            "header  header  header"
+            "  .     title     .   "
+            "tags    tags    tags  "
+            "  .     content   .   ";
+
+  // For small desktop screens, reduce the padding on the side of the post contents in half
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    grid-template-columns: 1fr 13fr 1fr;
+  }
+
+  // For mobile screens, make the padding on the side of posts nearly non-existent
+  @media screen and (max-width: $width-mobile) {
+    grid-template-columns: 1fr 28fr 1fr;
+  }
+}
+
+.jarombek-blog-preview-headers {
+  grid-area: header;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 10px;
+  grid-template-areas: "header-type header-date";
+}
+
+@each $header in 'type', 'date' {
+  .jarombek-blog-#{$header} {
+    @include sylexiad;
+    color: #999;
+    font-size: 12px;
+    padding-top: 10px;
+
+    align-self: center;
+    text-align: center;
+  }
+}
+
+.jarombek-blog-preview-type {
+  grid-area: header-type;
+  justify-self: start;
+}
+
+.jarombek-blog-preview-date {
+  grid-area: header-date;
+  justify-self: end;
+}
+
+@each $field in 'title', 'tags', 'content' {
+  .jarombek-blog-#{$field} {
+    grid-area: $field;
+    padding-bottom: 20px;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+.jarombek-blog-preview-title {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.jarombek-blog-preview-title-p {
+  @include sylexiad;
+  @include transition(color, #111);
+  color: #555;
+  font-size: 24px;
+  text-align: center;
+}
+
+.jarombek-blog-preview-tags {}
+
+.jarombek-blog-preview-content {
+  @extend .jarbek-blog-content;
+}
