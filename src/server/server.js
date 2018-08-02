@@ -62,7 +62,7 @@ const renderComponentsToHTML = async (url) => {
                 <Switch>
                     <Route exact path="/" component={Home}/>
                     <Route path="/blog/:name" render={
-                        (props) => <Blog {...props} {...{posts: post}}/>
+                        (props) => <Blog {...props} {...{post: post}}/>
                     }/>
                     <Route path="/blog" component={Blog}/>
                     <Route path="/verify/:code" component={Verify}/>
@@ -111,7 +111,7 @@ const sendHtmlPage = async ({html, post}) => {
     <body>
         <div id="react-container">${html}</div>
         <script>
-            window.__STATE__ = ${JSON.stringify({posts: post})}
+            window.__STATE__ = ${JSON.stringify({post: post})}
         </script>
         <script src="/client/vendor.js"></script>
         <script src="/client/bundle.js"></script>

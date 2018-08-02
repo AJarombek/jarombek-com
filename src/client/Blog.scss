@@ -13,7 +13,7 @@
   grid-template-columns: [left] 100% [right];
 }
 
-.jarombek-blog-next {
+.jarombek-blog-footer {
   grid-area: bottom-blog / left / bottom / right;
   justify-self: center;
   align-self: center;
@@ -22,8 +22,4 @@
 
   text-decoration: none;
   color: #333;
-}
-
-.jarombek-loading-next {
-  margin: 0 auto;
 }

@@ -36,11 +36,12 @@ class JSXConverter {
      * @param tags - the tags for the post, these are the different technologies discussed
      * @param content - JSON representation of the content of the post.
      * This will be transformed to JSX
+     * @param preview - a preview snippet of a posts content.
      * @param sources - the sources of information for the post
      * @returns {{name: *, title: *, date: *, type: *, tags: *, content: *, sources: *}}
      * - JavaScript object representing a post
      */
-    static createPostJSX({name, title, date, type, tags, content, sources}) {
+    static createPostJSX({name, title, date, type, tags, content, preview, sources}) {
         return {
             name,
             title,
@@ -48,6 +49,7 @@ class JSXConverter {
             type,
             tags,
             content: JSXConverter.createContentJSX(content),
+            preview: JSXConverter.createContentJSX(preview),
             sources
         }
     }

@@ -66,7 +66,7 @@ class BlogDelegator {
      * Fetch a single post from the API
      * @param baseUrl - the base of the url dependent on the environment
      * @param name - the name of the post in MongoDB
-     * @return {Promise<{posts: *[]}>} - Once resolved, will return an object with the posts
+     * @return {Promise<{post: {}, loaded: *}>} - Once resolved, will return an object with the post
      * and the fetched post name
      */
     static async fetchPost(baseUrl, name) {
@@ -78,7 +78,7 @@ class BlogDelegator {
 
         const post = JSXConverter.createPostJSX(json);
 
-        return {posts: [post], loaded: post.name};
+        return {post: post, loaded: post.name};
     }
 
     /**
