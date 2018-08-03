@@ -7,18 +7,22 @@
 @import "./styles/variables";
 @import "styles/mixins/sylexiads";
 @import "./styles/mixins/transition";
+@import "blogContent";
 
 .jarombek-blog-preview {
   background-color: white;
-  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+  @include transition(box-shadow, 0 1px 4px darken(rgba(48, 227, 225, 0.8), 10%));
+  @include transition(border, 1px solid darken(rgba(48, 227, 225, 0.8), 10%));
+  border-radius: 2px;
 
   display: grid;
   grid-template-columns: 1fr 8fr 1fr;
   grid-template-areas:
-            "header  header  header"
-            "  .     title     .   "
-            "tags    tags    tags  "
-            "  .     content   .   ";
+            "header  header  header "
+            "  .     title     .    "
+            "tags    tags    tags   "
+            "content content content";
 
   // For small desktop screens, reduce the padding on the side of the post contents in half
   @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
@@ -41,11 +45,12 @@
 }
 
 @each $header in 'type', 'date' {
-  .jarombek-blog-#{$header} {
+  .jarombek-blog-preview-#{$header} {
     @include sylexiad;
     color: #999;
-    font-size: 12px;
+    font-size: 16px;
     padding-top: 10px;
+    margin: 10px;
 
     align-self: center;
     text-align: center;
@@ -55,6 +60,7 @@
 .jarombek-blog-preview-type {
   grid-area: header-type;
   justify-self: start;
+
 }
 
 .jarombek-blog-preview-date {
@@ -63,8 +69,8 @@
 }
 
 @each $field in 'title', 'tags', 'content' {
-  .jarombek-blog-#{$field} {
-    grid-area: $field;
+  .jarombek-blog-preview-#{$field} {
+    grid-area: #{$field};
     padding-bottom: 20px;
     justify-self: center;
     align-self: center;
@@ -86,8 +92,12 @@
   text-align: center;
 }
 
-.jarombek-blog-preview-tags {}
+.jarombek-blog-preview-tags {
+  margin: 15px;
+  font-size: 18px;
+}
 
 .jarombek-blog-preview-content {
   @extend .jarbek-blog-content;
+  margin: 15px;
 }

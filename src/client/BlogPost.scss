@@ -11,18 +11,6 @@
 
 $post-margin: 0.5px;
 
-$inline-gray: rgba(204, 204, 204, 0.25);
-
-.link-style {
-  @include sylexiad-bold;
-  color: #999;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .jarombek-blog-post {
   background-color: white;
   box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);

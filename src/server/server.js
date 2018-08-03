@@ -21,6 +21,7 @@ import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
 import userRoute from "./route/userRouter";
 import gs from "../client/globalStyles";
+import BlogList from "../client/BlogList";
 
 /**
  * The main file for the Express/Node.js server.  The server provides an API and
@@ -64,7 +65,7 @@ const renderComponentsToHTML = async (url) => {
                     <Route path="/blog/:name" render={
                         (props) => <Blog {...props} {...{post: post}}/>
                     }/>
-                    <Route path="/blog" component={Blog}/>
+                    <Route path="/blog" component={BlogList}/>
                     <Route path="/verify/:code" component={Verify}/>
                     <Route path="/unsub/:code" component={Unsub}/>
                     <Route component={Home}/>

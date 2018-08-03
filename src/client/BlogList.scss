@@ -4,6 +4,26 @@
  * @since 4/8/2018
  */
 
+@import "./styles/variables";
+
+.jarombek-posts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 20px;
+
+  // For small desktop screens
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+  }
+
+  // For mobile screens
+  @media screen and (max-width: $width-mobile) {
+    grid-template-columns: 1fr;
+    grid-gap: 5px;
+  }
+}
+
 .jarombek-blog-none {
   height: 100vh;
   margin: 0 auto;

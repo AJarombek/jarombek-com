@@ -8,6 +8,18 @@
 @import "./styles/mixins/sylexiads";
 @import "./styles/mixins/fantasque";
 
+$inline-gray: rgba(204, 204, 204, 0.25);
+
+.link-style {
+  @include sylexiad-bold;
+  color: #999;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .jarbek-blog-content {
   @include sylexiad;
 
