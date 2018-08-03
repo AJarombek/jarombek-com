@@ -7,18 +7,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const Tag = ({ name, picture, color, showPicture }) =>
-    <div className="jarombek-tag">
+const Tag = ({ name, picture, color, showPicture }) => {
+    const size = showPicture ? "large" : "small";
+    return <div className={`jarombek-tag jarombek-tag-${size}`}>
         <div className={`jarombek-tag-color-${color}`}>
-            { showPicture ?
+            {showPicture ?
                 <figure>
-                    <img className="jarombek-tag-picture" src={picture} />
+                    <img className="jarombek-tag-picture" src={picture}/>
                 </figure>
                 : null
             }
             <p className="jarombek-tag-name">{name}</p>
         </div>
     </div>;
+};
 
 Tag.propTypes = {
     name: PropTypes.string.isRequired,

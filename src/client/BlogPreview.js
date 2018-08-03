@@ -11,6 +11,15 @@ import moment from 'moment';
 import TagList from './TagList';
 
 const BlogPreview = ({ name, title, type, date, tags=[], preview }) => {
+    const extraTagCount = tags.length > 3 ? tags.length - 2 : 0;
+
+    if (extraTagCount > 0) {
+        tags = [
+            ...tags.filter((tag, index) => index < 2),
+            {name: `+${extraTagCount} More`}
+        ];
+    }
+
     return (
         <div className="jarombek-blog-preview">
             <div className="jarombek-blog-preview-headers">
