@@ -18,6 +18,7 @@ import BlogPreview from "./BlogPreview";
 import Subscribe from "./Subscribe";
 import BlogDelegator from "./BlogDelegator";
 import JSXConverter from "./JSXConverter";
+import PaginationBar from "./PaginationBar";
 
 class BlogList extends React.Component {
 
@@ -123,7 +124,7 @@ class BlogList extends React.Component {
      * @returns {Promise<void>}
      */
     async fetchPostsAndUpdate(url='/api/post') {
-        const {posts, prev, next} =
+        const {posts, first, prev, next, last} =
             await BlogDelegator.fetchPosts(this.baseUrl, url, this.postsCache);
 
         console.info(posts);
@@ -134,16 +135,35 @@ class BlogList extends React.Component {
 
         this.setState({
             posts,
+            first,
             prev,
-            next
+            next,
+            last
         });
+    }
+
+    /**
+     * Through pagination, load a different batch of posts
+     * @param url - the api link to load another batch of posts
+     */
+    loadOtherPosts(url) {
+        this.setState({posts: null});
+
+        this.fetchPostsAndUpdate(url)
+            .catch(err => {
+                console.error(err);
+                this.setState({
+                    posts: null,
+                    next: null
+                });
+            });
     }
 
     /**
      * Render the JSX
      */
     render() {
-        const {posts} = this.state;
+        const {posts, first, prev, next, last} = this.state;
         console.log('Inside Blog Render');
         console.info(this.state);
         return (
@@ -164,11 +184,13 @@ class BlogList extends React.Component {
                                 posts.map(post =>
                                     <BlogPreview key={post.name} {...post} />
                                 ):
-                                <Loading className="jarombek-blog-none" />
+                                <Loading className="jarombek-blog-list-none" />
                             }
                         </div>
-                        <p>
-                            Place Footer Here
+                        <p className="jarombek-blog-list-footer">
+                            <PaginationBar move={(link) => this.loadOtherPosts(link)}
+                                           first={first} previous={prev} current={prev + 1}
+                                           next={next} last={last}/>
                         </p>
                     </div>
                 </div>

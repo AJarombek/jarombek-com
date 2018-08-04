@@ -33,11 +33,15 @@
   }
 }
 
-.jarombek-blog-none {
+.jarombek-blog-list-none {
   grid-column: 1 / 4;
   grid-row: 1;
 
   height: 100vh;
   margin: 0 auto;
   padding-top: 50px;
+}
+
+.jarombek-blog-list-footer {
+
 }

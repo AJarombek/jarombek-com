@@ -29,7 +29,7 @@ class BlogDelegator {
         console.info(`X-Total-Count Header: ${total}`);
 
         // The only important link headers to us are prev and next
-        const {prev, next} = BlogDelegator.parseLinks(link);
+        const {first, prev, next, last} = BlogDelegator.parseLinks(link);
 
         const json = await response.json();
 
@@ -56,8 +56,10 @@ class BlogDelegator {
 
         return {
             posts: uniquePosts,
+            first,
             prev,
             next,
+            last,
             loaded
         };
     }
