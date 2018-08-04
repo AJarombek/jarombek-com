@@ -7,11 +7,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const Button = ({passiveColor, activeColor, size, children, className, onClick}) => {
+const Button = ({passiveColor, activeColor, borderColor, size, children, className, onClick}) => {
+
+    // By default, the border color is the same as the active color
+    if (!borderColor) {
+        borderColor = activeColor;
+    }
+
     return (
         <div className={className}>
             <button className={`jarbek-button passive-color-${passiveColor}
-                                active-color-${activeColor} jarbek-button-${size}`}
+                                active-color-${activeColor} border-color-${borderColor}
+                                jarbek-button-${size}`}
                     onClick={onClick}>
                 {children}
             </button>
@@ -22,6 +29,7 @@ const Button = ({passiveColor, activeColor, size, children, className, onClick})
 Button.propTypes = {
     activeColor: PropTypes.string,
     passiveColor: PropTypes.string,
+    borderColor: PropTypes.string,
     size: PropTypes.string,
     children: PropTypes.any,
     className: PropTypes.string,

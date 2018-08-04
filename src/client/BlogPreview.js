@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import {Link} from 'react-router-dom';
 import moment from 'moment';
 import TagList from './TagList';
+import Button from "./Button";
 
 const BlogPreview = ({ name, title, type, date, tags=[], preview }) => {
     const extraTagCount = tags.length > 3 ? tags.length - 2 : 0;
@@ -36,6 +37,12 @@ const BlogPreview = ({ name, title, type, date, tags=[], preview }) => {
             </div>
             <div className="jarombek-blog-preview-content">
                 {preview}
+            </div>
+            <div className="jarombek-blog-preview-footer">
+                <Button activeColor="secondary" passiveColor="transparent"
+                        borderColor="none" size="small">
+                    READ MORE
+                </Button>
             </div>
         </div>
     );

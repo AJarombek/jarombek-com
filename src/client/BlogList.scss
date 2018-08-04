@@ -10,18 +10,26 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-gap: 20px;
-  margin: 10px;
+  margin: 10px 100px 10px 100px;
 
   // For small desktop screens
-  @media screen and (max-width: $width-small-desktop + 250) and (min-width: $width-mobile + 1) {
+  @media screen and (max-width: $width-small-desktop + 450) and (min-width: $width-mobile + 201) {
     grid-template-columns: 1fr 1fr;
     grid-gap: 10px;
+    margin: 10px 80px 10px 80px;
+  }
+
+  @media screen and (max-width: $width-mobile + 200) and (min-width: $width-mobile + 1) {
+    grid-template-columns: 1fr;
+    grid-gap: 10px;
+    margin: 10px 50px 10px 50px;
   }
 
   // For mobile screens
   @media screen and (max-width: $width-mobile) {
     grid-template-columns: 1fr;
     grid-gap: 5px;
+    margin: 10px;
   }
 }
 
