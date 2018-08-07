@@ -160,10 +160,57 @@ class BlogList extends React.Component {
     }
 
     /**
+     * Take in a bunch of urls and parse their queries.  This is done to get the page that
+     * they reference.
+     * @param first - the first page of blog posts
+     * @param prev - the previous page of blog posts in relation to the current page being viewed
+     * @param next - the next page of blog posts in relation to the current page being viewed
+     * @param last - the last page of blog posts
+     * @return {object} an object containing nested objects with links to other pages and other
+     * page numbers
+     */
+    static extractPage({first, prev, next, last}) {
+        debugger;
+        const emptyPage = {query: {page: null}};
+        const firstPage = first ? queryString.parseUrl(first) : emptyPage;
+        const prevPage = prev ? queryString.parseUrl(prev) : emptyPage;
+        const nextPage = next ? queryString.parseUrl(next) : emptyPage;
+        const lastPage = last ? queryString.parseUrl(last) : emptyPage;
+
+        console.info(`${first}${prev}${next}${last}`);
+        console.info(`${firstPage}${prevPage}${nextPage}${lastPage}`);
+
+        return {
+            first: {
+                page: parseInt(firstPage.query.page),
+                link: first
+            },
+            prev: {
+                page: parseInt(prevPage.query.page),
+                link: prev
+            },
+            current: {
+                page: parseInt(prevPage.query.page + 1)
+            },
+            next: {
+                page: parseInt(nextPage.query.page),
+                link: next
+            },
+            last: {
+                page: parseInt(lastPage.query.page),
+                link: last
+            }
+        }
+    }
+
+    /**
      * Render the JSX
      */
     render() {
-        const {posts, first, prev, next, last} = this.state;
+        const {posts, ...links} = this.state;
+        console.info(links);
+        const {first, prev, current, next, last} = BlogList.extractPage(links);
+
         console.log('Inside Blog Render');
         console.info(this.state);
         return (
@@ -187,11 +234,11 @@ class BlogList extends React.Component {
                                 <Loading className="jarombek-blog-list-none" />
                             }
                         </div>
-                        <p className="jarombek-blog-list-footer">
+                        <div className="jarombek-blog-list-footer">
                             <PaginationBar move={(link) => this.loadOtherPosts(link)}
-                                           first={first} previous={prev} current={prev + 1}
+                                           first={first} previous={prev} current={current}
                                            next={next} last={last}/>
-                        </p>
+                        </div>
                     </div>
                 </div>
                 { (this.state.subscribing) ?
