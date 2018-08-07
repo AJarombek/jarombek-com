@@ -170,34 +170,30 @@ class BlogList extends React.Component {
      * page numbers
      */
     static extractPage({first, prev, next, last}) {
-        debugger;
         const emptyPage = {query: {page: null}};
         const firstPage = first ? queryString.parseUrl(first) : emptyPage;
         const prevPage = prev ? queryString.parseUrl(prev) : emptyPage;
         const nextPage = next ? queryString.parseUrl(next) : emptyPage;
         const lastPage = last ? queryString.parseUrl(last) : emptyPage;
 
-        console.info(`${first}${prev}${next}${last}`);
-        console.info(`${firstPage}${prevPage}${nextPage}${lastPage}`);
-
         return {
             first: {
-                page: parseInt(firstPage.query.page),
+                page: +firstPage.query.page,
                 link: first
             },
             prev: {
-                page: parseInt(prevPage.query.page),
+                page: +prevPage.query.page,
                 link: prev
             },
             current: {
-                page: parseInt(prevPage.query.page + 1)
+                page: +prevPage.query.page + 1
             },
             next: {
-                page: parseInt(nextPage.query.page),
+                page: +nextPage.query.page,
                 link: next
             },
             last: {
-                page: parseInt(lastPage.query.page),
+                page: +lastPage.query.page,
                 link: last
             }
         }
