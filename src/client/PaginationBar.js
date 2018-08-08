@@ -40,16 +40,14 @@ const PaginationBar = ({move, first, previous, current, next, last}) => {
                 </p>
                 : null
             }
+            { previous && previous.page && (previous.page - first.page) > 1 ?
+                <p className="jarbek-pag-first-spread">...</p>
+                : null
+            }
             { previous && previous.page && previous.page !== first.page ?
-                <div className="jarbek-pag-previous-container">
-                    {(previous.page - first.page) > 1 ?
-                        <p className="jarbek-pag-first-spread">...</p>
-                        : null
-                    }
-                    <p className="jarbek-pag-previous" onClick={() => move(previous.link)}>
-                        {toRomanNumeral(previous.page)}
-                    </p>
-                </div>
+                <p className="jarbek-pag-previous-item" onClick={() => move(previous.link)}>
+                    {toRomanNumeral(previous.page)}
+                </p>
                 : null
             }
             { current && current.page ?
@@ -59,15 +57,13 @@ const PaginationBar = ({move, first, previous, current, next, last}) => {
                 : null
             }
             { next && next.page && next.page !== last.page ?
-                <div className="jarbek-pag-next-container">
-                    <p className="jarbek-pag-next" onClick={() => move(next.link)}>
-                        {toRomanNumeral(next.page)}
-                    </p>
-                    {(last.page - next.page) > 1 ?
-                        <p className="jarbek-pag-last-spread">...</p>
-                        : null
-                    }
-                </div>
+                <p className="jarbek-pag-next-item" onClick={() => move(next.link)}>
+                    {toRomanNumeral(next.page)}
+                </p>
+                : null
+            }
+            { next && next.page && (last.page - next.page) > 1 ?
+                <p className="jarbek-pag-last-spread">...</p>
                 : null
             }
             { last && last.page ?
