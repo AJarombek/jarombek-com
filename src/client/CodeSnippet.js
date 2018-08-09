@@ -103,6 +103,11 @@ class CodeSnippet extends React.Component {
                 prop: "groovy",
                 title: "Groovy",
                 highlightClass: "groovy"
+            },
+            {
+                prop: "graphql",
+                title: "GraphQL",
+                highlightClass: "python"
             }
         ];
     }

@@ -28,6 +28,7 @@ $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
 $bootstrap-purple: rgba(85, 39, 76, 0.6);
 $sass-pink: rgba(213, 130, 172, 0.6);
+$graphql-pink: rgba(229, 53, 171, 0.6);
 $swift-red: rgba(236, 69, 72, 0.6);
 $mongoose-red: rgba(157, 56, 56, 0.6);
 $gulp-red: rgba(212, 74, 71, 0.6);
@@ -158,6 +159,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-sass {
   background-color: lighten($sass-pink, 10%);
+}
+
+.jarombek-tag-color-graphql {
+  background-color: lighten($graphql-pink, 10%);
 }
 
 .jarombek-tag-color-express {
