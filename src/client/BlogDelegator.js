@@ -14,12 +14,11 @@ class BlogDelegator {
      * Fetch multiple posts from the API
      * @param baseUrl - the base of the url dependent on the environment
      * @param url - the url of the API call to make
-     * @param existingPosts - the existing posts cached by the component
      * @return {Promise<{posts: *[], prev, next}>} - Once resolved, will return an
      * object with the posts, previous page of posts, next page of posts, and a list
      * of the fetched posts names
      */
-    static async fetchPosts(baseUrl, url, existingPosts) {
+    static async fetchPosts(baseUrl, url) {
 
         const response = await fetch(`${baseUrl}${url}`);
 
@@ -32,30 +31,17 @@ class BlogDelegator {
         const {first, prev, next, last} = BlogDelegator.parseLinks(link);
 
         const json = await response.json();
-
         console.info(`Posts JSON: ${JSON.stringify(json)}`);
 
-        // You cant perform a spread operator in an array on null,
-        // so create an empty array if no posts exist
-        existingPosts = existingPosts || [];
-
         // Transform JSON to JSX
-        const addedPosts = JSXConverter.createPostsJSX(json);
+        const posts = JSXConverter.createPostsJSX(json);
 
         // Create a list of all the new posts that were loaded from the API
-        const loaded = addedPosts.map(post => post.name);
+        const loaded = posts.map(post => post.name);
         console.info(`Names of Posts in Posts JSON: ${loaded}`);
 
-        const posts = [
-            ...existingPosts,
-            ...addedPosts
-        ];
-
-        // Ensure that no posts are duplicates
-        const uniquePosts = BlogDelegator.uniquePosts(posts);
-
         return {
-            posts: uniquePosts,
+            posts,
             first,
             prev,
             next,
@@ -123,19 +109,6 @@ class BlogDelegator {
             [`${destination}`]: url,
             ...BlogDelegator.generateLinks(remaining, regex)
         };
-    }
-
-    /**
-     * Ensure that all the posts in the array are unique
-     * @param posts - an array of posts
-     * @returns {*[]} - an array of posts where each name property is unique
-     */
-    static uniquePosts(posts) {
-        const postsMap = new Map(posts.map((p) => [p.name, p]));
-
-        console.debug(postsMap);
-
-        return [ ...postsMap.values() ];
     }
 
     /**

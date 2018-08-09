@@ -121,17 +121,20 @@ class BlogList extends React.Component {
     /**
      * Fetch multiple posts from the API and add it to the state/cache
      * @param url - optional url parameter.  It will default to a param-less url
+     * @param pageNumber - the number representing the page of blog posts to fetch.
+     * It will default to the first page (1).
      * @returns {Promise<void>}
      */
-    async fetchPostsAndUpdate(url='/api/post') {
+    async fetchPostsAndUpdate(url='/api/post', pageNumber=1) {
         const {posts, first, prev, next, last} =
-            await BlogDelegator.fetchPosts(this.baseUrl, url, this.postsCache);
+            await BlogDelegator.fetchPosts(this.baseUrl, url);
 
         console.info(posts);
 
-        this.postsCache = posts;
-        this.nextCache = next;
-        this.prevCache = prev;
+        this.postsCache = {
+            ...this.postsCache,
+            [`${pageNumber}`]: posts
+        };
 
         this.setState({
             posts,
@@ -145,11 +148,12 @@ class BlogList extends React.Component {
     /**
      * Through pagination, load a different batch of posts
      * @param url - the api link to load another batch of posts
+     * @param pageNumber - the number representing the page of blog posts to fetch
      */
-    loadOtherPosts(url) {
+    loadOtherPosts(url, pageNumber) {
         this.setState({posts: null});
 
-        this.fetchPostsAndUpdate(url)
+        this.fetchPostsAndUpdate(url, pageNumber)
             .catch(err => {
                 console.error(err);
                 this.setState({
@@ -231,7 +235,8 @@ class BlogList extends React.Component {
                             }
                         </div>
                         <div className="jarombek-blog-list-footer">
-                            <PaginationBar move={(link) => this.loadOtherPosts(link)}
+                            <PaginationBar move={(link, pageNumber) =>
+                                                    this.loadOtherPosts(link, pageNumber)}
                                            first={first} previous={prev} current={current}
                                            next={next} last={last}/>
                         </div>

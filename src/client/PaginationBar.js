@@ -35,7 +35,8 @@ const PaginationBar = ({move, first, previous, current, next, last}) => {
     return (
         <div className="jarbek-pagination-bar">
             { first && first.page ?
-                <p className="jarbek-pag-first" onClick={() => move(first.link)}>
+                <p className="jarbek-pag-first"
+                   onClick={() => move(first.link, first.page)}>
                     {toRomanNumeral(first.page)}
                 </p>
                 : null
@@ -45,7 +46,8 @@ const PaginationBar = ({move, first, previous, current, next, last}) => {
                 : null
             }
             { previous && previous.page && previous.page !== first.page ?
-                <p className="jarbek-pag-previous-item" onClick={() => move(previous.link)}>
+                <p className="jarbek-pag-previous-item"
+                   onClick={() => move(previous.link, previous.page)}>
                     {toRomanNumeral(previous.page)}
                 </p>
                 : null
@@ -57,7 +59,8 @@ const PaginationBar = ({move, first, previous, current, next, last}) => {
                 : null
             }
             { next && next.page && next.page !== last.page ?
-                <p className="jarbek-pag-next-item" onClick={() => move(next.link)}>
+                <p className="jarbek-pag-next-item"
+                   onClick={() => move(next.link, next.page)}>
                     {toRomanNumeral(next.page)}
                 </p>
                 : null
@@ -67,7 +70,8 @@ const PaginationBar = ({move, first, previous, current, next, last}) => {
                 : null
             }
             { last && last.page ?
-                <p className="jarbek-pag-last" onClick={() => move(last.link)}>
+                <p className="jarbek-pag-last"
+                   onClick={() => move(last.link, last.page)}>
                     {toRomanNumeral(last.page)}
                 </p>
                 : null
