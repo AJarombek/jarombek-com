@@ -36,9 +36,8 @@ class BlogList extends React.Component {
         // Cache the posts loaded from the server for when the state gets cleared
         this.postsCache = null;
 
-        // Cache the next and previous links from the server for when the state gets cleared
-        this.nextCache = null;
-        this.prevCache = null;
+        // Cache the pagination links from the server for when the state gets cleared
+        this.pageCache = {};
 
         // Only set an empty state if it does not already exist -
         // it may have been set on the server side render
@@ -102,16 +101,41 @@ class BlogList extends React.Component {
     componentWillReceiveProps(nextProps) {
         console.info("Inside Blog ComponentWillReceiveProps");
 
+        // By default React doesn't move to the top of the page when new props are received
+        // and the URL changes - so we have to handle it ourselves
         window.scrollTo(0, 0);
         this.setState({posts: null});
 
+        // Get the 'page' query from the URL - defaulted to 1
         const {page} = queryString.parse(nextProps.location.search);
         const postPage = page || 1;
 
         if (this.postsCache[`${postPage}`]) {
 
             console.info(`${postPage} Page of Posts Found in Cache`);
-            this.setState({posts: this.postsCache[`${postPage}`]});
+
+            const sortedPages = Object.entries(this.pageCache).sort();
+            console.info(sortedPages);
+
+            const potentialPrevPage = sortedPages.filter(page => +page[0] === +postPage - 1);
+            const potentialNextPage = sortedPages.filter(page => +page[0] === +postPage + 1);
+
+            const prevPage = potentialPrevPage.length ? potentialPrevPage[0] : null;
+            const nextPage = potentialNextPage.length ? potentialNextPage[0] : null;
+
+            const potentialFirstPage = sortedPages[1];
+            const potentialLastPage = sortedPages[sortedPages.length - 1];
+
+            const firstPage = potentialFirstPage !== prevPage ? potentialFirstPage : null;
+            const lastPage = potentialLastPage !== nextPage ? potentialLastPage : null;
+
+            this.setState({
+                posts: this.postsCache[`${postPage}`],
+                first: firstPage ? firstPage[1] : null,
+                prev: prevPage ? prevPage[1] : null,
+                next: nextPage ? nextPage[1] : null,
+                last: lastPage ? lastPage[1] : null
+            });
 
         } else {
 
@@ -137,6 +161,7 @@ class BlogList extends React.Component {
 
         console.info(this.postsCache);
 
+        // Add the newly fetched posts to the client side JS posts cache
         this.postsCache = {
             ...this.postsCache,
             [`${pageNumber}`]: posts
@@ -164,7 +189,11 @@ class BlogList extends React.Component {
      * page numbers
      */
     static extractPage({first, prev, next, last}) {
+
+        // Define an empty object shell with an empty page field.  This is used to simplify the
+        // return object structure, avoiding nulls
         const emptyPage = {query: {page: null}};
+
         const firstPage = first ? queryString.parseUrl(first) : emptyPage;
         const prevPage = prev ? queryString.parseUrl(prev) : emptyPage;
         const nextPage = next ? queryString.parseUrl(next) : emptyPage;
@@ -198,11 +227,20 @@ class BlogList extends React.Component {
      */
     render() {
         const {posts, ...links} = this.state;
-        console.debug(links);
+        console.info(links);
         const {first, prev, current, next, last} = BlogList.extractPage(links);
 
+        this.pageCache = {
+            ...this.pageCache,
+            [`${first.page}`]: first.link || this.pageCache[`${first.page}`],
+            [`${prev.page}`]: prev.link || this.pageCache[`${prev.page}`],
+            [`${current.page}`]: current.link || this.pageCache[`${current.page}`],
+            [`${next.page}`]: next.link || this.pageCache[`${next.page}`],
+            [`${last.page}`]: last.link || this.pageCache[`${last.page}`]
+        };
+
         console.log('Inside Blog Render');
-        console.debug(this.state);
+        console.info(this.state);
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
                 <div className="jarombek-background">
