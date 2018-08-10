@@ -31,10 +31,16 @@
 
 @each $page in 'first', 'previous-item', 'next-item', 'last' {
   .jarbek-pag-#{$page} {
-    @include transition(color, darken($color-primary, 40%));
     @include transition(text-decoration, underline);
     @include transition(text-decoration-color, #ccc);
     cursor: pointer;
+    text-decoration: none;
+    color: darken($color-primary, 40%);
+
+    p {
+      color: #aaa;
+      @include transition(color, darken($color-primary, 40%));
+    }
   }
 }
 

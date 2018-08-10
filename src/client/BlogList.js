@@ -30,8 +30,8 @@ class BlogList extends React.Component {
             'https://jarombek.com' :
             'http://localhost:8080';
 
-        console.info(`The environment: ${process.env.NODE_ENV}`);
-        console.info(`The URL to call: ${this.baseUrl}`);
+        console.debug(`The environment: ${process.env.NODE_ENV}`);
+        console.debug(`The URL to call: ${this.baseUrl}`);
 
         // Cache the posts loaded from the server for when the state gets cleared
         this.postsCache = null;
@@ -62,7 +62,7 @@ class BlogList extends React.Component {
         console.info("Inside Blog ComponentWillMount");
 
         if (this.props.posts) {
-            console.info(`Mounting Component with # of Posts: ${this.props.posts.length}`);
+            console.debug(`Mounting Component with # of Posts: ${this.props.posts.length}`);
             this.setState({
                 posts: [JSXConverter.createPostJSX(this.props.posts)]
             });
@@ -78,11 +78,14 @@ class BlogList extends React.Component {
     componentDidMount() {
         console.info("Inside Blog ComponentDidMount");
 
-        console.info(this.props);
+        console.debug(this.props);
+
+        const {page} = queryString.parse(this.props.location.search);
+        const postPage = page || 1;
 
         if (!this.state.posts) {
             console.info(`Fetching All Posts`);
-            this.fetchPostsAndUpdate()
+            this.fetchPostsAndUpdate(`/api/post?page=${postPage}`, postPage)
                 .catch(err => {
                     console.error(err);
                     this.setState({posts: []});
@@ -99,8 +102,11 @@ class BlogList extends React.Component {
     componentWillReceiveProps(nextProps) {
         console.info("Inside Blog ComponentWillReceiveProps");
 
+        window.scrollTo(0, 0);
+        this.setState({posts: null});
+
         const {page} = queryString.parse(nextProps.location.search);
-        const postPage = page || 0;
+        const postPage = page || 1;
 
         if (this.postsCache[`${postPage}`]) {
 
@@ -110,7 +116,7 @@ class BlogList extends React.Component {
         } else {
 
             console.info(`Fetching ${postPage} Page of Posts...`);
-            this.fetchPostsAndUpdate(`/api/post?page=${postPage}`)
+            this.fetchPostsAndUpdate(`/api/post?page=${postPage}`, postPage)
                 .catch(err => {
                     console.error(err);
                     this.setState({posts: []});
@@ -129,12 +135,14 @@ class BlogList extends React.Component {
         const {posts, first, prev, next, last} =
             await BlogDelegator.fetchPosts(this.baseUrl, url);
 
-        console.info(posts);
+        console.info(this.postsCache);
 
         this.postsCache = {
             ...this.postsCache,
             [`${pageNumber}`]: posts
         };
+
+        console.info(this.postsCache);
 
         this.setState({
             posts,
@@ -143,24 +151,6 @@ class BlogList extends React.Component {
             next,
             last
         });
-    }
-
-    /**
-     * Through pagination, load a different batch of posts
-     * @param url - the api link to load another batch of posts
-     * @param pageNumber - the number representing the page of blog posts to fetch
-     */
-    loadOtherPosts(url, pageNumber) {
-        this.setState({posts: null});
-
-        this.fetchPostsAndUpdate(url, pageNumber)
-            .catch(err => {
-                console.error(err);
-                this.setState({
-                    posts: null,
-                    next: null
-                });
-            });
     }
 
     /**
@@ -208,11 +198,11 @@ class BlogList extends React.Component {
      */
     render() {
         const {posts, ...links} = this.state;
-        console.info(links);
+        console.debug(links);
         const {first, prev, current, next, last} = BlogList.extractPage(links);
 
         console.log('Inside Blog Render');
-        console.info(this.state);
+        console.debug(this.state);
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
                 <div className="jarombek-background">
@@ -235,10 +225,8 @@ class BlogList extends React.Component {
                             }
                         </div>
                         <div className="jarombek-blog-list-footer">
-                            <PaginationBar move={(link, pageNumber) =>
-                                                    this.loadOtherPosts(link, pageNumber)}
-                                           first={first} previous={prev} current={current}
-                                           next={next} last={last}/>
+                            <PaginationBar first={first} previous={prev} current={current}
+                                           next={next} last={last} link={`/blog?page=`}/>
                         </div>
                     </div>
                 </div>
