@@ -24,7 +24,7 @@ class BlogDelegator {
 
         const link = response.headers.get('Link');
         const total = response.headers.get('X-Total-Count');
-        console.debug(`Link Header: ${link}`);
+        console.info(`Link Header: ${link}`);
         console.debug(`X-Total-Count Header: ${total}`);
 
         // The only important link headers to us are prev and next
@@ -93,7 +93,7 @@ class BlogDelegator {
      * @returns {{}} - an object of all the links where the rel is the property name and the
      * contents of the angle brackets is the property value
      */
-    static generateLinks(list, regex) {
+    static generateLinks(list, regex=/<([a-z0-9/?&=]+)>; rel="(\w+)"/) {
 
         // Base case when list is empty
         if (list.length === 0) {
@@ -102,13 +102,20 @@ class BlogDelegator {
 
         const [link, ...remaining] = list;
 
-        const [, url, destination] = link.match(regex);
+        if (link) {
+            const [, url, destination] = link.match(regex);
 
-        // Recursively generateLinks until the list is empty
-        return {
-            [`${destination}`]: url,
-            ...BlogDelegator.generateLinks(remaining, regex)
-        };
+            // Recursively generateLinks until the list is empty
+            return {
+                [`${destination}`]: url,
+                ...BlogDelegator.generateLinks(remaining, regex)
+            };
+
+        } else {
+            return {
+                ...BlogDelegator.generateLinks(remaining, regex)
+            };
+        }
     }
 
     /**

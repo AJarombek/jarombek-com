@@ -52,6 +52,7 @@ const renderComponentsToHTML = async (url) => {
     console.info(`URL: ${url}`);
 
     let post, posts;
+    let first, prev, next, last;
 
     const singlePostPattern = /\/blog\/([0-9-a-z]+)$/;
     const postListPattern = /\/blog.*$/;
@@ -67,7 +68,14 @@ const renderComponentsToHTML = async (url) => {
         }
     } else if (postListPattern.exec(url)) {
         console.info('Ahead of Time Query Post List');
-        posts = await getListOfPosts(url);
+        const postsData = await getListOfPosts(url);
+
+        // Get the fields out of the postsData object pertaining to the posts and associated links
+        posts = postsData.posts;
+        first = postsData.first;
+        prev = postsData.prev;
+        next = postsData.next;
+        last = postsData.last;
 
         // toObject() must be called on the results from MongoDB
         posts = posts.map(post => post.toObject());
@@ -85,7 +93,7 @@ const renderComponentsToHTML = async (url) => {
                         (props) => <Blog {...props} {...{post: post}}/>
                     }/>
                     <Route path="/blog" render={
-                        (props) => <BlogList {...props} {...{posts}} />
+                        (props) => <BlogList {...props} {...{posts, first, prev, next, last}} />
                     }/>
                     <Route path="/verify/:code" component={Verify}/>
                     <Route path="/unsub/:code" component={Unsub}/>
@@ -94,7 +102,11 @@ const renderComponentsToHTML = async (url) => {
             </StaticRouter>
         ),
         post,
-        posts
+        posts,
+        first,
+        prev,
+        next,
+        last
     };
 };
 
@@ -103,9 +115,13 @@ const renderComponentsToHTML = async (url) => {
  * @param html - the route specific HTML
  * @param post - an initial blog post to be sent with the response
  * @param posts - an initial list of blog posts to be sent with the response
+ * @param first - link to the first page of posts
+ * @param prev - link to the previous page of posts
+ * @param next - link to the next page of posts
+ * @param last - link to the last page of posts
  * @returns {Promise<string>} - A promise containing HTML to be sent in the response
  */
-const sendHtmlPage = async ({html, post, posts}) => {
+const sendHtmlPage = async ({html, post, posts, first, prev, next, last}) => {
     const helmet = Helmet.renderStatic();
 
     let globalStyles = '';
@@ -135,7 +151,7 @@ const sendHtmlPage = async ({html, post, posts}) => {
     <body>
         <div id="react-container">${html}</div>
         <script>
-            window.__STATE__ = ${JSON.stringify({post: post, posts: posts})}
+            window.__STATE__ = ${JSON.stringify({post, posts, first, prev, next, last})}
         </script>
         <script src="/client/vendor.js"></script>
         <script src="/client/bundle.js"></script>
@@ -158,14 +174,14 @@ const getUrlPost = async (url, regex) => {
     // In case the match fails, simply return nulls
     const [ , match] = matches || [null, null];
 
-    console.info(`Matching URL: ${match}`);
+    console.debug(`Matching URL: ${match}`);
 
     let post = null;
 
     // If the URL is valid, find the blog post in the database
     if (match) {
         post = await Post.findOne({name: match}).exec();
-        console.info(`Post with matching name: ${post.name}`);
+        console.debug(`Post with matching name: ${post.name}`);
     }
 
     return post;
@@ -173,17 +189,30 @@ const getUrlPost = async (url, regex) => {
 
 /**
  * Get a list of blog posts from MongoDB corresponding to the page query in the URL.  If there is
- * no page query, a default page of posts will be returned.
+ * no page query, a default page of posts will be returned.  Also get links to corresponding
+ * pages of blog posts.
  * @param url - the URL of the HTTP request
  * @return {Promise<*>} - a promise containing a list of blog posts
+ * and links to other pages of posts
  */
 const getListOfPosts = async (url) => {
     const queries = queryString.parseUrl(url);
 
-    const page = queries && queries.query ? queries.query.page : 1;
+    const page = queries && queries.query && queries.query.page ? queries.query.page : 1;
 
     // The number of posts per page defaults to 12
-    return PostDao.getPaginatedPosts(page);
+    const posts = await PostDao.getPaginatedPosts(page);
+
+    // generatePaginatedPostsLinks() expects an integer for the first argument so coerce 'page'
+    const {first, prev, next, last} = PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post');
+
+    return {
+        posts,
+        first,
+        prev,
+        next,
+        last
+    }
 };
 
 /**

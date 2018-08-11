@@ -3,6 +3,7 @@ import Definition from "./Definition";
 import ComparisonTableEntry from "./ComparisonTableEntry";
 import CodeSnippet from "./CodeSnippet";
 import ComparisonTable from "./ComparisonTable";
+import uuid from 'uuid/v4';
 
 /**
  * Class to convert blog posts from JSON to JSX
@@ -81,10 +82,10 @@ class JSXConverter {
                 // If the tag is img there is no closing tag and we have to treat it differently.
                 if (Tag === 'img') {
                     const {src, ...others} = attributes;
-                    return <Tag key={JSON.stringify(e)} src={src} { ...others } />
+                    return <Tag key={uuid()} src={src} { ...others } />
                 }
 
-                return <Tag key={JSON.stringify(e)} { ...attributes }>{value}{
+                return <Tag key={uuid()} { ...attributes }>{value}{
                     (children) ? JSXConverter.createContentJSX(children) : ""
                 }</Tag>;
             });

@@ -34,7 +34,7 @@ class BlogList extends React.Component {
         console.debug(`The URL to call: ${this.baseUrl}`);
 
         // Cache the posts loaded from the server for when the state gets cleared
-        this.postsCache = null;
+        this.postsCache = {};
 
         // Cache the pagination links from the server for when the state gets cleared
         this.pageCache = {};
@@ -61,9 +61,21 @@ class BlogList extends React.Component {
         console.debug("Inside BlogList ComponentWillMount");
 
         if (this.props.posts) {
-            console.info(`Mounting Component with # of Posts: ${this.props.posts.length}`);
+
+            const {posts} = this.props;
+
+            const links = [this.props.first, this.props.prev, this.props.next, this.props.last];
+
+            console.info(links);
+            const {first, prev, next, last} = BlogDelegator.generateLinks(links);
+
+            console.info(`Mounting Component with # of Posts: ${posts.length}`);
             this.setState({
-                posts: JSXConverter.createPostsJSX(this.props.posts)
+                posts: JSXConverter.createPostsJSX(posts),
+                first,
+                prev,
+                next,
+                last
             });
         }
     }

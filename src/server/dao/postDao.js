@@ -31,6 +31,7 @@ class PostDao {
 
         if (!PostDao.postCountCache) {
             PostDao.postCountCache = await Post.count({});
+            console.debug(`Set Post Count Cache To: ${PostDao.postCountCache}`);
         }
 
         // Before selecting a page of posts, they but be in order with the newest posts first

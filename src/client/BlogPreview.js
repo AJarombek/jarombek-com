@@ -38,12 +38,12 @@ const BlogPreview = ({ name, title, type, date, tags=[], preview }) => {
             <div className="jarombek-blog-preview-content">
                 {preview}
             </div>
-            <div className="jarombek-blog-preview-footer">
+            <Link className="jarombek-blog-preview-footer" to={`/blog/${name}`}>
                 <Button activeColor="secondary" passiveColor="transparent"
                         borderColor="none" size="small">
                     READ MORE
                 </Button>
-            </div>
+            </Link>
         </div>
     );
 };
@@ -54,10 +54,10 @@ BlogPreview.propTypes = {
     type: PropTypes.string.isRequired,
     preview: PropTypes.array.isRequired,
     tags: PropTypes.array,
-    date: PropTypes.oneOfType(
+    date: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.object
-    )
+    ])
 };
 
 export default BlogPreview;
