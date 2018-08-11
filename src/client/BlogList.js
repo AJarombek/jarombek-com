@@ -48,7 +48,7 @@ class BlogList extends React.Component {
 
     static propTypes = {
         match: PropTypes.object.isRequired,
-        posts: PropTypes.object
+        posts: PropTypes.array
     };
 
     /**
@@ -63,7 +63,7 @@ class BlogList extends React.Component {
         if (this.props.posts) {
             console.info(`Mounting Component with # of Posts: ${this.props.posts.length}`);
             this.setState({
-                posts: [JSXConverter.createPostJSX(this.props.posts)]
+                posts: JSXConverter.createPostsJSX(this.props.posts)
             });
         }
     }

@@ -49,6 +49,10 @@ const PostSchema = new Schema({
         type: Array,
         required: true
     },
+    preview: {
+        type: Array,
+        required: true
+    },
     sources: [{
         type: SourceSchema
     }],

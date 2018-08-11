@@ -54,7 +54,7 @@ const renderComponentsToHTML = async (url) => {
     let post, posts;
 
     const singlePostPattern = /\/blog\/([0-9-a-z]+)$/;
-    const postListPattern = /\/blog\/.*$/;
+    const postListPattern = /\/blog.*$/;
 
     if (singlePostPattern.exec(url)) {
         console.info('Ahead of Time Query Single Post');
@@ -64,18 +64,17 @@ const renderComponentsToHTML = async (url) => {
         // If a post exists for this URL, get its object from the MongoDB response object
         if (post) {
             post = post.toObject();
-
-            // The post we get back is in an array, so just take out the first object in the array
-            post = post[0];
         }
     } else if (postListPattern.exec(url)) {
         console.info('Ahead of Time Query Post List');
         posts = await getListOfPosts(url);
 
-        if (posts) {
-            posts = posts.toObject()
-        }
+        // toObject() must be called on the results from MongoDB
+        posts = posts.map(post => post.toObject());
     }
+
+    console.debug(`AOT Post: ${JSON.stringify(post)}`);
+    console.debug(`AOT Posts: ${JSON.stringify(posts)}`);
 
     return {
         html: renderToString(

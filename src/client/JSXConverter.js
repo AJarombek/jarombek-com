@@ -20,7 +20,9 @@ class JSXConverter {
      */
     static createPostsJSX(posts) {
         if (posts) {
-            return posts.map(post => JSXConverter.createPostJSX(post));
+            return posts.map(post =>
+                JSXConverter.createPostJSX(post)
+            );
         } else {
             return null;
         }
@@ -79,10 +81,10 @@ class JSXConverter {
                 // If the tag is img there is no closing tag and we have to treat it differently.
                 if (Tag === 'img') {
                     const {src, ...others} = attributes;
-                    return <Tag key={e.toString()} src={src} { ...others } />
+                    return <Tag key={JSON.stringify(e)} src={src} { ...others } />
                 }
 
-                return <Tag key={e.toString()} { ...attributes }>{value}{
+                return <Tag key={JSON.stringify(e)} { ...attributes }>{value}{
                     (children) ? JSXConverter.createContentJSX(children) : ""
                 }</Tag>;
             });

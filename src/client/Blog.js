@@ -57,7 +57,7 @@ class Blog extends React.Component {
         if (this.props.post) {
             console.info(`Mounting Component with Post in State: ${this.props.post.name}`);
             this.setState({
-                post: [JSXConverter.createPostJSX(this.props.post)]
+                post: JSXConverter.createPostJSX(this.props.post)
             });
         }
     }
