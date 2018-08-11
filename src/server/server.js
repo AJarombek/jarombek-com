@@ -35,7 +35,7 @@ import PostDao from "./dao/postDao";
 mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 
 // API CRUD routes for a MongoDB collection
-const postRouter = postRoute(Post);
+const postRouter = postRoute();
 const viewedRouter = viewedRoute(Viewed, Post, Audit);
 const userRouter = userRoute(User, Audit);
 
@@ -180,15 +180,10 @@ const getUrlPost = async (url, regex) => {
 const getListOfPosts = async (url) => {
     const queries = queryString.parseUrl(url);
 
-    const page = queries && queries.query ? queries.query.page : null;
-    let posts = null;
+    const page = queries && queries.query ? queries.query.page : 1;
 
-    if (page) {
-        // The number of posts per page defaults to 12
-        posts = PostDao.getPaginatedPosts(page);
-    }
-
-    return posts;
+    // The number of posts per page defaults to 12
+    return PostDao.getPaginatedPosts(page);
 };
 
 /**

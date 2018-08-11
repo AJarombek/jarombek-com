@@ -4,16 +4,43 @@
  * @since 4/19/2018
  */
 
-const express = require('express');
+import express from 'express';
+import PostDao from "../dao/postDao";
 
-const routes = (Post) => {
+/**
+ * Create the REST API for posts
+ * @return {*} The express router for posts
+ */
+const routes = () => {
 
     const postRouter = express.Router();
 
-    // Cache the number of existing posts so that a MongoDB query doesn't have to occur on each GET
-    let postCountCache = 0;
+    /**
+     * GET /post
+     */
+    getAll(postRouter);
 
-    postRouter.route('/')
+    /**
+     * Middleware for /post/:name
+     */
+    nameMiddleware(postRouter);
+
+    /**
+     * GET /post/:name
+     */
+    get(postRouter);
+
+    return postRouter;
+};
+
+/**
+ * Configure the route for getting all the posts in the database.  Since there are so many posts,
+ * by default this route paginates results.  You can however ask for all posts by setting the limit
+ * to the number of documents in MongoDB
+ * @param router - the express router for the posts API
+ */
+const getAll = (router) => {
+    router.route('/')
         .get((req, res) => {
 
             // This API allows for two parameters:
@@ -26,100 +53,57 @@ const routes = (Post) => {
             page = +page || 1;
             limit = +limit || 12;
 
-            // Get the starting point within a MongoDB collection to query
-            const skip = (page - 1) * limit;
-
-            find().catch(error => res.status(500).send(error));
-
-            /**
-             * Call a find({}) query on the Post collection in MongoDB
-             * @returns {Promise<void>}
-             */
-            async function find() {
-
-                if (!postCountCache) {
-                    postCountCache = await Post.count({});
-                }
-
-                const posts = await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
+            PostDao.getPaginatedPosts(page, limit).then((posts) => {
 
                 // Generate API endpoints to put in the HTTP Link header
                 const {first, prev, next, last} =
-                    generateLinks(postCountCache, page, limit, '/api/post');
+                    PostDao.generatePaginatedPostsLinks(page, limit, '/api/post');
 
                 // In the headers specify the API endpoints for related documents
                 // + the total document count
                 res.set('Link', `${first}${prev}${next}${last}`);
-                res.set('X-Total-Count', postCountCache);
+                res.set('X-Total-Count', PostDao.postCountCache);
 
                 res.json(posts);
-            }
+
+            }, (reason => {
+                res.status(400).json({
+                    error: "Failed to Retrieve Page of Posts",
+                    message: reason
+                });
+            }));
         });
-
-    postRouter.use('/:name', (req, res, next) => {
-
-        find().catch(error => res.status(500).send(error));
-
-        /**
-         * Call of findOne() query on the Post collection in MongoDB with a specific post name
-         * @returns {Promise<void>}
-         */
-        async function find() {
-
-            const post = await Post.findOne({name: req.params.name}).exec();
-            console.info(`Post with matching name: ${post}`);
-
-            if (post) {
-                req.post = post;
-                next();
-            } else {
-                res.status(404).send("Error: No Post found with given name");
-            }
-        }
-    });
-
-    postRouter.route('/:name')
-        .get((req, res) => {
-            res.json(req.post);
-        });
-
-    return postRouter;
 };
 
 /**
- * Generate Link header strings based on the parameters of the current API call
- * @param count - the total number of documents in the MongoDB collection
- * @param page - the current page specified in the API call, the API is paginated
- * @param limit - the max number of documents to return
- * @param url - the base url of the API (no parameters)
- * @returns {{first: string, prev: string, next: string, last: string}}
+ * Middleware for routes that contain a name parameter.  Get the post with the given name from
+ * MongoDB in this step.  Doing this in a middleware step will simplify further routes.
+ * @param router - the express router for the posts API
  */
-function generateLinks(count, page, limit, url) {
-    const location = page * limit;
+const nameMiddleware = (router) => {
+    router.use('/:name', (req, res, next) => {
 
-    let first = '';
-    let prev = '';
-    let next = '';
-    let last = '';
+        PostDao.getByName(req.params.name).then((post) => {
+            req.post = post;
+            next();
+        }, (reason => {
+            res.status(400).json({
+                error: `Failed to Retrieve Post with Name: ${req.params.name}`,
+                message: reason
+            });
+        }));
+    });
+};
 
-    // If we are not on the first page of the API, return the previous page and the first page urls
-    if (page > 1) {
-        prev = `<${url}?page=${page - 1}&limit=${limit}>; rel="prev";`;
-        first = `<${url}?page=1&limit=${limit}>; rel="first";`;
-    }
-
-    // If we are not on the last page of the API, return the last page and the next page
-    if (location < count) {
-        next = `<${url}?page=${page + 1}&limit=${limit}>; rel="next";`;
-        last = `<${url}?page=${Math.ceil(count / parseFloat(limit))}&limit=${limit}>; rel="last";`;
-    }
-
-    return {
-        first,
-        prev,
-        next,
-        last
-    }
-}
+/**
+ * Get a post with a given name.  Simply return a post retrieved by the middleware step.
+ * @param router - the express router for the posts API
+ */
+const get = (router) => {
+    router.route('/:name')
+        .get((req, res) => {
+            res.json(req.post);
+        });
+};
 
 module.exports = routes;

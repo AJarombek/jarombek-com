@@ -35,6 +35,55 @@ class PostDao {
 
         // Before selecting a page of posts, they but be in order with the newest posts first
         return await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
+    };
+
+    /**
+     * Retrieve a single post by its name field.  All posts should have this field and it should
+     * be unique.
+     * @param name - the name of the post
+     * @return {Promise<*>} - a single post from MongoDB
+     */
+    static getByName = async (name) => {
+        return await Post.findOne({name: name}).exec();
+    };
+
+    /**
+     * Generate Link header strings based on the parameters of a paginated posts API call
+     * @param page - the current page specified in the API call
+     * @param limit - the max number of documents to return
+     * @param url - the base url of the API (no parameters)
+     * @returns {{first: string, prev: string, next: string, last: string}}
+     */
+    static generatePaginatedPostsLinks = (page, limit, url) => {
+        const location = page * limit;
+
+        let first = '';
+        let prev = '';
+        let next = '';
+        let last = '';
+
+        // If we are not on the first page of the API,
+        // return the previous page and the first page urls
+        if (page > 1) {
+            prev = `<${url}?page=${page - 1}&limit=${limit}>; rel="prev";`;
+            first = `<${url}?page=1&limit=${limit}>; rel="first";`;
+        }
+
+        // If we are not on the last page of the API, return the last page and the next page
+        if (location < PostDao.postCountCache) {
+            next = `<${url}?page=${page + 1}&limit=${limit}>; rel="next";`;
+            last =
+                `<${url}?page=${
+                        Math.ceil(PostDao.postCountCache / parseFloat(limit))
+                }&limit=${limit}>; rel="last";`;
+        }
+
+        return {
+            first,
+            prev,
+            next,
+            last
+        }
     }
 }
 

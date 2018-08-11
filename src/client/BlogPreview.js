@@ -51,13 +51,13 @@ const BlogPreview = ({ name, title, type, date, tags=[], preview }) => {
 BlogPreview.propTypes = {
     name: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    preview: PropTypes.array.isRequired,
+    tags: PropTypes.array,
     date: PropTypes.oneOfType(
         PropTypes.string,
         PropTypes.object
-    ),
-    type: PropTypes.string.isRequired,
-    preview: PropTypes.array.isRequired,
-    tags: PropTypes.array
+    )
 };
 
 export default BlogPreview;
