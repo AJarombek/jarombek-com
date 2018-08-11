@@ -108,7 +108,7 @@ class BlogList extends React.Component {
 
         // Get the 'page' query from the URL - defaulted to 1
         const {page} = queryString.parse(nextProps.location.search);
-        const postPage = page || 1;
+        const postPage = +page || 1;
 
         if (this.postsCache[`${postPage}`]) {
 
@@ -131,10 +131,10 @@ class BlogList extends React.Component {
 
             this.setState({
                 posts: this.postsCache[`${postPage}`],
-                first: firstPage ? firstPage[1] : null,
+                first: firstPage && +firstPage[0] !== postPage ? firstPage[1] : null,
                 prev: prevPage ? prevPage[1] : null,
                 next: nextPage ? nextPage[1] : null,
-                last: lastPage ? lastPage[1] : null
+                last: lastPage && +lastPage[0] !== postPage ? lastPage[1] : null
             });
 
         } else {
