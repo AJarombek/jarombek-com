@@ -1,3 +1,10 @@
+/**
+ * The main file for the Express/Node.js server.  The server provides an API and
+ * server side rendering
+ * @author Andrew Jarombek
+ * @since 4/3/2018
+ */
+
 import express from 'express';
 import mongoose from 'mongoose';
 import helmet from 'helmet';
@@ -7,11 +14,14 @@ import React from 'react';
 import {renderToString} from 'react-dom/server';
 import {StaticRouter, Switch, Route} from 'react-router-dom';
 import {Helmet} from 'react-helmet';
+import queryString from 'query-string';
 
 import Blog from "../client/Blog";
 import Home from "../client/Home";
 import Unsub from "../client/Unsub";
 import Verify from "../client/Verify";
+import BlogList from "../client/BlogList";
+import gs from "../client/globalStyles";
 
 import Audit from "./model/audit";
 import Post from "./model/post";
@@ -20,15 +30,7 @@ import User from "./model/user";
 import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
 import userRoute from "./route/userRouter";
-import gs from "../client/globalStyles";
-import BlogList from "../client/BlogList";
-
-/**
- * The main file for the Express/Node.js server.  The server provides an API and
- * server side rendering
- * @author Andrew Jarombek
- * @since 4/3/2018
- */
+import PostDao from "./dao/postDao";
 
 mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 
@@ -49,13 +51,30 @@ const renderComponentsToHTML = async (url) => {
 
     console.info(`URL: ${url}`);
 
-    // Get the blog post that corresponds to this URL
-    let post = await getUrlPost(url);
+    let post, posts;
 
-    // If a post exists for this URL, get its object from the MongoDB response object
-    if (post) {
-        post = post.toObject();
-        post = post[0];
+    const singlePostPattern = /\/blog\/([0-9-a-z]+)$/;
+    const postListPattern = /\/blog\/.*$/;
+
+    if (singlePostPattern.exec(url)) {
+        console.info('Ahead of Time Query Single Post');
+        // Get the blog post that corresponds to this URL
+        post = await getUrlPost(url, singlePostPattern);
+
+        // If a post exists for this URL, get its object from the MongoDB response object
+        if (post) {
+            post = post.toObject();
+
+            // The post we get back is in an array, so just take out the first object in the array
+            post = post[0];
+        }
+    } else if (postListPattern.exec(url)) {
+        console.info('Ahead of Time Query Post List');
+        posts = await getListOfPosts(url);
+
+        if (posts) {
+            posts = posts.toObject()
+        }
     }
 
     return {
@@ -66,14 +85,17 @@ const renderComponentsToHTML = async (url) => {
                     <Route path="/blog/:name" render={
                         (props) => <Blog {...props} {...{post: post}}/>
                     }/>
-                    <Route path="/blog" component={BlogList}/>
+                    <Route path="/blog" render={
+                        (props) => <BlogList {...props} {...{posts}} />
+                    }/>
                     <Route path="/verify/:code" component={Verify}/>
                     <Route path="/unsub/:code" component={Unsub}/>
                     <Route component={Home}/>
                 </Switch>
             </StaticRouter>
         ),
-        post
+        post,
+        posts
     };
 };
 
@@ -81,9 +103,10 @@ const renderComponentsToHTML = async (url) => {
  * Place the route specific HTML inside a generic HTML template
  * @param html - the route specific HTML
  * @param post - an initial blog post to be sent with the response
+ * @param posts - an initial list of blog posts to be sent with the response
  * @returns {Promise<string>} - A promise containing HTML to be sent in the response
  */
-const sendHtmlPage = async ({html, post}) => {
+const sendHtmlPage = async ({html, post, posts}) => {
     const helmet = Helmet.renderStatic();
 
     let globalStyles = '';
@@ -113,7 +136,7 @@ const sendHtmlPage = async ({html, post}) => {
     <body>
         <div id="react-container">${html}</div>
         <script>
-            window.__STATE__ = ${JSON.stringify({post: post})}
+            window.__STATE__ = ${JSON.stringify({post: post, posts: posts})}
         </script>
         <script src="/client/vendor.js"></script>
         <script src="/client/bundle.js"></script>
@@ -125,13 +148,13 @@ const sendHtmlPage = async ({html, post}) => {
 /**
  * Get a blog post from MongoDB corresponding to the URL's name parameter
  * @param url - the URL of the HTTP request
+ * @param regex - regular expression matching a URL containing a blog post title
  * @return {Promise<*>} - a promise containing a blog post object
  */
-const getUrlPost = async (url) => {
+const getUrlPost = async (url, regex) => {
 
     // First match the URL with a Regex of the expected pattern for accessing a blog post
-    const urlPostMatch = /\/blog\/([0-9-a-z]+)$/;
-    const matches = url.match(urlPostMatch);
+    const matches = url.match(regex);
 
     // In case the match fails, simply return nulls
     const [ , match] = matches || [null, null];
@@ -147,6 +170,26 @@ const getUrlPost = async (url) => {
     }
 
     return post;
+};
+
+/**
+ * Get a list of blog posts from MongoDB corresponding to the page query in the URL.  If there is
+ * no page query, a default page of posts will be returned.
+ * @param url - the URL of the HTTP request
+ * @return {Promise<*>} - a promise containing a list of blog posts
+ */
+const getListOfPosts = async (url) => {
+    const queries = queryString.parseUrl(url);
+
+    const page = queries && queries.query ? queries.query.page : null;
+    let posts = null;
+
+    if (page) {
+        // The number of posts per page defaults to 12
+        posts = PostDao.getPaginatedPosts(page);
+    }
+
+    return posts;
 };
 
 /**

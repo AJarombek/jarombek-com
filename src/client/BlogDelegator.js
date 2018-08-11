@@ -24,21 +24,21 @@ class BlogDelegator {
 
         const link = response.headers.get('Link');
         const total = response.headers.get('X-Total-Count');
-        console.info(`Link Header: ${link}`);
-        console.info(`X-Total-Count Header: ${total}`);
+        console.debug(`Link Header: ${link}`);
+        console.debug(`X-Total-Count Header: ${total}`);
 
         // The only important link headers to us are prev and next
         const {first, prev, next, last} = BlogDelegator.parseLinks(link);
 
         const json = await response.json();
-        console.info(`Posts JSON: ${JSON.stringify(json)}`);
+        console.debug(`Posts JSON: ${JSON.stringify(json)}`);
 
         // Transform JSON to JSX
         const posts = JSXConverter.createPostsJSX(json);
 
         // Create a list of all the new posts that were loaded from the API
         const loaded = posts.map(post => post.name);
-        console.info(`Names of Posts in Posts JSON: ${loaded}`);
+        console.debug(`Names of Posts in Posts JSON: ${loaded}`);
 
         return {
             posts,
@@ -62,7 +62,7 @@ class BlogDelegator {
 
         const json = await response.json();
 
-        console.info(`Posts JSON: ${JSON.stringify(json)}`);
+        console.debug(`Posts JSON: ${JSON.stringify(json)}`);
 
         const post = JSXConverter.createPostJSX(json);
 
@@ -82,7 +82,7 @@ class BlogDelegator {
         const matches = links.match(globalRegex);
 
         const linksObject = BlogDelegator.generateLinks(matches, regex);
-        console.info(linksObject);
+        console.debug(linksObject);
         return linksObject;
     }
 

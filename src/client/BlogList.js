@@ -24,7 +24,7 @@ class BlogList extends React.Component {
 
     constructor(props) {
         super(props);
-        console.log('Inside Blog constructor');
+        console.debug('Inside BlogList constructor');
 
         this.baseUrl = (process.env.NODE_ENV === 'production') ?
             'https://jarombek.com' :
@@ -58,10 +58,10 @@ class BlogList extends React.Component {
      * call before interacting with the DOM
      */
     componentWillMount() {
-        console.info("Inside Blog ComponentWillMount");
+        console.debug("Inside BlogList ComponentWillMount");
 
         if (this.props.posts) {
-            console.debug(`Mounting Component with # of Posts: ${this.props.posts.length}`);
+            console.info(`Mounting Component with # of Posts: ${this.props.posts.length}`);
             this.setState({
                 posts: [JSXConverter.createPostJSX(this.props.posts)]
             });
@@ -75,9 +75,10 @@ class BlogList extends React.Component {
      * interacting with the DOM, so this only happens on client side code
      */
     componentDidMount() {
-        console.info("Inside Blog ComponentDidMount");
+        console.debug("Inside BlogList ComponentDidMount");
 
         console.debug(this.props);
+        window.scrollTo(0, 0);
 
         const {page} = queryString.parse(this.props.location.search);
         const postPage = page || 1;
@@ -99,7 +100,7 @@ class BlogList extends React.Component {
      * @param nextProps - the props that are about to replace the existing props
      */
     componentWillReceiveProps(nextProps) {
-        console.info("Inside Blog ComponentWillReceiveProps");
+        console.debug("Inside BlogList ComponentWillReceiveProps");
 
         // By default React doesn't move to the top of the page when new props are received
         // and the URL changes - so we have to handle it ourselves
@@ -115,7 +116,7 @@ class BlogList extends React.Component {
             console.info(`${postPage} Page of Posts Found in Cache`);
 
             const sortedPages = Object.entries(this.pageCache).sort();
-            console.info(sortedPages);
+            console.debug(sortedPages);
 
             const potentialPrevPage = sortedPages.filter(page => +page[0] === +postPage - 1);
             const potentialNextPage = sortedPages.filter(page => +page[0] === +postPage + 1);
@@ -159,15 +160,11 @@ class BlogList extends React.Component {
         const {posts, first, prev, next, last} =
             await BlogDelegator.fetchPosts(this.baseUrl, url);
 
-        console.info(this.postsCache);
-
         // Add the newly fetched posts to the client side JS posts cache
         this.postsCache = {
             ...this.postsCache,
             [`${pageNumber}`]: posts
         };
-
-        console.info(this.postsCache);
 
         this.setState({
             posts,
@@ -227,7 +224,6 @@ class BlogList extends React.Component {
      */
     render() {
         const {posts, ...links} = this.state;
-        console.info(links);
         const {first, prev, current, next, last} = BlogList.extractPage(links);
 
         this.pageCache = {
@@ -239,8 +235,8 @@ class BlogList extends React.Component {
             [`${last.page}`]: last.link || this.pageCache[`${last.page}`]
         };
 
-        console.log('Inside Blog Render');
-        console.info(this.state);
+        console.debug('Inside BlogList Render');
+        console.debug(this.state);
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
                 <div className="jarombek-background">

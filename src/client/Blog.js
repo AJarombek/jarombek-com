@@ -24,7 +24,7 @@ class Blog extends React.Component {
 
     constructor(props) {
         super(props);
-        console.log('Inside Blog constructor');
+        console.debug('Inside Blog constructor');
 
         this.baseUrl = (process.env.NODE_ENV === 'production') ?
             'https://jarombek.com' :
@@ -52,7 +52,7 @@ class Blog extends React.Component {
      * call before interacting with the DOM
      */
     componentWillMount() {
-        console.info("Inside Blog ComponentWillMount");
+        console.debug("Inside Blog ComponentWillMount");
 
         if (this.props.post) {
             console.info(`Mounting Component with Post in State: ${this.props.post.name}`);
@@ -69,9 +69,10 @@ class Blog extends React.Component {
      * interacting with the DOM, so this only happens on client side code
      */
     componentDidMount() {
-        console.info("Inside Blog ComponentDidMount");
+        console.debug("Inside Blog ComponentDidMount");
 
         console.info(this.props);
+        window.scrollTo(0, 0);
 
         // Get the post name from the props.  This is populated by react router
         const {name} = this.props.match.params;
@@ -94,16 +95,10 @@ class Blog extends React.Component {
 
     /**
      * Called after the component updated.
-     * @param prevProps - the props of the component before the update occurred
      */
-    componentDidUpdate(prevProps) {
-        console.info("Inside Blog componentDidUpdate");
-        // If viewing a new post, scroll to the top of the page.  This is needed because by default
-        // react router will change routes and not scroll back to the top
-        if (this.props.location.pathname !== prevProps.location.pathname) {
-            console.info("Scrolling to Top");
-            window.scrollTo(0, 0);
-        }
+    componentDidUpdate() {
+        console.debug("Inside Blog componentDidUpdate");
+        window.scrollTo(0, 0);
     }
 
     /**
@@ -111,7 +106,7 @@ class Blog extends React.Component {
      * @param nextProps - the props that are about to replace the existing props
      */
     componentWillReceiveProps(nextProps) {
-        console.info("Inside Blog ComponentWillReceiveProps");
+        console.debug("Inside Blog ComponentWillReceiveProps");
 
         const {name} = nextProps.match.params;
 
@@ -130,7 +125,7 @@ class Blog extends React.Component {
      */
     async fetchPostAndUpdate(name) {
         const {post, loaded} = await BlogDelegator.fetchPost(this.baseUrl, name);
-        console.info(post);
+        console.debug(post);
 
         // Increment the viewed count for the fetched post
         BlogDelegator.viewedPost(loaded, this.baseUrl);
@@ -143,8 +138,8 @@ class Blog extends React.Component {
      */
     render() {
         const {post, subscribing} = this.state;
-        console.log('Inside Blog Render');
-        console.info(this.state);
+        console.debug('Inside Blog Render');
+        console.debug(this.state);
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
                 <div className="jarombek-background">

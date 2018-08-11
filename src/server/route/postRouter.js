@@ -11,7 +11,7 @@ const routes = (Post) => {
     const postRouter = express.Router();
 
     // Cache the number of existing posts so that a MongoDB query doesn't have to occur on each GET
-    let postCountCache = null;
+    let postCountCache = 0;
 
     postRouter.route('/')
         .get((req, res) => {
