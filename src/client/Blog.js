@@ -84,7 +84,7 @@ class Blog extends React.Component {
                 this.fetchPostAndUpdate(name)
                     .catch(err => {
                         console.error(err);
-                        this.setState({post: []});
+                        this.setState({post: null});
                     });
             } else {
                 console.info(`Post Was in Initial State`);
@@ -142,26 +142,28 @@ class Blog extends React.Component {
      * Render the JSX
      */
     render() {
-        const {post} = this.state;
+        const {post, subscribing} = this.state;
         console.log('Inside Blog Render');
         console.info(this.state);
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
                 <div className="jarombek-background">
                     <div className="jarombek-blog">
-                        <Helmet>
-                            <title>{post.title}</title>
-                            <meta name="author" content="Andrew Jarombek" />
-                            <meta name="description"
-                                  content={post.description ||
-                                    `${post.title} | Andrew Jarombek`} />
-                            <link rel="canonical"
-                                  href={`https://jarombek.com/blog/${post.name}`} />
-                            <link rel="icon" href={ require(`./assets/jarombek.png`) } />
-                        </Helmet>
-                        { (this.state.post) ?
-                            <Loading className="jarombek-blog-none" />:
-                            <BlogPost key={post.name} {...post} />
+                        { post ?
+                            <div>
+                                <Helmet>
+                                    <title>{post.title}</title>
+                                    <meta name="author" content="Andrew Jarombek" />
+                                    <meta name="description"
+                                          content={post.description ||
+                                          `${post.title} | Andrew Jarombek`} />
+                                    <link rel="canonical"
+                                          href={`https://jarombek.com/blog/${post.name}`} />
+                                    <link rel="icon" href={ require(`./assets/jarombek.png`) } />
+                                </Helmet>
+                                <BlogPost key={post.name} {...post} />
+                            </div>:
+                            <Loading className="jarombek-blog-none" />
                         }
                         <Link className="jarombek-blog-footer" to='/'>
                             <TitleImage className="footer-icon" src="./assets/jarombek.png"
@@ -169,7 +171,7 @@ class Blog extends React.Component {
                         </Link>
                     </div>
                 </div>
-                { (this.state.subscribing) ?
+                { (subscribing) ?
                     <Modal clickBackground={() => this.setState({subscribing: false})}>
                         <Subscribe exit={() => this.setState({subscribing: false})} />
                     </Modal> : null

@@ -55,6 +55,7 @@ const renderComponentsToHTML = async (url) => {
     // If a post exists for this URL, get its object from the MongoDB response object
     if (post) {
         post = post.toObject();
+        post = post[0];
     }
 
     return {
