@@ -153,29 +153,3 @@ test('BlogPost matches snapshot', () => {
 test('BlogPost No Sources matches snapshot', () => {
     expect(toJSON(blogPostNoSources)).toMatchSnapshot();
 });
-
-/* BlogList Component */
-
-const blogListView = <BlogList
-        blogList={
-            [{
-                id: 1,
-                name: "Test",
-                title: "Test",
-                date: moment().format('YYYY-MM-DD'),
-                type: "Discovery",
-                content: []
-            }]
-        }
-    />;
-
-const blogListEmpty = shallow(<BlogList/>);
-const blogList = shallow(blogListView);
-
-test('Empty BlogList matches snapshot', () => {
-    expect(toJSON(blogListEmpty)).toMatchSnapshot();
-});
-
-test('BlogList matches snapshot', () => {
-    expect(toJSON(blogList)).toMatchSnapshot();
-});

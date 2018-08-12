@@ -1,0 +1,100 @@
+/*
+ * Sass styling for the content of a blog post
+ * @author Andrew Jarombek
+ * @since 8/2/2018
+ */
+
+@import "./styles/variables";
+@import "./styles/mixins/sylexiads";
+@import "./styles/mixins/fantasque";
+
+$inline-gray: rgba(204, 204, 204, 0.25);
+
+.link-style {
+  @include sylexiad-bold;
+  color: #999;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.jarbek-blog-content {
+  @include sylexiad;
+
+  h5, p {
+    color: #333;
+    letter-spacing: 0.7px;
+
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+
+  p {
+    font-size: 24px;
+    line-height: 1.5;
+  }
+
+  h5 {
+    font-size: 36px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+
+  h6 {
+    font-size: 32px;
+    @include fantasque-bold;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    color: #333;
+  }
+
+  a {
+    @extend .link-style;
+  }
+
+  sup {
+    @include sylexiad-bold;
+    color: #999;
+    vertical-align: super;
+    font-size: 16px;
+  }
+
+  span.code-span {
+    white-space: pre;
+    @include fantasque-bold;
+    font-size: 14px;
+    word-wrap: break-word;
+  }
+
+  strong {
+    @include sylexiad-bold;
+  }
+
+  .jarombek-blog-image {
+    max-width: 100%;
+    display: block;
+    margin: auto;
+  }
+
+  code.jarombek-inline-code {
+    @include fantasque-bold;
+    font-size: 20px;
+    color: darken($color-secondary, 40%);
+    border-radius: 3px;
+
+    padding: 5px 4px 5px 4px;
+
+    margin-right: 2px;
+    margin-left: 2px;
+
+    background: $inline-gray;
+  }
+
+  code.jarombek-header-code {
+    @include fantasque-bold;
+    font-size: 32px;
+    color: #333;
+  }
+}

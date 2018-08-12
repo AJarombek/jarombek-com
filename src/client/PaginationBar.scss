@@ -1,0 +1,50 @@
+/*
+ * Sass styling for the PaginationBar component
+ * @author Andrew Jarombek
+ * @since 8/4/2018
+ */
+
+@import "styles/mixins/sylexiads";
+@import "./styles/mixins/transition";
+@import "./styles/variables";
+
+.jarbek-pagination-bar {
+  @include sylexiad-bold;
+  display: grid;
+  grid-gap: 10px;
+  grid-template-columns: repeat(auto-fit, 45px);
+
+  justify-content: center;
+  align-content: center;
+
+  font-size: 28px;
+  color: #aaa;
+}
+
+@each $page in 'first', 'first-spread', 'previous-item', 'current',
+                'next-item', 'last-spread', 'last' {
+  .jarbek-pag-#{$page} {
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+@each $page in 'first', 'previous-item', 'next-item', 'last' {
+  .jarbek-pag-#{$page} {
+    @include transition(text-decoration, underline);
+    @include transition(text-decoration-color, #ccc);
+    cursor: pointer;
+    text-decoration: none;
+    color: darken($color-primary, 40%);
+
+    p {
+      color: #aaa;
+      @include transition(color, darken($color-primary, 40%));
+    }
+  }
+}
+
+.jarbek-pag-current {
+  font-size: 42px;
+  color: darken($color-secondary, 40%);
+}

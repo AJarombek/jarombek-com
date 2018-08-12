@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Jest and Enzyme testing for the Blog React component
  * @author Andrew Jarombek
  * @since 5/8/2018
@@ -10,6 +14,7 @@ import Blog from "../src/client/Blog";
 import {MemoryRouter} from 'react-router-dom';
 import fetchMock from 'fetch-mock';
 import 'isomorphic-fetch';
+import BlogDelegator from "../src/client/BlogDelegator";
 
 const oneResponse = {
     body: {
@@ -87,8 +92,8 @@ fetchMock.mock('http://localhost:8080/api/viewed/post/may-10-2018-test', {});
 
 test(`Mock of Fetch Returns As Expected`, async () => {
 
-    const response = await Blog.fetchPost(`http://localhost:8080`, `may-9-2018-test`);
-    expect(response.posts[0]).toHaveProperty(`sources`,
+    const response = await BlogDelegator.fetchPost(`http://localhost:8080`, `may-9-2018-test`);
+    expect(response.post).toHaveProperty(`sources`,
         [
             {
                 "endName":" End",
@@ -98,7 +103,7 @@ test(`Mock of Fetch Returns As Expected`, async () => {
             }
         ]);
 
-    expect(response.posts[0]).toHaveProperty(`tags`,
+    expect(response.post).toHaveProperty(`tags`,
         [
             {
                 "color":"javascript",
@@ -107,25 +112,7 @@ test(`Mock of Fetch Returns As Expected`, async () => {
             }
         ]);
 
-    expect(response.posts[0]).toHaveProperty(`name`, 'may-9-2018-test');
-    expect(response.posts[0]).toHaveProperty(`title`, 'Test');
-    expect(response.posts[0]).toHaveProperty(`type`, 'Discovery');
-});
-
-
-test('Test Component Lifecycle', async () => {
-    const wrapper = mount(
-        <MemoryRouter>
-            <Blog match={ {params: { name: null } } } location={{pathname: ''}} />
-        </MemoryRouter>
-    );
-
-    expect(wrapper.find('.jarombek-blog')).toHaveLength(1);
-});
-
-
-test('Unique Posts removes duplicates', () => {
-    expect(Blog.uniquePosts([{name: 'a', content: 'test1'},
-        {name: 'b', content: 'test2'},
-        {name: 'a', content: 'test3'}])).toHaveLength(2);
+    expect(response.post).toHaveProperty(`name`, 'may-9-2018-test');
+    expect(response.post).toHaveProperty(`title`, 'Test');
+    expect(response.post).toHaveProperty(`type`, 'Discovery');
 });

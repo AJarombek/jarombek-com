@@ -4,7 +4,7 @@
  * @since 4/8/2018
  */
 
-@import "./styles/mixins/sylexiad";
+@import "styles/mixins/sylexiads";
 
 $neo4j-green: rgba(98, 179, 69, 0.6);
 $nodejs-green: rgba(141, 201, 76, 0.6);
@@ -190,9 +190,6 @@ $default: rgba(204, 204, 204, 0.6);
 }
 
 .jarombek-tag div {
-  display: grid;
-  grid-template-rows: [top] 100% [bottom];
-  grid-template-columns: [image] 40px [label] calc(100% - 39px) [end];
 
   border-radius: 3px;
   box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);
@@ -211,8 +208,15 @@ $default: rgba(204, 204, 204, 0.6);
   }
 }
 
-.jarombek-tag figure {
-  // background-color: white;
+.jarombek-tag-small div {
+  height: 40px;
+  display: grid;
+}
+
+.jarombek-tag-large div {
+  display: grid;
+  grid-template-rows: [top] 100% [bottom];
+  grid-template-columns: [image] 40px [label] calc(100% - 39px) [end];
 }
 
 .jarombek-tag-picture {
@@ -232,11 +236,20 @@ $default: rgba(204, 204, 204, 0.6);
   @include sylexiad;
   color: #333;
   border-left: transparent 2px;
-  font-size: 24px;
 
-  grid-area: top / label / bottom / end;
+
   justify-self: center;
   align-self: center;
   padding-left: 20px;
   padding-right: 20px;
+}
+
+// Give jarombek-tag-name a grid location if the tag is large (with a picture)
+.jarombek-tag-large div p {
+  grid-area: top / label / bottom / end;
+  font-size: 24px;
+}
+
+.jarombek-tag-small div p {
+  font-size: 18px;
 }

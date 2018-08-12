@@ -177,3 +177,6 @@ yarn server:deploy
 # Used for setting global styles defined in JavaScript.  This allows for
 # dynamic styles depending on the environment
 yarn add styled-components
+
+# Parse URL query strings
+yarn add query-string

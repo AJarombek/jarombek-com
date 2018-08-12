@@ -4,24 +4,12 @@
  * @since 4/8/2018
  */
 
-@import "./styles/mixins/sylexiad";
-@import "./styles/mixins/fantasque";
+@import "styles/mixins/sylexiads";
 @import "./styles/mixins/transition";
 @import "./styles/variables";
+@import "blogContent";
 
 $post-margin: 0.5px;
-
-$inline-gray: rgba(204, 204, 204, 0.25);
-
-.link-style {
-  @include sylexiad-bold;
-  color: #999;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
 
 .jarombek-blog-post {
   background-color: white;
@@ -94,7 +82,6 @@ $inline-gray: rgba(204, 204, 204, 0.25);
   @include sylexiad;
   color: #333;
   font-size: 48px;
-
   text-align: center;
 
   @include transition(color, #111);
@@ -106,86 +93,9 @@ $inline-gray: rgba(204, 204, 204, 0.25);
 }
 
 .jarombek-blog-content {
+  @extend .jarbek-blog-content;
   grid-area: body / title-start / sources / title-end;
   padding-bottom: 20px;
-
-  @include sylexiad;
-
-  h5, p {
-    color: #333;
-    letter-spacing: 0.7px;
-
-    padding-top: 15px;
-    padding-bottom: 15px;
-  }
-
-  p {
-    font-size: 24px;
-    line-height: 1.5;
-  }
-
-  h5 {
-    font-size: 36px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-  }
-
-  h6 {
-    font-size: 32px;
-    @include fantasque-bold;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    color: #333;
-  }
-
-  a {
-    @extend .link-style;
-  }
-
-  sup {
-    @include sylexiad-bold;
-    color: #999;
-    vertical-align: super;
-    font-size: 16px;
-  }
-
-  span.code-span {
-    white-space: pre;
-    @include fantasque-bold;
-    font-size: 14px;
-    word-wrap: break-word;
-  }
-
-  strong {
-    @include sylexiad-bold;
-  }
-
-  .jarombek-blog-image {
-    max-width: 100%;
-    display: block;
-    margin: auto;
-    padding: 30px 0 10px 0;
-  }
-
-  code.jarombek-inline-code {
-    @include fantasque-bold;
-    font-size: 20px;
-    color: darken($color-secondary, 40%);
-    border-radius: 3px;
-
-    padding: 5px 4px 5px 4px;
-
-    margin-right: 2px;
-    margin-left: 2px;
-
-    background: $inline-gray;
-  }
-
-  code.jarombek-header-code {
-    @include fantasque-bold;
-    font-size: 32px;
-    color: #333;
-  }
 }
 
 .jarombek-blog-sources {
