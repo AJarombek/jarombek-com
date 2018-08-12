@@ -156,6 +156,12 @@ test('BlogPost No Sources matches snapshot', () => {
 
 /* BlogList Component */
 
+const blogListView = shallow(<WebsiteNav />);
+
+test('WebsiteNav matches snapshot', () => {
+    expect(toJSON(websiteNav)).toMatchSnapshot();
+});
+
 const blogListView = <BlogList
         blogList={
             [{
