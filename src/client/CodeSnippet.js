@@ -105,14 +105,11 @@ class CodeSnippet extends React.Component {
                 highlightClass: "groovy"
             },
             {
-<<<<<<< HEAD
-=======
                 prop: "batch",
                 title: "Batch",
                 highlightClass: "bash"
             },
             {
->>>>>>> master
                 prop: "graphql",
                 title: "GraphQL",
                 highlightClass: "python"
