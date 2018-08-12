@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "client:server:test": "jest --coverage --updateSnapshot --config ./test/jest.config.js",
+    "client:server:test": "jest --coverage --updateSnapshot --config ./jest.config.js",
     "client:stats": "webpack --env clientProduction --profile --json > client-stats.json",
     "client:build": "webpack --env clientProduction",
     "client:dev": "webpack --env clientDevelopment",

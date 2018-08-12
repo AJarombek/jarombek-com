@@ -75,22 +75,6 @@ exports[`App matches snapshot 1`] = `
 </div>
 `;
 
-exports[`BlogList matches snapshot 1`] = `
-<div
-  className="jarombek-blog-list"
->
-  <BlogPost
-    content={Array []}
-    date="2018-06-24"
-    id={1}
-    key="Test"
-    name="Test"
-    title="Test"
-    type="Discovery"
-  />
-</div>
-`;
-
 exports[`BlogPost No Sources matches snapshot 1`] = `
 <div
   className="jarombek-blog-post"
@@ -106,7 +90,7 @@ exports[`BlogPost No Sources matches snapshot 1`] = `
     <p
       className="jarombek-blog-date"
     >
-      June 24th, 2018
+      August 11th, 2018
     </p>
   </div>
   <Link
@@ -151,7 +135,7 @@ exports[`BlogPost matches snapshot 1`] = `
     <p
       className="jarombek-blog-date"
     >
-      June 24th, 2018
+      August 11th, 2018
     </p>
   </div>
   <Link
@@ -198,7 +182,8 @@ exports[`Button matches snapshot 1`] = `
 <div>
   <button
     className="jarbek-button passive-color-default
-                                active-color-default jarbek-button-large"
+                                active-color-default border-color-default
+                                jarbek-button-large"
     onClick={[Function]}
   />
 </div>
@@ -218,16 +203,6 @@ exports[`Definition matches snapshot 1`] = `
   >
      
   </p>
-</div>
-`;
-
-exports[`Empty BlogList matches snapshot 1`] = `
-<div
-  className="jarombek-blog-list"
->
-  <Loading
-    className="jarombek-blog-none"
-  />
 </div>
 `;
 
@@ -273,7 +248,7 @@ exports[`PictureButton matches snapshot 1`] = `
 
 exports[`Tag matches snapshot 1`] = `
 <div
-  className="jarombek-tag"
+  className="jarombek-tag jarombek-tag-large"
 >
   <div
     className="jarombek-tag-color-javascript"
@@ -281,7 +256,7 @@ exports[`Tag matches snapshot 1`] = `
     <figure>
       <img
         className="jarombek-tag-picture"
-        src="test-file-stub"
+        src="https://asset.jarombek.com/jarombek.png"
       />
     </figure>
     <p
@@ -303,6 +278,7 @@ exports[`TagList matches snapshot 1`] = `
     key="JavaScript"
     name="JavaScript"
     picture=""
+    showPicture={true}
   />
 </div>
 `;

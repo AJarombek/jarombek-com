@@ -1,15 +1,21 @@
+/**
+ * Jest configuration for unit testing
+ * @author Andrew Jarombek
+ * @since 8/11/2018
+ */
+
 module.exports = {
-    setupTestFrameworkScriptFile: "./setupTests.js",
+    setupTestFrameworkScriptFile: "./test/setupTests.js",
     moduleNameMapper: {
         "\\.(scss)$": "jest-css-modules",
-        "\\.(png|ttf)$": "./mocks/fileMock.js"
+        "\\.(png|ttf)$": "../../mocks/fileMock.js"
     },
     collectCoverageFrom: [
-        "../src/**"
+        "src/**"
     ],
     coveragePathIgnorePatterns: [
-        "../src/client/index.js",
-        "../src/client/status/*"
+        "./src/client/index.js",
+        "./src/client/status/*"
     ],
     coverageThreshold: {
         "global": {
@@ -17,11 +23,6 @@ module.exports = {
             "functions": 1,
             "lines": 1,
             "statements": 1
-        }
-    },
-    testEnvironmentOptions: {
-        beforeParse(window) {
-            window.scrollTo = () => {console.info('Scrolling...')};
         }
     }
 };
