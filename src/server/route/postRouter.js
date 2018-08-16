@@ -38,11 +38,20 @@ const routes = () => {
     return postRouter;
 };
 
+/**
+ * Handler for the blog post content routes of the API ('/content' endpoints)
+ * @param router - the express router for the posts API
+ */
 const contentRoute = (router) => {
     router.route('/content')
         .get(getAll);
 };
 
+/**
+ * Handler for the blog post content routes with a specific name of the API
+ * ('/content/:name' endpoints)
+ * @param router - the express router for the posts API
+ */
 const contentNameRoute = (router) => {
     router.use('/content/:name', contentNameMiddleware);
 
@@ -50,22 +59,30 @@ const contentNameRoute = (router) => {
         .get(getOne);
 };
 
+/**
+ * Handler for the blog post preview routes of the API ('/preview' endpoints)
+ * @param router - the express router for the posts API
+ */
 const previewRoute = (router) => {
     router.route('/preview')
         .get(getAllPreviews);
 };
 
+/**
+ * Handler for the blog post preview routes with a specific name of the API
+ * ('/preview/:name' endpoints)
+ * @param router - the express router for the posts API
+ */
 const previewNameRoute = (router) => {
     router.use('/preview/:name', previewNameMiddleware);
 
     router.route('/preview/:name')
-        .get(getOnePreview);
+        .get(getOne);
 };
 
 /**
- * Configure the route for getting all the posts in the database.  Since there are so many posts,
- * by default this route paginates results.  You can however ask for all posts by setting the limit
- * to the number of documents in MongoDB
+ * Get all the posts in the database - the posts will be paginated based on the page and limit
+ * specified in the URL queries
  * @param req - HTTP request body
  * @param res - HTTP response body
  */
@@ -74,12 +91,7 @@ const getAll = (req, res) => {
     // This API allows for two parameters:
     // [page] - the pagination of the MongoDB post collection
     // [limit] - the max number of documents to return.  Which documents depends on the page
-    let {page, limit} = req.query;
-
-    // the unary + coerces the strings to numbers.  It is the fastest way to
-    // convert strings to numbers in JavaScript
-    page = +page || 1;
-    limit = +limit || 12;
+    const {page, limit} = req.query;
 
     PostDao.getPaginatedPosts(page, limit).then((posts) => {
 
@@ -103,34 +115,79 @@ const getAll = (req, res) => {
 };
 
 /**
- * Middleware for routes that contain a name parameter.  Get the post with the given name from
- * MongoDB in this step.  Doing this in a middleware step will simplify further routes.
- * @param router - the express router for the posts API
+ * Get all the post previews in the database - the posts will be paginated based on the
+ * page and limit specified in the URL queries.
+ * @param req - HTTP request body
+ * @param res - HTTP response body
  */
-const nameMiddleware = (router) => {
-    router.use('/:name', (req, res, next) => {
+const getAllPreviews = (req, res) => {
 
-        PostDao.getByName(req.params.name).then((post) => {
-            req.post = post;
-            next();
-        }, (reason => {
-            res.status(400).json({
-                error: `Failed to Retrieve Post with Name: ${req.params.name}`,
-                message: reason
-            });
-        }));
-    });
+    const {page, limit} = req.query;
+
+    PostDao.getPaginatedPostPreviews(page, limit).then((posts) => {
+
+        const {first, prev, next, last} =
+            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post');
+
+        res.set('Link', `${first}${prev}${next}${last}`);
+        res.set('X-Total-Count', PostDao.postCountCache);
+        res.json(posts);
+
+    }, (reason => {
+        res.status(400).json({
+            error: "Failed to Retrieve Page of Post Previews",
+            message: reason
+        });
+    }));
+};
+
+/**
+ * Middleware for content routes that contain a name parameter.  Get the post with the given name
+ * from MongoDB in this step.  Doing this in a middleware step will simplify further routes.
+ * @param req - HTTP request body
+ * @param res - HTTP response body
+ * @param next - the next step on middleware in the router
+ */
+const contentNameMiddleware = (req, res, next) => {
+
+    PostDao.getByName(req.params.name).then((post) => {
+        req.post = post;
+        next();
+    }, (reason => {
+        res.status(400).json({
+            error: `Failed to Retrieve Post with Name: ${req.params.name}`,
+            message: reason
+        });
+    }));
+};
+
+/**
+ * Middleware for content routes that contain a name parameter.  Get the post with the given name
+ * from MongoDB in this step.  Doing this in a middleware step will simplify further routes.
+ * @param req - HTTP request body
+ * @param res - HTTP response body
+ * @param next - the next step on middleware in the router
+ */
+const previewNameMiddleware = (req, res, next) => {
+
+    PostDao.getPreviewByName(req.params.name).then((post) => {
+        req.post = post;
+        next();
+    }, (reason => {
+        res.status(400).json({
+            error: `Failed to Retrieve Post Preview with Name: ${req.params.name}`,
+            message: reason
+        });
+    }));
 };
 
 /**
  * Get a post with a given name.  Simply return a post retrieved by the middleware step.
- * @param router - the express router for the posts API
+ * @param req - HTTP request body
+ * @param res - HTTP response body
  */
-const get = (router) => {
-    router.route('/:name')
-        .get((req, res) => {
-            res.json(req.post);
-        });
+const getOne = (req, res) => {
+    res.json(req.post);
 };
 
 module.exports = routes;

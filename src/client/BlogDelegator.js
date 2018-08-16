@@ -58,7 +58,7 @@ class BlogDelegator {
      * and the fetched post name
      */
     static async fetchPost(baseUrl, name) {
-        const response = await fetch(`${baseUrl}/api/post/${name}`);
+        const response = await fetch(`${baseUrl}/api/post/content/${name}`);
 
         const json = await response.json();
 

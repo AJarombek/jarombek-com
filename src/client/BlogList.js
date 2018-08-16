@@ -97,7 +97,7 @@ class BlogList extends React.Component {
 
         if (!this.state.posts) {
             console.info(`Fetching All Posts`);
-            this.fetchPostsAndUpdate(`/api/post?page=${postPage}`, postPage)
+            this.fetchPostsAndUpdate(`/api/post/preview?page=${postPage}`, postPage)
                 .catch(err => {
                     console.error(err);
                     this.setState({posts: []});
@@ -153,7 +153,7 @@ class BlogList extends React.Component {
         } else {
 
             console.info(`Fetching ${postPage} Page of Posts...`);
-            this.fetchPostsAndUpdate(`/api/post?page=${postPage}`, postPage)
+            this.fetchPostsAndUpdate(`/api/post/preview?page=${postPage}`, postPage)
                 .catch(err => {
                     console.error(err);
                     this.setState({posts: []});
@@ -168,7 +168,7 @@ class BlogList extends React.Component {
      * It will default to the first page (1).
      * @returns {Promise<void>}
      */
-    async fetchPostsAndUpdate(url='/api/post', pageNumber=1) {
+    async fetchPostsAndUpdate(url='/api/post/preview', pageNumber=1) {
         const {posts, first, prev, next, last} =
             await BlogDelegator.fetchPosts(this.baseUrl, url);
 

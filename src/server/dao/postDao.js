@@ -17,27 +17,70 @@ class PostDao {
      * doesn't access all the blog posts at once.
      * @param page - the page of posts to return.  How many posts exist per page depends on the
      * limit.  The default page is 1
-     * @param limit - the number of posts to return.  This effectively determines the page size
+     * @param limit - the number of posts to return.  This effectively determines the page size.
+     * The default limit is 12.
      * @return {Promise<*>} An array of posts from MongoDB
      */
     static getPaginatedPosts = async (page=1, limit=12) => {
 
+         const skip = await PostDao.paginationPrep(page, limit);
+
+        // Before selecting a page of posts, they but be in order with the newest posts first
+        const postPreviews = await Post.find({})
+                                        .skip(skip)
+                                        .limit(limit)
+                                        .sort({date: -1}).exec();
+
+        const postContents = await PostContent.find({})
+                                        .skip(skip)
+                                        .limit(limit)
+                                        .sort({date: -1}).exec();
+
+        return postPreviews.map((post, index) => {
+            return {
+                ...post,
+                content: postContents[index].content
+            }
+        })
+    };
+
+    /**
+     * Get a certain page of post previews - this method is good to use for a paginated approach
+     * that doesn't access all the blog posts at once.
+     * @param page - the page of post previews to return.  How many posts exist per page depends on
+     * the limit.  The default page is 1
+     * @param limit - the number of post previews to return.  This effectively determines the page
+     * size.  The default limit is 12.
+     * @return {Promise<*>} An array of post previews from MongoDB
+     */
+    static getPaginatedPostPreviews = async (page=1, limit=12) => {
+        const skip = await PostDao.paginationPrep(page, limit);
+
+        return await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
+    };
+
+    /**
+     * Code that both pagination post data accesses will use - reduce duplication by keeping
+     * this logic in one place.  The posts to skip are determined, the page and limit inputs are
+     * coerced to numbers, and the post count cache will be populated if it is empty.
+     * @param page - the page of posts to return.
+     * @param limit - the number of posts to return.  This effectively determines the page size.
+     * @return {Promise<number>} A number of posts to skip when making the query
+     */
+    static async paginationPrep(page, limit) {
         // the unary + coerces the strings to numbers.  It is the fastest way to
         // convert strings to numbers in JavaScript
         page = +page;
         limit = +limit;
-
-        // Get the starting point within a MongoDB collection to query
-        const skip = (page - 1) * limit;
 
         if (!PostDao.postCountCache) {
             PostDao.postCountCache = await Post.count({});
             console.debug(`Set Post Count Cache To: ${PostDao.postCountCache}`);
         }
 
-        // Before selecting a page of posts, they but be in order with the newest posts first
-        return await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
-    };
+        // Get the starting point within a MongoDB collection to query
+        return (page - 1) * limit;
+    }
 
     /**
      * Retrieve a single post by its name field.  All posts should have this field and it should
