@@ -16,63 +16,90 @@ const routes = () => {
     const postRouter = express.Router();
 
     /**
-     * GET /post
+     * '/content' Route
      */
-    getAll(postRouter);
+    contentRoute(postRouter);
 
     /**
-     * Middleware for /post/:name
+     * '/content/:name' Route
      */
-    nameMiddleware(postRouter);
+    contentNameRoute(postRouter);
 
     /**
-     * GET /post/:name
+     * '/preview' Route
      */
-    get(postRouter);
+    previewRoute(postRouter);
+
+    /**
+     * '/preview/:name' Route
+     */
+    previewNameRoute(postRouter);
 
     return postRouter;
+};
+
+const contentRoute = (router) => {
+    router.route('/content')
+        .get(getAll);
+};
+
+const contentNameRoute = (router) => {
+    router.use('/content/:name', contentNameMiddleware);
+
+    router.route('/content/:name')
+        .get(getOne);
+};
+
+const previewRoute = (router) => {
+    router.route('/preview')
+        .get(getAllPreviews);
+};
+
+const previewNameRoute = (router) => {
+    router.use('/preview/:name', previewNameMiddleware);
+
+    router.route('/preview/:name')
+        .get(getOnePreview);
 };
 
 /**
  * Configure the route for getting all the posts in the database.  Since there are so many posts,
  * by default this route paginates results.  You can however ask for all posts by setting the limit
  * to the number of documents in MongoDB
- * @param router - the express router for the posts API
+ * @param req - HTTP request body
+ * @param res - HTTP response body
  */
-const getAll = (router) => {
-    router.route('/')
-        .get((req, res) => {
+const getAll = (req, res) => {
 
-            // This API allows for two parameters:
-            // [page] - the pagination of the MongoDB post collection
-            // [limit] - the max number of documents to return.  Which documents depends on the page
-            let {page, limit} = req.query;
+    // This API allows for two parameters:
+    // [page] - the pagination of the MongoDB post collection
+    // [limit] - the max number of documents to return.  Which documents depends on the page
+    let {page, limit} = req.query;
 
-            // the unary + coerces the strings to numbers.  It is the fastest way to
-            // convert strings to numbers in JavaScript
-            page = +page || 1;
-            limit = +limit || 12;
+    // the unary + coerces the strings to numbers.  It is the fastest way to
+    // convert strings to numbers in JavaScript
+    page = +page || 1;
+    limit = +limit || 12;
 
-            PostDao.getPaginatedPosts(page, limit).then((posts) => {
+    PostDao.getPaginatedPosts(page, limit).then((posts) => {
 
-                // Generate API endpoints to put in the HTTP Link header
-                const {first, prev, next, last} =
-                    PostDao.generatePaginatedPostsLinks(page, limit, '/api/post');
+        // Generate API endpoints to put in the HTTP Link header
+        const {first, prev, next, last} =
+            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post');
 
-                // In the headers specify the API endpoints for related documents
-                // + the total document count
-                res.set('Link', `${first}${prev}${next}${last}`);
-                res.set('X-Total-Count', PostDao.postCountCache);
+        // In the headers specify the API endpoints for related documents
+        // + the total document count
+        res.set('Link', `${first}${prev}${next}${last}`);
+        res.set('X-Total-Count', PostDao.postCountCache);
 
-                res.json(posts);
+        res.json(posts);
 
-            }, (reason => {
-                res.status(400).json({
-                    error: "Failed to Retrieve Page of Posts",
-                    message: reason
-                });
-            }));
+    }, (reason => {
+        res.status(400).json({
+            error: "Failed to Retrieve Page of Posts",
+            message: reason
         });
+    }));
 };
 
 /**

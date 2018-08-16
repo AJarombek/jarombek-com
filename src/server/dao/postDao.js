@@ -5,6 +5,7 @@
  */
 
 import Post from "../model/post";
+import PostContent from "../model/postContent"
 
 class PostDao {
 
@@ -40,11 +41,27 @@ class PostDao {
 
     /**
      * Retrieve a single post by its name field.  All posts should have this field and it should
-     * be unique.
+     * be unique.  The response includes the content field of the post.
      * @param name - the name of the post
      * @return {Promise<*>} - a single post from MongoDB
      */
     static getByName = async (name) => {
+        const post = await Post.findOne({name: name}).exec();
+        const postContent = await PostContent.findOne({name: name}).exec();
+
+        return {
+            ...post,
+            content: postContent.content
+        }
+    };
+
+    /**
+     * Retrieve a single post preview by its name field.  All posts should have this field and it
+     * should be unique.  The response does NOT contain the posts content field.
+     * @param name - the name of the post
+     * @return {Promise<*>} - a single post preview from MongoDB
+     */
+    static getPreviewByName = async (name) => {
         return await Post.findOne({name: name}).exec();
     };
 
