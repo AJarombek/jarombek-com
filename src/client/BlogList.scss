@@ -6,7 +6,50 @@
 
 @import "./styles/variables";
 
+.jarombek-blog-list {
+  display: grid;
+  grid-template-areas: "search"
+                       "posts";
+  grid-gap: 20px;
+
+  padding-top: 100px;
+  padding-bottom: 60px;
+}
+
+.jarombek-blog-list-search {
+  grid-area: search;
+  justify-self: center;
+  align-self: center;
+
+  display: grid;
+  grid-template-areas: "input button";
+  grid-gap: 10px;
+  justify-content: center;
+  align-content: center;
+
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+
+  height: 55px !important;
+  width: auto !important;
+}
+
+.jarombek-blog-list-search input {
+  grid-area: input;
+  align-self: center;
+  justify-self: center;
+
+  height: 46px !important;
+  font-size: 16px !important;
+}
+
+.jarombek-blog-list-search button {
+  grid-area: button;
+}
+
 .jarombek-posts-grid {
+  grid-area: posts;
+
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-gap: 20px;
@@ -34,8 +77,8 @@
 }
 
 .jarombek-blog-list-none {
-  grid-column: 1 / 4;
-  grid-row: 1;
+
+  grid-area: posts;
 
   height: 100vh;
   margin: 0 auto;

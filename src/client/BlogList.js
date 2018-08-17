@@ -19,6 +19,7 @@ import Subscribe from "./Subscribe";
 import BlogDelegator from "./BlogDelegator";
 import JSXConverter from "./JSXConverter";
 import PaginationBar from "./PaginationBar";
+import Button from "./Button";
 
 class BlogList extends React.Component {
 
@@ -253,28 +254,40 @@ class BlogList extends React.Component {
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
                 <div className="jarombek-background">
-                    <div className="jarombek-blog">
-                        <Helmet>
-                            <title>Andrew Jarombek&#39;s Software Development Blog</title>
-                            <meta name="author" content="Andrew Jarombek" />
-                            <meta name="description"
-                                  content={`Andrew Jarombek's Software Development Blog &
-                                    Discovery Posts ${page ? `- Page ${page}` : ''}`} />
-                            <link rel="canonical" href="https://jarombek.com/blog" />
-                            <link rel="icon" href={ require(`./assets/jarombek.png`) } />
-                        </Helmet>
-                        <div className="jarombek-posts-grid">
-                            { (posts) ?
-                                posts.map(post =>
+                    <Helmet>
+                        <title>Andrew Jarombek&#39;s Software Development Blog</title>
+                        <meta name="author" content="Andrew Jarombek" />
+                        <meta name="description"
+                              content={`Andrew Jarombek's Software Development Blog &
+                                Discovery Posts ${page ? `- Page ${page}` : ''}`} />
+                        <link rel="canonical" href="https://jarombek.com/blog" />
+                        <link rel="icon" href={ require(`./assets/jarombek.png`) } />
+                    </Helmet>
+                    { (posts) ?
+                        <div className="jarombek-blog-list">
+                            <div className="jarombek-blog-list-search jarbek-input">
+                                <input type="text"
+                                       name="search"
+                                       placeholder="Search"
+                                       onChange={(e) => console.info(e)}/>
+                                <Button activeColor="primary" passiveColor="primary"
+                                        borderColor="primary" size="box-large">
+                                    GO
+                                </Button>
+                            </div>
+                            <div className="jarombek-posts-grid">
+                                {posts.map(post =>
                                     <BlogPreview key={post.name} {...post} />
-                                ):
-                                <Loading className="jarombek-blog-list-none" />
-                            }
+                                )}
+                            </div>
+                        </div> :
+                        <div className="jarombek-blog-list">
+                            <Loading className="jarombek-blog-list-none" />
                         </div>
-                        <div className="jarombek-blog-list-footer">
-                            <PaginationBar first={first} previous={prev} current={current}
-                                           next={next} last={last} link={`/blog?page=`}/>
-                        </div>
+                    }
+                    <div className="jarombek-blog-list-footer">
+                        <PaginationBar first={first} previous={prev} current={current}
+                                       next={next} last={last} link={`/blog?page=`}/>
                     </div>
                 </div>
                 { (this.state.subscribing) ?
