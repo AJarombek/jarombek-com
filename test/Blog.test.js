@@ -85,8 +85,8 @@ const manyResponse = {
     }
 };
 
-fetchMock.mock('http://localhost:8080/api/post/may-9-2018-test', oneResponse);
-fetchMock.mock('http://localhost:8080/api/post', manyResponse);
+fetchMock.mock('http://localhost:8080/api/post/content/may-9-2018-test', oneResponse);
+fetchMock.mock('http://localhost:8080/api/post/content', manyResponse);
 
 fetchMock.mock('http://localhost:8080/api/viewed/post/may-10-2018-test', {});
 

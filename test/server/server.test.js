@@ -10,13 +10,13 @@ import server from '../../src/server/server';
 // Tests for the postRouter GET requests
 describe("GET '/api/post'", () => {
     test('It responded with a 200', () => {
-        return request(server).get('/api/post').expect(200);
+        return request(server).get('/api/post/content').expect(200);
     });
 });
 
 // Tests for the viewedRouter PUT requests
 describe("PUT '/api/viewed/post/'", () => {
-    test('It responded with a 500', () => {
-        return request(server).put('/api/viewed/post/test-post').expect(500);
+    test('It responded with a 404', () => {
+        return request(server).put('/api/viewed/post/test-post').expect(404);
     });
 });
