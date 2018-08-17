@@ -20,6 +20,8 @@ class BlogDelegator {
      */
     static async fetchPosts(baseUrl, url) {
 
+        console.debug(`GET ${baseUrl}${url}`);
+
         const response = await fetch(`${baseUrl}${url}`);
 
         const link = response.headers.get('Link');

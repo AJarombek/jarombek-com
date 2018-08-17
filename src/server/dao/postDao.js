@@ -38,8 +38,8 @@ class PostDao {
 
         return postPreviews.map((post, index) => {
             return {
-                ...post,
-                content: postContents[index].content
+                ...post.toObject(),
+                content: postContents[index] ? postContents[index].content : []
             }
         })
     };
@@ -67,7 +67,7 @@ class PostDao {
      * @param limit - the number of posts to return.  This effectively determines the page size.
      * @return {Promise<number>} A number of posts to skip when making the query
      */
-    static async paginationPrep(page, limit) {
+    static paginationPrep = async (page, limit) => {
         // the unary + coerces the strings to numbers.  It is the fastest way to
         // convert strings to numbers in JavaScript
         page = +page;
@@ -80,7 +80,7 @@ class PostDao {
 
         // Get the starting point within a MongoDB collection to query
         return (page - 1) * limit;
-    }
+    };
 
     /**
      * Retrieve a single post by its name field.  All posts should have this field and it should
@@ -93,7 +93,7 @@ class PostDao {
         const postContent = await PostContent.findOne({name: name}).exec();
 
         return {
-            ...post,
+            ...post.toObject(),
             content: postContent.content
         }
     };

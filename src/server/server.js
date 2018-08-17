@@ -23,10 +23,6 @@ import Verify from "../client/Verify";
 import BlogList from "../client/BlogList";
 import gs from "../client/globalStyles";
 
-import Audit from "./model/audit";
-import Post from "./model/post";
-import Viewed from "./model/viewed";
-import User from "./model/user";
 import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
 import userRoute from "./route/userRouter";
@@ -36,8 +32,8 @@ mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 
 // API CRUD routes for a MongoDB collection
 const postRouter = postRoute();
-const viewedRouter = viewedRoute(Viewed, Post, Audit);
-const userRouter = userRoute(User, Audit);
+const viewedRouter = viewedRoute();
+const userRouter = userRoute();
 
 global.React = React;
 
@@ -59,13 +55,10 @@ const renderComponentsToHTML = async (url) => {
 
     if (singlePostPattern.exec(url)) {
         console.info('Ahead of Time Query Single Post');
+
         // Get the blog post that corresponds to this URL
         post = await getUrlPost(url, singlePostPattern);
 
-        // If a post exists for this URL, get its object from the MongoDB response object
-        if (post) {
-            post = post.toObject();
-        }
     } else if (postListPattern.exec(url)) {
         console.info('Ahead of Time Query Post List');
         const postsData = await getListOfPosts(url);
@@ -180,7 +173,7 @@ const getUrlPost = async (url, regex) => {
 
     // If the URL is valid, find the blog post in the database
     if (match) {
-        post = await Post.findOne({name: match}).exec();
+        post = await PostDao.getByName(match);
         console.debug(`Post with matching name: ${post.name}`);
     }
 
@@ -201,10 +194,11 @@ const getListOfPosts = async (url) => {
     const page = queries && queries.query && queries.query.page ? queries.query.page : 1;
 
     // The number of posts per page defaults to 12
-    const posts = await PostDao.getPaginatedPosts(page);
+    const posts = await PostDao.getPaginatedPostPreviews(page);
 
     // generatePaginatedPostsLinks() expects an integer for the first argument so coerce 'page'
-    const {first, prev, next, last} = PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post');
+    const {first, prev, next, last} =
+        PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post/preview');
 
     return {
         posts,

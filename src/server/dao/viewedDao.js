@@ -22,7 +22,7 @@ class ViewedDao {
         console.info(`Adding View to Post: ${post.name}`);
         const {views} = post;
         console.info(`Views: ${views}`);
-        const postAdditionalView = {...post.toObject(), views: views + 1};
+        const postAdditionalView = {...post, views: views + 1};
 
         // Update the post with the additional view
         await Post.update(

@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import {Link} from 'react-router-dom';
 import moment from 'moment';
 import TagList from './TagList';
+import uuid from 'uuid/v4';
 
 const BlogPost = ({ name, title, type, date, tags=[], content, sources=[] }) => {
     let count = 0;
@@ -32,7 +33,7 @@ const BlogPost = ({ name, title, type, date, tags=[], content, sources=[] }) => 
             <div className="jarombek-blog-sources">
                 {
                     sources.map(src =>
-                        <p key={src.toString()} className="jarombek-blog-source">
+                        <p key={uuid()} className="jarombek-blog-source">
                             {`[${++count}] ${src.startName}`}
                                 <a href={`${src.link}`}>{`${src.linkName}`}</a>
                             {`${src.endName}`}
