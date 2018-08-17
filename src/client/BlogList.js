@@ -97,7 +97,7 @@ class BlogList extends React.Component {
 
         if (!this.state.posts) {
             console.info(`Fetching All Posts`);
-            this.fetchPostsAndUpdate(`/api/post?page=${postPage}`, postPage)
+            this.fetchPostsAndUpdate(`/api/post/preview?page=${postPage}`, postPage)
                 .catch(err => {
                     console.error(err);
                     this.setState({posts: []});
@@ -153,7 +153,7 @@ class BlogList extends React.Component {
         } else {
 
             console.info(`Fetching ${postPage} Page of Posts...`);
-            this.fetchPostsAndUpdate(`/api/post?page=${postPage}`, postPage)
+            this.fetchPostsAndUpdate(`/api/post/preview?page=${postPage}`, postPage)
                 .catch(err => {
                     console.error(err);
                     this.setState({posts: []});
@@ -168,7 +168,7 @@ class BlogList extends React.Component {
      * It will default to the first page (1).
      * @returns {Promise<void>}
      */
-    async fetchPostsAndUpdate(url='/api/post', pageNumber=1) {
+    async fetchPostsAndUpdate(url='/api/post/preview', pageNumber=1) {
         const {posts, first, prev, next, last} =
             await BlogDelegator.fetchPosts(this.baseUrl, url);
 
@@ -237,6 +237,7 @@ class BlogList extends React.Component {
     render() {
         const {posts, ...links} = this.state;
         const {first, prev, current, next, last} = BlogList.extractPage(links);
+        const {page} = queryString.parse(this.props.location.search);
 
         this.pageCache = {
             ...this.pageCache,
@@ -258,7 +259,7 @@ class BlogList extends React.Component {
                             <meta name="author" content="Andrew Jarombek" />
                             <meta name="description"
                                   content={`Andrew Jarombek's Software Development Blog &
-                                    Discovery Posts`} />
+                                    Discovery Posts ${page ? `- Page ${page}` : ''}`} />
                             <link rel="canonical" href="https://jarombek.com/blog" />
                             <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                         </Helmet>

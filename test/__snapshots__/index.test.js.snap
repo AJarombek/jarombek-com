@@ -90,7 +90,7 @@ exports[`BlogPost No Sources matches snapshot 1`] = `
     <p
       className="jarombek-blog-date"
     >
-      August 11th, 2018
+      August 17th, 2018
     </p>
   </div>
   <Link
@@ -135,7 +135,7 @@ exports[`BlogPost matches snapshot 1`] = `
     <p
       className="jarombek-blog-date"
     >
-      August 11th, 2018
+      August 17th, 2018
     </p>
   </div>
   <Link
@@ -164,7 +164,7 @@ exports[`BlogPost matches snapshot 1`] = `
   >
     <p
       className="jarombek-blog-source"
-      key="[object Object]"
+      key="8efdedd8-b681-42ff-b921-44484d5ad4db"
     >
       [1] Start
       <a

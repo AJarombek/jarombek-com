@@ -54,7 +54,7 @@ class Blog extends React.Component {
     componentWillMount() {
         console.debug("Inside Blog ComponentWillMount");
 
-        if (this.props.post) {
+        if (this.props.post && this.props.post.name === this.props.match.params.name) {
             console.info(`Mounting Component with Post in State: ${this.props.post.name}`);
             this.setState({
                 post: JSXConverter.createPostJSX(this.props.post)
@@ -80,7 +80,7 @@ class Blog extends React.Component {
         // If the post name exists, display the post with that name.
         if (name) {
 
-            if (!this.state.post) {
+            if (!this.state.post || this.state.post.name !== name) {
                 console.info(`Fetching Post with name ${name}`);
                 this.fetchPostAndUpdate(name)
                     .catch(err => {

@@ -45,10 +45,6 @@ const PostSchema = new Schema({
     tags: [{
         type: TagSchema
     }],
-    content: {
-        type: Array,
-        required: true
-    },
     preview: {
         type: Array,
         required: true
@@ -62,6 +58,7 @@ const PostSchema = new Schema({
     }
 });
 
+PostSchema.index({name: 1});
 PostSchema.index({date: 1});
 
 module.exports = mongoose.model('Post', PostSchema, 'posts');

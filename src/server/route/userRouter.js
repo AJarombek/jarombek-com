@@ -4,318 +4,247 @@
  * @since 6/2/2018
  */
 
-const express = require('express');
-const bcrypt = require('bcrypt-nodejs');
-const uuid = require('uuid/v4');
-const base64 = require('base64-url');
+import express from 'express';
+import bcrypt from 'bcrypt-nodejs';
+import uuid from 'uuid/v4';
+import base64 from 'base64-url';
 
-const User = require('../model/user');
-const Audit = require('../model/audit');
-const emails = require('../fn/emails');
+import emails from '../fn/emails';
+import UserDao from '../dao/userDao';
+import User from "../model/user";
 
+/**
+ * Create the REST API for users
+ * @return {*} The express router for users
+ */
 const routes = () => {
 
     const userRouter = express.Router();
 
-    userRouter.route('/')
-        .get((req, res) => {
+    /**
+     * '/' Route
+     */
+    baseRoute(userRouter);
 
-            find().catch(error => res.status(500).send(error));
+    /**
+     * '/filter/:email' Route
+     */
+    filterEmailRoute(userRouter);
 
-            async function find() {
-                const users = await User.find().exec();
+    /**
+     * '/verify/:code' Route
+     */
+    verifyCodeRoute(userRouter);
 
-                res.json(users);
-            }
-        })
-        .post((req, res) => {
-
-            console.info(`Request Body: ${JSON.stringify(req.body)}`);
-
-            const user = new User(req.body);
-            console.info(`Creating User: ${user}`);
-
-            // First make sure that the user exists and that it has a password
-            if (user !== undefined && user.hash) {
-
-                // Then hash and salt the password with bcrypt - second parameter
-                // is the salt rounds, third is a callback while in progress.  We
-                // pass null to automatically generate a salt and because we don't
-                // need any progress updates
-                bcrypt.hash(user.hash, null, null, (err, hash) => {
-                    if (err) {
-                        console.error(err);
-                        res.status(500).json({error: err});
-                    } else {
-
-                        console.info(`Original User ${JSON.stringify(user)}`);
-
-                        const verify_cd = base64.encode(uuid());
-                        const unsub_cd = base64.encode(uuid());
-
-                        console.info(`UUID: ${uuid()}`);
-
-                        const hashedUser = {
-                            ...user.toObject(),
-                            hash,
-                            verify_cd,
-                            unsub_cd
-                        };
-
-                        console.info(`Hashed User ${JSON.stringify(hashedUser)}`);
-
-                        // Insert the new user
-                        insert(hashedUser).then(() => {
-
-                            // If the insert succeeds, send a welcome email
-                            emails.sendWelcomeEmail(hashedUser.email, verify_cd, unsub_cd);
-
-                        }, (reason) => {
-                            console.error(`User Creation Failed: ${reason}`);
-                        });
-                    }
-                });
-
-            } else {
-                res.status(500).json({error: "User must have a Password"});
-            }
-
-            async function insert(user) {
-                console.info(`Email: ${user.email}`);
-
-                const existingUser = await findUserByEmail(user.email);
-
-                console.info(`User: ${user}`);
-
-                if (existingUser) {
-                    console.info(`User already exists with email ${user.email}`);
-                    res.status(400).json({error: 'User already exists'});
-                    throw Error('User already exists');
-                } else {
-
-                    // The email isn't in use, so create the new user!
-                    const newUser = await User.create(user);
-                    console.info(`New User Created: ${newUser}`);
-
-                    // Audit the creation of a new user
-                    const audit = new Audit({
-                        item_id: newUser._id,
-                        type: 'user',
-                        message: `Created User ${newUser.email}`,
-                        source: 'Jarombek.com NodeJS/Express API'
-                    });
-
-                    await Audit.create(audit);
-
-                    res.status(201).json(newUser);
-                }
-            }
-        });
-
-    // Route middleware for an existing user
-    userRouter.use('/filter/:email', (req, res, next) => {
-
-        findUserByEmail(req.params.email).then((user) => {
-            console.info(`User with matching email: ${user.email}`);
-            req.user = user;
-            next();
-        }, (reason) => {
-            res.status(404).json({
-                error: "No User found with given email",
-                message: reason
-            });
-        });
-    });
-
-    userRouter.route('/filter/:email')
-        .get((req, res) => {
-            res.json(req.user);
-        })
-        .delete((req, res) => {
-            remove().catch(error => res.status(500).send(error));
-
-            async function remove() {
-                await req.user.remove();
-
-                // Should return null if it was successfully deleted
-                const deleted = await User.findOne({email: req.user.email}).exec();
-
-                // Call the catch() function if the user was not deleted
-                if (deleted !== null) {
-                    throw Error('User Still Exists');
-                }
-
-                // Audit the deletion of a user
-                const audit = new Audit({
-                    item_id: req.user._id,
-                    type: 'user',
-                    message: `Deleted User: ${req.user.email}`,
-                    source: 'Jarombek.com NodeJS/Express API'
-                });
-
-                await Audit.create(audit);
-
-                res.status(204).send();
-            }
-        });
-
-    userRouter.route('/verify/:code')
-        .patch((req, res) => {
-            verifyUser(req.params.code).then((user) => {
-                res.status(200).json(user);
-            }, (reason) => {
-                res.status(400).json({
-                    error: "Failed to Verify user",
-                    message: reason
-                });
-            });
-        });
-
-    userRouter.route('/unsub/:code')
-        .patch((req, res) => {
-            unsubUser(req.params.code).then((user) => {
-                res.status(200).json(user);
-            }, (reason) => {
-                res.status(400).json({
-                    error: "Failed to Unsubscribe user",
-                    message: reason
-                });
-            });
-        });
+    /**
+     * '/unsub/:code' Route
+     */
+    unsubCodeRoute(userRouter);
 
     return userRouter;
 };
 
 /**
- * Make a findOne() query on the User collection in MongoDB with a specific user email
- * @param email - the email of a user to search for
- * @return {Promise<*>}
+ * Handler for the base routes of the API ('/' endpoints)
+ * @param router - the express router for the users API
  */
-async function findUserByEmail(email) {
-    return await User.findOne({
-        email,
-        deleted: false
-    }).exec();
-}
+const baseRoute = (router) => {
+    router.route('/')
+        .get(getAll)
+        .post(create);
+};
 
 /**
- * Make a findOne() query on the User collection in MongoDB with a specific
- * verification code
- * @param code - the verification code of a user to search for
- * @return {Promise<*>}
+ * Handler for the email filter routes of the API ('/filter/:email' endpoints)
+ * @param router - the express router for the users API
  */
-async function findUserByVerifyCode(code) {
-    return await User.findOne({verify_cd: code}).exec();
-}
+const filterEmailRoute = (router) => {
+    router.use('/filter/:email', filterEmailMiddleware);
+
+    router.route('/filter/:email')
+        .get(get)
+        .delete(deleteOne);
+};
 
 /**
- * Make a findOne() query on the User collection in MongoDB with a specific
- * unsubscription code
- * @param code - the unsubscription code of a user to search for
- * @return {Promise<*>}
+ * Handler for the verify code routes of the API ('/verify/:code' endpoints)
+ * @param router - the express router for the users API
  */
-async function findUserByUnsubCode(code) {
-    return await User.findOne({unsub_cd: code}).exec();
-}
+const verifyCodeRoute = (router) => {
+    router.route('/verify/:code')
+        .patch(verifyCode);
+};
 
 /**
- * Verify a user and audit the update of the user in the database.  Will throw
- * an error if the user was already verified or if the user does not exist with
- * the given verification code.
- * @param code - the users verification code
- * @return {Promise<*>}
+ * Handler for the unsubscribe code routes of the API ('/unsub/:code' endpoints)
+ * @param router - the express router for the users API
  */
-async function verifyUser(code) {
-    const user = await findUserByVerifyCode(code);
+const unsubCodeRoute = (router) => {
+    router.route('/unsub/:code')
+        .patch(unsubCode);
+};
 
-    console.info(`User with verification code: ${JSON.stringify(user.toObject())}`);
+/**
+ * Get all the users in the database
+ * @param req - HTTP request body
+ * @param res - HTTP response body
+ */
+const getAll = (req, res) => {
 
-    // If the user has an email property we can assume it is valid
-    if (user.email) {
+    UserDao.getAll().then((users) => {
+        res.json(users);
+    }, (reason => {
+        res.status(400).json({
+            error: "Failed to Retrieve all users",
+            message: reason
+        });
+    }));
+};
 
-        if (user.verified === false) {
+/**
+ * Create a new user in the database.  The password must be hashed before being stored, and
+ * new unsubscribe and verify codes are added to the user.  If all goes smoothly with user creation,
+ * a welcome email is sent to the users email address.
+ * @param req - HTTP request body
+ * @param res - HTTP response body
+ */
+const create = (req, res) => {
 
-            const {_id, ...userObject} = user.toObject();
+    console.info(`Request Body: ${JSON.stringify(req.body)}`);
 
-            const verifiedUser = {
-                ...userObject,
-                verified: true
-            };
+    const user = new User(req.body);
+    console.info(`Creating User: ${user}`);
 
-            await User.update({
-                email: user.email,
-                deleted: false
-            }, verifiedUser).exec();
+    // First make sure that the user exists and that it has a password
+    if (user !== undefined && user.hash) {
 
-            const updatedUser = findUserByEmail(user.email);
+        // Then hash and salt the password with bcrypt - second parameter
+        // is the salt rounds, third is a callback while in progress.  We
+        // pass null to automatically generate a salt and because we don't
+        // need any progress updates
+        bcrypt.hash(user.hash, null, null, (err, hash) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({error: err});
+            } else {
 
-            const audit = new Audit({
-                item_id: updatedUser._id,
-                type: 'user',
-                message: `Updated/Verified User ${updatedUser.email}`,
-                source: 'Jarombek.com NodeJS/Express API'
-            });
+                console.info(`Original User ${JSON.stringify(user)}`);
 
-            await Audit.create(audit);
+                const verify_cd = base64.encode(uuid());
+                const unsub_cd = base64.encode(uuid());
 
-            return updatedUser;
+                console.info(`UUID: ${uuid()}`);
 
-        } else {
-            throw `User already verified with email: ${user.email}`;
-        }
+                const hashedUser = {
+                    ...user.toObject(),
+                    hash,
+                    verify_cd,
+                    unsub_cd
+                };
+
+                console.info(`Hashed User ${JSON.stringify(hashedUser)}`);
+
+                // Insert the new user
+                UserDao.insert(hashedUser).then((newUser) => {
+
+                    // If the insert succeeds, send a welcome email
+                    emails.sendWelcomeEmail(hashedUser.email, verify_cd, unsub_cd);
+
+                    res.status(201).json(newUser);
+
+                }, (reason) => {
+                    res.status(400).json({
+                        error: `User Creation Failed: ${reason}`,
+                        message: reason
+                    });
+                });
+            }
+        });
+
     } else {
-        throw `User does not exist with verification code: ${code}`;
+        res.status(500).json({error: "User must have a Password"});
     }
-}
+};
 
 /**
- * Unsubscribe a user and audit the update of the user in the database.  Will throw
- * an error if the user was already deleted (unsubscribed) or if the user does not exist with
- * the given unsubscription code.
- * @param code - the users unsubscription code
- * @return {Promise<*>}
+ * Middleware for routes that contain an email filter.  Find the user with a matching email in the
+ * database here and pass it down to further route handlers.
+ * @param req - HTTP request body
+ * @param res - HTTP response body
+ * @param next - the next step on middleware in the router
  */
-async function unsubUser(code) {
-    const user = await findUserByUnsubCode(code);
+const filterEmailMiddleware = (req, res, next) => {
 
-    console.info(`User with unsubscription code: ${JSON.stringify(user.toObject())}`);
+    UserDao.getByEmail(req.params.email).then((user) => {
+        console.info(`User with matching email: ${user.email}`);
+        req.user = user;
+        next();
+    }, (reason) => {
+        res.status(404).json({
+            error: "No User found with given email",
+            message: reason
+        });
+    });
+};
 
-    // If the user has an email property we can assume it is valid
-    if (user.email) {
+/**
+ * Get a single user.  The user object is simply returned as it was retrieved from the database
+ * in the middleware step.
+ * @param req - HTTP request body
+ * @param res - HTTP response body
+ */
+const get = (req, res) => {
+    res.json(req.user);
+};
 
-        if (user.deleted === false) {
+/**
+ * Delete a single user from the database.  The user object comes from the middleware step.
+ * @param req - HTTP request body
+ * @param res - HTTP response body
+ */
+const deleteOne = (req, res) => {
+    UserDao.remove(req.user).then(() => {
+        res.status(204).send();
+    }, (reason => {
+        res.status(400).json({
+            error: "Failed to remove user",
+            message: reason
+        });
+    }));
+};
 
-            const {_id, ...userObject} = user.toObject();
+/**
+ * Verify a user based on a verification code.  The user will be altered if the verification code
+ * passed to the DAO matches the one for this user in the database.
+ * @param req - HTTP request body
+ * @param res - HTTP response body
+ */
+const verifyCode = (req, res) => {
+    UserDao.verify(req.params.code).then((user) => {
+        res.status(200).json(user);
+    }, (reason) => {
+        res.status(400).json({
+            error: "Failed to Verify user",
+            message: reason
+        });
+    });
+};
 
-            const deletedUser = {
-                ...userObject,
-                deleted: true
-            };
-
-            await User.update({
-                email: user.email,
-                deleted: false
-            }, deletedUser).exec();
-
-            const updatedUser = findUserByEmail(user.email);
-
-            const audit = new Audit({
-                item_id: updatedUser._id,
-                type: 'user',
-                message: `Deleted User ${updatedUser.email}`,
-                source: 'Jarombek.com NodeJS/Express API'
-            });
-
-            await Audit.create(audit);
-
-            return updatedUser;
-
-        } else {
-            throw `User already deleted with email: ${user.email}`;
-        }
-    } else {
-        throw `User does not exist with unsubscription code: ${code}`;
-    }
-}
+/**
+ * Unsubscribe a user based on a verification code.  The user will be removed if the unsub code
+ * passed to the DAO matches the one for this user in the database.
+ * @param req - HTTP request body
+ * @param res - HTTP response body
+ */
+const unsubCode = (req, res) => {
+    UserDao.unsub(req.params.code).then((user) => {
+        res.status(200).json(user);
+    }, (reason) => {
+        res.status(400).json({
+            error: "Failed to Unsubscribe user",
+            message: reason
+        });
+    });
+};
 
 module.exports = routes;
