@@ -29,6 +29,7 @@ PostContentSchema.index(
         'contentString': 'text'
     },
     {
+        name: "post-content-text-index",
         weights: {
             'contentString': 5
         }

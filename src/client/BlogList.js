@@ -260,7 +260,8 @@ class BlogList extends React.Component {
                         <meta name="description"
                               content={`Andrew Jarombek's Software Development Blog &
                                 Discovery Posts ${page ? `- Page ${page}` : ''}`} />
-                        <link rel="canonical" href="https://jarombek.com/blog" />
+                        <link rel="canonical"
+                              href={`https://jarombek.com/blog${page ? `?page=${page}`: ''}`} />
                         <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                     </Helmet>
                     { (posts) ?

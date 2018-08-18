@@ -79,17 +79,18 @@ PostSchema.index(
         'sources.link': 'text'
     },
     {
+        name: "post-text-index",
         weights: {
             'name': 100,
             'title': 100,
-            'type': 50,
+            'type': 10,
             'date': 5,
-            'tags.name': 25,
-            'previewString': 5,
-            'sources.startName': 2,
-            'sources.endName': 2,
-            'sources.linkName': 2,
-            'sources.link': 2
+            'tags.name': 5,
+            'previewString': 2,
+            'sources.startName': 1,
+            'sources.endName': 1,
+            'sources.linkName': 1,
+            'sources.link': 1
         }
     }
 );

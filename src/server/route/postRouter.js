@@ -108,7 +108,7 @@ const getAll = (req, res) => {
         // In the headers specify the API endpoints for related documents
         // + the total document count
         res.set('Link', `${first}${prev}${next}${last}`);
-        res.set('X-Total-Count', PostDao.postCountCache);
+        res.set('X-Total-Count', PostDao.postCountCache[query]);
 
         res.json(posts);
 
@@ -140,7 +140,7 @@ const getAllPreviews = (req, res) => {
             PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/preview');
 
         res.set('Link', `${first}${prev}${next}${last}`);
-        res.set('X-Total-Count', PostDao.postCountCache);
+        res.set('X-Total-Count', PostDao.postCountCache[query]);
         res.json(posts);
 
     }, (reason => {
