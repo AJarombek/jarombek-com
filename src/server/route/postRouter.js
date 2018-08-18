@@ -93,12 +93,13 @@ const getAll = (req, res) => {
     // This API allows for two parameters:
     // [page] - the pagination of the MongoDB post collection
     // [limit] - the max number of documents to return.  Which documents depends on the page
-    let {page, limit} = req.query;
+    let {page, limit, query} = req.query;
 
     page = +page || 1;
     limit = +limit || 12;
+    query = query || "";
 
-    PostDao.getPaginatedPosts(page, limit).then((posts) => {
+    PostDao.getPaginatedPosts(page, limit, query).then((posts) => {
 
         // Generate API endpoints to put in the HTTP Link header
         const {first, prev, next, last} =
@@ -127,12 +128,13 @@ const getAll = (req, res) => {
  */
 const getAllPreviews = (req, res) => {
 
-    let {page, limit} = req.query;
+    let {page, limit, query} = req.query;
 
     page = +page || 1;
     limit = +limit || 12;
+    query = query || "";
 
-    PostDao.getPaginatedPostPreviews(page, limit).then((posts) => {
+    PostDao.getPaginatedPostPreviews(page, limit, query).then((posts) => {
 
         const {first, prev, next, last} =
             PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/preview');

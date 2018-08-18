@@ -10,7 +10,7 @@ import PostContent from "../model/postContent"
 class PostDao {
 
     // Cache the number of existing posts so that a MongoDB query doesn't have to occur on each GET
-    static postCountCache = 0;
+    static postCountCache = {};
 
     /**
      * Get a certain page of posts - this method is good to use for a paginated approach that
@@ -19,9 +19,10 @@ class PostDao {
      * limit.  The default page is 1
      * @param limit - the number of posts to return.  This effectively determines the page size.
      * The default limit is 12.
+     * @param query
      * @return {Promise<*>} An array of posts from MongoDB
      */
-    static getPaginatedPosts = async (page=1, limit=12) => {
+    static getPaginatedPosts = async (page=1, limit=12, query="") => {
 
          const skip = await PostDao.paginationPrep(page, limit);
 
@@ -41,7 +42,7 @@ class PostDao {
                 ...post.toObject(),
                 content: postContents[index] ? postContents[index].content : []
             }
-        })
+        });
     };
 
     /**
@@ -51,9 +52,10 @@ class PostDao {
      * the limit.  The default page is 1
      * @param limit - the number of post previews to return.  This effectively determines the page
      * size.  The default limit is 12.
+     * @param query
      * @return {Promise<*>} An array of post previews from MongoDB
      */
-    static getPaginatedPostPreviews = async (page=1, limit=12) => {
+    static getPaginatedPostPreviews = async (page=1, limit=12, query="") => {
         const skip = await PostDao.paginationPrep(page, limit);
 
         return await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
@@ -80,6 +82,78 @@ class PostDao {
 
         // Get the starting point within a MongoDB collection to query
         return (page - 1) * limit;
+    };
+
+    static getAll = async (page=1, limit=12) => {
+        page = +page;
+        limit = +limit;
+
+        const skip = (page - 1) * limit;
+
+        const postPreviews = await Post.find({})
+            .skip(skip)
+            .limit(limit)
+            .sort({date: -1})
+            .exec();
+
+        const postContents = await PostContent.find({})
+            .skip(skip)
+            .limit(limit)
+            .sort({date: -1})
+            .exec();
+
+        return postPreviews.map((post, index) => {
+            return {
+                ...post.toObject(),
+                content: postContents[index] ? postContents[index].content : []
+            }
+        });
+    };
+
+    static getAllPreviews = async (page=1, limit=12) => {
+        page = +page;
+        limit = +limit;
+        const skip = (page - 1) * limit;
+
+        return await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
+    };
+
+    static getQueried = async (page=1, limit=12, query="") => {
+        page = +page;
+        limit = +limit;
+        const skip = (page - 1) * limit;
+
+        const postPreviews = await Post.find({'$text': {'$search': query}})
+            .select({'score': {'$meta': 'textScore'}})
+            .sort({date: -1})
+            .exec();
+
+        const postContents = await PostContent.find({'$text': {'$search': query}})
+            .select({'score': {'$meta': 'textScore'}})
+            .sort({date: -1})
+            .exec();
+
+        const posts = postPreviews.map((preview, index) => {
+
+            const combinedScore =
+                (preview.score || 0) + (postContents[index] ? postContents[index].score || 0 : 0);
+
+            return {
+                ...preview.toObject(),
+                previewString: null,
+                content: postContents[index] ? postContents[index].content : [],
+                score: combinedScore
+            }
+        });
+
+        const sortedPosts = posts.sort((a, b) => b.score - a.score);
+        
+        return sortedPosts.slice(skip, skip + limit);
+    };
+
+    static getQueriedPreviews = async (page=1, limit=12, query="") => {
+        page = +page;
+        limit = +limit;
     };
 
     /**
