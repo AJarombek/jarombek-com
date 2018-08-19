@@ -101,14 +101,16 @@ const getAll = (req, res) => {
 
     PostDao.getPaginatedPosts(page, limit, query).then((posts) => {
 
+        const cacheLookup = query || "_";
+
         // Generate API endpoints to put in the HTTP Link header
         const {first, prev, next, last} =
-            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/content');
+            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/content', cacheLookup);
 
         // In the headers specify the API endpoints for related documents
         // + the total document count
         res.set('Link', `${first}${prev}${next}${last}`);
-        res.set('X-Total-Count', PostDao.postCountCache[query]);
+        res.set('X-Total-Count', PostDao.postCountCache[cacheLookup]);
 
         res.json(posts);
 
@@ -136,11 +138,13 @@ const getAllPreviews = (req, res) => {
 
     PostDao.getPaginatedPostPreviews(page, limit, query).then((posts) => {
 
+        const cacheLookup = query || "_";
+
         const {first, prev, next, last} =
-            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/preview');
+            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/preview', cacheLookup);
 
         res.set('Link', `${first}${prev}${next}${last}`);
-        res.set('X-Total-Count', PostDao.postCountCache[query]);
+        res.set('X-Total-Count', PostDao.postCountCache[cacheLookup]);
         res.json(posts);
 
     }, (reason => {

@@ -191,14 +191,16 @@ const getUrlPost = async (url, regex) => {
 const getListOfPosts = async (url) => {
     const queries = queryString.parseUrl(url);
 
+    // These lines get items from the URL query string
     const page = queries && queries.query && queries.query.page ? queries.query.page : 1;
+    const query = queries && queries.query && queries.query.query ? queries.query.query : "_";
 
     // The number of posts per page defaults to 12
     const posts = await PostDao.getPaginatedPostPreviews(page);
 
     // generatePaginatedPostsLinks() expects an integer for the first argument so coerce 'page'
     const {first, prev, next, last} =
-        PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post/preview');
+        PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post/preview', query);
 
     return {
         posts,

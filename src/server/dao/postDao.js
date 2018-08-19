@@ -9,7 +9,14 @@ import PostContent from "../model/postContent"
 
 class PostDao {
 
-    // Cache the number of existing posts so that a MongoDB query doesn't have to occur on each GET
+    /**
+     * Cache the number of existing posts so that a MongoDB query doesn't have to occur on each GET
+     * @type {{}}
+     * @example
+     *  {
+     *
+     *  }
+     */
     static postCountCache = {};
 
     /**
@@ -25,13 +32,9 @@ class PostDao {
      */
     static getPaginatedPosts = async (page=1, limit=12, query="") => {
 
-        const posts = query ?
+        return query ?
             PostDao.getQueried(page, limit, query):
             PostDao.getAll(page, limit);
-
-        await PostDao.updatePostCountCache(query);
-
-        return posts;
     };
 
     /**
@@ -47,24 +50,24 @@ class PostDao {
      */
     static getPaginatedPostPreviews = async (page=1, limit=12, query="") => {
 
-        const previews = query ?
+        return query ?
             PostDao.getQueriedPreviews(page, limit, query):
             PostDao.getAllPreviews(page, limit);
-
-        await PostDao.updatePostCountCache(query);
-
-        return previews;
     };
 
     /**
      * Populate the post count cache if it is empty for the current query.
      * @param query - a string that a text search was performed with.
+     * @param getCount -
+     * @return {Promise<void>}
      */
-    static updatePostCountCache = async (query="") => {
+    static updatePostCountCache = async (query="", getCount=f=>f) => {
+
+        query = query || "_";
 
         if (!PostDao.postCountCache[query]) {
-            PostDao.postCountCache[query] = await Post.count({});
-            console.debug(`Set Post Count Cache To: ${PostDao.postCountCache}`);
+            PostDao.postCountCache[query] = await getCount();
+            console.info(`Set Post Count Cache To: ${JSON.stringify(PostDao.postCountCache)}`);
         }
     };
 
@@ -92,6 +95,11 @@ class PostDao {
             .sort({date: -1})
             .exec();
 
+        await PostDao.updatePostCountCache("", async () => {
+            const posts = await Post.find({});
+            return posts.length;
+        });
+
         return postPreviews.map((post, index) => {
             return {
                 ...post.toObject(),
@@ -110,6 +118,11 @@ class PostDao {
         page = +page;
         limit = +limit;
         const skip = (page - 1) * limit;
+
+        await PostDao.updatePostCountCache("", async () => {
+            const posts = await Post.find({});
+            return posts.length;
+        });
 
         return await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
     };
@@ -135,6 +148,8 @@ class PostDao {
             .select({'score': {'$meta': 'textScore'}})
             .sort({date: -1})
             .exec();
+
+        await PostDao.updatePostCountCache(query, () => postPreviews.length);
 
         const posts = postPreviews.map((preview, index) => {
 
@@ -168,12 +183,14 @@ class PostDao {
 
         const postPreviews = await Post.find({'$text': {'$search': query}})
             .select({'score': {'$meta': 'textScore'}})
-            .skip(skip)
-            .limit(limit)
             .sort({'score': {'$meta': 'textScore'}})
             .exec();
 
-        return postPreviews.map(preview => preview.toObject());
+        await PostDao.updatePostCountCache(query, () => postPreviews.length);
+
+        const paginatedPreviews = postPreviews.slice(skip, skip + limit);
+
+        return paginatedPreviews.map(preview => preview.toObject());
     };
 
     /**
@@ -207,9 +224,10 @@ class PostDao {
      * @param page - the current page specified in the API call
      * @param limit - the max number of documents to return
      * @param url - the base url of the API (no parameters)
+     * @param query - a string that a text search was performed with.
      * @returns {{first: string, prev: string, next: string, last: string}}
      */
-    static generatePaginatedPostsLinks = (page, limit, url) => {
+    static generatePaginatedPostsLinks = (page, limit, url, query) => {
         const location = page * limit;
 
         let first = '';
@@ -225,11 +243,11 @@ class PostDao {
         }
 
         // If we are not on the last page of the API, return the last page and the next page
-        if (location < PostDao.postCountCache) {
+        if (location < PostDao.postCountCache[query]) {
             next = `<${url}?page=${page + 1}&limit=${limit}>; rel="next";`;
             last =
                 `<${url}?page=${
-                        Math.ceil(PostDao.postCountCache / parseFloat(limit))
+                        Math.ceil(PostDao.postCountCache[query] / parseFloat(limit))
                 }&limit=${limit}>; rel="last";`;
         }
 
