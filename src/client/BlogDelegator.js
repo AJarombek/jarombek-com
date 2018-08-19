@@ -98,7 +98,7 @@ class BlogDelegator {
     static generateLinks(list, regex=/<([a-z0-9/?&=]+)>; rel="(\w+)"/) {
 
         // Base case when list is empty
-        if (list.length === 0) {
+        if (!list || list.length === 0) {
             return {};
         }
 

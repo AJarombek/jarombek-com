@@ -80,6 +80,7 @@ PostSchema.index(
     },
     {
         name: "post-text-index",
+        default_language: 'none',
         weights: {
             'name': 100,
             'title': 100,

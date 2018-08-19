@@ -30,6 +30,7 @@ PostContentSchema.index(
     },
     {
         name: "post-content-text-index",
+        default_language: 'none',
         weights: {
             'contentString': 5
         }

@@ -121,14 +121,15 @@ class BlogList extends React.Component {
         this.setState({posts: null});
 
         // Get the 'page' query from the URL - defaulted to 1
-        const {page} = queryString.parse(nextProps.location.search);
+        const {page, query} = queryString.parse(nextProps.location.search);
         const postPage = +page || 1;
+        const queryStr = query || "_";
 
-        if (this.postsCache[`${postPage}`]) {
+        if (this.postsCache[queryStr] && this.postsCache[queryStr][postPage]) {
 
-            console.info(`${postPage} Page of Posts Found in Cache`);
+            console.info(`${postPage} Page of Posts Found in Cache for Query: ${queryStr}`);
 
-            const sortedPages = Object.entries(this.pageCache).sort();
+            const sortedPages = Object.entries(this.pageCache[queryStr]).sort();
             console.debug(sortedPages);
 
             const potentialPrevPage = sortedPages.filter(page => +page[0] === +postPage - 1);
@@ -144,7 +145,7 @@ class BlogList extends React.Component {
             const lastPage = potentialLastPage !== nextPage ? potentialLastPage : null;
 
             this.setState({
-                posts: this.postsCache[`${postPage}`],
+                posts: this.postsCache[queryStr][postPage],
                 first: firstPage && +firstPage[0] !== postPage ? firstPage[1] : null,
                 prev: prevPage ? prevPage[1] : null,
                 next: nextPage ? nextPage[1] : null,
@@ -167,16 +168,22 @@ class BlogList extends React.Component {
      * @param url - optional url parameter.  It will default to a param-less url
      * @param pageNumber - the number representing the page of blog posts to fetch.
      * It will default to the first page (1).
+     * @param query -
      * @returns {Promise<void>}
      */
-    async fetchPostsAndUpdate(url='/api/post/preview', pageNumber=1) {
+    async fetchPostsAndUpdate(url='/api/post/preview', pageNumber=1, query="") {
         const {posts, first, prev, next, last} =
             await BlogDelegator.fetchPosts(this.baseUrl, url);
+
+        query = query || "_";
 
         // Add the newly fetched posts to the client side JS posts cache
         this.postsCache = {
             ...this.postsCache,
-            [`${pageNumber}`]: posts
+            [query]: {
+                ...this.postsCache[query],
+                [pageNumber]: posts
+            }
         };
 
         this.setState({
@@ -233,20 +240,64 @@ class BlogList extends React.Component {
     }
 
     /**
+     *
+     * @param nextProps
+     * @param nextState
+     */
+    shouldComponentUpdate(nextProps, nextState) {
+        const {searchQuery} = nextState;
+
+        return searchQuery === this.state.searchQuery
+    }
+
+    onKeyUpSearchBar(e) {
+        const query = e.target.value;
+        if (e.keyCode === 13 && query) {
+            this.fetchPostsAndUpdate(`/api/post/preview?query="${query}"`)
+                .catch(err => {
+                    console.error(err);
+                    this.setState({posts: []});
+                });
+        }
+    }
+
+    onChangeSearchBar(e) {
+        this.setState({searchQuery: e.target.value.trim()});
+    }
+
+    onClickSearch() {
+        const {searchQuery} = this.state;
+
+        if (searchQuery) {
+            this.fetchPostsAndUpdate(`/api/post/preview?query="${searchQuery}"`)
+                .catch(err => {
+                    console.error(err);
+                    this.setState({posts: []});
+                });
+        }
+    }
+
+    /**
      * Render the JSX
      */
     render() {
-        const {posts, ...links} = this.state;
+        const {posts, searchQuery, ...links} = this.state;
         const {first, prev, current, next, last} = BlogList.extractPage(links);
         const {page} = queryString.parse(this.props.location.search);
 
+        const queryVar = searchQuery || "_";
+        const queryUrl = searchQuery ? `query=${searchQuery}&` : '';
+
         this.pageCache = {
             ...this.pageCache,
-            [`${first.page}`]: first.link || this.pageCache[`${first.page}`],
-            [`${prev.page}`]: prev.link || this.pageCache[`${prev.page}`],
-            [`${current.page}`]: current.link || this.pageCache[`${current.page}`],
-            [`${next.page}`]: next.link || this.pageCache[`${next.page}`],
-            [`${last.page}`]: last.link || this.pageCache[`${last.page}`]
+            [queryVar]: {
+                ...this.pageCache[queryVar],
+                [`${first.page}`]: first.link || this.pageCache[`${first.page}`],
+                [`${prev.page}`]: prev.link || this.pageCache[`${prev.page}`],
+                [`${current.page}`]: current.link || this.pageCache[`${current.page}`],
+                [`${next.page}`]: next.link || this.pageCache[`${next.page}`],
+                [`${last.page}`]: last.link || this.pageCache[`${last.page}`]
+            }
         };
 
         console.debug('Inside BlogList Render');
@@ -270,9 +321,11 @@ class BlogList extends React.Component {
                                 <input type="text"
                                        name="search"
                                        placeholder="Search"
-                                       onChange={(e) => console.info(e)}/>
+                                       onKeyUp={(e) => this.onKeyUpSearchBar(e)}
+                                       onChange={(e) => this.onChangeSearchBar(e)}/>
                                 <Button activeColor="primary" passiveColor="primary"
-                                        borderColor="primary" size="box-large">
+                                        borderColor="primary" size="box-large"
+                                        onClick={() => this.onClickSearch()}>
                                     GO
                                 </Button>
                             </div>
@@ -288,7 +341,8 @@ class BlogList extends React.Component {
                     }
                     <div className="jarombek-blog-list-footer">
                         <PaginationBar first={first} previous={prev} current={current}
-                                       next={next} last={last} link={`/blog?page=`}/>
+                                       next={next} last={last}
+                                       link={`/blog?${queryUrl}page=`}/>
                     </div>
                 </div>
                 { (this.state.subscribing) ?
