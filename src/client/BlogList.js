@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import 'isomorphic-fetch';
 import {Helmet} from 'react-helmet';
 import queryString from 'query-string';
+import ExecutionEnvironment from 'exenv';
 
 import WebsiteTemplate from './WebsiteTemplate';
 import Loading from "./Loading";
@@ -61,7 +62,7 @@ class BlogList extends React.Component {
     componentWillMount() {
         console.debug("Inside BlogList ComponentWillMount");
 
-        if (this.props.posts) {
+        if (this.props.posts && !ExecutionEnvironment.canUseDOM) {
 
             const {posts} = this.props;
             const {query} = queryString.parse(this.props.location.search);
@@ -74,7 +75,7 @@ class BlogList extends React.Component {
             console.info(`Mounting Component with # of Posts: ${posts.length}`);
             this.setState({
                 posts: JSXConverter.createPostsJSX(posts),
-                searchQuery: query,
+                executedQuery: query,
                 first,
                 prev,
                 next,
@@ -124,7 +125,13 @@ class BlogList extends React.Component {
         // By default React doesn't move to the top of the page when new props are received
         // and the URL changes - so we have to handle it ourselves
         window.scrollTo(0, 0);
-        this.setState({posts: null});
+        this.setState({
+            posts: null,
+            first: null,
+            prev: null,
+            next: null,
+            last: null
+        });
 
         // Get the 'page' query from the URL - defaulted to 1
         const {page, query} = queryString.parse(nextProps.location.search);
@@ -145,7 +152,7 @@ class BlogList extends React.Component {
             const prevPage = potentialPrevPage.length ? potentialPrevPage[0] : null;
             const nextPage = potentialNextPage.length ? potentialNextPage[0] : null;
 
-            const potentialFirstPage = sortedPages[1];
+            const potentialFirstPage = sortedPages[0];
             const potentialLastPage = sortedPages[sortedPages.length - 1];
 
             const firstPage = potentialFirstPage !== prevPage ? potentialFirstPage : null;
@@ -153,6 +160,7 @@ class BlogList extends React.Component {
 
             this.setState({
                 posts: this.postsCache[queryStr][postPage],
+                executedQuery: queryStr,
                 first: firstPage && +firstPage[0] !== postPage ? firstPage[1] : null,
                 prev: prevPage ? prevPage[1] : null,
                 next: nextPage ? nextPage[1] : null,
@@ -197,6 +205,7 @@ class BlogList extends React.Component {
 
         this.setState({
             posts,
+            executedQuery: query,
             first,
             prev,
             next,
@@ -255,9 +264,9 @@ class BlogList extends React.Component {
      * @param nextState - the new state
      */
     shouldComponentUpdate(nextProps, nextState) {
-        const {searchQuery} = nextState;
+        const {potentialQuery} = nextState;
 
-        return searchQuery === this.state.searchQuery
+        return potentialQuery === this.state.potentialQuery
     }
 
     onKeyUpSearchBar(e) {
@@ -268,14 +277,14 @@ class BlogList extends React.Component {
     }
 
     onChangeSearchBar(e) {
-        this.setState({searchQuery: e.target.value.trim()});
+        this.setState({potentialQuery: e.target.value.trim()});
     }
 
     onClickSearch() {
-        const {searchQuery} = this.state;
+        const {potentialQuery} = this.state;
 
-        if (searchQuery) {
-            this.queryPosts(searchQuery);
+        if (potentialQuery) {
+            this.queryPosts(potentialQuery);
         }
     }
 
@@ -295,22 +304,22 @@ class BlogList extends React.Component {
     render() {
         console.debug('Inside BlogList Render');
 
-        const {posts, searchQuery, ...links} = this.state;
+        const {posts, executedQuery, ...links} = this.state;
         const {first, prev, current, next, last} = BlogList.extractPage(links);
         const {page} = queryString.parse(this.props.location.search);
 
-        const queryVar = searchQuery || "_";
-        const queryUrl = searchQuery ? `query=${searchQuery}&` : '';
+        const queryVar = executedQuery || "_";
+        const queryUrl = executedQuery && executedQuery !== "_" ? `query=${executedQuery}&` : '';
 
         this.pageCache = {
             ...this.pageCache,
             [queryVar]: {
                 ...this.pageCache[queryVar],
-                [`${first.page}`]: first.link || this.pageCache[`${first.page}`],
-                [`${prev.page}`]: prev.link || this.pageCache[`${prev.page}`],
-                [`${current.page}`]: current.link || this.pageCache[`${current.page}`],
-                [`${next.page}`]: next.link || this.pageCache[`${next.page}`],
-                [`${last.page}`]: last.link || this.pageCache[`${last.page}`]
+                ...first.link && {[`${first.page}`]: first.link},
+                ...prev.link && {[`${prev.page}`]: prev.link},
+                ...current.link && {[`${current.page}`]: current.link},
+                ...next.link && {[`${next.page}`]: next.link},
+                ...last.link && {[`${last.page}`]: last.link}
             }
         };
 

@@ -180,3 +180,6 @@ yarn add styled-components
 
 # Parse URL query strings
 yarn add query-string
+
+# React internals package to test the environment react is running in
+yarn add exenv
