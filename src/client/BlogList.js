@@ -64,6 +64,7 @@ class BlogList extends React.Component {
         if (this.props.posts) {
 
             const {posts} = this.props;
+            const {query} = queryString.parse(this.props.location.search);
 
             const links = [this.props.first, this.props.prev, this.props.next, this.props.last];
 
@@ -73,6 +74,7 @@ class BlogList extends React.Component {
             console.info(`Mounting Component with # of Posts: ${posts.length}`);
             this.setState({
                 posts: JSXConverter.createPostsJSX(posts),
+                searchQuery: query,
                 first,
                 prev,
                 next,
@@ -93,12 +95,16 @@ class BlogList extends React.Component {
         console.debug(this.props);
         window.scrollTo(0, 0);
 
-        const {page} = queryString.parse(this.props.location.search);
+        const {page, query} = queryString.parse(this.props.location.search);
         const postPage = page || 1;
+        const queryUrl = query ? `&query=${query}` : '';
+        const queryStr = query || "_";
 
         if (!this.state.posts) {
+            const url = `/api/post/preview?page=${postPage}${queryUrl}`;
+
             console.info(`Fetching All Posts`);
-            this.fetchPostsAndUpdate(`/api/post/preview?page=${postPage}`, postPage)
+            this.fetchPostsAndUpdate(url, postPage, queryStr)
                 .catch(err => {
                     console.error(err);
                     this.setState({posts: []});
@@ -124,6 +130,7 @@ class BlogList extends React.Component {
         const {page, query} = queryString.parse(nextProps.location.search);
         const postPage = +page || 1;
         const queryStr = query || "_";
+        const queryUrl = query ? `&query=${query}` : '';
 
         if (this.postsCache[queryStr] && this.postsCache[queryStr][postPage]) {
 
@@ -154,8 +161,10 @@ class BlogList extends React.Component {
 
         } else {
 
-            console.info(`Fetching ${postPage} Page of Posts...`);
-            this.fetchPostsAndUpdate(`/api/post/preview?page=${postPage}`, postPage)
+            const url = `/api/post/preview?page=${postPage}${queryUrl}`;
+
+            console.info(`Fetching ${postPage} Page of Posts for query ${queryStr}...`);
+            this.fetchPostsAndUpdate(url, postPage, queryStr)
                 .catch(err => {
                     console.error(err);
                     this.setState({posts: []});
@@ -240,9 +249,10 @@ class BlogList extends React.Component {
     }
 
     /**
-     *
-     * @param nextProps
-     * @param nextState
+     * Compare new properties and state with existing properties and state to determine whether
+     * the changes warrant a full component update.
+     * @param nextProps - the new properties
+     * @param nextState - the new state
      */
     shouldComponentUpdate(nextProps, nextState) {
         const {searchQuery} = nextState;
@@ -253,11 +263,7 @@ class BlogList extends React.Component {
     onKeyUpSearchBar(e) {
         const query = e.target.value;
         if (e.keyCode === 13 && query) {
-            this.fetchPostsAndUpdate(`/api/post/preview?query="${query}"`)
-                .catch(err => {
-                    console.error(err);
-                    this.setState({posts: []});
-                });
+            this.queryPosts(query);
         }
     }
 
@@ -269,18 +275,26 @@ class BlogList extends React.Component {
         const {searchQuery} = this.state;
 
         if (searchQuery) {
-            this.fetchPostsAndUpdate(`/api/post/preview?query="${searchQuery}"`)
-                .catch(err => {
-                    console.error(err);
-                    this.setState({posts: []});
-                });
+            this.queryPosts(searchQuery);
         }
+    }
+
+    queryPosts(query) {
+        this.props.history.push(`/blog?query=${query}&page=1`);
+
+        this.fetchPostsAndUpdate(`/api/post/preview?query="${query}"`, 1, query)
+            .catch(err => {
+                console.error(err);
+                this.setState({posts: []});
+            });
     }
 
     /**
      * Render the JSX
      */
     render() {
+        console.debug('Inside BlogList Render');
+
         const {posts, searchQuery, ...links} = this.state;
         const {first, prev, current, next, last} = BlogList.extractPage(links);
         const {page} = queryString.parse(this.props.location.search);
@@ -300,8 +314,10 @@ class BlogList extends React.Component {
             }
         };
 
-        console.debug('Inside BlogList Render');
         console.debug(this.state);
+        console.debug(this.pageCache);
+        console.debug(this.postsCache);
+
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
                 <div className="jarombek-background">

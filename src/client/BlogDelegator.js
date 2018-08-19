@@ -78,8 +78,8 @@ class BlogDelegator {
      */
     static parseLinks(links) {
         // Regular Expression to Parse Links
-        const globalRegex = /<([a-z0-9/?&=]+)>; rel="(\w+)"/g;
-        const regex = /<([a-z0-9/?&=]+)>; rel="(\w+)"/;
+        const globalRegex = /<([a-z0-9/?&="]+)>; rel="(\w+)"/g;
+        const regex = /<([a-z0-9/?&="]+)>; rel="(\w+)"/;
 
         const matches = links.match(globalRegex);
 
@@ -95,7 +95,7 @@ class BlogDelegator {
      * @returns {{}} - an object of all the links where the rel is the property name and the
      * contents of the angle brackets is the property value
      */
-    static generateLinks(list, regex=/<([a-z0-9/?&=]+)>; rel="(\w+)"/) {
+    static generateLinks(list, regex=/<([a-z0-9/?&="]+)>; rel="(\w+)"/) {
 
         // Base case when list is empty
         if (!list || list.length === 0) {

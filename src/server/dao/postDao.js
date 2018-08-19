@@ -32,7 +32,7 @@ class PostDao {
      */
     static getPaginatedPosts = async (page=1, limit=12, query="") => {
 
-        return query ?
+        return query && query !== "_" ?
             PostDao.getQueried(page, limit, query):
             PostDao.getAll(page, limit);
     };
@@ -50,7 +50,7 @@ class PostDao {
      */
     static getPaginatedPostPreviews = async (page=1, limit=12, query="") => {
 
-        return query ?
+        return query && query !== "_" ?
             PostDao.getQueriedPreviews(page, limit, query):
             PostDao.getAllPreviews(page, limit);
     };
@@ -124,7 +124,9 @@ class PostDao {
             return posts.length;
         });
 
-        return await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
+        const previews = await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
+
+        return previews.map(preview => preview.toObject());
     };
 
     /**
@@ -235,20 +237,22 @@ class PostDao {
         let next = '';
         let last = '';
 
+        const queryUrl = query && query !== '_' ? `&query=${query}`: '';
+
         // If we are not on the first page of the API,
         // return the previous page and the first page urls
         if (page > 1) {
-            prev = `<${url}?page=${page - 1}&limit=${limit}>; rel="prev";`;
-            first = `<${url}?page=1&limit=${limit}>; rel="first";`;
+            prev = `<${url}?page=${page - 1}&limit=${limit}${queryUrl}>; rel="prev";`;
+            first = `<${url}?page=1&limit=${limit}${queryUrl}>; rel="first";`;
         }
 
         // If we are not on the last page of the API, return the last page and the next page
         if (location < PostDao.postCountCache[query]) {
-            next = `<${url}?page=${page + 1}&limit=${limit}>; rel="next";`;
+            next = `<${url}?page=${page + 1}&limit=${limit}${queryUrl}>; rel="next";`;
             last =
                 `<${url}?page=${
                         Math.ceil(PostDao.postCountCache[query] / parseFloat(limit))
-                }&limit=${limit}>; rel="last";`;
+                }&limit=${limit}${queryUrl}>; rel="last";`;
         }
 
         return {
