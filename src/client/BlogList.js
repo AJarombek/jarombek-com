@@ -61,19 +61,20 @@ class BlogList extends React.Component {
      */
     componentWillMount() {
         console.debug("Inside BlogList ComponentWillMount");
+        console.debug(this.props);
 
-        if (this.props.posts && !ExecutionEnvironment.canUseDOM) {
+        if (this.props.posts) {
 
             const {posts} = this.props;
             const {query} = queryString.parse(this.props.location.search);
 
             const links = [this.props.first, this.props.prev, this.props.next, this.props.last];
 
-            console.info(links);
             const {first, prev, next, last} = BlogDelegator.generateLinks(links);
 
-            console.info(`Mounting Component with # of Posts: ${posts.length}`);
+            console.debug(`Mounting Component with # of Posts: ${posts.length}`);
             this.setState({
+                shouldUpdate: true,
                 posts: JSXConverter.createPostsJSX(posts),
                 executedQuery: query,
                 first,
@@ -93,7 +94,10 @@ class BlogList extends React.Component {
     componentDidMount() {
         console.debug("Inside BlogList ComponentDidMount");
 
-        console.debug(this.props);
+        // Remove any data that was sent from the server side render.  Forgetting to do this
+        // can cause strange behavior when re-constructing components client side.
+        window.__STATE__ = {};
+
         window.scrollTo(0, 0);
 
         const {page, query} = queryString.parse(this.props.location.search);
@@ -108,7 +112,10 @@ class BlogList extends React.Component {
             this.fetchPostsAndUpdate(url, postPage, queryStr)
                 .catch(err => {
                     console.error(err);
-                    this.setState({posts: []});
+                    this.setState({
+                        shouldUpdate: true,
+                        posts: []
+                    });
                 });
         } else {
             console.info(`Posts Were in Initial State`);
@@ -125,8 +132,12 @@ class BlogList extends React.Component {
         // By default React doesn't move to the top of the page when new props are received
         // and the URL changes - so we have to handle it ourselves
         window.scrollTo(0, 0);
+
+        // Clear out the state when new props come in
         this.setState({
+            shouldUpdate: true,
             posts: null,
+            potentialQuery: null,
             first: null,
             prev: null,
             next: null,
@@ -144,7 +155,6 @@ class BlogList extends React.Component {
             console.info(`${postPage} Page of Posts Found in Cache for Query: ${queryStr}`);
 
             const sortedPages = Object.entries(this.pageCache[queryStr]).sort();
-            console.debug(sortedPages);
 
             const potentialPrevPage = sortedPages.filter(page => +page[0] === +postPage - 1);
             const potentialNextPage = sortedPages.filter(page => +page[0] === +postPage + 1);
@@ -159,6 +169,7 @@ class BlogList extends React.Component {
             const lastPage = potentialLastPage !== nextPage ? potentialLastPage : null;
 
             this.setState({
+                shouldUpdate: true,
                 posts: this.postsCache[queryStr][postPage],
                 executedQuery: queryStr,
                 first: firstPage && +firstPage[0] !== postPage ? firstPage[1] : null,
@@ -171,11 +182,14 @@ class BlogList extends React.Component {
 
             const url = `/api/post/preview?page=${postPage}${queryUrl}`;
 
-            console.info(`Fetching ${postPage} Page of Posts for query ${queryStr}...`);
+            console.debug(`Fetching ${postPage} Page of Posts for query ${queryStr}...`);
             this.fetchPostsAndUpdate(url, postPage, queryStr)
                 .catch(err => {
                     console.error(err);
-                    this.setState({posts: []});
+                    this.setState({
+                        shouldUpdate: true,
+                        posts: []
+                    });
                 });
         }
     }
@@ -204,6 +218,7 @@ class BlogList extends React.Component {
         };
 
         this.setState({
+            shouldUpdate: true,
             posts,
             executedQuery: query,
             first,
@@ -264,11 +279,14 @@ class BlogList extends React.Component {
      * @param nextState - the new state
      */
     shouldComponentUpdate(nextProps, nextState) {
-        const {potentialQuery} = nextState;
-
-        return potentialQuery === this.state.potentialQuery
+        return nextState.shouldUpdate;
     }
 
+    /**
+     * When a key is typed into the text search bar.  If the enter button is pressed and the
+     * search bar isn't empty, execute the text search.
+     * @param e - the React event that occurred (which corresponds to a DOM event)
+     */
     onKeyUpSearchBar(e) {
         const query = e.target.value;
         if (e.keyCode === 13 && query) {
@@ -276,10 +294,23 @@ class BlogList extends React.Component {
         }
     }
 
+    /**
+     * When the value in the text search bar changes, add it to the state under the property
+     * 'potentialQuery'.  This is a query that has yet to be executed, but can be once the enter
+     * key is pressed or the execution button is pressed.
+     * @param e - the React event that occurred (which corresponds to a DOM event)
+     */
     onChangeSearchBar(e) {
-        this.setState({potentialQuery: e.target.value.trim()});
+        this.setState({
+            shouldUpdate: false,
+            potentialQuery: e.target.value.trim()
+        });
     }
 
+    /**
+     * When clicking the button to execute a text search, check if any value was entered.
+     * If so, perform the text search, otherwise do nothing.
+     */
     onClickSearch() {
         const {potentialQuery} = this.state;
 
@@ -288,13 +319,21 @@ class BlogList extends React.Component {
         }
     }
 
+    /**
+     * Fetch posts from the database with a specific query.  Add a new posts page to the browser
+     * history that we will navigate to view the query.
+     * @param query - a text search to perform on the database
+     */
     queryPosts(query) {
         this.props.history.push(`/blog?query=${query}&page=1`);
 
         this.fetchPostsAndUpdate(`/api/post/preview?query="${query}"`, 1, query)
             .catch(err => {
                 console.error(err);
-                this.setState({posts: []});
+                this.setState({
+                    shouldUpdate: true,
+                    posts: []
+                });
             });
     }
 
@@ -305,12 +344,15 @@ class BlogList extends React.Component {
         console.debug('Inside BlogList Render');
 
         const {posts, executedQuery, ...links} = this.state;
-        const {first, prev, current, next, last} = BlogList.extractPage(links);
         const {page} = queryString.parse(this.props.location.search);
 
         const queryVar = executedQuery || "_";
         const queryUrl = executedQuery && executedQuery !== "_" ? `query=${executedQuery}&` : '';
 
+        // Transform URL strings into objects
+        const {first, prev, current, next, last} = BlogList.extractPage(links);
+
+        // And then update the cache with the different page links
         this.pageCache = {
             ...this.pageCache,
             [queryVar]: {
@@ -328,7 +370,8 @@ class BlogList extends React.Component {
         console.debug(this.postsCache);
 
         return (
-            <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
+            <WebsiteTemplate subscribeAction={ () =>
+                this.setState({shouldUpdate: true, subscribing: true}) }>
                 <div className="jarombek-background">
                     <Helmet>
                         <title>Andrew Jarombek&#39;s Software Development Blog</title>
@@ -371,8 +414,10 @@ class BlogList extends React.Component {
                     </div>
                 </div>
                 { (this.state.subscribing) ?
-                    <Modal clickBackground={() => this.setState({subscribing: false})}>
-                        <Subscribe exit={() => this.setState({subscribing: false})} />
+                    <Modal clickBackground={() =>
+                        this.setState({shouldUpdate: true, subscribing: false})}>
+                        <Subscribe exit={() =>
+                            this.setState({shouldUpdate: true, subscribing: false})} />
                     </Modal> : null
                 }
             </WebsiteTemplate>
