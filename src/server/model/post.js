@@ -49,6 +49,10 @@ const PostSchema = new Schema({
         type: Array,
         required: true
     },
+    previewString: {
+        type: String,
+        required: true
+    },
     sources: [{
         type: SourceSchema
     }],
@@ -60,5 +64,36 @@ const PostSchema = new Schema({
 
 PostSchema.index({name: 1});
 PostSchema.index({date: 1});
+
+PostSchema.index(
+    {
+        'name': 'text',
+        'title': 'text',
+        'type': 'text',
+        'date': 'text',
+        'tags.name': 'text',
+        'previewString': 'text',
+        'sources.startName': 'text',
+        'sources.endName': 'text',
+        'sources.linkName': 'text',
+        'sources.link': 'text'
+    },
+    {
+        name: "post-text-index",
+        default_language: 'none',
+        weights: {
+            'name': 100,
+            'title': 100,
+            'type': 10,
+            'date': 5,
+            'tags.name': 5,
+            'previewString': 2,
+            'sources.startName': 1,
+            'sources.endName': 1,
+            'sources.linkName': 1,
+            'sources.link': 1
+        }
+    }
+);
 
 module.exports = mongoose.model('Post', PostSchema, 'posts');

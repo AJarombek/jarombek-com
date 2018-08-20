@@ -15,9 +15,26 @@ const PostContentSchema = new Schema({
     content: {
         type: Array,
         required: true
+    },
+    contentString: {
+        type: String,
+        required: true
     }
 });
 
 PostContentSchema.index({name: 1});
+
+PostContentSchema.index(
+    {
+        'contentString': 'text'
+    },
+    {
+        name: "post-content-text-index",
+        default_language: 'none',
+        weights: {
+            'contentString': 5
+        }
+    }
+);
 
 module.exports = mongoose.model('PostContent', PostContentSchema, 'posts_content');

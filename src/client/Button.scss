@@ -51,6 +51,13 @@
   font-size: 16px;
 }
 
+.jarbek-button-box-large {
+  height: 50px;
+  width: 60px;
+  border: 1.5px solid;
+  font-size: 24px;
+}
+
 @mixin jarbek-button-styles($color-style, $color) {
   .jarbek-button.#{$color-style} {
     color: darken($color, 40%);
@@ -73,6 +80,10 @@
 
 .passive-color-white {
   background: white;
+}
+
+.passive-color-primary {
+  background: darken($color-primary, 20%);
 }
 
 .border-color-default {

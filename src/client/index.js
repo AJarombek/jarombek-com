@@ -25,8 +25,6 @@ if (process.env.NODE_ENV === 'development') {
     globalStyles = gs.prod;
 }
 
-// import './index.scss';
-
 window.React = React;
 
 const RoutedApp = () => {

@@ -93,21 +93,24 @@ const getAll = (req, res) => {
     // This API allows for two parameters:
     // [page] - the pagination of the MongoDB post collection
     // [limit] - the max number of documents to return.  Which documents depends on the page
-    let {page, limit} = req.query;
+    let {page, limit, query} = req.query;
 
     page = +page || 1;
     limit = +limit || 12;
+    query = query || "";
 
-    PostDao.getPaginatedPosts(page, limit).then((posts) => {
+    PostDao.getPaginatedPosts(page, limit, query).then((posts) => {
+
+        const cacheLookup = query || "_";
 
         // Generate API endpoints to put in the HTTP Link header
         const {first, prev, next, last} =
-            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/content');
+            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/content', cacheLookup);
 
         // In the headers specify the API endpoints for related documents
         // + the total document count
         res.set('Link', `${first}${prev}${next}${last}`);
-        res.set('X-Total-Count', PostDao.postCountCache);
+        res.set('X-Total-Count', PostDao.postCountCache[cacheLookup]);
 
         res.json(posts);
 
@@ -127,18 +130,21 @@ const getAll = (req, res) => {
  */
 const getAllPreviews = (req, res) => {
 
-    let {page, limit} = req.query;
+    let {page, limit, query} = req.query;
 
     page = +page || 1;
     limit = +limit || 12;
+    query = query || "";
 
-    PostDao.getPaginatedPostPreviews(page, limit).then((posts) => {
+    PostDao.getPaginatedPostPreviews(page, limit, query).then((posts) => {
+
+        const cacheLookup = query || "_";
 
         const {first, prev, next, last} =
-            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/preview');
+            PostDao.generatePaginatedPostsLinks(page, limit, '/api/post/preview', cacheLookup);
 
         res.set('Link', `${first}${prev}${next}${last}`);
-        res.set('X-Total-Count', PostDao.postCountCache);
+        res.set('X-Total-Count', PostDao.postCountCache[cacheLookup]);
         res.json(posts);
 
     }, (reason => {

@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import 'isomorphic-fetch';
 import {Helmet} from 'react-helmet';
 import queryString from 'query-string';
+import ExecutionEnvironment from 'exenv';
 
 import WebsiteTemplate from './WebsiteTemplate';
 import Loading from "./Loading";
@@ -19,6 +20,7 @@ import Subscribe from "./Subscribe";
 import BlogDelegator from "./BlogDelegator";
 import JSXConverter from "./JSXConverter";
 import PaginationBar from "./PaginationBar";
+import Button from "./Button";
 
 class BlogList extends React.Component {
 
@@ -59,19 +61,22 @@ class BlogList extends React.Component {
      */
     componentWillMount() {
         console.debug("Inside BlogList ComponentWillMount");
+        console.debug(this.props);
 
         if (this.props.posts) {
 
             const {posts} = this.props;
+            const {query} = queryString.parse(this.props.location.search);
 
             const links = [this.props.first, this.props.prev, this.props.next, this.props.last];
 
-            console.info(links);
             const {first, prev, next, last} = BlogDelegator.generateLinks(links);
 
-            console.info(`Mounting Component with # of Posts: ${posts.length}`);
+            console.debug(`Mounting Component with # of Posts: ${posts.length}`);
             this.setState({
+                shouldUpdate: true,
                 posts: JSXConverter.createPostsJSX(posts),
+                executedQuery: query,
                 first,
                 prev,
                 next,
@@ -89,18 +94,28 @@ class BlogList extends React.Component {
     componentDidMount() {
         console.debug("Inside BlogList ComponentDidMount");
 
-        console.debug(this.props);
+        // Remove any data that was sent from the server side render.  Forgetting to do this
+        // can cause strange behavior when re-constructing components client side.
+        window.__STATE__ = {};
+
         window.scrollTo(0, 0);
 
-        const {page} = queryString.parse(this.props.location.search);
+        const {page, query} = queryString.parse(this.props.location.search);
         const postPage = page || 1;
+        const queryUrl = query ? `&query=${query}` : '';
+        const queryStr = query || "_";
 
         if (!this.state.posts) {
+            const url = `/api/post/preview?page=${postPage}${queryUrl}`;
+
             console.info(`Fetching All Posts`);
-            this.fetchPostsAndUpdate(`/api/post/preview?page=${postPage}`, postPage)
+            this.fetchPostsAndUpdate(url, postPage, queryStr)
                 .catch(err => {
                     console.error(err);
-                    this.setState({posts: []});
+                    this.setState({
+                        shouldUpdate: true,
+                        posts: []
+                    });
                 });
         } else {
             console.info(`Posts Were in Initial State`);
@@ -117,18 +132,29 @@ class BlogList extends React.Component {
         // By default React doesn't move to the top of the page when new props are received
         // and the URL changes - so we have to handle it ourselves
         window.scrollTo(0, 0);
-        this.setState({posts: null});
+
+        // Clear out the state when new props come in
+        this.setState({
+            shouldUpdate: true,
+            posts: null,
+            potentialQuery: null,
+            first: null,
+            prev: null,
+            next: null,
+            last: null
+        });
 
         // Get the 'page' query from the URL - defaulted to 1
-        const {page} = queryString.parse(nextProps.location.search);
+        const {page, query} = queryString.parse(nextProps.location.search);
         const postPage = +page || 1;
+        const queryStr = query || "_";
+        const queryUrl = query ? `&query=${query}` : '';
 
-        if (this.postsCache[`${postPage}`]) {
+        if (this.postsCache[queryStr] && this.postsCache[queryStr][postPage]) {
 
-            console.info(`${postPage} Page of Posts Found in Cache`);
+            console.info(`${postPage} Page of Posts Found in Cache for Query: ${queryStr}`);
 
-            const sortedPages = Object.entries(this.pageCache).sort();
-            console.debug(sortedPages);
+            const sortedPages = Object.entries(this.pageCache[queryStr]).sort();
 
             const potentialPrevPage = sortedPages.filter(page => +page[0] === +postPage - 1);
             const potentialNextPage = sortedPages.filter(page => +page[0] === +postPage + 1);
@@ -136,14 +162,16 @@ class BlogList extends React.Component {
             const prevPage = potentialPrevPage.length ? potentialPrevPage[0] : null;
             const nextPage = potentialNextPage.length ? potentialNextPage[0] : null;
 
-            const potentialFirstPage = sortedPages[1];
+            const potentialFirstPage = sortedPages[0];
             const potentialLastPage = sortedPages[sortedPages.length - 1];
 
             const firstPage = potentialFirstPage !== prevPage ? potentialFirstPage : null;
             const lastPage = potentialLastPage !== nextPage ? potentialLastPage : null;
 
             this.setState({
-                posts: this.postsCache[`${postPage}`],
+                shouldUpdate: true,
+                posts: this.postsCache[queryStr][postPage],
+                executedQuery: queryStr,
                 first: firstPage && +firstPage[0] !== postPage ? firstPage[1] : null,
                 prev: prevPage ? prevPage[1] : null,
                 next: nextPage ? nextPage[1] : null,
@@ -152,11 +180,16 @@ class BlogList extends React.Component {
 
         } else {
 
-            console.info(`Fetching ${postPage} Page of Posts...`);
-            this.fetchPostsAndUpdate(`/api/post/preview?page=${postPage}`, postPage)
+            const url = `/api/post/preview?page=${postPage}${queryUrl}`;
+
+            console.debug(`Fetching ${postPage} Page of Posts for query ${queryStr}...`);
+            this.fetchPostsAndUpdate(url, postPage, queryStr)
                 .catch(err => {
                     console.error(err);
-                    this.setState({posts: []});
+                    this.setState({
+                        shouldUpdate: true,
+                        posts: []
+                    });
                 });
         }
     }
@@ -166,20 +199,28 @@ class BlogList extends React.Component {
      * @param url - optional url parameter.  It will default to a param-less url
      * @param pageNumber - the number representing the page of blog posts to fetch.
      * It will default to the first page (1).
+     * @param query -
      * @returns {Promise<void>}
      */
-    async fetchPostsAndUpdate(url='/api/post/preview', pageNumber=1) {
+    async fetchPostsAndUpdate(url='/api/post/preview', pageNumber=1, query="") {
         const {posts, first, prev, next, last} =
             await BlogDelegator.fetchPosts(this.baseUrl, url);
+
+        query = query || "_";
 
         // Add the newly fetched posts to the client side JS posts cache
         this.postsCache = {
             ...this.postsCache,
-            [`${pageNumber}`]: posts
+            [query]: {
+                ...this.postsCache[query],
+                [pageNumber]: posts
+            }
         };
 
         this.setState({
+            shouldUpdate: true,
             posts,
+            executedQuery: query,
             first,
             prev,
             next,
@@ -232,54 +273,151 @@ class BlogList extends React.Component {
     }
 
     /**
+     * Compare new properties and state with existing properties and state to determine whether
+     * the changes warrant a full component update.
+     * @param nextProps - the new properties
+     * @param nextState - the new state
+     */
+    shouldComponentUpdate(nextProps, nextState) {
+        return nextState.shouldUpdate;
+    }
+
+    /**
+     * When a key is typed into the text search bar.  If the enter button is pressed and the
+     * search bar isn't empty, execute the text search.
+     * @param e - the React event that occurred (which corresponds to a DOM event)
+     */
+    onKeyUpSearchBar(e) {
+        const query = e.target.value;
+        if (e.keyCode === 13 && query) {
+            this.queryPosts(query);
+        }
+    }
+
+    /**
+     * When the value in the text search bar changes, add it to the state under the property
+     * 'potentialQuery'.  This is a query that has yet to be executed, but can be once the enter
+     * key is pressed or the execution button is pressed.
+     * @param e - the React event that occurred (which corresponds to a DOM event)
+     */
+    onChangeSearchBar(e) {
+        this.setState({
+            shouldUpdate: false,
+            potentialQuery: e.target.value.trim()
+        });
+    }
+
+    /**
+     * When clicking the button to execute a text search, check if any value was entered.
+     * If so, perform the text search, otherwise do nothing.
+     */
+    onClickSearch() {
+        const {potentialQuery} = this.state;
+
+        if (potentialQuery) {
+            this.queryPosts(potentialQuery);
+        }
+    }
+
+    /**
+     * Fetch posts from the database with a specific query.  Add a new posts page to the browser
+     * history that we will navigate to view the query.
+     * @param query - a text search to perform on the database
+     */
+    queryPosts(query) {
+        this.props.history.push(`/blog?query=${query}&page=1`);
+
+        this.fetchPostsAndUpdate(`/api/post/preview?query="${query}"`, 1, query)
+            .catch(err => {
+                console.error(err);
+                this.setState({
+                    shouldUpdate: true,
+                    posts: []
+                });
+            });
+    }
+
+    /**
      * Render the JSX
      */
     render() {
-        const {posts, ...links} = this.state;
-        const {first, prev, current, next, last} = BlogList.extractPage(links);
+        console.debug('Inside BlogList Render');
+
+        const {posts, executedQuery, ...links} = this.state;
         const {page} = queryString.parse(this.props.location.search);
 
+        const queryVar = executedQuery || "_";
+        const queryUrl = executedQuery && executedQuery !== "_" ? `query=${executedQuery}&` : '';
+
+        // Transform URL strings into objects
+        const {first, prev, current, next, last} = BlogList.extractPage(links);
+
+        // And then update the cache with the different page links
         this.pageCache = {
             ...this.pageCache,
-            [`${first.page}`]: first.link || this.pageCache[`${first.page}`],
-            [`${prev.page}`]: prev.link || this.pageCache[`${prev.page}`],
-            [`${current.page}`]: current.link || this.pageCache[`${current.page}`],
-            [`${next.page}`]: next.link || this.pageCache[`${next.page}`],
-            [`${last.page}`]: last.link || this.pageCache[`${last.page}`]
+            [queryVar]: {
+                ...this.pageCache[queryVar],
+                ...first.link && {[`${first.page}`]: first.link},
+                ...prev.link && {[`${prev.page}`]: prev.link},
+                ...current.link && {[`${current.page}`]: current.link},
+                ...next.link && {[`${next.page}`]: next.link},
+                ...last.link && {[`${last.page}`]: last.link}
+            }
         };
 
-        console.debug('Inside BlogList Render');
         console.debug(this.state);
+        console.debug(this.pageCache);
+        console.debug(this.postsCache);
+
         return (
-            <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
+            <WebsiteTemplate subscribeAction={ () =>
+                this.setState({shouldUpdate: true, subscribing: true}) }>
                 <div className="jarombek-background">
-                    <div className="jarombek-blog">
-                        <Helmet>
-                            <title>Andrew Jarombek&#39;s Software Development Blog</title>
-                            <meta name="author" content="Andrew Jarombek" />
-                            <meta name="description"
-                                  content={`Andrew Jarombek's Software Development Blog &
-                                    Discovery Posts ${page ? `- Page ${page}` : ''}`} />
-                            <link rel="canonical" href="https://jarombek.com/blog" />
-                            <link rel="icon" href={ require(`./assets/jarombek.png`) } />
-                        </Helmet>
-                        <div className="jarombek-posts-grid">
-                            { (posts) ?
-                                posts.map(post =>
+                    <Helmet>
+                        <title>Andrew Jarombek&#39;s Software Development Blog</title>
+                        <meta name="author" content="Andrew Jarombek" />
+                        <meta name="description"
+                              content={`Andrew Jarombek's Software Development Blog &
+                                Discovery Posts ${page ? `- Page ${page}` : ''}`} />
+                        <link rel="canonical"
+                              href={`https://jarombek.com/blog${page ? `?page=${page}`: ''}`} />
+                        <link rel="icon" href={ require(`./assets/jarombek.png`) } />
+                    </Helmet>
+                    { (posts) ?
+                        <div className="jarombek-blog-list">
+                            <div className="jarombek-blog-list-search jarbek-input">
+                                <input type="text"
+                                       name="search"
+                                       placeholder="Search"
+                                       onKeyUp={(e) => this.onKeyUpSearchBar(e)}
+                                       onChange={(e) => this.onChangeSearchBar(e)}/>
+                                <Button activeColor="primary" passiveColor="primary"
+                                        borderColor="primary" size="box-large"
+                                        onClick={() => this.onClickSearch()}>
+                                    GO
+                                </Button>
+                            </div>
+                            <div className="jarombek-posts-grid">
+                                {posts.map(post =>
                                     <BlogPreview key={post.name} {...post} />
-                                ):
-                                <Loading className="jarombek-blog-list-none" />
-                            }
+                                )}
+                            </div>
+                        </div> :
+                        <div className="jarombek-blog-list">
+                            <Loading className="jarombek-blog-list-none" />
                         </div>
-                        <div className="jarombek-blog-list-footer">
-                            <PaginationBar first={first} previous={prev} current={current}
-                                           next={next} last={last} link={`/blog?page=`}/>
-                        </div>
+                    }
+                    <div className="jarombek-blog-list-footer">
+                        <PaginationBar first={first} previous={prev} current={current}
+                                       next={next} last={last}
+                                       link={`/blog?${queryUrl}page=`}/>
                     </div>
                 </div>
                 { (this.state.subscribing) ?
-                    <Modal clickBackground={() => this.setState({subscribing: false})}>
-                        <Subscribe exit={() => this.setState({subscribing: false})} />
+                    <Modal clickBackground={() =>
+                        this.setState({shouldUpdate: true, subscribing: false})}>
+                        <Subscribe exit={() =>
+                            this.setState({shouldUpdate: true, subscribing: false})} />
                     </Modal> : null
                 }
             </WebsiteTemplate>

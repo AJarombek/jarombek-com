@@ -69,9 +69,6 @@ const renderComponentsToHTML = async (url) => {
         prev = postsData.prev;
         next = postsData.next;
         last = postsData.last;
-
-        // toObject() must be called on the results from MongoDB
-        posts = posts.map(post => post.toObject());
     }
 
     console.debug(`AOT Post: ${JSON.stringify(post)}`);
@@ -191,14 +188,16 @@ const getUrlPost = async (url, regex) => {
 const getListOfPosts = async (url) => {
     const queries = queryString.parseUrl(url);
 
+    // These lines get items from the URL query string
     const page = queries && queries.query && queries.query.page ? queries.query.page : 1;
+    const query = queries && queries.query && queries.query.query ? queries.query.query : "_";
 
     // The number of posts per page defaults to 12
-    const posts = await PostDao.getPaginatedPostPreviews(page);
+    const posts = await PostDao.getPaginatedPostPreviews(page, 12, query);
 
     // generatePaginatedPostsLinks() expects an integer for the first argument so coerce 'page'
     const {first, prev, next, last} =
-        PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post/preview');
+        PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post/preview', query);
 
     return {
         posts,

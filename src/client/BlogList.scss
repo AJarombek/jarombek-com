@@ -6,20 +6,63 @@
 
 @import "./styles/variables";
 
+.jarombek-blog-list {
+  display: grid;
+  grid-template-areas: "search"
+                       "posts";
+  grid-gap: 20px;
+
+  padding-top: 100px;
+  padding-bottom: 60px;
+}
+
+.jarombek-blog-list-search {
+  grid-area: search;
+  justify-self: center;
+  align-self: center;
+
+  display: grid;
+  grid-template-areas: "input button";
+  grid-gap: 10px;
+  justify-content: center;
+  align-content: center;
+
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+
+  height: 55px !important;
+  width: auto !important;
+}
+
+.jarombek-blog-list-search input {
+  grid-area: input;
+  align-self: center;
+  justify-self: center;
+
+  height: 46px !important;
+  font-size: 16px !important;
+}
+
+.jarombek-blog-list-search button {
+  grid-area: button;
+}
+
 .jarombek-posts-grid {
+  grid-area: posts;
+
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-gap: 20px;
   margin: 10px 100px 10px 100px;
 
   // For small desktop screens
-  @media screen and (max-width: $width-small-desktop + 900) and (min-width: $width-mobile + 401) {
+  @media screen and (max-width: $width-small-desktop + 1200) and (min-width: $width-mobile + 501) {
     grid-template-columns: 1fr 1fr;
     grid-gap: 20px;
     margin: 10px 80px 10px 80px;
   }
 
-  @media screen and (max-width: $width-mobile + 400) and (min-width: $width-mobile + 201) {
+  @media screen and (max-width: $width-mobile + 500) and (min-width: $width-mobile + 201) {
     grid-template-columns: 1fr;
     grid-gap: 10px;
     margin: 10px 50px 10px 50px;
@@ -34,8 +77,8 @@
 }
 
 .jarombek-blog-list-none {
-  grid-column: 1 / 4;
-  grid-row: 1;
+
+  grid-area: posts;
 
   height: 100vh;
   margin: 0 auto;
@@ -45,5 +88,5 @@
 .jarombek-blog-list-footer {
   width: 400px;
   margin: 0 auto;
-  padding: 80px 0 10px 0;
+  padding: 80px 0 40px 0;
 }
