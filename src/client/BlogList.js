@@ -10,7 +10,6 @@ import PropTypes from 'prop-types';
 import 'isomorphic-fetch';
 import {Helmet} from 'react-helmet';
 import queryString from 'query-string';
-import ExecutionEnvironment from 'exenv';
 
 import WebsiteTemplate from './WebsiteTemplate';
 import Loading from "./Loading";
@@ -21,6 +20,7 @@ import BlogDelegator from "./BlogDelegator";
 import JSXConverter from "./JSXConverter";
 import PaginationBar from "./PaginationBar";
 import Button from "./Button";
+import SearchBar from "./SearchBar";
 
 class BlogList extends React.Component {
 
@@ -385,17 +385,10 @@ class BlogList extends React.Component {
                     </Helmet>
                     { (posts) ?
                         <div className="jarombek-blog-list">
-                            <div className="jarombek-blog-list-search jarbek-input">
-                                <input type="text"
-                                       name="search"
-                                       placeholder="Search"
-                                       onKeyUp={(e) => this.onKeyUpSearchBar(e)}
-                                       onChange={(e) => this.onChangeSearchBar(e)}/>
-                                <Button activeColor="primary" passiveColor="primary"
-                                        borderColor="primary" size="box-large"
-                                        onClick={() => this.onClickSearch()}>
-                                    GO
-                                </Button>
+                            <div className="jarombek-blog-list-search">
+                                <SearchBar onSearch={() => this.onClickSearch()}
+                                        onChangeSearch={(e) => this.onChangeSearchBar(e)}
+                                        onKeyPressSearch={(e) => this.onKeyUpSearchBar(e)}/>
                             </div>
                             <div className="jarombek-posts-grid">
                                 {posts.map(post =>

@@ -1,0 +1,106 @@
+/*
+ * Sass styling for the SearchBar component
+ * @author Andrew Jarombek
+ * @since 8/22/2018
+ */
+
+@import "./styles/mixins/dyslexie";
+@import "./styles/variables";
+
+$search-bar-small: $width-mobile + 200;
+$search-bar-medium: $width-mobile + 500;
+$search-bar-large: $width-small-desktop + 1200;
+
+.jarbek-search-bar {
+  display: grid;
+  grid-template-areas: "input button";
+  grid-gap: 10px;
+  justify-content: center;
+  align-content: center;
+
+  width: 70vw;
+  height: 60px;
+  padding: 5px;
+
+  input {
+    width: 60vw;
+  }
+
+  button {
+    width: 6vw;
+  }
+
+  @media screen and (max-width: $search-bar-large) and (min-width: $search-bar-medium + 1) {
+    width: 74vw;
+
+    input {
+      width: 60vw;
+    }
+
+    button {
+      width: 10vw;
+    }
+  }
+
+  @media screen and (max-width: $search-bar-medium) and (min-width: $search-bar-small + 1) {
+    width: 80vw;
+
+    input {
+      width: 64vw;
+    }
+
+    button {
+      width: 12vw;
+    }
+  }
+
+  @media screen and (max-width: $search-bar-small) {
+    width: 96vw;
+
+    input {
+      width: 72vw;
+    }
+
+    button {
+      width: 20vw;
+    }
+  }
+}
+
+.jarbek-search-bar input {
+  @include dyslexie;
+
+  grid-area: input;
+  align-self: center;
+  justify-self: center;
+
+  height: 50px;
+  font-size: 16px;
+
+  padding-right: 1vw;
+  padding-left: 1vw;
+
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+
+.jarbek-search-bar input:focus {
+  outline: none;
+  border: 1px solid darken($color-secondary, 40%);
+}
+
+.jarbek-search-bar input:hover {
+  outline: none;
+  border: 1px solid darken($color-default, 20%);
+}
+
+.jarbek-search-bar input::placeholder {
+  color: #bbb;
+}
+
+.jarbek-search-bar button {
+  grid-area: button;
+
+  padding-right: 1vw;
+  padding-left: 1vw;
+}
