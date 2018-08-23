@@ -39,7 +39,8 @@ $blog-list-large: $width-small-desktop + 1200;
   }
 
   @media screen and (max-width: $blog-list-small) {
-    margin-left: 10px;
+    justify-self: normal;
+    margin-left: 0;
   }
 }
 

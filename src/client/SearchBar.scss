@@ -34,11 +34,11 @@ $search-bar-large: $width-small-desktop + 1200;
     width: 74vw;
 
     input {
-      width: 60vw;
+      width: 64vw;
     }
 
     button {
-      width: 10vw;
+      width: 6vw;
     }
   }
 
@@ -46,23 +46,23 @@ $search-bar-large: $width-small-desktop + 1200;
     width: 80vw;
 
     input {
-      width: 64vw;
+      width: 70vw;
     }
 
     button {
-      width: 12vw;
+      width: 6vw;
     }
   }
 
   @media screen and (max-width: $search-bar-small) {
-    width: 96vw;
+    width: auto;
 
     input {
-      width: 72vw;
+      width: 76vw;
     }
 
     button {
-      width: 20vw;
+      width: 14vw;
     }
   }
 }
