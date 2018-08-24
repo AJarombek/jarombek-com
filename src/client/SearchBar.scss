@@ -91,7 +91,7 @@ $search-bar-large: $width-small-desktop + 1200;
 
 .jarbek-search-bar input:hover {
   outline: none;
-  border: 1px solid darken($color-default, 20%);
+  border: 1px solid $color-default;
 }
 
 .jarbek-search-bar input::placeholder {

@@ -11,22 +11,36 @@ body {
   background-color: white;
 }
 
-.title {
-  font-weight: bold;
-  color: gray;
+.jarbek-home {
+  width: 100%;
+  height: 700px;
+
+  background: url("https://asset.jarombek.com/jarombek-home-background.jpg")
+                no-repeat center center fixed;
+  background-size: cover;
+}
+
+.jarbek-home-main {
+  height: 700px;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.jarbek-home-title-container {
+  padding-top: 150px;
+  text-align: center;
+}
+
+.jarbek-home-title {
   @include sylexiad-bold;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 62px;
 }
 
-.jarombek-main {
-  display: grid;
-  grid-template-columns: [start] 20% [middle-begin] 60% [middle-end] 20% [end];
-  grid-template-rows: [top] 15% [title] 25% [subtitle] 15% [blog] 10% [info] 25% [footer] 10% [bottom];
-}
-
-.title-container {
-  padding-top: 100px;
-  grid-row-start: title;
-  grid-row-end: subtitle;
+.jarbek-home-sub-title {
+  @include sylexiad-bold;
+  padding-top: 50px;
+  text-align: center;
+  font-size: 32px;
 }
 
 .title {
@@ -45,39 +59,24 @@ body {
   font-size: 24px;
   margin-bottom: 40px;
 
-  grid-row-start: subtitle;
-  grid-row-end: blog;
   align-self: center;
   justify-self: center;
   text-align: center;
 }
 
 .blog-button {
-  grid-row-start: blog;
-  grid-row-end: info;
   justify-self: center;
 }
 
 .info-button {
-  grid-row-start: info;
-  grid-row-end: footer;
   justify-self: center;
 }
 
 .footer-icon {
   margin-top: 200px;
 
-  grid-row-start: footer;
-  grid-row-end: end;
   align-self: end;
   justify-self: center;
-}
-
-@each $item in '.title-container', '.sub-title', '.blog-button', '.info-button', '.footer-icon' {
-  #{$item} {
-    grid-column-start: middle-begin;
-    grid-column-end: middle-end;
-  }
 }
 
 .footer-icon img {
