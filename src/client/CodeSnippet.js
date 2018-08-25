@@ -113,6 +113,11 @@ class CodeSnippet extends React.Component {
                 prop: "graphql",
                 title: "GraphQL",
                 highlightClass: "python"
+            },
+            {
+                prop: "haskell",
+                title: "Haskell",
+                highlightClass: "haskell"
             }
         ];
     }
