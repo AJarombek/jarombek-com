@@ -38,6 +38,7 @@ body {
 
 .jarbek-home-sub-title {
   @include sylexiad-bold;
+  color: rgba(255, 255, 255, 0.9);
   padding-top: 50px;
   text-align: center;
   font-size: 32px;
@@ -58,25 +59,29 @@ body {
   @include sylexiad;
   font-size: 24px;
   margin-bottom: 40px;
-
-  align-self: center;
-  justify-self: center;
   text-align: center;
 }
 
-.blog-button {
-  justify-self: center;
+.jarbek-home-blog-button {
+  margin-top: 180px;
+  text-decoration: none;
+  display: inline-block;
+  width: 100%;
 }
 
-.info-button {
-  justify-self: center;
+.jarbek-home-blog-button div {
+  width: 100%;
+  display: inline-flex;
+}
+
+.jarbek-home-blog-button div button {
+  margin: 0 auto;
 }
 
 .footer-icon {
-  margin-top: 200px;
-
-  align-self: end;
-  justify-self: center;
+  width: 60px;
+  margin: 0 auto;
+  padding-top: 200px;
 }
 
 .footer-icon img {

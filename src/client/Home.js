@@ -37,8 +37,8 @@ class Home extends React.Component {
                             <h1 className="jarbek-home-title">Andrew Jarombek</h1>
                         </div>
                         <p className="jarbek-home-sub-title">Software Development Hub</p>
-                        <Link to="/blog" className="blog-button">
-                            <Button activeColor="primary">
+                        <Link to="/blog" className="jarbek-home-blog-button">
+                            <Button activeColor="primary" passiveColor="primary">
                                 BLOG
                             </Button>
                         </Link>
