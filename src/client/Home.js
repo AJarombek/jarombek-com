@@ -21,7 +21,7 @@ class Home extends React.Component {
     render() {
 
         return (
-            <div className="jarombek-main">
+            <div className="jarbek-home">
                 <Helmet>
                     <title>Andrew Jarombek</title>
                     <meta name="author" content="Andrew Jarombek" />
@@ -31,18 +31,19 @@ class Home extends React.Component {
                     <link rel="canonical" href="https://jarombek.com" />
                     <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                 </Helmet>
-                <div className="title-container">
-                    <h1 className="title">Andrew Jarombek</h1>
+                <div className="jarbek-home-main">
+                    <div className="jarbek-home-main-overlay">
+                        <div className="jarbek-home-title-container">
+                            <h1 className="jarbek-home-title">Andrew Jarombek</h1>
+                        </div>
+                        <p className="jarbek-home-sub-title">Software Development Hub</p>
+                        <Link to="/blog" className="jarbek-home-blog-button">
+                            <Button activeColor="primary" passiveColor="primary">
+                                BLOG
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
-                <p className="sub-title">Website Under Construction</p>
-                <Link to="/blog" className="blog-button">
-                    <Button activeColor="primary">
-                        BLOG
-                    </Button>
-                </Link>
-                <Button className="info-button" activeColor="default">
-                    INFO
-                </Button>
                 <TitleImage className="footer-icon" src="./assets/github.png" title="GITHUB"
                             link="https://github.com/AJarombek"/>
             </div>

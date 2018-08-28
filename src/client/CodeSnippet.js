@@ -107,12 +107,17 @@ class CodeSnippet extends React.Component {
             {
                 prop: "batch",
                 title: "Batch",
-                highlightClass: "bash"
+                highlightClass: "dos"
             },
             {
                 prop: "graphql",
                 title: "GraphQL",
                 highlightClass: "python"
+            },
+            {
+                prop: "haskell",
+                title: "Haskell",
+                highlightClass: "haskell"
             }
         ];
     }
