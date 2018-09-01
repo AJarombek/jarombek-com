@@ -12,6 +12,7 @@ import {Helmet} from 'react-helmet';
 import Button from './Button';
 import TitleImage from "./TitleImage";
 import FeatureList from "./FeatureList";
+import websiteFeatures from "./websiteFeatures";
 
 class Home extends React.Component {
 
@@ -20,8 +21,6 @@ class Home extends React.Component {
     }
 
     render() {
-
-        const websiteFeatures = {};
 
         return (
             <div className="jarbek-home">
@@ -47,7 +46,7 @@ class Home extends React.Component {
                         </Link>
                     </div>
                 </div>
-                <FeatureList featureList={} />
+                <FeatureList featureList={websiteFeatures} />
                 <TitleImage className="footer-icon" src="./assets/github.png" title="GITHUB"
                             link="https://github.com/AJarombek"/>
             </div>

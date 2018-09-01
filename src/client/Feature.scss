@@ -4,6 +4,43 @@
  * @since 8/29/2018
  */
 
+@import "styles/mixins/sylexiads";
+
 .jarbek-feature {
+  display: grid;
+  grid-template-areas: "content picture";
+  height: 80vh;
+}
+
+.jarbek-feature-content {
+  align-self: center;
+  justify-self: center;
+}
+
+.jarbek-feature-content h5 {
+  @include sylexiad-bold;
+  font-size: 42px;
+
+  text-align: center;
+  padding: 10px 0 10px 0;
+}
+
+.jarbek-feature-content p {
+  @include sylexiad;
+  font-size: 28px;
+
+  text-align: center;
+  padding: 40px 0 10px 0;
+}
+
+.jarbek-feature-background-color-white {
+  background-color: white;
+}
+
+.jarbek-feature-background-picture-computer {
+
+}
+
+.jarbek-feature-background-picture-kayak {
 
 }
