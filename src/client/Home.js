@@ -46,7 +46,9 @@ class Home extends React.Component {
                         </Link>
                     </div>
                 </div>
+                <div className="jarbek-home-break"> </div>
                 <FeatureList featureList={websiteFeatures} />
+                <div className="jarbek-home-break"> </div>
                 <TitleImage className="footer-icon" src="./assets/github.png" title="GITHUB"
                             link="https://github.com/AJarombek"/>
             </div>

@@ -7,14 +7,23 @@
 @import "styles/mixins/sylexiads";
 
 .jarbek-feature {
+  height: 80vh;
+}
+
+.jarbek-feature > div {
+  height: 100%;
   display: grid;
   grid-template-areas: "content picture";
-  height: 80vh;
+}
+
+.jarbek-feature-background-picture > div {
+  background: rgba(0, 0, 0, 0.65);
 }
 
 .jarbek-feature-content {
   align-self: center;
   justify-self: center;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .jarbek-feature-content h5 {
@@ -38,9 +47,13 @@
 }
 
 .jarbek-feature-background-picture-computer {
-
+  background: url("https://asset.jarombek.com/computer.jpg")
+                no-repeat center center;
+  background-size: cover;
 }
 
 .jarbek-feature-background-picture-kayak {
-
+  background: url("https://asset.jarombek.com/kayak.jpg")
+                no-repeat center center;
+  background-size: cover;
 }

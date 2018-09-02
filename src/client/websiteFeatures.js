@@ -13,7 +13,7 @@ const websiteFeatures = [
         },
         orientation: "left",
         backgroundColor: null,
-        backgroundPicture: "work"
+        backgroundPicture: "computer"
     },
     {
         title: "Statistics".toUpperCase(),
