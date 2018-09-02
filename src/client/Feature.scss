@@ -13,7 +13,16 @@
 .jarbek-feature > div {
   height: 100%;
   display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 20px;
+}
+
+.jarbek-feature-orientation-left > div {
   grid-template-areas: "content picture";
+}
+
+.jarbek-feature-orientation-right > div {
+  grid-template-areas: "picture content";
 }
 
 .jarbek-feature-background-picture > div {
@@ -21,8 +30,16 @@
 }
 
 .jarbek-feature-content {
+  grid-area: content;
   align-self: center;
   justify-self: center;
+}
+
+.jarbek-feature-background-color-white .jarbek-feature-content {
+  color: #222;
+}
+
+.jarbek-feature-background-picture .jarbek-feature-content {
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -31,7 +48,7 @@
   font-size: 42px;
 
   text-align: center;
-  padding: 10px 0 10px 0;
+  padding: 10px 10px 10px 10px;
 }
 
 .jarbek-feature-content p {
@@ -39,7 +56,11 @@
   font-size: 28px;
 
   text-align: center;
-  padding: 40px 0 10px 0;
+  padding: 40px 20px 10px 20px;
+}
+
+.jarbek-feature-picture {
+  grid-area: picture;
 }
 
 .jarbek-feature-background-color-white {

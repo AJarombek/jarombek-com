@@ -8,7 +8,8 @@ const websiteFeatures = [
     {
         title: "Resume".toUpperCase(),
         content: {
-            text: "temp text",
+            text: `Take an interactive tour of my software development career, starting as a 
+                student at St. Lawrence University.`,
             picture: null
         },
         orientation: "left",
@@ -18,7 +19,8 @@ const websiteFeatures = [
     {
         title: "Statistics".toUpperCase(),
         content: {
-            text: "temp text",
+            text: `Analyze which programming languages and frameworks I use the most with 
+                dynamic charts.`,
             picture: ""
         },
         orientation: "right",
@@ -28,7 +30,8 @@ const websiteFeatures = [
     {
         title: "Articles".toUpperCase(),
         content: {
-            text: "temp text",
+            text: `Read software development articles I've written and follow my progress as a 
+                programmer.`,
             picture: null
         },
         orientation: "left",
