@@ -123,6 +123,11 @@ class CodeSnippet extends React.Component {
                 prop: "hcl",
                 title: "HCL",
                 highlightClass: "python"
+            },
+            {
+                prop: "velocity",
+                title: "Velocity",
+                highlightClass: "cpp"
             }
         ];
     }
