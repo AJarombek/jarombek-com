@@ -6,19 +6,20 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Link} from 'react-router-dom';
 
 import './Feature.scss';
 
-const Feature = ({ title, content, backgroundPicture, backgroundColor, orientation }) =>
+const Feature = ({ title, content, backgroundPicture, backgroundColor, orientation, link }) =>
     <div className={`jarbek-feature jarbek-feature-orientation-${orientation}
             ${backgroundPicture ? `jarbek-feature-background-picture
                 jarbek-feature-background-picture-${backgroundPicture}`: ''}
             ${backgroundColor ? `jarbek-feature-background-color-${backgroundColor}`: ''}`}>
         <div>
-            <div className="jarbek-feature-content">
+            <Link to={link} className="jarbek-feature-content">
                 <h5>{ title }</h5>
                 <p>{ content.text }</p>
-            </div>
+            </Link>
             <div className="jarbek-feature-content-picture">
                 { content.picture ?
                     <figure>
@@ -34,11 +35,13 @@ Feature.propTypes = {
     content: PropTypes.object.isRequired,
     backgroundPicture: PropTypes.string,
     backgroundColor: PropTypes.string,
-    orientation: PropTypes.string
+    orientation: PropTypes.string,
+    link: PropTypes.string
 };
 
 Feature.defaultProps = {
-    orientation: 'left'
+    orientation: 'left',
+    link: '/'
 };
 
 export default Feature;

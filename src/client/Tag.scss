@@ -15,6 +15,7 @@ $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
 $babel-yellow: rgba(249, 220, 74, 0.6);
 $python-yellow: rgba(249, 239, 180, 0.6);
 $travisci-yellow: rgba(242, 238, 174, 0.6);
+$apigateway-yellow: rgba(217, 167, 64, 0.6);
 $sql-blue: rgba(33, 115, 199, 0.6);
 $java-blue: rgba(219, 231, 243, 0.6);
 $java8-blue: rgba(244, 247, 249, 0.6);
@@ -40,6 +41,7 @@ $rabbitmq-orange: rgba(239, 100, 55, 0.6);
 $yaml-orange: rgba(239, 145, 62, 0.6);
 $aws-orange: rgba(244, 154, 62, 0.6);
 $ec2-orange: rgba(242, 133, 59, 0.6);
+$awslambda-orange: rgba(241, 124, 58, 0.6);
 $express-gray: rgba(224, 226, 228, 0.6);
 $json-gray: rgba(121, 119, 119, 0.6);
 $batch-gray: rgba(206, 215, 220, 0.6);
@@ -80,6 +82,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-travisci {
   background-color: $travisci-yellow;
+}
+
+.jarombek-tag-color-apigateway {
+  background-color: lighten($apigateway-yellow, 10%);
 }
 
 .jarombek-tag-color-sql {
@@ -156,6 +162,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-ec2 {
   background-color: lighten($ec2-orange, 10%);
+}
+
+.jarombek-tag-color-awslambda {
+  background-color: lighten($awslambda-orange, 10%);
 }
 
 .jarombek-tag-color-php {

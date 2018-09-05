@@ -14,7 +14,8 @@ const websiteFeatures = [
         },
         orientation: "left",
         backgroundColor: null,
-        backgroundPicture: "computer"
+        backgroundPicture: "computer",
+        link: "/resume"
     },
     {
         title: "Statistics".toUpperCase(),
@@ -25,7 +26,8 @@ const websiteFeatures = [
         },
         orientation: "right",
         backgroundColor: "white",
-        backgroundPicture: null
+        backgroundPicture: null,
+        link: "/stats"
     },
     {
         title: "Articles".toUpperCase(),
@@ -36,7 +38,8 @@ const websiteFeatures = [
         },
         orientation: "left",
         backgroundColor: null,
-        backgroundPicture: "kayak"
+        backgroundPicture: "kayak",
+        link: "/blog"
     }
 ];
 
