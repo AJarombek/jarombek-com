@@ -14,7 +14,8 @@ const Feature = ({ title, content, backgroundPicture, backgroundColor, orientati
     <div className={`jarbek-feature jarbek-feature-orientation-${orientation}
             ${backgroundPicture ? `jarbek-feature-background-picture
                 jarbek-feature-background-picture-${backgroundPicture}`: ''}
-            ${backgroundColor ? `jarbek-feature-background-color-${backgroundColor}`: ''}`}>
+            ${backgroundColor ? `jarbek-feature-with-picture
+                jarbek-feature-background-color-${backgroundColor}`: ''}`}>
         <div>
             <Link to={link} className="jarbek-feature-content">
                 <h5>{ title }</h5>

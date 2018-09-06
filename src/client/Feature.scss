@@ -9,7 +9,13 @@
 @import "./styles/mixins/transition";
 
 .jarbek-feature {
-  height: 80vh;
+  height: 90vh;
+}
+
+.jarbek-feature-with-picture {
+  @media screen and (max-width: $width-mobile + 200) {
+    height: 120vh;
+  }
 }
 
 .jarbek-feature > div {
@@ -57,6 +63,10 @@
 .jarbek-feature-background-color-white .jarbek-feature-content {
   color: #222;
   @include transition("color", #000, $speed: ease-in-out);
+
+  @media screen and (max-width: $width-mobile + 200) {
+    padding-top: 40px;
+  }
 }
 
 .jarbek-feature-background-picture .jarbek-feature-content {
@@ -80,8 +90,15 @@
   padding: 40px 20px 10px 20px;
 }
 
-.jarbek-feature-picture {
+.jarbek-feature-content-picture {
   grid-area: picture;
+  justify-self: center;
+  align-self: center;
+}
+
+.jarbek-feature-content-picture img {
+  filter: opacity(60%);
+  max-height: 60vh;
 }
 
 .jarbek-feature-background-color-white {

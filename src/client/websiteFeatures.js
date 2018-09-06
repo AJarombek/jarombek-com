@@ -22,7 +22,7 @@ const websiteFeatures = [
         content: {
             text: `Analyze which programming languages and frameworks I use the most with 
                 dynamic charts.`,
-            picture: ""
+            picture: "https://asset.jarombek.com/logos/tech_logos.svg"
         },
         orientation: "right",
         backgroundColor: "white",
