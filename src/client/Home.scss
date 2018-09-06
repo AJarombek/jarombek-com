@@ -78,10 +78,31 @@ body {
   margin: 0 auto;
 }
 
+.jarbek-home-break {
+  background-color: white;
+  height: 280px;
+}
+
+.jarbek-home-break p {
+  @include sylexiad;
+  text-align: center;
+  font-size: 32px;
+  color: #2a2a2a;
+
+  height: 100%;
+  display: grid;
+  align-content: center;
+}
+
+.jarbek-home-break p strong {
+  @include sylexiad-bold;
+}
+
 .footer-icon {
   width: 60px;
   margin: 0 auto;
-  padding-top: 200px;
+  padding-top: 120px;
+  padding-bottom: 30px;
 }
 
 .footer-icon img {
