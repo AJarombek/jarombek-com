@@ -13,7 +13,7 @@ body {
 
 .jarbek-home {
   width: 100%;
-  height: 700px;
+  height: 98vh;
 
   background: url("https://asset.jarombek.com/jarombek-home-background.jpg")
                 no-repeat center center fixed;
@@ -21,7 +21,7 @@ body {
 }
 
 .jarbek-home-main {
-  height: 700px;
+  height: 98vh;
   background: rgba(0, 0, 0, 0.65);
 }
 
@@ -37,11 +37,11 @@ body {
 }
 
 .jarbek-home-sub-title {
-  @include sylexiad-bold;
+  @include sylexiad;
   color: rgba(255, 255, 255, 0.9);
   padding-top: 50px;
   text-align: center;
-  font-size: 32px;
+  font-size: 36px;
 }
 
 .title {

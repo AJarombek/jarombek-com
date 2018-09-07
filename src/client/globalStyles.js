@@ -33,6 +33,13 @@ globalStyles.dev = `
     src: url("http://localhost:8080/client/assets/FantasqueSansMono-Bold.ttf") 
         format("truetype");
   }
+  
+  @font-face {
+    font-family: Longway;
+    font-weight: bold;
+    src: url("http://localhost:8080/client/assets/Longway-Regular.otf") 
+        format("opentype");
+  }
 `;
 
 globalStyles.prod = `
@@ -58,6 +65,12 @@ globalStyles.prod = `
     font-family: Fantasque-Bold;
     font-weight: bold;
     src: url("https://asset.jarombek.com/fonts/FantasqueSansMono-Bold.ttf") format("truetype");
+  }
+  
+  @font-face {
+    font-family: Longway;
+    font-weight: bold;
+    src: url("https://asset.jarombek.com/fonts/Longway-Regular.otf") format("opentype");
   }
 `;
 

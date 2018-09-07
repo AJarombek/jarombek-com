@@ -18,6 +18,12 @@
   }
 }
 
+.jarbek-feature-background-picture {
+  @media screen and (max-width: $width-mobile + 200) {
+    height: 75vh;
+  }
+}
+
 .jarbek-feature > div {
   height: 100%;
   display: grid;
@@ -99,6 +105,14 @@
 .jarbek-feature-content-picture img {
   filter: opacity(60%);
   max-height: 60vh;
+
+  @media screen and (max-width: $width-small-desktop + 150) and (min-width: $width-mobile + 201) {
+    max-height: 50vh;
+  }
+
+  @media screen and (max-width: $width-mobile + 200) {
+    max-height: 45vh;
+  }
 }
 
 .jarbek-feature-background-color-white {

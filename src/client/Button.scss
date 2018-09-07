@@ -5,6 +5,7 @@
  */
 
 @import "styles/mixins/sylexiads";
+@import "styles/mixins/longway";
 @import "./styles/variables";
 
 .jarbek-button {
@@ -13,7 +14,14 @@
   box-shadow: none;
   cursor: pointer;
   outline: none;
+}
+
+.jarbek-button-font-sylexiad {
   @include sylexiad;
+}
+
+.jarbek-button-font-longway {
+  @include longway;
 }
 
 .jarbek-button-long {
