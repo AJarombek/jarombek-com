@@ -16,6 +16,7 @@ import Verify from './Verify';
 import Unsub from "./Unsub";
 import gs from "./globalStyles";
 import BlogList from "./BlogList";
+import Resume from "./Resume";
 
 let globalStyles = '';
 
@@ -37,6 +38,7 @@ const RoutedApp = () => {
             <Route exact path="/" component={Home} />
             <Route path="/blog/:name" render={(props) => <Blog {...props} {...window.__STATE__}/>}/>
             <Route path="/blog" render={(props) => <BlogList {...props} {...window.__STATE__}/>}/>
+            <Route path="/resume" component={Resume} />
             <Route path="/verify/:code" component={Verify}/>
             <Route path="/unsub/:code" component={Unsub} />
             <Route component={Home}/>

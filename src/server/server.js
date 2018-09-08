@@ -27,6 +27,7 @@ import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
 import userRoute from "./route/userRouter";
 import PostDao from "./dao/postDao";
+import Resume from "../client/Resume";
 
 mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 
@@ -85,6 +86,7 @@ const renderComponentsToHTML = async (url) => {
                     <Route path="/blog" render={
                         (props) => <BlogList {...props} {...{posts, first, prev, next, last}} />
                     }/>
+                    <Route path="/resume" component={Resume} />
                     <Route path="/verify/:code" component={Verify}/>
                     <Route path="/unsub/:code" component={Unsub}/>
                     <Route component={Home}/>
