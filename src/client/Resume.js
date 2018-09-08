@@ -11,6 +11,7 @@ import {Helmet} from 'react-helmet';
 import WebsiteTemplate from './WebsiteTemplate';
 import Modal from './Modal';
 import Subscribe from "./Subscribe";
+import TitleImage from "./TitleImage";
 
 class Resume extends React.Component {
 
@@ -41,6 +42,18 @@ class Resume extends React.Component {
                         <link rel="canonical" href={`https://jarombek.com/resume`} />
                         <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                     </Helmet>
+                    <div className="jarbek-resume-timeline">
+                        <Timeline />
+                    </div>
+                    <div className="jarbek-resume-prev">
+                        <TitleImage src="./assets/down.png" title="" link="/resume"/>
+                    </div>
+                    <div className="jarbek-resume-content">
+
+                    </div>
+                    <div className="jarbek-resume-next">
+                        <TitleImage src="./assets/down.png" title="" link="/resume"/>
+                    </div>
                 </div>
                 { (subscribing) ?
                     <Modal clickBackground={() => this.setState({subscribing: false})}>

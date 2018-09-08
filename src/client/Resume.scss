@@ -1,0 +1,33 @@
+/**
+ * Sass styling for the Resume component
+ * @author Andrew Jarombek
+ * @since 9/8/2018
+ */
+
+.jarbek-resume {
+  display: grid;
+  grid-gap: 10px;
+
+  width: 96%;
+  margin-left: 2%;
+  margin-right: 2%;
+
+  grid-template-columns: 1fr 8fr 1fr;
+  grid-template-areas:
+          "timeline timeline timeline"
+          "prev     content  next";
+}
+
+@each $section in 'type', 'date' {
+  .jarbek-resume-#{$section} {
+    grid-area: $section;
+  }
+}
+
+.jarbek-resume-timeline {}
+
+.jarbek-resume-prev {}
+
+.jarbek-resume-content {}
+
+.jarbek-resume-next {}
