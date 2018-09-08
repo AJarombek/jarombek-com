@@ -4,6 +4,10 @@
  * @since 3/22/2018
  */
 
+html {
+  scroll-behavior: smooth;
+}
+
 .jarombek-background {
   background-image: url("assets/blizzard.png") !important;
 }

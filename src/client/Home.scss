@@ -25,6 +25,11 @@ body {
   background: rgba(0, 0, 0, 0.65);
 }
 
+.jarbek-home-main-overlay {
+  height: 100%;
+  position: relative;
+}
+
 .jarbek-home-title-container {
   padding-top: 150px;
   text-align: center;
@@ -76,6 +81,12 @@ body {
 
 .jarbek-home-blog-button div button {
   margin: 0 auto;
+}
+
+.jarbek-home-arrow div {
+  bottom: 5px;
+  right: calc(50vw - 25px);
+  position: absolute;
 }
 
 .jarbek-home-break {
