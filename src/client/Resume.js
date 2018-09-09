@@ -13,13 +13,25 @@ import Modal from './Modal';
 import Subscribe from "./Subscribe";
 import TitleImage from "./TitleImage";
 import Timeline from "./Timeline";
+import resumeSections from "./resumeSections";
 
 class Resume extends React.Component {
 
     constructor(props) {
         super(props);
         console.debug('Inside Resume constructor');
-        this.state = {};
+
+        const {title, content, languages, technologies} = resumeSections[0];
+
+        this.state = {
+            points: 5,
+            position: 1,
+            title,
+            content,
+            languages,
+            technologies,
+            subscribing: false
+        };
     }
 
     static propTypes = {
@@ -30,7 +42,7 @@ class Resume extends React.Component {
      * Render the JSX
      */
     render() {
-        const {subscribing} = this.state;
+        const {subscribing, points, position, title, content, languages, technologies} = this.state;
         console.debug('Inside Resume Render');
 
         return (
@@ -44,16 +56,27 @@ class Resume extends React.Component {
                         <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                     </Helmet>
                     <div className="jarbek-resume-timeline">
-                        <Timeline points={5} position={2} />
+                        <Timeline points={points} position={position} />
+                    </div>
+                    <div className="jarbek-resume-title">
+                        <h5>{ title }</h5>
                     </div>
                     <div className="jarbek-resume-prev">
-                        <TitleImage src="./assets/down.png" title="" link="/resume"/>
+                        <TitleImage src="./assets/down-black.png" title="" link="/resume"/>
                     </div>
                     <div className="jarbek-resume-content">
-
+                        <p>{ content }</p>
                     </div>
                     <div className="jarbek-resume-next">
-                        <TitleImage src="./assets/down.png" title="" link="/resume"/>
+                        <TitleImage src="./assets/down-black.png" title="" link="/resume"/>
+                    </div>
+                    <div className="jarbek-resume-tech">
+                        <p className="jarbek-resume-tech-languages">
+                            <strong>Languages:</strong> { languages }
+                        </p>
+                        <p className="jarbek-resume-tech-technologies">
+                            <strong>Technologies:</strong> { technologies }
+                        </p>
                     </div>
                 </div>
                 { (subscribing) ?
