@@ -44,7 +44,7 @@ class Resume extends React.Component {
                         <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                     </Helmet>
                     <div className="jarbek-resume-timeline">
-                        <Timeline points={5} position={1} />
+                        <Timeline points={5} position={2} />
                     </div>
                     <div className="jarbek-resume-prev">
                         <TitleImage src="./assets/down.png" title="" link="/resume"/>
