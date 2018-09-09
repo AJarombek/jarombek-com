@@ -12,9 +12,12 @@ const SearchBar = ({points, position}) => {
         <div className="jarbek-timeline">
             { points ?
                 <div>
-                    <div className="jarbek-timeline-point jarbek-timeline-first-point"> </div>
+                    <div className="jarbek-timeline-section jarbek-timeline-first-section">
+                        <div> </div>
+                        <div className="jarbek-timeline-point"> </div>
+                    </div>
                     { [...Array(points-1)].map(i =>
-                        <div key={`jarbek-timeline-key-${i}`}>
+                        <div key={`jarbek-timeline-key-${i}`} className="jarbek-timeline-section">
                             <div className="jarbek-timeline-line"> </div>
                             <div className="jarbek-timeline-point"> </div>
                         </div>

@@ -12,6 +12,7 @@ import WebsiteTemplate from './WebsiteTemplate';
 import Modal from './Modal';
 import Subscribe from "./Subscribe";
 import TitleImage from "./TitleImage";
+import Timeline from "./Timeline";
 
 class Resume extends React.Component {
 
@@ -34,7 +35,7 @@ class Resume extends React.Component {
 
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
-                <div className="jarbek-reume">
+                <div className="jarbek-resume">
                     <Helmet>
                         <title>Andrew Jarombek Resume</title>
                         <meta name="author" content="Andrew Jarombek" />
@@ -43,7 +44,7 @@ class Resume extends React.Component {
                         <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                     </Helmet>
                     <div className="jarbek-resume-timeline">
-                        <Timeline />
+                        <Timeline points={5} position={1} />
                     </div>
                     <div className="jarbek-resume-prev">
                         <TitleImage src="./assets/down.png" title="" link="/resume"/>

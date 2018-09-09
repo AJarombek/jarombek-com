@@ -3,3 +3,51 @@
  * @author Andrew Jarombek
  * @since 9/8/2018
  */
+
+@import "./styles/variables";
+
+$circle-dimension: 30px;
+
+.jarbek-timeline {
+  width: 100%;
+  margin-left: -45px;
+}
+
+.jarbek-timeline-first-section {
+
+}
+
+.jarbek-timeline div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 120px);
+
+  justify-content: center;
+  align-content: center;
+
+  width: 100%;
+}
+
+.jarbek-timeline-section {
+  display: grid;
+  grid-template-areas: "line point";
+  grid-template-columns: 9fr 1fr;
+}
+
+.jarbek-timeline-point {
+  background-color: $color-default;
+  width: $circle-dimension;
+  height: $circle-dimension;
+
+  border-radius: 50%;
+}
+
+.jarbek-timeline-point-active {
+  background-color: $color-secondary;
+}
+
+.jarbek-timeline-line {
+  background-color: $color-default;
+  height: 6px;
+  margin-right: -5px;
+  align-self: center;
+}
