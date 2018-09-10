@@ -43,7 +43,7 @@
 .jarbek-resume-title h5 {
   @include sylexiad;
   text-align: center;
-  font-size: 28px;
+  font-size: 32px;
 }
 
 .jarbek-resume-prev {
@@ -55,8 +55,21 @@
   transform: rotate(90deg);
 }
 
+.jarbek-resume-content {
+  width: 100%;
+  overflow: auto;
+}
+
 .jarbek-resume-content p {
+  @include sylexiad;
+  font-size: 24px;
   text-align: center;
+  white-space: pre;
+  line-height: 1.5;
+  letter-spacing: 0.7px;
+
+  padding-top: 50px;
+  padding-bottom: 150px;
 }
 
 .jarbek-resume-next {
@@ -69,6 +82,7 @@
 }
 
 .jarbek-resume-tech {
+  @include sylexiad;
   text-align: center;
 }
 

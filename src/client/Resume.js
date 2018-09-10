@@ -72,10 +72,18 @@ class Resume extends React.Component {
                     </div>
                     <div className="jarbek-resume-tech">
                         <p className="jarbek-resume-tech-languages">
-                            <strong>Languages:</strong> { languages }
+                            <strong>Languages:</strong> {
+                                languages.reduce((acc, item, index) =>
+                                    index ? `${acc}, ${item}`: `${item}`
+                                )
+                            }
                         </p>
                         <p className="jarbek-resume-tech-technologies">
-                            <strong>Technologies:</strong> { technologies }
+                            <strong>Technologies:</strong> {
+                                technologies.reduce((acc, item, index) =>
+                                    index ? `${acc}, ${item}`: `${item}`
+                                )
+                            }
                         </p>
                     </div>
                 </div>
