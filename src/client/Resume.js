@@ -7,6 +7,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Helmet} from 'react-helmet';
+import {Link} from 'react-router-dom';
 
 import WebsiteTemplate from './WebsiteTemplate';
 import Modal from './Modal';
@@ -14,6 +15,7 @@ import Subscribe from "./Subscribe";
 import TitleImage from "./TitleImage";
 import Timeline from "./Timeline";
 import resumeSections from "./resumeSections";
+import queryString from "query-string";
 
 class Resume extends React.Component {
 
@@ -35,8 +37,23 @@ class Resume extends React.Component {
     }
 
     static propTypes = {
-        match: PropTypes.object.isRequired
+        match: PropTypes.object.isRequired,
+        location: PropTypes.object
     };
+
+    componentWillReceiveProps(nextProps) {
+        const {page} = queryString.parse(nextProps.location.search);
+
+        const {title, content, languages, technologies} = resumeSections[+page];
+
+        this.setState({
+            position: page,
+            title,
+            content,
+            languages,
+            technologies
+        });
+    }
 
     /**
      * Render the JSX
@@ -61,15 +78,19 @@ class Resume extends React.Component {
                     <div className="jarbek-resume-title">
                         <h5>{ title }</h5>
                     </div>
-                    <div className="jarbek-resume-prev">
-                        <TitleImage src="./assets/down-black.png" title="" link="/resume"/>
-                    </div>
+                    { +position !== 1 ?
+                        <Link className="jarbek-resume-prev" to={`/resume?page=${+position - 1}`}>
+                            <TitleImage src="./assets/down-black.png" title="" link="/resume"/>
+                        </Link>: null
+                    }
                     <div className="jarbek-resume-content">
                         <p>{ content }</p>
                     </div>
-                    <div className="jarbek-resume-next">
-                        <TitleImage src="./assets/down-black.png" title="" link="/resume"/>
-                    </div>
+                    { +position !== +points ?
+                        <Link className="jarbek-resume-next" to={`/resume?page=${+position + 1}`}>
+                            <TitleImage src="./assets/down-black.png" title="" />
+                        </Link>: null
+                    }
                     <div className="jarbek-resume-tech">
                         <p className="jarbek-resume-tech-languages">
                             <strong>Languages:</strong> {
