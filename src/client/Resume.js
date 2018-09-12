@@ -25,9 +25,12 @@ class Resume extends React.Component {
 
         const {title, content, languages, technologies} = resumeSections[0];
 
+        const points = props.points || 5;
+        const position = props.position || 1;
+
         this.state = {
-            points: 5,
-            position: 1,
+            points,
+            position,
             title,
             content,
             languages,
@@ -38,16 +41,38 @@ class Resume extends React.Component {
 
     static propTypes = {
         match: PropTypes.object.isRequired,
-        location: PropTypes.object
+        location: PropTypes.object,
+        points: PropTypes.number,
+        position: PropTypes.number
     };
 
-    componentWillReceiveProps(nextProps) {
-        const {page} = queryString.parse(nextProps.location.search);
+    /**
+     *
+     */
+    componentWillMount() {
+        this.initResumeContent(this.props);
+    }
 
-        const {title, content, languages, technologies} = resumeSections[+page];
+    /**
+     *
+     * @param nextProps
+     */
+    componentWillReceiveProps(nextProps) {
+        this.initResumeContent(nextProps);
+    }
+
+    /**
+     *
+     * @param props
+     */
+    initResumeContent(props) {
+        const {page} = queryString.parse(props.location.search);
+        const resumePage = +page || 1;
+
+        const {title, content, languages, technologies} = resumeSections[resumePage - 1];
 
         this.setState({
-            position: page,
+            position: resumePage,
             title,
             content,
             languages,
@@ -73,39 +98,41 @@ class Resume extends React.Component {
                         <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                     </Helmet>
                     <div className="jarbek-resume-timeline">
-                        <Timeline points={points} position={position} />
+                        <Timeline points={+points} position={+position} />
                     </div>
                     <div className="jarbek-resume-title">
                         <h5>{ title }</h5>
                     </div>
                     { +position !== 1 ?
-                        <Link className="jarbek-resume-prev" to={`/resume?page=${+position - 1}`}>
-                            <TitleImage src="./assets/down-black.png" title="" link="/resume"/>
+                        <Link className="jarbek-resume-prev" to={`/resume?page=${position - 1}`}>
+                            <TitleImage src="./assets/down-black.png" title="" />
                         </Link>: null
                     }
                     <div className="jarbek-resume-content">
-                        <p>{ content }</p>
+                        <div>{ content }</div>
                     </div>
                     { +position !== +points ?
-                        <Link className="jarbek-resume-next" to={`/resume?page=${+position + 1}`}>
+                        <Link className="jarbek-resume-next" to={`/resume?page=${position + 1}`}>
                             <TitleImage src="./assets/down-black.png" title="" />
                         </Link>: null
                     }
                     <div className="jarbek-resume-tech">
-                        <p className="jarbek-resume-tech-languages">
-                            <strong>Languages:</strong> {
-                                languages.reduce((acc, item, index) =>
+                        { languages.length ?
+                            <p className="jarbek-resume-tech-languages">
+                                <strong>Languages:</strong>
+                                {languages.reduce((acc, item, index) =>
                                     index ? `${acc}, ${item}`: `${item}`
-                                )
-                            }
-                        </p>
-                        <p className="jarbek-resume-tech-technologies">
-                            <strong>Technologies:</strong> {
-                                technologies.reduce((acc, item, index) =>
-                                    index ? `${acc}, ${item}`: `${item}`
-                                )
-                            }
-                        </p>
+                                )}
+                            </p>: null
+                        }
+                        {technologies.length ?
+                            <p className="jarbek-resume-tech-technologies">
+                                <strong>Technologies:</strong>
+                                {technologies.reduce((acc, item, index) =>
+                                    index ? `${acc}, ${item}` : `${item}`
+                                )}
+                            </p>: null
+                        }
                     </div>
                 </div>
                 { (subscribing) ?

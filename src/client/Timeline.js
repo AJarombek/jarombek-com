@@ -7,7 +7,7 @@
 import React from 'react';
 import PropTypes from "prop-types";
 
-const SearchBar = ({points, position}) => {
+const Timeline = ({points, position}) => {
     return (
         <div className="jarbek-timeline">
             { points ?
@@ -30,14 +30,14 @@ const SearchBar = ({points, position}) => {
     );
 };
 
-SearchBar.propTypes = {
+Timeline.propTypes = {
     points: PropTypes.number.isRequired,
     position: PropTypes.number.isRequired
 };
 
-SearchBar.defaultProps = {
+Timeline.defaultProps = {
     points: 2,
     position: 1
 };
 
-export default SearchBar;
+export default Timeline;

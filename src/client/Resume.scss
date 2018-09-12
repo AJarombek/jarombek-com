@@ -80,7 +80,7 @@
   left: 0;
 }
 
-.jarbek-resume-content > p {
+.jarbek-resume-content > div {
   @include sylexiad;
   font-size: 24px;
   text-align: center;
@@ -91,7 +91,7 @@
   padding-bottom: 150px;
 }
 
-.jarbek-resume-content > p > p {
+.jarbek-resume-content > div > p {
   margin-bottom: 25px;
 }
 
