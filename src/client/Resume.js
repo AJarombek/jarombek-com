@@ -47,27 +47,33 @@ class Resume extends React.Component {
     };
 
     /**
-     *
+     * Called when a component is about to mount.  The resume content is initialized here with
+     * all the props passed to the component.
+     * NOTE: This lifecycle call IS made on server side React.  This is simply a preparation
+     * call before interacting with the DOM
      */
     componentWillMount() {
         this.initResumeContent(this.props);
     }
 
     /**
-     *
-     * @param nextProps
+     * Called when the component is about to receive new props.  The new resume content is
+     * initialized here with the new props passed to the component.
+     * @param nextProps - the props that are about to replace the existing props.
      */
     componentWillReceiveProps(nextProps) {
         this.initResumeContent(nextProps);
     }
 
     /**
-     *
-     * @param props
+     * Initialize the content shown in the resume component.  The content depends on the properties
+     * passed to the component.  This method is dependent on the global {@code resumeSections}
+     * object which hold information about each resume page.
+     * @param props - The properties passed to the component.
      */
     initResumeContent(props) {
         const {page} = queryString.parse(props.location.search);
-        const resumePage = +page || 1;
+        const resumePage = +page || +props.position || 1;
 
         const {title, content, languages, technologies} = resumeSections[resumePage - 1];
 
@@ -84,7 +90,7 @@ class Resume extends React.Component {
      * Render the JSX
      */
     render() {
-        const {subscribing, points, position, title, content, languages, technologies} = this.state;
+        const {subscribing, points, position, title, languages, technologies} = this.state;
         console.debug('Inside Resume Render');
 
         return (
@@ -109,7 +115,14 @@ class Resume extends React.Component {
                         </Link>: null
                     }
                     <div className="jarbek-resume-content">
-                        <div>{ content }</div>
+                        { resumeSections.map((item, index) =>
+                            <div key={`jarbek-resume-content-${index+1}`}
+                                 className={`${position === index+1 ?
+                                     'jarbek-resume-content-active':
+                                     'jarbek-resume-content-inactive'}`}>
+                                { item.content }
+                            </div>
+                        )}
                     </div>
                     { +position !== +points ?
                         <Link className="jarbek-resume-next" to={`/resume?page=${position + 1}`}>
@@ -119,7 +132,7 @@ class Resume extends React.Component {
                     <div className="jarbek-resume-tech">
                         { languages.length ?
                             <p className="jarbek-resume-tech-languages">
-                                <strong>Languages:</strong>
+                                <strong>Languages: </strong>
                                 {languages.reduce((acc, item, index) =>
                                     index ? `${acc}, ${item}`: `${item}`
                                 )}
@@ -127,7 +140,7 @@ class Resume extends React.Component {
                         }
                         {technologies.length ?
                             <p className="jarbek-resume-tech-technologies">
-                                <strong>Technologies:</strong>
+                                <strong>Technologies: </strong>
                                 {technologies.reduce((acc, item, index) =>
                                     index ? `${acc}, ${item}` : `${item}`
                                 )}

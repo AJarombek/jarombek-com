@@ -55,7 +55,8 @@
 
 .jarbek-resume-content {
   position: relative;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   width: auto;
 }
 
@@ -89,6 +90,28 @@
 
   padding-top: 50px;
   padding-bottom: 150px;
+}
+
+.jarbek-resume-content-inactive {
+  display: none;
+}
+
+.jarbek-resume-content-active {
+  animation: slide-in 1s;
+}
+
+@keyframes slide-in {
+  from {
+    margin-left: 100%;
+    width: 100%;
+    display: none;
+  }
+
+  to {
+    margin-left: 0;
+    width: 100%;
+    display: initial;
+  }
 }
 
 .jarbek-resume-content > div > p {
