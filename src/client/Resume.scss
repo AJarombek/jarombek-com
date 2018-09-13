@@ -35,7 +35,25 @@
 .jarbek-resume-timeline {}
 
 .jarbek-resume-title {
-  align-self: center;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.jarbek-resume-title > div {
+  position: absolute;
+  width: 100%;
+}
+
+.jarbek-resume-title-inactive {
+  display: none;
+}
+
+.jarbek-resume-title-active-right {
+  animation: slide-in-from-right 1s;
+}
+
+.jarbek-resume-title-active-left {
+  animation: slide-in-from-left 1s;
 }
 
 .jarbek-resume-title h5 {
@@ -83,6 +101,7 @@
 
 .jarbek-resume-content > div {
   @include sylexiad;
+  position: absolute;
   font-size: 24px;
   text-align: center;
   line-height: 1.5;
@@ -96,22 +115,12 @@
   display: none;
 }
 
-.jarbek-resume-content-active {
-  animation: slide-in 1s;
+.jarbek-resume-content-active-right {
+  animation: slide-in-from-right 1s;
 }
 
-@keyframes slide-in {
-  from {
-    margin-left: 100%;
-    width: 100%;
-    display: none;
-  }
-
-  to {
-    margin-left: 0;
-    width: 100%;
-    display: initial;
-  }
+.jarbek-resume-content-active-left {
+  animation: slide-in-from-left 1s;
 }
 
 .jarbek-resume-content > div > p {
@@ -130,9 +139,56 @@
 .jarbek-resume-tech {
   @include sylexiad;
   text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.jarbek-resume-tech > div {
+  position: absolute;
+  width: 100%;
 }
 
 .jarbek-resume-tech strong {
   @include longway;
   font-size: 18px;
+}
+
+.jarbek-resume-tech-inactive {
+  display: none;
+}
+
+.jarbek-resume-tech-active-right {
+  animation: slide-in-from-right 1s;
+}
+
+.jarbek-resume-tech-active-left {
+  animation: slide-in-from-left 1s;
+}
+
+@keyframes slide-in-from-right {
+  from {
+    margin-left: 100%;
+    width: 100%;
+    display: none;
+  }
+
+  to {
+    margin-left: 0;
+    width: 100%;
+    display: initial;
+  }
+}
+
+@keyframes slide-in-from-left {
+  from {
+    right: 100%;
+    width: 100%;
+    display: none;
+  }
+
+  to {
+    right: 0;
+    width: 100%;
+    display: initial;
+  }
 }
