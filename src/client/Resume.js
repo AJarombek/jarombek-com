@@ -98,9 +98,7 @@ class Resume extends React.Component {
             points,
             position,
             prevPosition,
-            title,
-            languages,
-            technologies
+            title
         } = this.state;
 
         console.debug('Inside Resume Render');
@@ -116,13 +114,14 @@ class Resume extends React.Component {
                         <link rel="icon" href={ require(`./assets/jarombek.png`) } />
                     </Helmet>
                     <div className="jarbek-resume-timeline">
-                        <Timeline points={+points} position={+position} />
+                        <Timeline points={+points} position={+position}
+                                  labels={resumeSections.map((item) => item.year)} />
                     </div>
                     <div className="jarbek-resume-title">
                         { resumeSections.map((item, index) =>
                             <div key={`jarbek-resume-title-${index}`}
                                  className={`${position === index + 1 ?
-                                     prevPosition < position ?
+                                     prevPosition <= position ?
                                          'jarbek-resume-title-active-right':
                                          'jarbek-resume-title-active-left':
                                      'jarbek-resume-title-inactive'}`}>
@@ -139,7 +138,7 @@ class Resume extends React.Component {
                         { resumeSections.map((item, index) =>
                             <div key={`jarbek-resume-content-${index + 1}`}
                                  className={`${position === index + 1 ?
-                                     prevPosition < position ?
+                                     prevPosition <= position ?
                                          'jarbek-resume-content-active-right':
                                          'jarbek-resume-content-active-left':
                                      'jarbek-resume-content-inactive'}`}>
@@ -156,7 +155,7 @@ class Resume extends React.Component {
                         { resumeSections.map((item, index) =>
                             <div key={`jarbek-resume-tech-${index + 1}`}
                                  className={`${position === index + 1 ?
-                                     prevPosition < position ?
+                                     prevPosition <= position ?
                                          'jarbek-resume-tech-active-right':
                                          'jarbek-resume-tech-active-left':
                                      'jarbek-resume-tech-inactive'}`}>

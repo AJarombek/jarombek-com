@@ -5,16 +5,13 @@
  */
 
 @import "./styles/variables";
+@import "./styles/mixins/longway";
 
 $circle-dimension: 30px;
 
 .jarbek-timeline {
   width: 100%;
   margin-left: -45px;
-}
-
-.jarbek-timeline-first-section {
-
 }
 
 .jarbek-timeline > div {
@@ -29,11 +26,14 @@ $circle-dimension: 30px;
 
 .jarbek-timeline-section {
   display: grid;
-  grid-template-areas: "line point";
+  grid-template-areas:
+          "line point"
+          ".    label";
   grid-template-columns: 9fr 1fr;
 }
 
 .jarbek-timeline-point {
+  grid-area: point;
   background-color: $color-default;
   width: $circle-dimension;
   height: $circle-dimension;
@@ -44,9 +44,15 @@ $circle-dimension: 30px;
 .jarbek-timeline-point-active {
   background-color: $color-secondary;
   box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
+  animation: activate 1s;
+}
+
+.jarbek-timeline-point-inactive {
+  animation: deactivate 0.5s;
 }
 
 .jarbek-timeline-line {
+  grid-area: line;
   background-color: $color-default;
   height: 5px;
   margin-right: -5px;
@@ -57,4 +63,39 @@ $circle-dimension: 30px;
   background-color: $color-secondary;
   height: 7px;
   box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
+  animation: activate 0.5s;
+}
+
+.jarbek-timeline-line-inactive {
+  animation: deactivate 1s;
+}
+
+.jarbek-timeline-label {
+  @include longway;
+  grid-area: label;
+  text-align: center;
+}
+
+@keyframes activate {
+  0% {
+    background-color: $color-default;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+  }
+
+  100% {
+    background-color: $color-secondary;
+    box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
+  }
+}
+
+@keyframes deactivate {
+  0% {
+    background-color: $color-secondary;
+    box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
+  }
+
+  100% {
+    background-color: $color-default;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+  }
 }
