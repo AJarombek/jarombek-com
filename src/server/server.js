@@ -129,7 +129,7 @@ const sendHtmlPage = async ({html, post, posts, first, prev, next, last}) => {
     <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=700">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="google-site-verification"
               content="axpbkHOqG9cnq6gACXKtvjaAbcEvsQ_01zoGQcA3y_M" />
         ${helmet.title.toString()}
