@@ -497,7 +497,12 @@ const resumeSections = [
             "Angular",
             "Webpack",
             "MongoDB",
-            "RabbitMQ"
+            "RabbitMQ",
+            "Oracle",
+            "MySQL",
+            "Jenkins",
+            "Terraform",
+            "AWS"
         ],
         year: 2018
     },
