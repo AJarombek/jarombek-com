@@ -56,6 +56,10 @@
 
     align-self: center;
     text-align: center;
+
+    @media screen and (max-width: $width-mobile-small) {
+      font-size: 12px;
+    }
   }
 }
 
@@ -91,6 +95,10 @@
   color: #555;
   font-size: 28px;
   text-align: center;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 24px;
+  }
 }
 
 .jarombek-blog-preview-tags {
@@ -119,10 +127,18 @@
 
 .jarombek-blog-preview-content p {
   font-size: 20px !important;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 16px !important;
+  }
 }
 
 .jarombek-blog-preview-content p code {
   font-size: 20px !important;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 16px !important;
+  }
 }
 
 .jarombek-blog-preview-footer {

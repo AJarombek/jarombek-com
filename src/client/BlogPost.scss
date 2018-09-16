@@ -46,6 +46,11 @@ $post-margin: 0.5px;
     justify-self: center;
     align-self: center;
     text-align: center;
+
+    @media screen and (max-width: $width-mobile-small) {
+      font-size: 14px;
+      padding-top: 10px;
+    }
   }
 }
 
@@ -85,6 +90,10 @@ $post-margin: 0.5px;
   text-align: center;
 
   @include transition(color, #111);
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 32px;
+  }
 }
 
 .jarombek-blog-tags {
@@ -112,5 +121,9 @@ $post-margin: 0.5px;
 
   a {
     @extend .link-style;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 14px;
   }
 }

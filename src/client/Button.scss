@@ -63,6 +63,12 @@
   width: 120px;
   border: 1px solid;
   font-size: 16px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 12px;
+    height: 25px;
+    width: 100px;
+  }
 }
 
 .jarbek-button-box-large {

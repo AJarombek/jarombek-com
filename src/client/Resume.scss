@@ -28,6 +28,7 @@
 
   @media screen and (max-width: $width-mobile-small) {
     height: 85vh;
+    padding-top: 80px;
   }
 }
 
@@ -92,6 +93,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   width: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .jarbek-resume-content:before {
@@ -136,6 +138,8 @@
 
   @media screen and (max-width: $width-mobile-small) {
     font-size: 14px;
+    padding-top: 25px;
+    padding-bottom: 25px;
   }
 }
 
@@ -173,6 +177,13 @@
   text-align: center;
   overflow: hidden;
   position: relative;
+  -webkit-overflow-scrolling: touch;
+
+  @media screen and (max-width: $width-mobile-small) {
+    margin-top: 20px;
+    white-space: nowrap;
+    overflow-x: scroll;
+  }
 }
 
 .jarbek-resume-tech > div {

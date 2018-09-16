@@ -4,6 +4,7 @@
  * @since 4/8/2018
  */
 
+@import "./styles/variables";
 @import "styles/mixins/sylexiads";
 
 $neo4j-green: rgba(98, 179, 69, 0.6);
@@ -241,6 +242,10 @@ $default: rgba(204, 204, 204, 0.6);
 .jarombek-tag-small div {
   height: 40px;
   display: grid;
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: 35px;
+  }
 }
 
 .jarombek-tag-large div {
@@ -260,6 +265,11 @@ $default: rgba(204, 204, 204, 0.6);
   grid-area: top / image / bottom / label;
   justify-self: center;
   align-self: center;
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: 25px;
+    max-width: 30px;
+  }
 }
 
 .jarombek-tag-name {
@@ -272,14 +282,27 @@ $default: rgba(204, 204, 204, 0.6);
   align-self: center;
   padding-left: 20px;
   padding-right: 20px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    padding-left: 0;
+    padding-right: 10px;
+  }
 }
 
 // Give jarombek-tag-name a grid location if the tag is large (with a picture)
 .jarombek-tag-large div p {
   grid-area: top / label / bottom / end;
   font-size: 24px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 14px;
+  }
 }
 
 .jarombek-tag-small div p {
   font-size: 18px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 14px;
+  }
 }
