@@ -63,6 +63,7 @@ class Resume extends React.Component {
      * @param nextProps - the props that are about to replace the existing props.
      */
     componentWillReceiveProps(nextProps) {
+        console.info("Inside Resume ComponentWillReceiveProps");
         this.initResumeContent(nextProps);
     }
 
@@ -73,6 +74,7 @@ class Resume extends React.Component {
      * @param props - The properties passed to the component.
      */
     initResumeContent(props) {
+
         const {page} = queryString.parse(props.location.search);
         const position = +page || +props.position || 1;
         const prevPosition = this.state.position || position - 1;

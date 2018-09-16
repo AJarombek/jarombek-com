@@ -98,10 +98,9 @@
 
 .jarbek-resume-content {
   position: relative;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
   width: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .jarbek-resume-content:before {
@@ -144,10 +143,25 @@
   padding-top: 50px;
   padding-bottom: 150px;
 
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+  height: 100%;
+
   @media screen and (max-width: $width-mobile-small) {
     font-size: 14px;
     padding-top: 25px;
     padding-bottom: 25px;
+  }
+}
+
+.jarbek-resume-content a {
+  @include sylexiad-bold;
+  color: #999;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
   }
 }
 
