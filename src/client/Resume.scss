@@ -65,6 +65,14 @@
   animation: slide-in-from-left 1s;
 }
 
+.jarbek-resume-title-just-viewed-left {
+  animation: slide-out-left 1s forwards;
+}
+
+.jarbek-resume-title-just-viewed-right {
+  animation: slide-out-right 1s forwards;
+}
+
 .jarbek-resume-title h5 {
   @include sylexiad;
   text-align: center;
@@ -155,6 +163,15 @@
   animation: slide-in-from-left 1s;
 }
 
+.jarbek-resume-content-just-viewed-left {
+  // forwards maintains the final animation state after the animation ends
+  animation: slide-out-left 1s forwards;
+}
+
+.jarbek-resume-content-just-viewed-right {
+  animation: slide-out-right 1s forwards;
+}
+
 .jarbek-resume-content > div > p {
   margin-bottom: 25px;
 }
@@ -212,6 +229,14 @@
   animation: slide-in-from-left 1s;
 }
 
+.jarbek-resume-tech-just-viewed-left {
+  animation: slide-out-left 1s forwards;
+}
+
+.jarbek-resume-tech-just-viewed-right {
+  animation: slide-out-right 1s forwards;
+}
+
 @keyframes slide-in-from-right {
   from {
     margin-left: 100%;
@@ -237,5 +262,33 @@
     right: 0;
     width: 100%;
     display: initial;
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    margin-left: 0;
+    width: 100%;
+    display: initial;
+  }
+
+  to {
+    margin-left: 100%;
+    width: 100%;
+    display: none;
+  }
+}
+
+@keyframes slide-out-left {
+  from {
+    right: 0;
+    width: 100%;
+    display: initial;
+  }
+
+  to {
+    right: 100%;
+    width: 100%;
+    display: none;
   }
 }

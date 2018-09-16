@@ -124,7 +124,14 @@ class Resume extends React.Component {
                                      prevPosition <= position ?
                                          'jarbek-resume-title-active-right':
                                          'jarbek-resume-title-active-left':
-                                     'jarbek-resume-title-inactive'}`}>
+                                     ''}
+                                     ${position !== index + 1 ?
+                                         index + 1 === prevPosition ?
+                                             position > prevPosition ?
+                                                 'jarbek-resume-title-just-viewed-left' :
+                                                 'jarbek-resume-title-just-viewed-right' :
+                                             'jarbek-resume-title-inactive' :
+                                         ''}`}>
                                 <h5>{ item.title }</h5>
                             </div>
                         )}
@@ -141,7 +148,14 @@ class Resume extends React.Component {
                                      prevPosition <= position ?
                                          'jarbek-resume-content-active-right':
                                          'jarbek-resume-content-active-left':
-                                     'jarbek-resume-content-inactive'}`}>
+                                     ''}
+                                     ${position !== index + 1 ?
+                                        index + 1 === prevPosition ?
+                                            position > prevPosition ?
+                                                'jarbek-resume-content-just-viewed-left':
+                                                'jarbek-resume-content-just-viewed-right':
+                                            'jarbek-resume-content-inactive':
+                                        ''}`}>
                                 { item.content }
                             </div>
                         )}
@@ -158,7 +172,14 @@ class Resume extends React.Component {
                                      prevPosition <= position ?
                                          'jarbek-resume-tech-active-right':
                                          'jarbek-resume-tech-active-left':
-                                     'jarbek-resume-tech-inactive'}`}>
+                                     ''}
+                                     ${position !== index + 1 ?
+                                         index + 1 === prevPosition ?
+                                             position > prevPosition ?
+                                                 'jarbek-resume-tech-just-viewed-left' :
+                                                 'jarbek-resume-tech-just-viewed-right' :
+                                             'jarbek-resume-tech-inactive' :
+                                         ''}`}>
                                 { item.languages.length ?
                                     <p className="jarbek-resume-tech-languages">
                                         <strong>Languages: </strong>
