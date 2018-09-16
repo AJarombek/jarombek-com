@@ -14,7 +14,13 @@
 
 .jarbek-feature-with-picture {
   @media screen and (max-width: $width-mobile + 200) {
-    height: 120vh;
+    height: 100vh;
+  }
+}
+
+.jarbek-feature-background-picture {
+  @media screen and (max-width: $width-mobile + 200) {
+    height: 75vh;
   }
 }
 
@@ -80,6 +86,10 @@
 
   text-align: center;
   padding: 10px 10px 10px 10px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 36px;
+  }
 }
 
 .jarbek-feature-content p {
@@ -88,6 +98,10 @@
 
   text-align: center;
   padding: 40px 20px 10px 20px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 24px;
+  }
 }
 
 .jarbek-feature-content-picture {
@@ -99,6 +113,14 @@
 .jarbek-feature-content-picture img {
   filter: opacity(60%);
   max-height: 60vh;
+
+  @media screen and (max-width: $width-small-desktop + 150) and (min-width: $width-mobile + 201) {
+    max-height: 50vh;
+  }
+
+  @media screen and (max-width: $width-mobile + 200) {
+    max-height: 45vh;
+  }
 }
 
 .jarbek-feature-background-color-white {

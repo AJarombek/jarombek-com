@@ -27,6 +27,7 @@ import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
 import userRoute from "./route/userRouter";
 import PostDao from "./dao/postDao";
+import Resume from "../client/Resume";
 
 mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 
@@ -85,6 +86,7 @@ const renderComponentsToHTML = async (url) => {
                     <Route path="/blog" render={
                         (props) => <BlogList {...props} {...{posts, first, prev, next, last}} />
                     }/>
+                    <Route path="/resume" component={Resume} />
                     <Route path="/verify/:code" component={Verify}/>
                     <Route path="/unsub/:code" component={Unsub}/>
                     <Route component={Home}/>
@@ -127,7 +129,7 @@ const sendHtmlPage = async ({html, post, posts, first, prev, next, last}) => {
     <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=700">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="google-site-verification"
               content="axpbkHOqG9cnq6gACXKtvjaAbcEvsQ_01zoGQcA3y_M" />
         ${helmet.title.toString()}

@@ -18,6 +18,10 @@ $blog-list-large: $width-small-desktop + 1200;
 
   padding-top: 100px;
   padding-bottom: 60px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    padding-top: 85px;
+  }
 }
 
 .jarombek-blog-list-search {
@@ -86,4 +90,8 @@ $blog-list-large: $width-small-desktop + 1200;
   width: 400px;
   margin: 0 auto;
   padding: 80px 0 40px 0;
+
+  @media screen and (max-width: $width-mobile-small) {
+    width: 250px;
+  }
 }

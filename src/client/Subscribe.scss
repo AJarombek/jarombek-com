@@ -17,6 +17,10 @@
   @include sylexiad;
   font-size: 28px;
   text-align: center;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 20px;
+  }
 }
 
 .jarbek-divider {
@@ -40,6 +44,11 @@
   width: 500px;
   height: 45px;
   padding: 5px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    width: 90vw;
+    height: 40px;
+  }
 }
 
 .jarbek-input input {
@@ -53,6 +62,10 @@
   border: 1px solid #ccc;
   border-radius: 2px;
   font-size: 14px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: 35px;
+  }
 }
 
 .jarbek-input input:focus {
@@ -133,4 +146,12 @@
   justify-self: center;
   align-self: center;
   padding-top: 30px;
+}
+
+.jarbek-input-submit button {
+  @media screen and (max-width: $width-mobile-small) {
+    height: 40px;
+    font-size: 18px;
+    width: 90vw;
+  }
 }

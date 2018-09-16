@@ -10,8 +10,8 @@ import Feature from './Feature';
 
 import './FeatureList.scss';
 
-const FeatureList = ({ featureList=[] }) =>
-    <div className="jarombek-feature-list">
+const FeatureList = ({ id, featureList=[] }) =>
+    <div className="jarombek-feature-list" id={id}>
         { (featureList.length === 0) ?
             <p className="jarombek-feature-list-none"> </p> :
             featureList.map(feature =>
@@ -21,7 +21,8 @@ const FeatureList = ({ featureList=[] }) =>
     </div>;
 
 FeatureList.propTypes = {
-    featureList: PropTypes.array
+    featureList: PropTypes.array,
+    id: PropTypes.string
 };
 
 export default FeatureList;
