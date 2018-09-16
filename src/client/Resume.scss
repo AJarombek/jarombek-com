@@ -4,6 +4,7 @@
  * @since 9/8/2018
  */
 
+@import "./styles/variables";
 @import "./styles/mixins/sylexiads";
 @import "./styles/mixins/longway";
 
@@ -24,6 +25,10 @@
           ".        title    ."
           "prev     content  next"
           ".        tech     .";
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: 85vh;
+  }
 }
 
 @each $section in 'timeline', 'title', 'prev', 'content', 'next', 'tech' {
@@ -32,12 +37,14 @@
   }
 }
 
-.jarbek-resume-timeline {}
-
 .jarbek-resume-title {
   overflow-x: hidden;
   position: relative;
   padding-top: 16px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    padding-top: 4px;
+  }
 }
 
 .jarbek-resume-title > div {
@@ -61,6 +68,10 @@
   @include sylexiad;
   text-align: center;
   font-size: 32px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 18px;
+  }
 }
 
 .jarbek-resume-prev {
@@ -70,6 +81,10 @@
 
 .jarbek-resume-prev img {
   transform: rotate(90deg);
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: 45px;
+  }
 }
 
 .jarbek-resume-content {
@@ -87,6 +102,10 @@
   z-index: 1;
   content: "";
   left: 0;
+
+  @media screen and (max-width: $width-mobile-small) {
+    display: none;
+  }
 }
 
 .jarbek-resume-content:after {
@@ -98,6 +117,10 @@
   content: "";
   bottom: 60px;
   left: 0;
+
+  @media screen and (max-width: $width-mobile-small) {
+    display: none;
+  }
 }
 
 .jarbek-resume-content > div {
@@ -110,6 +133,10 @@
 
   padding-top: 50px;
   padding-bottom: 150px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 14px;
+  }
 }
 
 .jarbek-resume-content-inactive {
@@ -135,6 +162,10 @@
 
 .jarbek-resume-next img {
   transform: rotate(-90deg);
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: 45px;
+  }
 }
 
 .jarbek-resume-tech {
@@ -152,6 +183,10 @@
 .jarbek-resume-tech strong {
   @include longway;
   font-size: 18px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 14px;
+  }
 }
 
 .jarbek-resume-tech-inactive {

@@ -50,6 +50,12 @@
   width: 150px;
   border: 1.5px solid;
   font-size: 18px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 14px;
+    height: 35px;
+    width: 120px;
+  }
 }
 
 .jarbek-button-small {

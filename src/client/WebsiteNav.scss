@@ -29,8 +29,13 @@
   }
 
   // Mobile screens remove the left container from the grid
-  @media screen and (max-width: $width-mobile) {
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     grid-template-columns: [start] 0 [begin-title] 60% [end-title] 40% [end];
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    grid-template-columns: [start] 0 [begin-title] 60% [end-title] 40% [end];
+    height: 55px;
   }
 }
 
@@ -63,8 +68,14 @@
   @include transition("color", #000, $speed: ease-in-out);
 
   // Move the website title from the middle to the left on mobile screens
-  @media screen and (max-width: $width-mobile) {
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     justify-self: left;
     margin-left: 50px;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    justify-self: left;
+    margin-left: 15px;
+    font-size: 22px;
   }
 }

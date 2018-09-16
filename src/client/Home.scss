@@ -62,7 +62,7 @@ body {
   text-align: center;
 
   @media screen and (max-width: $width-mobile-small) {
-    padding-top: 120px;
+    padding-top: 80px;
   }
 }
 
@@ -117,6 +117,10 @@ body {
 .jarbek-home-break {
   background-color: white;
   height: 280px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: 180px;
+  }
 }
 
 .jarbek-home-break p {
