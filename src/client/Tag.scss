@@ -239,6 +239,14 @@ $default: rgba(204, 204, 204, 0.6);
   }
 }
 
+.jarombek-tag-small {
+
+}
+
+.jarombek-tag-large {
+
+}
+
 .jarombek-tag-small div {
   height: 40px;
   display: grid;
@@ -282,7 +290,16 @@ $default: rgba(204, 204, 204, 0.6);
   align-self: center;
   padding-left: 20px;
   padding-right: 20px;
+}
 
+.jarombek-tag-small .jarombek-tag-name {
+  @media screen and (max-width: $width-mobile-small) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+.jarombek-tag-large .jarombek-tag-name {
   @media screen and (max-width: $width-mobile-small) {
     padding-left: 0;
     padding-right: 10px;
