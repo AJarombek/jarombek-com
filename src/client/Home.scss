@@ -123,6 +123,13 @@ body {
   }
 }
 
+// Use grid-area instead of grid because of Edge using an old CSS Grid spec
+@supports not (grid-area: auto) {
+  .jarbek-home-break {
+    position: relative;
+  }
+}
+
 .jarbek-home-break p {
   @include sylexiad;
   text-align: center;
@@ -130,11 +137,24 @@ body {
   color: #2a2a2a;
 
   height: 100%;
-  display: grid;
-  align-content: center;
 
   @media screen and (max-width: $width-mobile-small) {
     font-size: 28px;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-home-break p {
+    display: grid;
+    align-content: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-home-break p {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 45%);
   }
 }
 

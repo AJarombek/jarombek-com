@@ -155,6 +155,10 @@
   }
 }
 
+.jarbek-resume-content > div::-webkit-scrollbar {
+  background: transparent;
+}
+
 .jarbek-resume-content a {
   @include sylexiad-bold;
   color: #999;

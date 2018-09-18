@@ -50,7 +50,7 @@ class Home extends React.Component {
                     </div>
                 </div>
                 <div className="jarbek-home-break">
-                    <p>Developing Software Since <strong>Summer 2015</strong></p>
+                    <p>Developing Software Since <strong>Summer 2016</strong></p>
                 </div>
                 <FeatureList id="features" featureList={websiteFeatures} />
                 <TitleImage className="footer-icon" src="./assets/github.png" title="GITHUB"
