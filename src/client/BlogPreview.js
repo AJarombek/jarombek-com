@@ -40,7 +40,7 @@ const BlogPreview = ({ name, title, type, date, tags=[], preview }) => {
             </div>
             <Link className="jarombek-blog-preview-footer" to={`/blog/${name}`}>
                 <Button activeColor="secondary" passiveColor="transparent"
-                        borderColor="none" size="small">
+                        borderColor="none" size="small" font="longway">
                     READ MORE
                 </Button>
             </Link>

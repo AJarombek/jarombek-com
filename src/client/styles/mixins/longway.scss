@@ -1,0 +1,9 @@
+/**
+ * A mixin that sets the font to longway
+ */
+@mixin longway {
+  background-color: transparent !important;
+  font-family: 'Longway', Helvetica, sans-serif !important;
+  font-weight: normal;
+  font-style: normal;
+}

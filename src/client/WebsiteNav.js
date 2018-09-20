@@ -12,8 +12,10 @@ import PropTypes from "prop-types";
 const WebsiteNav = ({subscribeAction, hideSubscribe}) => {
     return (
         <nav className="jarombek-nav">
-            <NavLink to="/blog" className="jarombek-nav-left">
-                BLOG
+            <NavLink to="/" className="jarombek-nav-left">
+                <figure>
+                    <img src={ require("./assets/home.png") } />
+                </figure>
             </NavLink>
             <NavLink to="/" className="jarombek-nav-middle">
                 Andrew Jarombek

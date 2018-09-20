@@ -1,0 +1,141 @@
+/*
+ * Sass styling for the Feature component
+ * @author Andrew Jarombek
+ * @since 8/29/2018
+ */
+
+@import "styles/mixins/sylexiads";
+@import "./styles/variables";
+@import "./styles/mixins/transition";
+
+.jarbek-feature {
+  height: 90vh;
+}
+
+.jarbek-feature-with-picture {
+  @media screen and (max-width: $width-mobile + 200) {
+    height: 100vh;
+  }
+}
+
+.jarbek-feature-background-picture {
+  @media screen and (max-width: $width-mobile + 200) {
+    height: 75vh;
+  }
+}
+
+.jarbek-feature > div {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 20px;
+
+  @media screen and (max-width: $width-mobile + 200) {
+    grid-template-columns: 1fr;
+    grid-gap: 10px;
+  }
+}
+
+.jarbek-feature-orientation-left > div {
+  grid-template-areas: "content picture";
+
+  @media screen and (max-width: $width-mobile + 200) {
+    grid-template-areas: "content"
+                         "picture";
+  }
+}
+
+.jarbek-feature-orientation-right > div {
+  grid-template-areas: "picture content";
+
+  @media screen and (max-width: $width-mobile + 200) {
+    grid-template-areas: "content"
+                         "picture";
+  }
+}
+
+.jarbek-feature-background-picture > div {
+  background: rgba(0, 0, 0, 0.65);
+  @include transition("background", rgba(0, 0, 0, 0.7), $speed: ease-in-out);
+}
+
+.jarbek-feature-content {
+  grid-area: content;
+  align-self: center;
+  justify-self: center;
+  text-decoration: none;
+}
+
+.jarbek-feature-background-color-white .jarbek-feature-content {
+  color: #222;
+  @include transition("color", #000, $speed: ease-in-out);
+
+  @media screen and (max-width: $width-mobile + 200) {
+    padding-top: 40px;
+  }
+}
+
+.jarbek-feature-background-picture .jarbek-feature-content {
+  color: rgba(255, 255, 255, 0.9);
+  @include transition("color", #FFF, $speed: ease-in-out);
+}
+
+.jarbek-feature-content h5 {
+  @include sylexiad-bold;
+  font-size: 42px;
+
+  text-align: center;
+  padding: 10px 10px 10px 10px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 36px;
+  }
+}
+
+.jarbek-feature-content p {
+  @include sylexiad;
+  font-size: 28px;
+
+  text-align: center;
+  padding: 40px 20px 10px 20px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 24px;
+  }
+}
+
+.jarbek-feature-content-picture {
+  grid-area: picture;
+  justify-self: center;
+  align-self: center;
+}
+
+.jarbek-feature-content-picture img {
+  filter: opacity(60%);
+  max-height: 60vh;
+
+  @media screen and (max-width: $width-small-desktop + 150) and (min-width: $width-mobile + 201) {
+    max-height: 50vh;
+  }
+
+  @media screen and (max-width: $width-mobile + 200) {
+    max-height: 45vh;
+  }
+}
+
+.jarbek-feature-background-color-white {
+  background-color: white;
+  @include transition("background-color", #F7F7F7, $speed: ease-in-out);
+}
+
+.jarbek-feature-background-picture-computer {
+  background: url("https://asset.jarombek.com/computer.jpg")
+                no-repeat center center;
+  background-size: cover;
+}
+
+.jarbek-feature-background-picture-kayak {
+  background: url("https://asset.jarombek.com/kayak.jpg")
+                no-repeat center center;
+  background-size: cover;
+}

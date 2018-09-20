@@ -5,6 +5,7 @@
  */
 
 @import "styles/mixins/sylexiads";
+@import "styles/mixins/longway";
 @import "./styles/variables";
 
 .jarbek-button {
@@ -13,7 +14,14 @@
   box-shadow: none;
   cursor: pointer;
   outline: none;
+}
+
+.jarbek-button-font-sylexiad {
   @include sylexiad;
+}
+
+.jarbek-button-font-longway {
+  @include longway;
 }
 
 .jarbek-button-long {
@@ -42,6 +50,12 @@
   width: 150px;
   border: 1.5px solid;
   font-size: 18px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 14px;
+    height: 35px;
+    width: 120px;
+  }
 }
 
 .jarbek-button-small {
@@ -49,6 +63,12 @@
   width: 120px;
   border: 1px solid;
   font-size: 16px;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 12px;
+    height: 25px;
+    width: 100px;
+  }
 }
 
 .jarbek-button-box-large {
