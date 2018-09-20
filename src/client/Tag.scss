@@ -22,6 +22,7 @@ $java8-blue: rgba(244, 247, 249, 0.6);
 $c-blue: rgba(168, 185, 204, 0.6);
 $typescript-blue: rgba(37, 122, 204, 0.6);
 $css-blue: rgba(38, 77, 228, 0.6);
+$assembly-blue: rgba(37, 52, 76, 0.6);
 $webpack-blue: rgba(157, 186, 232, 0.6);
 $react-blue: rgba(97, 218, 250, 0.6);
 $groovy-blue: rgba(98, 152, 170, 0.6);
@@ -42,6 +43,7 @@ $yaml-orange: rgba(239, 145, 62, 0.6);
 $aws-orange: rgba(244, 154, 62, 0.6);
 $ec2-orange: rgba(242, 133, 59, 0.6);
 $awslambda-orange: rgba(241, 124, 58, 0.6);
+$jenkins-lightskin: rgba(240, 214, 183, 0.6);
 $express-gray: rgba(224, 226, 228, 0.6);
 $json-gray: rgba(121, 119, 119, 0.6);
 $batch-gray: rgba(206, 215, 220, 0.6);
@@ -116,6 +118,10 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($css-blue, 10%);
 }
 
+.jarombek-tag-color-assembly {
+  background-color: lighten($assembly-blue, 10%);
+}
+
 .jarombek-tag-color-react {
   background-color: $react-blue;
 }
@@ -166,6 +172,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-awslambda {
   background-color: lighten($awslambda-orange, 10%);
+}
+
+.jarombek-tag-color-jenkins {
+  background-color: $jenkins-lightskin;
 }
 
 .jarombek-tag-color-php {

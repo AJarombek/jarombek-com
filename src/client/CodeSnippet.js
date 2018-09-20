@@ -128,6 +128,11 @@ class CodeSnippet extends React.Component {
                 prop: "velocity",
                 title: "Velocity",
                 highlightClass: "cpp"
+            },
+            {
+                prop: "assembly",
+                title: "Assembly",
+                highlightClass: "mips"
             }
         ];
     }
