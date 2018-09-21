@@ -8,11 +8,16 @@
 @import "./styles/mixins/longway";
 
 $circle-dimension: 30px;
-$circle-dimension-mobile: 25px;
+$circle-dimension-mobile: 28px;
+$circle-dimension-mobile-small: 25px;
 
 .jarbek-timeline {
   width: 100%;
   margin-left: -45px;
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    margin-left: -30px;
+  }
 
   @media screen and (max-width: $width-mobile-small) {
     margin-left: -25px;
@@ -27,6 +32,10 @@ $circle-dimension-mobile: 25px;
   align-content: center;
 
   width: 100%;
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    grid-template-columns: repeat(auto-fit, 90px);
+  }
 
   @media screen and (max-width: $width-mobile-small) {
     grid-template-columns: repeat(auto-fit, 70px);
@@ -49,9 +58,14 @@ $circle-dimension-mobile: 25px;
 
   border-radius: 50%;
 
-  @media screen and (max-width: $width-mobile-small) {
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     width: $circle-dimension-mobile;
     height: $circle-dimension-mobile;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    width: $circle-dimension-mobile-small;
+    height: $circle-dimension-mobile-small;
   }
 }
 
@@ -88,6 +102,10 @@ $circle-dimension-mobile: 25px;
   @include longway;
   grid-area: label;
   text-align: center;
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    font-size: 12px;
+  }
 
   @media screen and (max-width: $width-mobile-small) {
     font-size: 10px;

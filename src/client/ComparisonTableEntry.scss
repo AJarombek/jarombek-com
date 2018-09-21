@@ -4,6 +4,8 @@
  * @since 7/11/2018
  */
 
+@import "./styles/variables";
+
 .jarombek-comparison-table-entry {
   padding-left: 10px;
   padding-right: 10px;
@@ -12,17 +14,33 @@
 .jarombek-ct-entry-content h5 {
   font-size: 26px !important;
   text-align: center;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 22px !important;
+  }
 }
 
 .jarombek-ct-entry-content h5 > code {
   font-size: 26px !important;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 22px !important;
+  }
 }
 
 .jarombek-ct-entry-content p {
   font-size: 20px !important;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 18px !important;
+  }
 }
 
 .jarombek-ct-entry-content p > code {
   font-size: 16px !important;
   word-wrap: break-word;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 14px !important;
+  }
 }
