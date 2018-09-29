@@ -1,0 +1,37 @@
+/**
+ * Sass styling for the SectionTitle component
+ * @author Andrew Jarombek
+ * @since 9/29/2018
+ */
+
+@import "./styles/variables";
+@import "./styles/mixins/sylexiads";
+
+.jarbek-section-title a:hover {
+  text-decoration: none !important;
+}
+
+.jarbek-section-title-above {
+  height: 75px;
+}
+
+.jarbek-section-title-content {
+  &:hover {
+    &:before {
+      visibility: visible;
+    }
+  }
+}
+
+.jarbek-section-title-content:before {
+  @include sylexiad;
+
+  content: "#";
+  margin-right: 5px;
+  font-size: 36px;
+  visibility: hidden;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 28px;
+  }
+}

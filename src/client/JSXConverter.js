@@ -4,6 +4,7 @@ import ComparisonTableEntry from "./ComparisonTableEntry";
 import CodeSnippet from "./CodeSnippet";
 import ComparisonTable from "./ComparisonTable";
 import uuid from 'uuid/v4';
+import SectionTitle from "./SectionTitle";
 
 /**
  * Class to convert blog posts from JSON to JSX
@@ -110,6 +111,8 @@ class JSXConverter {
             return ComparisonTable;
         } else if (tag === 'comparisontableentry') {
             return ComparisonTableEntry;
+        } else if (tag === 'sectiontitle') {
+            return SectionTitle;
         } else {
             return tag;
         }

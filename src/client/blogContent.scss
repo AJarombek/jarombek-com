@@ -27,14 +27,14 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     color: #333;
     letter-spacing: 0.7px;
     word-wrap: break-word;
-
-    padding-top: 15px;
-    padding-bottom: 15px;
   }
 
   p {
     font-size: 24px;
     line-height: 1.5;
+
+    padding-top: 15px;
+    padding-bottom: 15px;
 
     @media screen and (max-width: $width-mobile-small) {
       font-size: 18px;
@@ -42,9 +42,11 @@ $inline-gray: rgba(204, 204, 204, 0.25);
   }
 
   h5 {
+    @include sylexiad;
+
     font-size: 36px;
     margin-top: 5px;
-    margin-bottom: 5px;
+    margin-bottom: 30px;
 
     @media screen and (max-width: $width-mobile-small) {
       font-size: 28px;
@@ -55,7 +57,7 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     font-size: 32px;
     @include fantasque-bold;
     margin-top: 5px;
-    margin-bottom: 5px;
+    margin-bottom: 30px;
     color: #333;
 
     @media screen and (max-width: $width-mobile-small) {
