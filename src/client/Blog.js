@@ -165,9 +165,9 @@ class Blog extends React.Component {
                             </div>:
                             <Loading className="jarombek-blog-none" />
                         }
-                        <Link className="jarombek-blog-footer" to='/'>
+                        <Link className="jarombek-blog-footer" to='/blog'>
                             <TitleImage className="footer-icon" src="./assets/jarombek.png"
-                                        title="HOME" />
+                                        title="BLOG" />
                         </Link>
                     </div>
                 </div>
