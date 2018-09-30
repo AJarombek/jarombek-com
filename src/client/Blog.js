@@ -72,7 +72,10 @@ class Blog extends React.Component {
         console.debug("Inside Blog ComponentDidMount");
 
         console.info(this.props);
-        window.scrollTo(0, 0);
+
+        if (this.props.location.hash.length === 0) {
+            window.scrollTo(0, 0);
+        }
 
         // Get the post name from the props.  This is populated by react router
         const {name} = this.props.match.params;
@@ -98,7 +101,9 @@ class Blog extends React.Component {
      */
     componentDidUpdate() {
         console.debug("Inside Blog componentDidUpdate");
-        window.scrollTo(0, 0);
+        if (this.props.location.hash.length === 0) {
+            window.scrollTo(0, 0);
+        }
     }
 
     /**
@@ -160,9 +165,9 @@ class Blog extends React.Component {
                             </div>:
                             <Loading className="jarombek-blog-none" />
                         }
-                        <Link className="jarombek-blog-footer" to='/'>
+                        <Link className="jarombek-blog-footer" to='/blog'>
                             <TitleImage className="footer-icon" src="./assets/jarombek.png"
-                                        title="HOME" />
+                                        title="BLOG" />
                         </Link>
                     </div>
                 </div>

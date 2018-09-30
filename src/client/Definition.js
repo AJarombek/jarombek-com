@@ -7,11 +7,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const Definition = ({ word, children }) =>
-    <div className="jarombek-def">
-        <p className="jarombek-def-word">{word}</p>
-        <p className="jarombek-def-desc">{children}</p>
-    </div>;
+const Definition = ({ word, children }) => {
+
+    const wordId = word.replace(/\s/g, '-').toLowerCase();
+
+    return (
+        <div>
+            <div id={wordId} className="jarombek-def-above"> </div>
+            <div className="jarombek-def">
+                <a href={`#${wordId}`}>
+                    <p className="jarombek-def-word">{word}</p>
+                </a>
+                <p className="jarombek-def-desc">{children}</p>
+            </div>
+        </div>
+    );
+};
 
 Definition.propTypes = {
     children: PropTypes.any,

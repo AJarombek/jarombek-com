@@ -4,7 +4,12 @@
  * @since 5/13/2018
  */
 
+@import "./styles/variables";
 @import "./styles/mixins/dyslexie";
+
+.jarombek-def-above {
+  height: 40px;
+}
 
 .jarombek-def {
 
@@ -25,6 +30,24 @@
     @include dyslexie;
     text-decoration: underline;
     text-decoration-color: #ddd;
+
+    &:hover {
+      &:before {
+        visibility: visible;
+      }
+    }
+
+    &:before {
+      content: "#";
+      margin-right: 5px;
+      font-size: 24px;
+      line-height: 1.5;
+      visibility: hidden;
+
+      @media screen and (max-width: $width-mobile-small) {
+        font-size: 18px;
+      }
+    }
   }
 
   .jarombek-def-desc {}

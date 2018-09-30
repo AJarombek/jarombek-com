@@ -7,13 +7,23 @@
 @import "./styles/variables";
 @import "./styles/mixins/longway";
 
-$circle-dimension: 30px;
+$circle-dimension: 35px;
+$circle-dimension-desktop-large: 33px;
+$circle-dimension-desktop: 30px;
 $circle-dimension-mobile: 28px;
 $circle-dimension-mobile-small: 25px;
 
 .jarbek-timeline {
   width: 100%;
-  margin-left: -45px;
+  margin-left: -60px;
+
+  @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+    margin-left: -50px;
+  }
+
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    margin-left: -45px;
+  }
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     margin-left: -30px;
@@ -26,12 +36,20 @@ $circle-dimension-mobile-small: 25px;
 
 .jarbek-timeline > div {
   display: grid;
-  grid-template-columns: repeat(auto-fit, 120px);
+  grid-template-columns: repeat(auto-fit, 150px);
 
   justify-content: center;
   align-content: center;
 
   width: 100%;
+
+  @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+    grid-template-columns: repeat(auto-fit, 140px);
+  }
+
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    grid-template-columns: repeat(auto-fit, 120px);
+  }
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     grid-template-columns: repeat(auto-fit, 90px);
@@ -57,6 +75,16 @@ $circle-dimension-mobile-small: 25px;
   height: $circle-dimension;
 
   border-radius: 50%;
+
+  @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+    width: $circle-dimension-desktop-large;
+    height: $circle-dimension-desktop-large;
+  }
+
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    width: $circle-dimension-desktop;
+    height: $circle-dimension-desktop;
+  }
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     width: $circle-dimension-mobile;
@@ -102,6 +130,15 @@ $circle-dimension-mobile-small: 25px;
   @include longway;
   grid-area: label;
   text-align: center;
+  font-size: 18px;
+
+  @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+    font-size: 16px;
+  }
+
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    font-size: 14px;
+  }
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     font-size: 12px;
