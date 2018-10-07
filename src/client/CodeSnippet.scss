@@ -37,6 +37,10 @@
   -webkit-overflow-scrolling: touch;
   -webkit-transition: revert;
 
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    font-size: 17px;
+  }
+
   @media screen and (max-width: $width-mobile-small) {
     font-size: 16px;
   }

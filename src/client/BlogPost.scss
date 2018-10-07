@@ -47,6 +47,11 @@ $post-margin: 0.5px;
     align-self: center;
     text-align: center;
 
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      font-size: 16px;
+      padding-top: 15px;
+    }
+
     @media screen and (max-width: $width-mobile-small) {
       font-size: 14px;
       padding-top: 10px;
@@ -91,6 +96,10 @@ $post-margin: 0.5px;
 
   @include transition(color, #111);
 
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    font-size: 36px;
+  }
+
   @media screen and (max-width: $width-mobile-small) {
     font-size: 32px;
   }
@@ -121,6 +130,10 @@ $post-margin: 0.5px;
 
   a {
     @extend .link-style;
+  }
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    font-size: 16px;
   }
 
   @media screen and (max-width: $width-mobile-small) {

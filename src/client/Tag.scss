@@ -289,6 +289,11 @@ $default: rgba(204, 204, 204, 0.6);
   justify-self: center;
   align-self: center;
 
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    height: 30px;
+    max-width: 35px;
+  }
+
   @media screen and (max-width: $width-mobile-small) {
     height: 25px;
     max-width: 30px;
@@ -326,6 +331,10 @@ $default: rgba(204, 204, 204, 0.6);
   grid-area: top / label / bottom / end;
   font-size: 24px;
 
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    font-size: 18px;
+  }
+
   @media screen and (max-width: $width-mobile-small) {
     font-size: 14px;
   }
@@ -333,6 +342,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-small div p {
   font-size: 18px;
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    font-size: 16px;
+  }
 
   @media screen and (max-width: $width-mobile-small) {
     font-size: 14px;

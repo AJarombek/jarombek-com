@@ -36,6 +36,10 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     padding-top: 15px;
     padding-bottom: 15px;
 
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      font-size: 20px;
+    }
+
     @media screen and (max-width: $width-mobile-small) {
       font-size: 18px;
     }
@@ -48,6 +52,10 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     margin-top: 5px;
     margin-bottom: 30px;
 
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      font-size: 32px;
+    }
+
     @media screen and (max-width: $width-mobile-small) {
       font-size: 28px;
     }
@@ -59,6 +67,10 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     margin-top: 5px;
     margin-bottom: 30px;
     color: #333;
+
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      font-size: 28px;
+    }
 
     @media screen and (max-width: $width-mobile-small) {
       font-size: 24px;
@@ -74,6 +86,10 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     color: #999;
     vertical-align: super;
     font-size: 16px;
+
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      font-size: 14px;
+    }
 
     @media screen and (max-width: $width-mobile-small) {
       font-size: 12px;
@@ -109,6 +125,10 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     margin-left: 2px;
 
     background: $inline-gray;
+
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      font-size: 16px;
+    }
 
     @media screen and (max-width: $width-mobile-small) {
       font-size: 14px;
