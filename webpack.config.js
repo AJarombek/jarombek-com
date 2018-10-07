@@ -64,8 +64,7 @@ const serverConfig = merge([
             ]),
             new webpack.DefinePlugin({
                 'process.env.NODE_ENV': ENV
-            }),
-
+            })
         ]
     },
     parts.loadFonts({
@@ -86,7 +85,8 @@ const serverDevConfig = merge([
         ]
     },
     parts.extractCSS({
-        use: ["css-loader", "sass-loader"],
+        useSass: ["css-loader", "sass-loader"],
+        useCss: ["css-loader"],
         fallback: "isomorphic-style-loader"
     }),
     parts.loadImages()
@@ -98,6 +98,7 @@ const serverDevConfig = merge([
 const serverProdConfig = merge([
     parts.extractCSS({
         use: ["css-loader", "sass-loader"],
+        useCss: ["css-loader"],
         fallback: "isomorphic-style-loader"
     }),
     parts.loadImages({
@@ -175,7 +176,8 @@ const clientDevConfig = merge([
     }),
     parts.hotModuleReplacement(),
     parts.extractCSS({
-        use: ["css-loader", "sass-loader"],
+        useSass: ["css-loader", "sass-loader"],
+        useCss: ["css-loader"],
         fallback: "isomorphic-style-loader"
     }),
     parts.loadImages()
@@ -200,7 +202,8 @@ const clientProdConfig = merge([
     },
     parts.generateSourceMaps({ type: 'source-map' }),
     parts.extractCSS({
-        use: ["css-loader", "sass-loader"],
+        useSass: ["css-loader", "sass-loader"],
+        useCss: ["css-loader"],
         fallback: "style-loader"
     }),
     parts.loadImages({

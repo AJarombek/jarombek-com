@@ -3,3 +3,16 @@
  * @author Andrew Jarombek
  * @since 10/6/2018
  */
+
+@import "./styles/variables";
+
+.jarbek-math-notation {
+  padding: 20px;
+  font-size: 22px;
+  color: #555;
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 16px;
+    padding: 10px;
+  }
+}
