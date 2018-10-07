@@ -97,7 +97,7 @@ const serverDevConfig = merge([
  */
 const serverProdConfig = merge([
     parts.extractCSS({
-        use: ["css-loader", "sass-loader"],
+        useSass: ["css-loader", "sass-loader"],
         useCss: ["css-loader"],
         fallback: "isomorphic-style-loader"
     }),
