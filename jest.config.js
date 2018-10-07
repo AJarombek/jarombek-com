@@ -7,7 +7,7 @@
 module.exports = {
     setupTestFrameworkScriptFile: "./test/setupTests.js",
     moduleNameMapper: {
-        "\\.(scss)$": "jest-css-modules",
+        "\\.(scss|css)$": "jest-css-modules",
         "\\.(png|ttf)$": "../../mocks/fileMock.js"
     },
     collectCoverageFrom: [

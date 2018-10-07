@@ -2,7 +2,7 @@
 
 exports[`App matches snapshot 1`] = `
 <div
-  className="jarombek-main"
+  className="jarbek-home"
 >
   <HelmetWrapper
     defer={true}
@@ -30,42 +30,104 @@ exports[`App matches snapshot 1`] = `
     />
   </HelmetWrapper>
   <div
-    className="title-container"
+    className="jarbek-home-main"
   >
-    <h1
-      className="title"
+    <div
+      className="jarbek-home-main-overlay"
     >
-      Andrew Jarombek
-    </h1>
+      <div
+        className="jarbek-home-title-container"
+      >
+        <h1
+          className="jarbek-home-title"
+        >
+          Andrew Jarombek
+        </h1>
+      </div>
+      <p
+        className="jarbek-home-sub-title"
+      >
+        Software Development Hub
+      </p>
+      <Link
+        className="jarbek-home-blog-button"
+        replace={false}
+        to="/blog"
+      >
+        <Button
+          activeColor="primary"
+          font="sylexiad"
+          onClick={[Function]}
+          passiveColor="primary"
+          size="large"
+        >
+          BLOG
+        </Button>
+      </Link>
+      <div
+        className="jarbek-home-arrow"
+      >
+        <TitleImage
+          link="#features"
+          src="./assets/down.png"
+          title=""
+        />
+      </div>
+    </div>
   </div>
-  <p
-    className="sub-title"
+  <div
+    className="jarbek-home-break"
   >
-    Website Under Construction
-  </p>
-  <Link
-    className="blog-button"
-    replace={false}
-    to="/blog"
-  >
-    <Button
-      activeColor="primary"
-      onClick={[Function]}
-      passiveColor="default"
-      size="large"
-    >
-      BLOG
-    </Button>
-  </Link>
-  <Button
-    activeColor="default"
-    className="info-button"
-    onClick={[Function]}
-    passiveColor="default"
-    size="large"
-  >
-    INFO
-  </Button>
+    <p>
+      Developing Software Since 
+      <strong>
+        Summer 2016
+      </strong>
+    </p>
+  </div>
+  <FeatureList
+    featureList={
+      Array [
+        Object {
+          "backgroundColor": null,
+          "backgroundPicture": "computer",
+          "content": Object {
+            "picture": null,
+            "text": "Take an interactive tour of my software development career, starting as a 
+                student at St. Lawrence University.",
+          },
+          "link": "/resume",
+          "orientation": "left",
+          "title": "RESUME",
+        },
+        Object {
+          "backgroundColor": "white",
+          "backgroundPicture": null,
+          "content": Object {
+            "picture": "https://asset.jarombek.com/logos/tech_logos.svg",
+            "text": "Analyze which programming languages and frameworks I use the most with 
+                dynamic charts.",
+          },
+          "link": "/stats",
+          "orientation": "right",
+          "title": "STATISTICS",
+        },
+        Object {
+          "backgroundColor": null,
+          "backgroundPicture": "kayak",
+          "content": Object {
+            "picture": null,
+            "text": "Read software development articles I've written and follow my progress as a 
+                programmer.",
+          },
+          "link": "/blog",
+          "orientation": "left",
+          "title": "ARTICLES",
+        },
+      ]
+    }
+    id="features"
+  />
   <TitleImage
     className="footer-icon"
     link="https://github.com/AJarombek"
@@ -90,7 +152,7 @@ exports[`BlogPost No Sources matches snapshot 1`] = `
     <p
       className="jarombek-blog-date"
     >
-      August 17th, 2018
+      October 7th, 2018
     </p>
   </div>
   <Link
@@ -135,7 +197,7 @@ exports[`BlogPost matches snapshot 1`] = `
     <p
       className="jarombek-blog-date"
     >
-      August 17th, 2018
+      October 7th, 2018
     </p>
   </div>
   <Link
@@ -164,7 +226,7 @@ exports[`BlogPost matches snapshot 1`] = `
   >
     <p
       className="jarombek-blog-source"
-      key="8efdedd8-b681-42ff-b921-44484d5ad4db"
+      key="97ce26f2-b84d-4c15-a54c-00a70a85697e"
     >
       [1] Start
       <a
@@ -183,26 +245,38 @@ exports[`Button matches snapshot 1`] = `
   <button
     className="jarbek-button passive-color-default
                                 active-color-default border-color-default
-                                jarbek-button-large"
+                                jarbek-button-large jarbek-button-font-sylexiad"
     onClick={[Function]}
   />
 </div>
 `;
 
 exports[`Definition matches snapshot 1`] = `
-<div
-  className="jarombek-def"
->
-  <p
-    className="jarombek-def-word"
-  >
-    Snapshot Testing
-  </p>
-  <p
-    className="jarombek-def-desc"
+<div>
+  <div
+    className="jarombek-def-above"
+    id="snapshot-testing"
   >
      
-  </p>
+  </div>
+  <div
+    className="jarombek-def"
+  >
+    <a
+      href="#snapshot-testing"
+    >
+      <p
+        className="jarombek-def-word"
+      >
+        Snapshot Testing
+      </p>
+    </a>
+    <p
+      className="jarombek-def-desc"
+    >
+       
+    </p>
+  </div>
 </div>
 `;
 
@@ -329,9 +403,13 @@ exports[`WebsiteNav matches snapshot 1`] = `
     activeClassName="active"
     ariaCurrent="true"
     className="jarombek-nav-left"
-    to="/blog"
+    to="/"
   >
-    BLOG
+    <figure>
+      <img
+        src="test-file-stub"
+      />
+    </figure>
   </NavLink>
   <NavLink
     activeClassName="active"
@@ -348,6 +426,7 @@ exports[`WebsiteNav matches snapshot 1`] = `
     <Button
       activeColor="primary"
       className="subscribe-button"
+      font="sylexiad"
       onClick={[Function]}
       passiveColor="default"
       size="medium"

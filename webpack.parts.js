@@ -108,7 +108,7 @@ exports.loadServerSass = ({ include, exclude } = {}) => ({
  * @param fallback - loader to be used if CSS is not extracted
  * @returns {{module: {rules: *[]}, plugins: *}}
  */
-exports.extractCSS = ({ include, exclude, use, fallback }) => {
+exports.extractCSS = ({ include, exclude, useCss, useSass, fallback }) => {
 
     const plugin = new ExtractTextPlugin({
         filename: '[name].css'
@@ -118,11 +118,20 @@ exports.extractCSS = ({ include, exclude, use, fallback }) => {
         module: {
             rules: [
                 {
+                    test: /\.css$/,
+                    include,
+                    exclude,
+                    loader: plugin.extract({
+                        use: useCss,
+                        fallback
+                    })
+                },
+                {
                     test: /\.scss$/,
                     include,
                     exclude,
                     loader: plugin.extract({
-                        use,
+                        use: useSass,
                         fallback
                     })
                 }

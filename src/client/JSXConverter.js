@@ -5,6 +5,7 @@ import CodeSnippet from "./CodeSnippet";
 import ComparisonTable from "./ComparisonTable";
 import uuid from 'uuid/v4';
 import SectionTitle from "./SectionTitle";
+import MathNotation from "./MathNotation";
 
 /**
  * Class to convert blog posts from JSON to JSX
@@ -113,6 +114,8 @@ class JSXConverter {
             return ComparisonTableEntry;
         } else if (tag === 'sectiontitle') {
             return SectionTitle;
+        } else if (tag === 'mathnotation') {
+            return MathNotation;
         } else {
             return tag;
         }
