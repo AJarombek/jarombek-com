@@ -180,3 +180,6 @@ yarn add styled-components
 
 # Parse URL query strings
 yarn add query-string
+
+# Library for displaying mathematical equations
+yarn add react-katex
