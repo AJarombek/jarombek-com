@@ -1,0 +1,47 @@
+/*
+ * Sass styling for the UpdateInfo component
+ * @author Andrew Jarombek
+ * @since 10/15/2018
+ */
+
+@import "./styles/variables";
+
+.jarbek-update-info {
+  background-color: lighten($color-invalid, 10%);
+  border-radius: 2px;
+
+  padding: 25px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+
+  transition: all .4s ease;
+
+  &:hover {
+    box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+  }
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+          ".    date   "
+          "body body";
+}
+
+.jarbek-update-info-date {
+  grid-area: date;
+}
+
+.jarbek-update-info-body {
+  grid-area: body;
+  grid-template-columns: 1fr 4fr;
+  grid-template-areas:
+          "logo content";
+}
+
+.jarbek-update-info-picture-container {
+  grid-area: logo;
+}
+
+.jarbek-update-info-contents {
+  grid-area: content;
+}
