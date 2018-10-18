@@ -14,7 +14,7 @@ const UpdateInfo = ({ date, children }) =>
             <div className="jarbek-update-info-body">
                 <figure className="jarbek-update-info-picture-container">
                     <img className="jarbek-update-info-picture"
-                         src={ require(`./assets/flag.png`) } />
+                         src={ require(`./assets/flag.svg`) } />
                 </figure>
                 <p className="jarbek-update-info-contents">{children}</p>
             </div>

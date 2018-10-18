@@ -6,8 +6,12 @@
 
 @import "./styles/variables";
 
+/* Variables for magic numbers */
+$jarbek-update-pic-height: 100px, 80px, 60px;
+$jarbek-update-date-color: #999;
+
 .jarbek-update-info {
-  background-color: lighten($color-invalid, 10%);
+  background-color: lighten($color-invalid, 15%);
   border-radius: 2px;
 
   padding: 25px;
@@ -17,7 +21,7 @@
   transition: all .4s ease;
 
   &:hover {
-    box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+    box-shadow: $box-shadow;
   }
 
   display: grid;
@@ -29,10 +33,27 @@
 
 .jarbek-update-info-date {
   grid-area: date;
+  justify-self: end;
+
+  color: $jarbek-update-date-color !important;
+  font-size: 18px !important;
+  padding-top: 0 !important;
+  padding-bottom: 5px !important;
+  padding-left: 5px;
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    font-size: 14px !important;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 12px !important;
+  }
 }
 
 .jarbek-update-info-body {
   grid-area: body;
+
+  display: grid;
   grid-template-columns: 1fr 4fr;
   grid-template-areas:
           "logo content";
@@ -40,6 +61,20 @@
 
 .jarbek-update-info-picture-container {
   grid-area: logo;
+  justify-self: center;
+  align-self: center;
+}
+
+.jarbek-update-info-picture-container, .jarbek-update-info-picture-container img {
+  height: nth($jarbek-update-pic-height, 1);
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    height: nth($jarbek-update-pic-height, 2);
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: nth($jarbek-update-pic-height, 3);
+  }
 }
 
 .jarbek-update-info-contents {

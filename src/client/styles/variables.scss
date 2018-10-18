@@ -1,3 +1,9 @@
+/*
+ * Sass variables for use throughout the project
+ * @author Andrew Jarombek
+ * @since 10/16/2018
+ */
+
 $color-default: #aaa;
 $color-primary: #96f1ff;
 $color-secondary: #87ffdf;
@@ -7,3 +13,5 @@ $width-mobile-small: 500px;
 $width-mobile: 700px;
 $width-small-desktop: 980px;
 $width-large-desktop: 1300px;
+
+$box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);

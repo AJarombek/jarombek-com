@@ -26,31 +26,40 @@
 
 .jarbek-feature > div {
   height: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 20px;
+}
 
-  @media screen and (max-width: $width-mobile + 200) {
-    grid-template-columns: 1fr;
-    grid-gap: 10px;
+@supports (grid-area: auto) {
+  .jarbek-feature > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+
+    @media screen and (max-width: $width-mobile + 200) {
+      grid-template-columns: 1fr;
+      grid-gap: 10px;
+    }
   }
 }
 
-.jarbek-feature-orientation-left > div {
-  grid-template-areas: "content picture";
+@supports (grid-area: auto) {
+  .jarbek-feature-orientation-left > div {
+    grid-template-areas: "content picture";
 
-  @media screen and (max-width: $width-mobile + 200) {
-    grid-template-areas: "content"
-                         "picture";
+    @media screen and (max-width: $width-mobile + 200) {
+      grid-template-areas: "content"
+                           "picture";
+    }
   }
 }
 
-.jarbek-feature-orientation-right > div {
-  grid-template-areas: "picture content";
+@supports (grid-area: auto) {
+  .jarbek-feature-orientation-right > div {
+    grid-template-areas: "picture content";
 
-  @media screen and (max-width: $width-mobile + 200) {
-    grid-template-areas: "content"
-                         "picture";
+    @media screen and (max-width: $width-mobile + 200) {
+      grid-template-areas: "content"
+                           "picture";
+    }
   }
 }
 
@@ -60,10 +69,23 @@
 }
 
 .jarbek-feature-content {
-  grid-area: content;
   align-self: center;
-  justify-self: center;
   text-decoration: none;
+}
+
+@supports (grid-area: auto) {
+  .jarbek-feature-content {
+    grid-area: content;
+    justify-self: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-feature-content {
+    display: table;
+    height: 100%;
+    width: 100%;
+  }
 }
 
 .jarbek-feature-background-color-white .jarbek-feature-content {
@@ -92,22 +114,53 @@
   }
 }
 
+@supports not (grid-area: auto) {
+  .jarbek-feature-content h5 {
+    display: table-cell;
+    vertical-align: middle;
+    height: 100%;
+    width: 50%;
+  }
+}
+
 .jarbek-feature-content p {
   @include sylexiad;
   font-size: 28px;
-
   text-align: center;
-  padding: 40px 20px 10px 20px;
 
   @media screen and (max-width: $width-mobile-small) {
     font-size: 24px;
   }
 }
 
-.jarbek-feature-content-picture {
-  grid-area: picture;
-  justify-self: center;
-  align-self: center;
+@supports (grid-area: auto) {
+  .jarbek-feature-content p {
+    padding: 40px 20px 10px 20px;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-feature-content p {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 0 50px 0 50px;
+    height: 100%;
+    width: 50%;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-feature-content-picture {
+    grid-area: picture;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-feature-content-picture {
+    display: none;
+  }
 }
 
 .jarbek-feature-content-picture img {
