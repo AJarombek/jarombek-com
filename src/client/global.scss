@@ -7,3 +7,6 @@
 .jarombek-background {
   background-image: url("assets/blizzard.png") !important;
 }
+
+@supports (grid-area: auto) {}
+@supports not (grid-area: auto) {}

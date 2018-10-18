@@ -21,8 +21,6 @@ body {
                 no-repeat center center fixed;
   background-size: cover;
 
-  scroll-behavior: smooth;
-
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     background: url("https://asset.jarombek.com/jarombek-home-background.jpg")
                 no-repeat center center;
