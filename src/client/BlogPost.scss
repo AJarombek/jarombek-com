@@ -9,30 +9,58 @@
 @import "./styles/variables";
 @import "blogContent";
 
+/* Variables for magic numbers */
 $post-margin: 0.5px;
+
+/*
+ * Altering any of these measurements will dynamically adjust the blog post dimensions.
+ * Units in percentages.
+ */
+$blog-post-padding-desktop-large: 15;
+$blog-post-padding-desktop-small: 7.5;
+$blog-post-padding-mobile: 2;
 
 .jarombek-blog-post {
   background-color: white;
-  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.1);
+  box-shadow: $box-shadow;
   margin: {
     left: $post-margin;
     right: $post-margin;
     bottom: 40px;
   }
+}
 
-  display: grid;
-  grid-template-columns: [type] 15% [title-start] 70% [title-end] 15% [date];
-  grid-template-rows: [headers] 5% [title] 10% [tags] 10% [body] 65% [sources] 10% [end];
+@supports (grid-area: auto) {
+  .jarombek-blog-post {
 
-  // For small desktop screens, reduce the padding on the side of the post contents in half
-  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-    grid-template-columns: [type] 7.5% [title-start] 85% [title-end] 7.5% [date];
+    $p-desktop-l: $blog-post-padding-desktop-large + 0%;
+    $p-desktop-s: $blog-post-padding-desktop-small + 0%;
+    $p-mobile: $blog-post-padding-mobile + 0%;
+
+    $w-desktop-l: calc(100% - (#{$p-desktop-l} * 2));
+    $w-desktop-s: calc(100% - (#{$p-desktop-s} * 2));
+    $w-mobile: calc(100% - (#{$p-mobile} * 2));
+
+    display: grid;
+    grid-template-columns: [type] $p-desktop-l [title-start] $w-desktop-l
+                            [title-end] $p-desktop-s [date];
+    grid-template-rows: [headers] 5% [title] 10% [tags] 10% [body] 65% [sources] 10% [end];
+
+    // For small desktop screens, reduce the padding on the side of the post contents in half
+    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+      grid-template-columns: [type] $p-desktop-s [title-start] $w-desktop-s
+                              [title-end] $p-desktop-s [date];
+    }
+
+    // For mobile screens, make the padding on the side of posts nearly non-existent
+    @media screen and (max-width: $width-mobile) {
+      grid-template-columns: [type] $p-mobile [title-start] $w-mobile [title-end] $p-mobile [date];
+    }
   }
+}
 
-  // For mobile screens, make the padding on the side of posts nearly non-existent
-  @media screen and (max-width: $width-mobile) {
-    grid-template-columns: [type] 2% [title-start] 96% [title-end] 2% [date];
-  }
+@supports not (grid-area: auto) {
+
 }
 
 // Shared styles for all the headers of a blog post
@@ -42,9 +70,6 @@ $post-margin: 0.5px;
     color: #999;
     font-size: 18px;
     padding-top: 20px;
-
-    justify-self: center;
-    align-self: center;
     text-align: center;
 
     @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
@@ -57,35 +82,73 @@ $post-margin: 0.5px;
       padding-top: 10px;
     }
   }
+
+  @supports (grid-area: auto) {
+    .jarombek-blog-#{$header} {
+      justify-self: center;
+      align-self: center;
+    }
+  }
 }
 
-.jarombek-blog-headers {
-  // Goes in this order: row-start, column-start, row-end, column-end
-  grid-area: headers / type / title / date;
+@supports (grid-area: auto) {
+  .jarombek-blog-headers {
+    // Goes in this order: row-start, column-start, row-end, column-end
+    grid-area: headers / type / title / date;
 
-  display: grid;
-  grid-template-columns: [type] 25% [title-start] 50% [title-end] 25% [date];
-  grid-template-rows: [top] 100% [bottom];
+    display: grid;
+    grid-template-columns: [type] 25% [title-start] 50% [title-end] 25% [date];
+    grid-template-rows: [top] 100% [bottom];
+  }
+
+  .jarombek-blog-type {
+    grid-area: top / type / bottom / title-start;
+  }
+
+  .jarombek-blog-date {
+    grid-area: top / title-end / bottom / date;
+  }
 }
 
-.jarombek-blog-type {
-  grid-area: top / type / bottom / title-start;
-}
+@supports not (grid-area: auto) {
+  .jarombek-blog-headers {
+    display: table;
+    height: 45px;
+    width: 100%;
+  }
 
-.jarombek-blog-date {
-  grid-area: top / title-end / bottom / date;
+  .jarombek-blog-type {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: left;
+    padding-left: 20px;
+    height: 100%;
+    width: 50%;
+  }
+
+  .jarombek-blog-date {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: right;
+    padding-right: 20px;
+    height: 100%;
+    width: 50%;
+  }
 }
 
 .jarombek-blog-title {
   padding-top: 35px;
   padding-bottom: 50px;
   text-decoration: none;
-
   cursor: pointer;
+}
 
-  grid-area: title / title-start / tags / title-end;
-  justify-self: center;
-  align-self: center;
+@supports (grid-area: auto) {
+  .jarombek-blog-title {
+    grid-area: title / title-start / tags / title-end;
+    justify-self: center;
+    align-self: center;
+  }
 }
 
 .jarombek-blog-title-content {
@@ -105,21 +168,71 @@ $post-margin: 0.5px;
   }
 }
 
+@supports not (grid-area: auto) {
+  .jarombek-blog-title-content {
+    padding-top: 35px;
+    padding-bottom: 45px;
+  }
+}
+
 .jarombek-blog-tags {
-  grid-area: tags / title-start / body / title-end;
   padding-bottom: 20px;
+}
+
+@supports (grid-area: auto) {
+  .jarombek-blog-tags {
+    grid-area: tags / title-start / body / title-end;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarombek-blog-tags {
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 .jarombek-blog-content {
   @extend .jarbek-blog-content;
-  grid-area: body / title-start / sources / title-end;
   padding-bottom: 20px;
 }
 
+@supports (grid-area: auto) {
+  .jarombek-blog-content {
+    grid-area: body / title-start / sources / title-end;
+  }
+}
+
+@each $item in 'content', 'sources' {
+  @supports not (grid-area: auto) {
+    .jarombek-blog-#{$item} {
+
+      $p-desktop-l: $blog-post-padding-desktop-large + 0%;
+      $p-desktop-s: $blog-post-padding-desktop-small + 0%;
+      $p-mobile: $blog-post-padding-mobile + 0%;
+
+      margin: 0 $p-desktop-l 0 $p-desktop-l;
+
+      @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+        margin: 0 $p-desktop-s 0 $p-desktop-s;
+      }
+
+      @media screen and (max-width: $width-mobile) {
+        margin: 0 $p-mobile 0 $p-mobile;
+      }
+    }
+  }
+}
+
 .jarombek-blog-sources {
-  grid-area: sources / title-start / end / title-end;
   padding-top: 20px;
   padding-bottom: 40px;
+}
+
+@supports (grid-area: auto) {
+  .jarombek-blog-sources {
+    grid-area: sources / title-start / end / title-end;
+  }
 }
 
 .jarombek-blog-source {

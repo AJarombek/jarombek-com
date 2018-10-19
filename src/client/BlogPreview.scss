@@ -9,6 +9,7 @@
 @import "./styles/mixins/transition";
 @import "blogContent";
 
+/* Variables for magic numbers */
 $blog-preview-grid-desktop: 1fr 8fr 1fr;
 $blog-preview-grid-mobile-large: 1fr 13fr 1fr;
 $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
