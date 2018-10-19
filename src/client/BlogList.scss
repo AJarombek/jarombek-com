@@ -11,11 +11,6 @@ $blog-list-medium: $width-mobile + 500;
 $blog-list-large: $width-small-desktop + 1200;
 
 .jarombek-blog-list {
-  display: grid;
-  grid-template-areas: "search"
-                       "posts";
-  grid-gap: 20px;
-
   padding-top: 100px;
   padding-bottom: 60px;
 
@@ -24,11 +19,16 @@ $blog-list-large: $width-small-desktop + 1200;
   }
 }
 
-.jarombek-blog-list-search {
-  grid-area: search;
-  justify-self: start;
-  align-self: center;
+@supports (grid-area: auto) {
+  .jarombek-blog-list {
+    display: grid;
+    grid-template-areas: "search"
+                         "posts";
+    grid-gap: 20px;
+  }
+}
 
+.jarombek-blog-list-search {
   margin-left: 100px;
 
   @media screen and (max-width: $blog-list-large) and (min-width: $blog-list-medium + 1) {
@@ -40,8 +40,19 @@ $blog-list-large: $width-small-desktop + 1200;
   }
 
   @media screen and (max-width: $blog-list-small) {
-    justify-self: normal;
     margin-left: 0;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarombek-blog-list-search {
+    grid-area: search;
+    justify-self: start;
+    align-self: center;
+
+    @media screen and (max-width: $blog-list-small) {
+      justify-self: normal;
+    }
   }
 }
 
@@ -51,41 +62,58 @@ $blog-list-large: $width-small-desktop + 1200;
 }
 
 .jarombek-posts-grid {
-  grid-area: posts;
-
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-gap: 20px;
   margin: 10px 100px 10px 100px;
 
   // For small desktop screens
   @media screen and (max-width: $blog-list-large) and (min-width: $blog-list-medium + 1) {
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 20px;
     margin: 10px 80px 10px 80px;
   }
 
   @media screen and (max-width: $blog-list-medium) and (min-width: $blog-list-small + 1) {
-    grid-template-columns: 1fr;
-    grid-gap: 10px;
     margin: 10px 50px 10px 50px;
   }
 
   // For mobile screens
   @media screen and (max-width: $blog-list-small) {
-    grid-template-columns: 1fr;
-    grid-gap: 5px;
     margin: 10px;
   }
 }
 
+@supports (grid-area: auto) {
+  .jarombek-posts-grid {
+    grid-area: posts;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap: 20px;
+
+    @media screen and (max-width: $blog-list-large) and (min-width: $blog-list-medium + 1) {
+      grid-template-columns: 1fr 1fr;
+      grid-gap: 20px;
+    }
+
+    @media screen and (max-width: $blog-list-medium) and (min-width: $blog-list-small + 1) {
+      grid-template-columns: 1fr;
+      grid-gap: 10px;
+    }
+
+    @media screen and (max-width: $blog-list-small) {
+      grid-template-columns: 1fr;
+      grid-gap: 5px;
+    }
+  }
+}
+
 .jarombek-blog-list-none {
-
-  grid-area: posts;
-
   height: 100vh;
   margin: 0 auto;
   padding-top: 50px;
+}
+
+@supports (grid-area: auto) {
+  .jarombek-blog-list-none {
+    grid-area: posts;
+  }
 }
 
 .jarombek-blog-list-footer {
