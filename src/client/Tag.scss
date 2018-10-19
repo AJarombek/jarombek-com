@@ -38,7 +38,7 @@ $mongoose-red: rgba(157, 56, 56, 0.6);
 $gulp-red: rgba(212, 74, 71, 0.6);
 $angular-red: rgba(222, 52, 50, 0.6);
 $oracle-red: rgba(237, 56, 51, 0.6);
-$unicode-red: rgba(239, 211, 210, 0.6);
+$unicode-red: rgba(255, 229, 229, 0.6);
 $html-orange: rgba(239, 101, 55, 0.6);
 $rabbitmq-orange: rgba(239, 100, 55, 0.6);
 $yaml-orange: rgba(239, 145, 62, 0.6);
@@ -153,7 +153,7 @@ $default: rgba(204, 204, 204, 0.6);
 }
 
 .jarombek-tag-color-unicode {
-  background-color: lighten($unicode-red, 10%);
+  background-color: $unicode-red;
 }
 
 .jarombek-tag-color-html {
@@ -254,27 +254,43 @@ $default: rgba(204, 204, 204, 0.6);
   }
 }
 
-.jarombek-tag-small {
-
-}
-
-.jarombek-tag-large {
-
-}
-
 .jarombek-tag-small div {
   height: 40px;
-  display: grid;
 
   @media screen and (max-width: $width-mobile-small) {
     height: 35px;
   }
 }
 
-.jarombek-tag-large div {
-  display: grid;
-  grid-template-rows: [top] 100% [bottom];
-  grid-template-columns: [image] 40px [label] calc(100% - 39px) [end];
+@supports (grid-area: auto) {
+  .jarombek-tag-small div {
+    display: grid;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarombek-tag-small div {
+    display: table;
+
+    p {
+      display: table-cell;
+      vertical-align: middle;
+    }
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarombek-tag-large div {
+    display: grid;
+    grid-template-rows: [top] 100% [bottom];
+    grid-template-columns: [image] 40px [label] calc(100% - 39px) [end];
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarombek-tag-large div {
+    display: table;
+  }
 }
 
 .jarombek-tag-picture {
@@ -283,11 +299,6 @@ $default: rgba(204, 204, 204, 0.6);
   margin-top: 5px;
   margin-bottom: 5px;
   margin-left: 5px;
-
-  // Goes in this order: row-start, column-start, row-end, column-end
-  grid-area: top / image / bottom / label;
-  justify-self: center;
-  align-self: center;
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     height: 30px;
@@ -300,16 +311,43 @@ $default: rgba(204, 204, 204, 0.6);
   }
 }
 
+@supports (grid-area: auto) {
+  .jarombek-tag-picture {
+    // Goes in this order: row-start, column-start, row-end, column-end
+    grid-area: top / image / bottom / label;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarombek-tag-picture {
+    display: table-cell;
+    vertical-align: middle;
+  }
+}
+
 .jarombek-tag-name {
   @include sylexiad;
   color: #333;
   border-left: transparent 2px;
 
-
-  justify-self: center;
   align-self: center;
   padding-left: 20px;
   padding-right: 20px;
+}
+
+@supports (grid-area: auto) {
+  .jarombek-tag-name {
+    justify-self: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarombek-tag-name {
+    display: table-cell;
+    vertical-align: middle;
+  }
 }
 
 .jarombek-tag-small .jarombek-tag-name {
@@ -328,7 +366,6 @@ $default: rgba(204, 204, 204, 0.6);
 
 // Give jarombek-tag-name a grid location if the tag is large (with a picture)
 .jarombek-tag-large div p {
-  grid-area: top / label / bottom / end;
   font-size: 24px;
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
@@ -337,6 +374,12 @@ $default: rgba(204, 204, 204, 0.6);
 
   @media screen and (max-width: $width-mobile-small) {
     font-size: 14px;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarombek-tag-large div p {
+    grid-area: top / label / bottom / end;
   }
 }
 

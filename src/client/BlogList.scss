@@ -29,9 +29,6 @@ $blog-list-large: $width-small-desktop + 1200;
   justify-self: start;
   align-self: center;
 
-  background-color: white;
-  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
-
   margin-left: 100px;
 
   @media screen and (max-width: $blog-list-large) and (min-width: $blog-list-medium + 1) {
@@ -46,6 +43,11 @@ $blog-list-large: $width-small-desktop + 1200;
     justify-self: normal;
     margin-left: 0;
   }
+}
+
+.jarombek-blog-list-search > div {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
 }
 
 .jarombek-posts-grid {
