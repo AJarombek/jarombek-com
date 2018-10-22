@@ -7,65 +7,92 @@
 @import "./styles/variables";
 @import "./styles/mixins/longway";
 
+/* Variables for magic numbers */
 $circle-dimension: 35px;
 $circle-dimension-desktop-large: 33px;
 $circle-dimension-desktop: 30px;
 $circle-dimension-mobile: 28px;
 $circle-dimension-mobile-small: 25px;
 
+/* Offset timeline location due to initial point not having a line before it */
+$timeline-offset-desktop-xl: -60px;
+$timeline-offset-desktop-l: -50px;
+$timeline-offset-desktop-s: -45px;
+$timeline-offset-mobile-l: -30px;
+$timeline-offset-mobile-s: -25px;
+
 .jarbek-timeline {
   width: 100%;
-  margin-left: -60px;
+  margin-left: $timeline-offset-desktop-xl;
 
   @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
-    margin-left: -50px;
+    margin-left: $timeline-offset-desktop-l;
   }
 
   @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-    margin-left: -45px;
+    margin-left: $timeline-offset-desktop-s;
   }
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
-    margin-left: -30px;
+    margin-left: $timeline-offset-mobile-l;
   }
 
   @media screen and (max-width: $width-mobile-small) {
-    margin-left: -25px;
+    margin-left: $timeline-offset-mobile-s;
   }
 }
 
 .jarbek-timeline > div {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, 150px);
-
-  justify-content: center;
-  align-content: center;
-
   width: 100%;
+}
 
-  @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
-    grid-template-columns: repeat(auto-fit, 140px);
-  }
+@supports (grid-area: auto) {
+  .jarbek-timeline > div {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 150px);
 
-  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-    grid-template-columns: repeat(auto-fit, 120px);
-  }
+    justify-content: center;
+    align-content: center;
 
-  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
-    grid-template-columns: repeat(auto-fit, 90px);
-  }
+    @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+      grid-template-columns: repeat(auto-fit, 140px);
+    }
 
-  @media screen and (max-width: $width-mobile-small) {
-    grid-template-columns: repeat(auto-fit, 70px);
+    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+      grid-template-columns: repeat(auto-fit, 120px);
+    }
+
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      grid-template-columns: repeat(auto-fit, 90px);
+    }
+
+    @media screen and (max-width: $width-mobile-small) {
+      grid-template-columns: repeat(auto-fit, 70px);
+    }
   }
 }
 
-.jarbek-timeline-section {
-  display: grid;
-  grid-template-areas:
-          "line point"
-          ".    label";
-  grid-template-columns: 9fr 1fr;
+@supports not (grid-area: auto) {
+  .jarbek-timeline > div {
+    width: 100%;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-timeline-section {
+    display: grid;
+    grid-template-areas:
+            "line point"
+            ".    label";
+    grid-template-columns: 9fr 1fr;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-timeline-section {
+    display: table;
+    width: 1fr;
+  }
 }
 
 .jarbek-timeline-point {
