@@ -42,19 +42,22 @@ $blog-post-padding-mobile: 2;
     $w-mobile: calc(100% - (#{$p-mobile} * 2));
 
     display: grid;
-    grid-template-columns: [type] $p-desktop-l [title-start] $w-desktop-l
-                            [title-end] $p-desktop-s [date];
-    grid-template-rows: [headers] 5% [title] 10% [tags] 10% [body] 65% [sources] 10% [end];
+    grid-template-columns: $p-desktop-l $w-desktop-l $p-desktop-l;
+    grid-template-areas:
+            "head  head   head"
+            " .    title   .  "
+            " .    tags    .  "
+            " .   content  .  "
+            " .   sources  .  ";
 
     // For small desktop screens, reduce the padding on the side of the post contents in half
     @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-      grid-template-columns: [type] $p-desktop-s [title-start] $w-desktop-s
-                              [title-end] $p-desktop-s [date];
+      grid-template-columns: $p-desktop-s $w-desktop-s $p-desktop-s;
     }
 
     // For mobile screens, make the padding on the side of posts nearly non-existent
     @media screen and (max-width: $width-mobile) {
-      grid-template-columns: [type] $p-mobile [title-start] $w-mobile [title-end] $p-mobile [date];
+      grid-template-columns: $p-mobile $w-mobile $p-mobile;
     }
   }
 }
@@ -93,20 +96,19 @@ $blog-post-padding-mobile: 2;
 
 @supports (grid-area: auto) {
   .jarombek-blog-headers {
-    // Goes in this order: row-start, column-start, row-end, column-end
-    grid-area: headers / type / title / date;
+    grid-area: head;
 
     display: grid;
-    grid-template-columns: [type] 25% [title-start] 50% [title-end] 25% [date];
-    grid-template-rows: [top] 100% [bottom];
+    grid-template-columns: 25% 50% 25%;
+    grid-template-areas: "type  .  date";
   }
 
   .jarombek-blog-type {
-    grid-area: top / type / bottom / title-start;
+    grid-area: type;
   }
 
   .jarombek-blog-date {
-    grid-area: top / title-end / bottom / date;
+    grid-area: date;
   }
 }
 
@@ -145,7 +147,7 @@ $blog-post-padding-mobile: 2;
 
 @supports (grid-area: auto) {
   .jarombek-blog-title {
-    grid-area: title / title-start / tags / title-end;
+    grid-area: title;
     justify-self: center;
     align-self: center;
   }
@@ -181,7 +183,7 @@ $blog-post-padding-mobile: 2;
 
 @supports (grid-area: auto) {
   .jarombek-blog-tags {
-    grid-area: tags / title-start / body / title-end;
+    grid-area: tags;
   }
 }
 
@@ -199,7 +201,7 @@ $blog-post-padding-mobile: 2;
 
 @supports (grid-area: auto) {
   .jarombek-blog-content {
-    grid-area: body / title-start / sources / title-end;
+    grid-area: content;
   }
 }
 
@@ -231,7 +233,7 @@ $blog-post-padding-mobile: 2;
 
 @supports (grid-area: auto) {
   .jarombek-blog-sources {
-    grid-area: sources / title-start / end / title-end;
+    grid-area: sources;
   }
 }
 
