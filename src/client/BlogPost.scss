@@ -62,10 +62,6 @@ $blog-post-padding-mobile: 2;
   }
 }
 
-@supports not (grid-area: auto) {
-
-}
-
 // Shared styles for all the headers of a blog post
 @each $header in 'type', 'date' {
   .jarombek-blog-#{$header} {
