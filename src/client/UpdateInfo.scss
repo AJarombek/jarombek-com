@@ -1,0 +1,124 @@
+/*
+ * Sass styling for the UpdateInfo component
+ * @author Andrew Jarombek
+ * @since 10/15/2018
+ */
+
+@import "./styles/variables";
+
+/* Variables for magic numbers */
+$jarbek-update-pic-height: 100px, 80px, 60px;
+$jarbek-update-date-color: #999;
+
+.jarbek-update-info {
+  background-color: lighten($color-invalid, 15%);
+  border-radius: 2px;
+
+  padding: 25px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+
+  transition: all .4s ease;
+
+  &:hover {
+    box-shadow: $box-shadow;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-update-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+            ".    date"
+            "body body";
+  }
+}
+
+.jarbek-update-info-date {
+  color: $jarbek-update-date-color !important;
+  font-size: 18px !important;
+  padding-top: 0 !important;
+  padding-bottom: 5px !important;
+  padding-left: 5px;
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    font-size: 14px !important;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 12px !important;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-update-info-date {
+    grid-area: date;
+    justify-self: end;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-update-info-date {
+    width: 100%;
+    text-align: right;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-update-info-body {
+    grid-area: body;
+
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-template-areas: "logo content";
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-update-info-body {
+    display: table;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-update-info-picture-container {
+    grid-area: logo;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-update-info-picture-container {
+    display: table-cell;
+    vertical-align: middle;
+    width: 10%;
+  }
+}
+
+.jarbek-update-info-picture-container, .jarbek-update-info-picture-container img {
+  height: nth($jarbek-update-pic-height, 1);
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    height: nth($jarbek-update-pic-height, 2);
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: nth($jarbek-update-pic-height, 3);
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-update-info-contents {
+    grid-area: content;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-update-info-contents {
+    display: table-cell;
+    vertical-align: middle;
+    width: 90%;
+  }
+}

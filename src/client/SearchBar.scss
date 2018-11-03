@@ -7,88 +7,136 @@
 @import "./styles/mixins/dyslexie";
 @import "./styles/variables";
 
+/* Variables for magic numbers */
 $search-bar-small: $width-mobile + 200;
 $search-bar-medium: $width-mobile + 500;
 $search-bar-large: $width-small-desktop + 1200;
 
+$search-bar-gap: 10px;
+
+$search-bar-width-large: 70vw;
+$search-bar-width-medium: 74vw;
+$search-bar-width-small: 80vw;
+$search-bar-width-mobile: auto;
+
+$search-bar-input-width-large: 60vw;
+$search-bar-input-width-medium: 64vw;
+$search-bar-input-width-small: 70vw;
+$search-bar-input-width-mobile: 76vw;
+
+$search-bar-button-width-large: 6vw;
+$search-bar-button-width-medium: 6vw;
+$search-bar-button-width-small: 6vw;
+$search-bar-button-width-mobile: 14vw;
+
+$search-bar-height-desktop: 60px;
+$search-bar-height-mobile-small: 40px;
+
+$search-bar-placeholder-text-color: #bbb;
+$search-bar-input-border-color: #ccc;
+
 .jarbek-search-bar {
-  display: grid;
-  grid-template-areas: "input button";
-  grid-gap: 10px;
-  justify-content: center;
   align-content: center;
 
-  width: 70vw;
-  height: 60px;
+  width: $search-bar-width-large;
+  height: $search-bar-height-desktop;
   padding: 5px;
 
   input {
-    width: 60vw;
+    width: $search-bar-input-width-large;
   }
 
   button {
-    width: 6vw;
+    width: $search-bar-button-width-large;
   }
 
   @media screen and (max-width: $search-bar-large) and (min-width: $search-bar-medium + 1) {
-    width: 74vw;
+    width: $search-bar-width-medium;
 
     input {
-      width: 64vw;
+      width: $search-bar-input-width-medium;
     }
 
     button {
-      width: 6vw;
+      width: $search-bar-button-width-medium;
     }
   }
 
   @media screen and (max-width: $search-bar-medium) and (min-width: $search-bar-small + 1) {
-    width: 80vw;
+    width: $search-bar-width-small;
 
     input {
-      width: 70vw;
+      width: $search-bar-input-width-small;
     }
 
     button {
-      width: 6vw;
+      width: $search-bar-button-width-small;
     }
   }
 
   @media screen and (max-width: $search-bar-small) {
-    width: auto;
+    width: $search-bar-width-mobile;
 
     input {
-      width: 76vw;
+      width: $search-bar-input-width-mobile;
     }
 
     button {
-      width: 14vw;
+      width: $search-bar-button-width-mobile;
     }
   }
 
   @media screen and (max-width: $width-mobile-small) {
-    height: 45px;
+    height: $search-bar-height-mobile-small;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-search-bar {
+    display: grid;
+    grid-template-areas: "input button";
+    grid-gap: $search-bar-gap;
+    justify-content: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-search-bar {
+    display: table;
   }
 }
 
 .jarbek-search-bar input {
   @include dyslexie;
 
-  grid-area: input;
   align-self: center;
-  justify-self: center;
-
   height: 50px;
   font-size: 16px;
 
   padding-right: 1vw;
   padding-left: 1vw;
 
-  border: 1px solid #ccc;
+  border: 1px solid $search-bar-input-border-color;
   border-radius: 2px;
 
   @media screen and (max-width: $width-mobile-small) {
     height: 35px;
+    font-size: 12px;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-search-bar input {
+    grid-area: input;
+    align-self: center;
+    justify-self: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-search-bar input  {
+    margin-top: 3px;
+    margin-right: 5px;
   }
 }
 
@@ -103,12 +151,28 @@ $search-bar-large: $width-small-desktop + 1200;
 }
 
 .jarbek-search-bar input::placeholder {
-  color: #bbb;
+  color: $search-bar-placeholder-text-color;
 }
 
 .jarbek-search-bar button {
-  grid-area: button;
-
   padding-right: 1vw;
   padding-left: 1vw;
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: 40px;
+    font-size: 20px;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-search-bar div {
+    grid-area: button;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-search-bar div {
+    display: table-cell;
+    vertical-align: middle;
+  }
 }

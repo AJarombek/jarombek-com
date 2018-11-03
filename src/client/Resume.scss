@@ -8,6 +8,13 @@
 @import "./styles/mixins/sylexiads";
 @import "./styles/mixins/longway";
 
+/* Variables for magic numbers */
+$timeline-height-grid: 50px;
+$timeline-height-no-grid: 0;
+$title-height: 50px;
+$content-height: auto;
+$tech-height: 50px;
+
 .jarbek-resume {
   padding-top: 100px;
   height: 100vh;
@@ -16,19 +23,6 @@
   width: 96vw;
   margin-left: 2vw;
   margin-right: 2vw;
-
-  display: grid;
-  grid-template-columns: 1fr 8fr 1fr;
-  grid-template-rows: 50px 50px auto 60px;
-  grid-template-areas:
-          "timeline timeline timeline"
-          ".        title    ."
-          "prev     content  next"
-          ".        tech     .";
-
-  @media screen and (min-width: $width-large-desktop) {
-    grid-template-rows: 50px 65px auto 60px;
-  }
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     height: 90vh;
@@ -41,15 +35,43 @@
   }
 }
 
-@each $section in 'timeline', 'title', 'prev', 'content', 'next', 'tech' {
-  .jarbek-resume-#{$section} {
-    grid-area: #{$section};
+@supports (grid-area: auto) {
+  .jarbek-resume {
+    display: grid;
+    grid-template-areas:
+            "timeline timeline timeline"
+            ".        title    ."
+            "prev     content  next"
+            ".        tech     .";
+    grid-template-columns: 1fr 8fr 1fr;
+    grid-template-rows: $timeline-height-grid
+                        $title-height
+                        $content-height
+                        $tech-height;
+
+    @media screen and (min-width: $width-large-desktop) {
+      grid-template-rows: $timeline-height-grid
+                          calc(#{$title-height} + 15)
+                          $content-height
+                          calc(#{$tech-height} + 10);
+    }
+  }
+
+  @each $section in 'timeline', 'title', 'prev', 'content', 'next', 'tech' {
+    .jarbek-resume-#{$section} {
+      grid-area: #{$section};
+    }
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-resume {
+    display: table;
   }
 }
 
 .jarbek-resume-title {
   overflow-x: hidden;
-  position: relative;
   padding-top: 16px;
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
@@ -61,29 +83,68 @@
   }
 }
 
+@supports (grid-area: auto) {
+  .jarbek-resume-title {
+    position: relative;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-resume-title {
+    height: 50px;
+    width: 100%;
+    padding-bottom: 50px;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-resume-title {
+    height: $title-height;
+  }
+}
+
 .jarbek-resume-title > div {
   position: absolute;
-  width: 100%;
+}
+
+@supports (grid-area: auto) {
+  .jarbek-resume-title > div {
+    width: 100%;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-resume-title > div {
+    width: 96%;
+  }
 }
 
 .jarbek-resume-title-inactive {
   display: none;
 }
 
-.jarbek-resume-title-active-right {
-  animation: slide-in-from-right 1s;
+@supports (grid-area: auto) {
+  .jarbek-resume-title-active-right {
+    animation: slide-in-from-right 1s;
+  }
+
+  .jarbek-resume-title-active-left {
+    animation: slide-in-from-left 1s;
+  }
+
+  .jarbek-resume-title-just-viewed-left {
+    animation: slide-out-left 1s forwards;
+  }
+
+  .jarbek-resume-title-just-viewed-right {
+    animation: slide-out-right 1s forwards;
+  }
 }
 
-.jarbek-resume-title-active-left {
-  animation: slide-in-from-left 1s;
-}
-
-.jarbek-resume-title-just-viewed-left {
-  animation: slide-out-left 1s forwards;
-}
-
-.jarbek-resume-title-just-viewed-right {
-  animation: slide-out-right 1s forwards;
+@supports not (grid-area: auto) {
+  .jarbek-resume-title-just-viewed-right, .jarbek-resume-title-just-viewed-left {
+    display: none;
+  }
 }
 
 .jarbek-resume-title h5 {
@@ -104,9 +165,20 @@
   }
 }
 
-.jarbek-resume-prev {
-  justify-self: start;
-  align-self: center;
+@supports (grid-area: auto) {
+  .jarbek-resume-prev {
+    justify-self: start;
+    align-self: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-resume-prev {
+    display: table-cell;
+    vertical-align: middle;
+    height: 100%;
+    width: 5vw;
+  }
 }
 
 .jarbek-resume-prev img {
@@ -126,44 +198,57 @@
 }
 
 .jarbek-resume-content {
-  position: relative;
   overflow-y: hidden;
   overflow-x: hidden;
-  width: auto;
 }
 
-.jarbek-resume-content:before {
-  position: fixed;
-  background-image: linear-gradient(to top, rgba(255, 255, 255, 0), white 90%);
-  width: 100%;
-  height: 50px;
-  z-index: 1;
-  content: "";
-  left: 0;
-
-  @media screen and (max-width: $width-mobile) {
-    display: none;
+@supports (grid-area: auto) {
+  .jarbek-resume-content {
+    position: relative;
+    width: auto;
   }
 }
 
-.jarbek-resume-content:after {
-  position: fixed;
-  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0), white 90%);
-  width: 100%;
-  height: 100px;
-  z-index: 1;
-  content: "";
-  bottom: 60px;
-  left: 0;
+@supports not (grid-area: auto) {
+  .jarbek-resume-content {
+    height: 100%;
+    width: 90vw;
+  }
+}
 
-  @media screen and (max-width: $width-mobile) {
-    display: none;
+@supports (grid-area: auto) {
+  .jarbek-resume-content:before {
+    position: fixed;
+    background-image: linear-gradient(to top, rgba(255, 255, 255, 0), white 90%);
+    width: 100%;
+    height: 50px;
+    z-index: 1;
+    content: "";
+    left: 0;
+
+    @media screen and (max-width: $width-mobile) {
+      display: none;
+    }
+  }
+
+  .jarbek-resume-content:after {
+    position: fixed;
+    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0), white 90%);
+    width: 100%;
+    height: 100px;
+    z-index: 1;
+    content: "";
+    bottom: 50px;
+    left: 0;
+
+    @media screen and (max-width: $width-mobile) {
+      display: none;
+    }
   }
 }
 
 .jarbek-resume-content > div {
   @include sylexiad;
-  position: absolute;
   font-size: 32px;
   text-align: center;
   line-height: 1.5;
@@ -172,9 +257,7 @@
   padding-top: 60px;
   padding-bottom: 180px;
 
-  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  box-sizing: border-box;
   height: 100%;
 
   @media screen and (max-width: $width-large-desktop) and (min-width: $width-mobile + 1) {
@@ -196,6 +279,20 @@
   }
 }
 
+@supports (grid-area: auto) {
+  .jarbek-resume-content > div {
+    position: absolute;
+    box-sizing: border-box;
+    overflow-y: scroll;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-resume-content > div {
+    height: auto;
+  }
+}
+
 .jarbek-resume-content > div::-webkit-scrollbar {
   background: transparent;
 }
@@ -214,30 +311,49 @@
   display: none;
 }
 
-.jarbek-resume-content-active-right {
-  animation: slide-in-from-right 1s;
+@supports (grid-area: auto) {
+  .jarbek-resume-content-active-right {
+    animation: slide-in-from-right 1s;
+  }
+
+  .jarbek-resume-content-active-left {
+    animation: slide-in-from-left 1s;
+  }
+
+  .jarbek-resume-content-just-viewed-left {
+    // forwards maintains the final animation state after the animation ends
+    animation: slide-out-left 1s forwards;
+  }
+
+  .jarbek-resume-content-just-viewed-right {
+    animation: slide-out-right 1s forwards;
+  }
 }
 
-.jarbek-resume-content-active-left {
-  animation: slide-in-from-left 1s;
-}
-
-.jarbek-resume-content-just-viewed-left {
-  // forwards maintains the final animation state after the animation ends
-  animation: slide-out-left 1s forwards;
-}
-
-.jarbek-resume-content-just-viewed-right {
-  animation: slide-out-right 1s forwards;
+@supports not (grid-area: auto) {
+  .jarbek-resume-content-just-viewed-right, .jarbek-resume-content-just-viewed-left {
+    display: none;
+  }
 }
 
 .jarbek-resume-content > div > p {
   margin-bottom: 25px;
 }
 
-.jarbek-resume-next {
-  justify-self: end;
-  align-self: center;
+@supports (grid-area: auto) {
+  .jarbek-resume-next {
+    justify-self: end;
+    align-self: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-resume-next {
+    display: table-cell;
+    vertical-align: middle;
+    height: 100%;
+    width: 5vw;
+  }
 }
 
 .jarbek-resume-next img {
@@ -260,7 +376,6 @@
   @include sylexiad;
   text-align: center;
   overflow: hidden;
-  position: relative;
   -webkit-overflow-scrolling: touch;
   font-size: 22px;
 
@@ -285,7 +400,18 @@
     white-space: nowrap;
     overflow-x: scroll;
   }
+}
 
+@supports (grid-area: auto) {
+  .jarbek-resume-tech {
+    position: relative;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-resume-tech {
+    display: none;
+  }
 }
 
 .jarbek-resume-tech > div {
@@ -318,20 +444,22 @@
   display: none;
 }
 
-.jarbek-resume-tech-active-right {
-  animation: slide-in-from-right 1s;
-}
+@supports (grid-area: auto) {
+  .jarbek-resume-tech-active-right {
+    animation: slide-in-from-right 1s;
+  }
 
-.jarbek-resume-tech-active-left {
-  animation: slide-in-from-left 1s;
-}
+  .jarbek-resume-tech-active-left {
+    animation: slide-in-from-left 1s;
+  }
 
-.jarbek-resume-tech-just-viewed-left {
-  animation: slide-out-left 1s forwards;
-}
+  .jarbek-resume-tech-just-viewed-left {
+    animation: slide-out-left 1s forwards;
+  }
 
-.jarbek-resume-tech-just-viewed-right {
-  animation: slide-out-right 1s forwards;
+  .jarbek-resume-tech-just-viewed-right {
+    animation: slide-out-right 1s forwards;
+  }
 }
 
 @keyframes slide-in-from-right {

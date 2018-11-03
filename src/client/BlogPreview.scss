@@ -9,41 +9,66 @@
 @import "./styles/mixins/transition";
 @import "blogContent";
 
+/* Variables for magic numbers */
+$blog-preview-grid-desktop: 1fr 8fr 1fr;
+$blog-preview-grid-mobile-large: 1fr 13fr 1fr;
+$blog-preview-grid-mobile-small: 1fr 28fr 1fr;
+
 .jarombek-blog-preview {
   background-color: white;
-  box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+  box-shadow: $box-shadow;
   border: 1px solid transparent;
   @include transition(box-shadow, 0 1px 4px darken(rgba(48, 227, 225, 0.8), 10%));
   @include transition(border, 1px solid darken(rgba(48, 227, 225, 0.8), 10%));
   border-radius: 2px;
+}
 
-  display: grid;
-  grid-template-columns: 1fr 8fr 1fr;
-  grid-template-areas:
-            "header  header  header "
-            "  .     title     .    "
-            "tags    tags    tags   "
-            "content content content"
-            "  .     footer    .    ";
+@supports (grid-area: auto) {
+  .jarombek-blog-preview {
+    display: grid;
+    grid-template-columns: $blog-preview-grid-desktop;
+    grid-template-areas:
+           "header  header  header "
+           "  .     title     .    "
+           "tags    tags    tags   "
+           "content content content"
+           "  .     footer    .    ";
 
-  // For small desktop screens, reduce the padding on the side of the post contents in half
-  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-    grid-template-columns: 1fr 13fr 1fr;
-  }
+    // For small desktop screens, reduce the padding on the side of the post contents in half
+    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+      grid-template-columns: $blog-preview-grid-mobile-large;
+    }
 
-  // For mobile screens, make the padding on the side of posts nearly non-existent
-  @media screen and (max-width: $width-mobile) {
-    grid-template-columns: 1fr 28fr 1fr;
+    // For mobile screens, make the padding on the side of posts nearly non-existent
+    @media screen and (max-width: $width-mobile) {
+      grid-template-columns: $blog-preview-grid-mobile-small;
+    }
   }
 }
 
-.jarombek-blog-preview-headers {
-  grid-area: header;
+@supports not (grid-area: auto) {
+  .jarombek-blog-preview {
+    margin-bottom: 20px;
+  }
+}
 
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 10px;
-  grid-template-areas: "header-type header-date";
+@supports (grid-area: auto) {
+  .jarombek-blog-preview-headers {
+    grid-area: header;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+    grid-template-areas: "header-type header-date";
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarombek-blog-preview-headers {
+    display: table;
+    height: 45px;
+    width: 100%;
+  }
 }
 
 @each $header in 'type', 'date' {
@@ -63,22 +88,49 @@
   }
 }
 
-.jarombek-blog-preview-type {
-  grid-area: header-type;
-  justify-self: start;
-
+@supports (grid-area: auto) {
+  .jarombek-blog-preview-type {
+    grid-area: header-type;
+    justify-self: start;
+  }
 }
 
-.jarombek-blog-preview-date {
-  grid-area: header-date;
-  justify-self: end;
+@supports not (grid-area: auto) {
+  .jarombek-blog-preview-type {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: left;
+    padding-left: 20px;
+    height: 100%;
+    width: 50%;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarombek-blog-preview-date {
+    grid-area: header-date;
+    justify-self: end;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarombek-blog-preview-date {
+    display: table-cell;
+    vertical-align: middle;
+    padding-right: 20px;
+    text-align: right;
+    height: 100%;
+    width: 50%;
+  }
 }
 
 @each $field in 'title', 'tags', 'content', 'footer' {
-  .jarombek-blog-preview-#{$field} {
-    grid-area: #{$field};
-    justify-self: center;
-    align-self: center;
+  @supports (grid-area: auto) {
+    .jarombek-blog-preview-#{$field} {
+      grid-area: #{$field};
+      justify-self: center;
+      align-self: center;
+    }
   }
 }
 
@@ -101,9 +153,23 @@
   }
 }
 
+@supports not (grid-area: auto) {
+  .jarombek-blog-preview-title-p {
+    padding-top: 15px;
+    padding-bottom: 25px;
+  }
+}
+
 .jarombek-blog-preview-tags {
   margin: 5px;
   font-size: 18px;
+}
+
+@supports not (grid-area: auto) {
+  .jarombek-blog-preview-tags {
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 .jarombek-blog-preview-content {
@@ -151,4 +217,15 @@
 
 .jarombek-blog-preview-footer {
   margin-bottom: 10px;
+}
+
+@supports not (grid-area: auto) {
+  .jarombek-blog-preview-footer {
+    text-decoration: none;
+  }
+
+  .jarombek-blog-preview-footer button {
+    margin: 20px auto;
+    display: block;
+  }
 }

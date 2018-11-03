@@ -17,7 +17,7 @@
   text-align: center;
   font-size: 12px;
   margin-top: 8px;
-  filter: opacity(0%);
+  opacity: 0;
   transition: all .4s ease;
 }
 
@@ -28,6 +28,6 @@
   }
 
   &:hover + .jarbek-image-title {
-    filter: opacity(90%);
+    opacity: 0.9;
   }
 }
