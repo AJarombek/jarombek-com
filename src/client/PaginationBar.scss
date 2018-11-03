@@ -10,22 +10,45 @@
 
 .jarbek-pagination-bar {
   @include sylexiad-bold;
-  display: grid;
-  grid-gap: 10px;
-  grid-template-columns: repeat(auto-fit, 45px);
-
-  justify-content: center;
-  align-content: center;
-
   font-size: 28px;
   color: #aaa;
 }
 
-@each $page in 'first', 'first-spread', 'previous-item', 'current',
-                'next-item', 'last-spread', 'last' {
-  .jarbek-pag-#{$page} {
-    justify-self: center;
-    align-self: center;
+@supports (grid-area: auto) {
+  .jarbek-pagination-bar {
+    display: grid;
+    grid-gap: 10px;
+    grid-template-columns: repeat(auto-fit, 45px);
+
+    justify-content: center;
+    align-content: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-pagination-bar {
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+@supports (grid-area: auto) {
+  @each $page in 'first', 'first-spread', 'previous-item', 'current',
+  'next-item', 'last-spread', 'last' {
+    .jarbek-pag-#{$page} {
+      justify-self: center;
+      align-self: center;
+    }
+  }
+}
+@supports not (grid-area: auto) {
+  @each $page in 'first', 'first-spread', 'previous-item', 'current',
+  'next-item', 'last-spread', 'last' {
+    .jarbek-pag-#{$page} {
+      display: table-cell;
+      vertical-align: middle;
+      width: 45px;
+    }
   }
 }
 
