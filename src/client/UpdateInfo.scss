@@ -23,18 +23,19 @@ $jarbek-update-date-color: #999;
   &:hover {
     box-shadow: $box-shadow;
   }
+}
 
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-          ".    date   "
-          "body body";
+@supports (grid-area: auto) {
+  .jarbek-update-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+            ".    date"
+            "body body";
+  }
 }
 
 .jarbek-update-info-date {
-  grid-area: date;
-  justify-self: end;
-
   color: $jarbek-update-date-color !important;
   font-size: 18px !important;
   padding-top: 0 !important;
@@ -50,19 +51,50 @@ $jarbek-update-date-color: #999;
   }
 }
 
-.jarbek-update-info-body {
-  grid-area: body;
-
-  display: grid;
-  grid-template-columns: 1fr 4fr;
-  grid-template-areas:
-          "logo content";
+@supports (grid-area: auto) {
+  .jarbek-update-info-date {
+    grid-area: date;
+    justify-self: end;
+  }
 }
 
-.jarbek-update-info-picture-container {
-  grid-area: logo;
-  justify-self: center;
-  align-self: center;
+@supports not (grid-area: auto) {
+  .jarbek-update-info-date {
+    width: 100%;
+    text-align: right;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-update-info-body {
+    grid-area: body;
+
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-template-areas: "logo content";
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-update-info-body {
+    display: table;
+  }
+}
+
+@supports (grid-area: auto) {
+  .jarbek-update-info-picture-container {
+    grid-area: logo;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-update-info-picture-container {
+    display: table-cell;
+    vertical-align: middle;
+    width: 10%;
+  }
 }
 
 .jarbek-update-info-picture-container, .jarbek-update-info-picture-container img {
@@ -77,6 +109,16 @@ $jarbek-update-date-color: #999;
   }
 }
 
-.jarbek-update-info-contents {
-  grid-area: content;
+@supports (grid-area: auto) {
+  .jarbek-update-info-contents {
+    grid-area: content;
+  }
+}
+
+@supports not (grid-area: auto) {
+  .jarbek-update-info-contents {
+    display: table-cell;
+    vertical-align: middle;
+    width: 90%;
+  }
 }
