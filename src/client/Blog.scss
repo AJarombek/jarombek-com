@@ -9,8 +9,9 @@
   padding-bottom: 60px;
 
   display: grid;
-  grid-template-rows: [top] 95% [bottom-blog] 5% [bottom];
-  grid-template-columns: [left] 100% [right];
+  grid-template-columns: 100%;
+  grid-template-areas: "post"
+                       "foot";
 }
 
 .jarombek-blog-none {
@@ -20,7 +21,7 @@
 }
 
 .jarombek-blog-footer {
-  grid-area: bottom-blog / left / bottom / right;
+  grid-area: foot;
   justify-self: center;
   align-self: center;
 
