@@ -133,6 +133,16 @@ class CodeSnippet extends React.Component {
                 prop: "assembly",
                 title: "Assembly",
                 highlightClass: "mips"
+            },
+            {
+                prop: "cpp",
+                title: "C++",
+                highlightClass: "cpp"
+            },
+            {
+                prop: "csharp",
+                title: "C#",
+                highlightClass: "csharp"
             }
         ];
     }

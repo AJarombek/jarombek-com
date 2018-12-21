@@ -27,10 +27,12 @@ $assembly-blue: rgba(37, 52, 76, 0.6);
 $webpack-blue: rgba(157, 186, 232, 0.6);
 $react-blue: rgba(97, 218, 250, 0.6);
 $groovy-blue: rgba(98, 152, 170, 0.6);
+$cpp-blue: rgba(26, 92, 151, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
 $bootstrap-purple: rgba(85, 39, 76, 0.6);
 $terraform-purple: rgba(91, 76, 230, 0.6);
+$csharp-purple: rgba(120, 62, 129, 0.6);
 $sass-pink: rgba(213, 130, 172, 0.6);
 $graphql-pink: rgba(229, 53, 171, 0.6);
 $swift-red: rgba(236, 69, 72, 0.6);
@@ -134,6 +136,10 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($groovy-blue, 10%);
 }
 
+.jarombek-tag-color-cpp {
+  background-color: lighten($cpp-blue, 10%);
+}
+
 .jarombek-tag-color-swift {
   background-color: lighten($swift-red, 10%);
 }
@@ -208,6 +214,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-terraform {
   background-color: lighten($terraform-purple, 10%);
+}
+
+.jarombek-tag-color-csharp {
+  background-color: lighten($csharp-purple, 10%);
 }
 
 .jarombek-tag-color-sass {
