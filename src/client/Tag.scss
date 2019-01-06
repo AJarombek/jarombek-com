@@ -33,6 +33,7 @@ $jwt-purple: rgba(216, 85, 249, 0.6);
 $bootstrap-purple: rgba(85, 39, 76, 0.6);
 $terraform-purple: rgba(91, 76, 230, 0.6);
 $csharp-purple: rgba(120, 62, 129, 0.6);
+$webassembly-purple: rgba(92, 99, 232, 0.6);
 $sass-pink: rgba(213, 130, 172, 0.6);
 $graphql-pink: rgba(229, 53, 171, 0.6);
 $swift-red: rgba(236, 69, 72, 0.6);
@@ -218,6 +219,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-csharp {
   background-color: lighten($csharp-purple, 10%);
+}
+
+.jarombek-tag-color-webassembly {
+  background-color: lighten($webassembly-purple, 10%);
 }
 
 .jarombek-tag-color-sass {

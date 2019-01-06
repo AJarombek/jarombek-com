@@ -143,6 +143,11 @@ class CodeSnippet extends React.Component {
                 prop: "csharp",
                 title: "C#",
                 highlightClass: "csharp"
+            },
+            {
+                prop: "webassembly",
+                title: "WebAssembly",
+                highlightClass: "lisp"
             }
         ];
     }
