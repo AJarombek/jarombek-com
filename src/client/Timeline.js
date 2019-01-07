@@ -36,7 +36,8 @@ const Timeline = ({points, position, labels}) => {
 
 Timeline.propTypes = {
     points: PropTypes.number.isRequired,
-    position: PropTypes.number.isRequired
+    position: PropTypes.number.isRequired,
+    labels: PropTypes.array.isRequired
 };
 
 Timeline.defaultProps = {
