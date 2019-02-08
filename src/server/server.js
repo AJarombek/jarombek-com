@@ -246,7 +246,11 @@ app.use(respond);
 
 const port = process.env.port || 8080;
 
-module.exports = app.listen(port, () => {
+const server = app.listen(port, () => {
    console.info(`Jarombek.com running on port ${port}`);
    console.info(__dirname);
 });
+
+server.keepAliveTimeout = 120000;
+
+module.exports = server;
