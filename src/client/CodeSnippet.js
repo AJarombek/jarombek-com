@@ -148,6 +148,11 @@ class CodeSnippet extends React.Component {
                 prop: "webassembly",
                 title: "WebAssembly",
                 highlightClass: "lisp"
+            },
+            {
+                prop: "powershell",
+                title: "PowerShell",
+                highlightClass: "powershell"
             }
         ];
     }
