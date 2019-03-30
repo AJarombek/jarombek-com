@@ -30,6 +30,8 @@ $react-blue: rgba(97, 218, 250, 0.6);
 $groovy-blue: rgba(98, 152, 170, 0.6);
 $cpp-blue: rgba(26, 92, 151, 0.6);
 $powershell-blue: rgba(89, 150, 240, 0.6);
+$docker-blue: rgba(44, 128, 193, 0.6);
+$k8s-blue: rgba(50, 109, 230, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
 $bootstrap-purple: rgba(85, 39, 76, 0.6);
@@ -149,6 +151,14 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-powershell {
   background-color: lighten($powershell-blue, 10%);
+}
+
+.jarombek-tag-color-docker {
+  background-color: lighten($docker-blue, 10%);
+}
+
+.jarombek-tag-color-k8s {
+  background-color: lighten($k8s-blue, 10%);
 }
 
 .jarombek-tag-color-swift {

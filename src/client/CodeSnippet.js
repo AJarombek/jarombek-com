@@ -153,6 +153,11 @@ class CodeSnippet extends React.Component {
                 prop: "powershell",
                 title: "PowerShell",
                 highlightClass: "powershell"
+            },
+            {
+                prop: "docker",
+                title: "Dockerfile",
+                highlightClass: "docker"
             }
         ];
     }
