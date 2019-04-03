@@ -12,6 +12,7 @@ $nodejs-green: rgba(141, 201, 76, 0.6);
 $mongodb-green: rgba(98, 172, 82, 0.6);
 $vim-green: rgba(69, 153, 53, 0.6);
 $bash-green: rgba(162, 253, 146, 0.6);
+$cloudformation-green: rgba(117, 157, 59, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
 $babel-yellow: rgba(249, 220, 74, 0.6);
@@ -32,6 +33,7 @@ $cpp-blue: rgba(26, 92, 151, 0.6);
 $powershell-blue: rgba(89, 150, 240, 0.6);
 $docker-blue: rgba(44, 128, 193, 0.6);
 $k8s-blue: rgba(50, 109, 230, 0.6);
+$eks-blue: rgba(52, 123, 246, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
 $bootstrap-purple: rgba(85, 39, 76, 0.6);
@@ -79,6 +81,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-bash {
   background-color: lighten($bash-green, 10%);
+}
+
+.jarombek-tag-color-cloudformation {
+  background-color: lighten($cloudformation-green, 10%);
 }
 
 .jarombek-tag-color-javascript {
@@ -159,6 +165,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-k8s {
   background-color: lighten($k8s-blue, 10%);
+}
+
+.jarombek-tag-color-eks {
+  background-color: lighten($eks-blue, 10%);
 }
 
 .jarombek-tag-color-swift {
