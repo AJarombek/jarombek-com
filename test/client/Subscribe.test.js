@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import Subscribe from "../src/client/Subscribe";
+import Subscribe from "../../src/client/Subscribe";
 import {mount} from "enzyme/build/index";
 
 import fetchMock from 'fetch-mock';

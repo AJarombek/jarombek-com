@@ -40,6 +40,7 @@ infrastructure as code.
 | `.babelrc`           | Configuration for Babel.                                                   |
 | `.eslintrc.js`       | Configuration for ESLint.                                                  |
 | `.travis.yml`        | Continuous Integration config for TravisCI.                                |
+| `Dockerfile`         | Blueprint for a Docker image used to containerize the application.         |
 | `jest.config.js`     | Jest unit testing configuration.                                           |
 | `package.json`       | Entry point for the npm application.  Contains dependency definitions.     |
 | `setup.sh`           | Bash commands for setting up the application.                              |

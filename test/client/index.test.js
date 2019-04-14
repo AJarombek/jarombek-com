@@ -9,17 +9,16 @@ import {shallow} from 'enzyme';
 import toJSON from 'enzyme-to-json';
 import moment from 'moment';
 
-import App from '../src/client/Home';
-import Button from '../src/client/Button';
-import TitleImage from '../src/client/TitleImage';
-import WebsiteNav from '../src/client/WebsiteNav';
-import WebsiteTemplate from "../src/client/WebsiteTemplate";
-import Tag from "../src/client/Tag";
-import TagList from "../src/client/TagList";
-import PictureButton from "../src/client/PictureButton";
-import BlogPost from "../src/client/BlogPost";
-import BlogList from "../src/client/BlogList";
-import Definition from "../src/client/Definition";
+import App from '../../src/client/Home';
+import Button from '../../src/client/Button';
+import TitleImage from '../../src/client/TitleImage';
+import WebsiteNav from '../../src/client/WebsiteNav';
+import WebsiteTemplate from "../../src/client/WebsiteTemplate";
+import Tag from "../../src/client/Tag";
+import TagList from "../../src/client/TagList";
+import PictureButton from "../../src/client/PictureButton";
+import BlogPost from "../../src/client/BlogPost";
+import Definition from "../../src/client/Definition";
 
 /* App Component */
 

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import Modal from "../src/client/Modal";
+import Modal from "../../src/client/Modal";
 
 import {shallow} from "enzyme/build/index";
 import sinon from "sinon";

@@ -10,11 +10,11 @@
 
 import React from 'react';
 import {mount} from 'enzyme';
-import Blog from "../src/client/Blog";
+import Blog from "../../src/client/Blog";
 import {MemoryRouter} from 'react-router-dom';
 import fetchMock from 'fetch-mock';
 import 'isomorphic-fetch';
-import BlogDelegator from "../src/client/BlogDelegator";
+import BlogDelegator from "../../src/client/BlogDelegator";
 
 const oneResponse = {
     body: {

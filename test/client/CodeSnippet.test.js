@@ -6,7 +6,7 @@
 
 import React from 'react';
 import {mount} from 'enzyme';
-import CodeSnippet from "../src/client/CodeSnippet";
+import CodeSnippet from "../../src/client/CodeSnippet";
 
 // We must use mount() here instead of shallow() because it works with
 // refs and component lifecycles
