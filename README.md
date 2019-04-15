@@ -10,6 +10,8 @@ There are a number of related repositories for my website:
 
 ### Public Repositories
 
+- [jarombek-com-infrastructure](https://github.com/AJarombek/jarombek-com-infrastructure): Infrastructure
+as code for my website in AWS.  Uses Terraform (and maybe in the future CloudFormation).
 - [jarombek-com-posts](https://github.com/AJarombek/jarombek-com-posts): the blog posts HTML code.  First 
 converted to JSON via the html-tokenizer and then placed in the jarombek-com-database repository.  The 
 JSON is stored in my MongoDB document database and converted to JSX in this project (the
@@ -23,8 +25,6 @@ a document database of choice (in my case MongoDB).
 
 - [jarombek-com-database](https://github.com/AJarombek/jarombek-com-database): Contains blog post data 
 stored in MongoDB along with some automated scripts.
-- [jarombek-com-infrastructure](https://github.com/AJarombek/jarombek-com-infrastructure): Infrastructure
-as code for my website in AWS.  Uses Terraform (and maybe in the future CloudFormation).
 - [jarombek-com-emails](https://github.com/AJarombek/jarombek-com-emails): AWS lambda functions that
 send subscription emails to people who subscribe to my website.
 - [jarombek-com-aws](https://github.com/AJarombek/jarombek-com-aws): legacy AWS configuration prior to
