@@ -8,8 +8,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Feature from './Feature';
 
-import './FeatureList.scss';
-
 const FeatureList = ({ id, featureList=[] }) =>
     <div className="jarombek-feature-list" id={id}>
         { (featureList.length === 0) ?

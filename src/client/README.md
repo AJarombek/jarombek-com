@@ -21,29 +21,95 @@ Sass stylesheets, model objects, and the React application entrypoint through `i
 
 ## React Components
 
+The font-end application consists of many reusable React components.  React components hold HTML 
+(JSX) templates, JavaScript business logic, Sass stylesheets, and sometimes application state.  
+Components that hold state are class components.  Components that only contain presentation logic 
+and don't maintain state are functional components.  Functional components can easily be removed 
+from this application and reused elsewhere.
+
 ### Blog
+
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *NO*   |
+| Sass Styled  | *YES*  |
 
 ### BlogList
 
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *NO*   |
+| Sass Styled  | *YES*  |
+
 ### BlogPost
+
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *YES*  |
+| Sass Styled  | *YES*  |
 
 ### BlogPreview
 
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *YES*  |
+| Sass Styled  | *YES*  |
+
 ### Button
+
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *YES*  |
+| Sass Styled  | *YES*  |
 
 ### CodeSnippet
 
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *NO*   |
+| Sass Styled  | *YES*  |
+
 ### ComparisonTable
+
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *YES*  |
+| Sass Styled  | *YES*  |
 
 ### ComparisonTableEntry
 
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *YES*  |
+| Sass Styled  | *YES*  |
+
 ### Definition
+
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *YES*  |
+| Sass Styled  | *YES*  |
 
 ### Feature
 
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *YES*  |
+| Sass Styled  | *YES*  |
+
 ### FeatureList
 
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *YES*  |
+| Sass Styled  | *NO*   |
+
 ### Home
+
+| Attribute    | State  |
+|--------------|--------|
+| Functional   | *NO*   |
+| Sass Styled  | *YES*  |
 
 ### Loading
 
