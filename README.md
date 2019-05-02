@@ -38,6 +38,7 @@ infrastructure as code.
 | `src`                | Application source code for both client and server.                        |
 | `test`               | Jest test code for both client and server.                                 |
 | `.babelrc`           | Configuration for Babel.                                                   |
+| `.dockerignore`      | Directories and files for Docker to ignore when building an image.         |
 | `.eslintrc.js`       | Configuration for ESLint.                                                  |
 | `.travis.yml`        | Continuous Integration config for TravisCI.                                |
 | `Dockerfile`         | Blueprint for a Docker image used to containerize the application.         |

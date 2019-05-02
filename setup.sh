@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Setup commands for the application
+# Author: Andrew Jarombek
+# Date: 5/1/2019
+
+# --------------------
+# Install Dependencies
+# --------------------
+
 # Quickly set up a default package.json with npm
 npm init -y
 
@@ -166,14 +174,6 @@ yarn add sinon --dev
 # Parsing HTTP Post request bodies
 yarn add body-parser
 
-# Set the node environment to development for proper Webpack builds
-export NODE_ENV=development
-
-# Build with webpack for dev environment bundles and deploy locally
-yarn client:dev
-yarn server:dev
-yarn server:deploy
-
 # Used for setting global styles defined in JavaScript.  This allows for
 # dynamic styles depending on the environment
 yarn add styled-components
@@ -183,3 +183,25 @@ yarn add query-string
 
 # Library for displaying mathematical equations
 yarn add react-katex
+
+# ---------------------
+# Build Locally in Bash
+# ---------------------
+
+# Set the node environment to development for proper Webpack builds
+export NODE_ENV=development
+
+# Build with webpack for dev environment bundles and deploy locally
+yarn client:dev
+yarn server:dev
+yarn server:deploy
+
+# -----------------
+# Build with Docker
+# -----------------
+
+docker image build -t jarombek-com:latest .
+docker image ls
+docker container run -d --name jarombek-com -p 80:8080 jarombek-com:latest
+docker container stop jarombek-com
+docker container rm jarombek-com

@@ -20,6 +20,7 @@ LABEL maintainer="andrew@jarombek.com" \
       version="1.2.0" \
       description="Dockerfile for Andrew Jarombek's Personal Website & Software Development Blog"
 
+# We only need the bundle created by Webpack to run the application
 COPY --from=base /src/dist/ .
 WORKDIR /server
 
