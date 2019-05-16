@@ -185,9 +185,7 @@ yarn add query-string
 yarn add react-katex
 
 # Server side testing
-npm install mocha -g
-yarn add chai --dev
-yarn add mocha --dev
+yarn add mockingoose --dev
 
 # -------------------
 # Update Dependencies

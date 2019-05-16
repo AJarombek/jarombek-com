@@ -1,5 +1,5 @@
-const chai = require('chai');
-const Post =  require('../../../src/server/model/post');
+import mockingoose from 'mockingoose';
+import Post from '../../../src/server/model/post';
 
 /**
  * Testing the Post Mongoose Model with Mocha
@@ -7,17 +7,34 @@ const Post =  require('../../../src/server/model/post');
  * @since 5/15/2019
  */
 
-const expect = chai.expect;
+describe('Post Mongoose Model', () => {
+    it('should work with findById', async () => {
+        const doc = {
+            _id: '1',
+            name: 'may-16-2019-jest-test',
+            title: "Testing with Jest",
+            description: "none",
+            date: new Date('2019-05-16T12:00:00'),
+            type: 'discovery',
+            views: 0,
+            tags: [{
+                name: 'Jest',
+                picture: 'jest.png',
+                color: 'jest'
+            }],
+            preview: [],
+            previewString: '',
+            sources: [{
+                startName: "jest",
+                endName: "",
+                linkName: "jest.io",
+                link: "jest.io"
+            }]
+        };
 
-describe('post-model', () => {
+        mockingoose(Post).toReturn(doc, 'findOne');
 
-    it('should be invalid if name is empty', function () {
-        const post = Post();
-
-        post.validate((err) => {
-            expect(err.errors.name).to.exist;
-            done();
-        });
+        const result = await Post.findById({_id: '1'})
+        expect(result.toObject().toMatchObject(doc))
     });
-
 });

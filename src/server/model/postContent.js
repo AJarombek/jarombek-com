@@ -1,4 +1,4 @@
-import {mongoose} from 'mongoose';
+import mongoose from 'mongoose';
 
 /**
  * Schema for the Post Content object in MongoDB

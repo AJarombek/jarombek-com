@@ -26,9 +26,7 @@ class Blog extends React.Component {
         super(props);
         console.debug('Inside Blog constructor');
 
-        this.baseUrl = (process.env.NODE_ENV === 'production') ?
-            'https://jarombek.com' :
-            'http://localhost:8080';
+        this.baseUrl = 'http://localhost:8080';
 
         console.info(`The environment: ${process.env.NODE_ENV}`);
         console.info(`The URL to call: ${this.baseUrl}`);

@@ -1,4 +1,4 @@
-import {mongoose} from 'mongoose';
+import mongoose from 'mongoose';
 
 /**
  * Schema for the Audit object in MongoDB

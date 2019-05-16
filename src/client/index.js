@@ -7,7 +7,7 @@
 import React from 'react';
 import {render} from 'react-dom';
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
-import 'babel-polyfill';
+import '@babel/polyfill';
 import { injectGlobal } from 'styled-components';
 
 import Home from './Home';
