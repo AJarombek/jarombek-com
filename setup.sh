@@ -184,6 +184,21 @@ yarn add query-string
 # Library for displaying mathematical equations
 yarn add react-katex
 
+# Server side testing
+npm install mocha -g
+yarn add chai --dev
+yarn add mocha --dev
+
+# -------------------
+# Update Dependencies
+# -------------------
+
+# Check outdated dependencies
+npm outdated
+
+# Update dependencies to newest version within package.json defined range
+npm update
+
 # ---------------------
 # Build Locally in Bash
 # ---------------------
@@ -205,3 +220,11 @@ docker image ls
 docker container run -d --name jarombek-com -p 80:8080 jarombek-com:latest
 docker container stop jarombek-com
 docker container rm jarombek-com
+
+# Push to Docker Hub
+docker image build -t jarombek-com:latest .
+docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
+docker push ajarombek/jarombek-com:latest
+
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.5
+docker push ajarombek/jarombek-com:1.1.5

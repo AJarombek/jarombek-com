@@ -1,10 +1,11 @@
+import {mongoose} from 'mongoose';
+
 /**
  * Schema for the Post object in MongoDB
  * @author Andrew Jarombek
  * @since 4/19/2018
  */
 
-const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const TagSchema = new Schema({

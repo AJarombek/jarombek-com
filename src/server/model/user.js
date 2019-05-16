@@ -1,10 +1,11 @@
+import {mongoose} from 'mongoose';
+
 /**
  * Schema for the User object in MongoDB
  * @author Andrew Jarombek
  * @since 6/2/2018
  */
 
-const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({

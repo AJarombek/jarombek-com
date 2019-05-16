@@ -7,10 +7,17 @@ import server from '../../src/server/server';
  * @since 5/23/2018
  */
 
-// Tests for the postRouter GET requests
-describe("GET '/api/post'", () => {
+// Tests for the postRouter GET requests for Article Content
+describe("GET '/api/post/content'", () => {
     test('It responded with a 200', () => {
         return request(server).get('/api/post/content').expect(200);
+    });
+});
+
+// Tests for the postRouter GET requests for Article Previews
+describe("GET '/api/post/preview'", () => {
+    test('It responded with a 200', () => {
+        return request(server).get('/api/post/preview').expect(200);
     });
 });
 

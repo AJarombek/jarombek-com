@@ -1,10 +1,11 @@
+import {mongoose} from 'mongoose';
+
 /**
  * Schema for the Audit object in MongoDB
  * @author Andrew Jarombek
  * @since 5/17/2018
  */
 
-const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const AuditSchema = new Schema({
