@@ -7,8 +7,14 @@
 module.exports = {
     displayName: "server",
     testEnvironment: 'node',
+    testMatch: ["**/server/**/*.test.js"],
     maxConcurrency: 5,
-    collectCoverageFrom: ["*"],
+    moduleNameMapper: {
+        "\\.(scss|css)$": "jest-css-modules",
+        "\\.(png|ttf)$": "mocks/fileMock.js"
+    },
+    collectCoverage: true,
+    collectCoverageFrom: ["src/server/*.js"],
     coverageThreshold: {
         "global": {
             "branches": 1,

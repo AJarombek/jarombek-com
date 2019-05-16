@@ -253,4 +253,4 @@ const server = app.listen(port, () => {
 
 server.keepAliveTimeout = 120000;
 
-module.exports = server;
+export default server;

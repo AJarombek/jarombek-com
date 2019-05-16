@@ -32,19 +32,20 @@ infrastructure as code.
 
 ### Files
 
-| Filename             | Description                                                                |
-|----------------------|----------------------------------------------------------------------------|
-| `mocks`              | Mocks for Jest unit testing.                                               |
-| `src`                | Application source code for both client and server.                        |
-| `test`               | Jest test code for both client and server.                                 |
-| `.babelrc`           | Configuration for Babel.                                                   |
-| `.dockerignore`      | Directories and files for Docker to ignore when building an image.         |
-| `.eslintrc.js`       | Configuration for ESLint.                                                  |
-| `.travis.yml`        | Continuous Integration config for TravisCI.                                |
-| `Dockerfile`         | Blueprint for a Docker image used to containerize the application.         |
-| `jest.config.js`     | Jest unit testing configuration.                                           |
-| `package.json`       | Entry point for the npm application.  Contains dependency definitions.     |
-| `setup.sh`           | Bash commands for setting up the application.                              |
-| `webpack.config.js`  | Main webpack configuration file.                                           |
-| `webpack.parts.js`   | Smaller webpack parts to combine with the main configuration.              |
-| `.yarn.lock`         | where Yarn stores the versions of each dependency.                         |
+| Filename                 | Description                                                                |
+|--------------------------|----------------------------------------------------------------------------|
+| `mocks`                  | Mocks for Jest unit testing.                                               |
+| `src`                    | Application source code for both client and server.                        |
+| `test`                   | Jest test code for both client and server.                                 |
+| `.babelrc`               | Configuration for Babel.                                                   |
+| `.dockerignore`          | Directories and files for Docker to ignore when building an image.         |
+| `.eslintrc.js`           | Configuration for ESLint.                                                  |
+| `.travis.yml`            | Continuous Integration config for TravisCI.                                |
+| `Dockerfile`             | Blueprint for a Docker image used to containerize the application.         |
+| `jest.client-config.js`  | Jest unit testing configuration for the client side code.                  |
+| `jest.server-config.js`  | Jest unit testing configuration for the server side code.                  |
+| `package.json`           | Entry point for the npm application.  Contains dependency definitions.     |
+| `setup.sh`               | Bash commands for setting up the application.                              |
+| `webpack.config.js`      | Main webpack configuration file.                                           |
+| `webpack.parts.js`       | Smaller webpack parts to combine with the main configuration.              |
+| `.yarn.lock`             | where Yarn stores the versions of each dependency.                         |

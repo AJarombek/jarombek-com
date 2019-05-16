@@ -4,7 +4,7 @@
  * @since 6/14/2018
  */
 
-const fetch = require('isomorphic-fetch');
+import fetch from 'isomorphic-fetch';
 
 /**
  * Send a welcome email after a user subscribes
@@ -26,4 +26,4 @@ exports.sendWelcomeEmail = function sendWelcomeEmail(to, verify, unsub) {
     );
 };
 
-module.exports = exports;
+export default exports;

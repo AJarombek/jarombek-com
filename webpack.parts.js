@@ -176,7 +176,7 @@ exports.loadFonts = ({ include, exclude, options } = {}) => ({
     module: {
         rules: [
             {
-                test: /\.(eot|ttf|woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
+                test: /\.(eot|ttf|woff|woff2|otf)(\?v=\d+\.\d+\.\d+)?$/,
                 include,
                 exclude,
                 use: {

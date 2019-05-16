@@ -38,4 +38,4 @@ PostContentSchema.index(
     }
 );
 
-module.exports = mongoose.model('PostContent', PostContentSchema, 'posts_content');
+export default mongoose.model('PostContent', PostContentSchema, 'posts_content');

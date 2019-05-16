@@ -97,4 +97,4 @@ PostSchema.index(
     }
 );
 
-module.exports = mongoose.model('Post', PostSchema, 'posts');
+export default mongoose.model('Post', PostSchema, 'posts');

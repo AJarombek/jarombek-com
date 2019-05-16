@@ -30,4 +30,4 @@ const AuditSchema = new Schema({
 AuditSchema.index({time: 1});
 AuditSchema.index({item_id: 1});
 
-module.exports = mongoose.model('Audit', AuditSchema, 'audit');
+export default mongoose.model('Audit', AuditSchema, 'audit');

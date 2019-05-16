@@ -55,6 +55,10 @@ const serverConfig = merge([
                     options: {
                         cacheDirectory: true
                     }
+                },
+                {
+                    test: /\.md$/,
+                    loader: "ignore-loader"
                 }
             ]
         },
@@ -137,6 +141,10 @@ const clientConfig = merge([
                     use: {
                         loader: "html-loader"
                     }
+                },
+                {
+                    test: /\.md$/,
+                    loader: "ignore-loader"
                 }
             ]
         },

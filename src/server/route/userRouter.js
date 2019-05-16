@@ -247,4 +247,4 @@ const unsubCode = (req, res) => {
     });
 };
 
-module.exports = routes;
+export default routes;

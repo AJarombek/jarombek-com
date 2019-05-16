@@ -204,4 +204,4 @@ const getOne = (req, res) => {
     res.json(req.post);
 };
 
-module.exports = routes;
+export default routes;

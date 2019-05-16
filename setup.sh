@@ -187,6 +187,12 @@ yarn add react-katex
 # Server side testing
 yarn add mockingoose --dev
 
+# Provide support for proposed class properties
+yarn add @babel/plugin-proposal-class-properties --dev
+
+# Allow webpack to ignore Files
+yarn add ignore-loader --dev
+
 # -------------------
 # Update Dependencies
 # -------------------

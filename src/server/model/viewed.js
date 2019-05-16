@@ -31,4 +31,4 @@ const ViewedSchema = new Schema({
 
 ViewedSchema.index({date: 1});
 
-module.exports = mongoose.model('Viewed', ViewedSchema, 'viewed');
+export default mongoose.model('Viewed', ViewedSchema, 'viewed');

@@ -72,4 +72,4 @@ const update = (req, res) => {
     }));
 };
 
-module.exports = routes;
+export default routes;

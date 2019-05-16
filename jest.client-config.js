@@ -7,19 +7,21 @@
 module.exports = {
     displayName: "client",
     testEnvironment: 'jsdom',
-    setupFilesAfterEnv: ["../setupTests.js"],
+    testMatch: ["**/client/**/*.test.js"],
+    setupFilesAfterEnv: ["<rootDir>/test/setupTests.js"],
     maxConcurrency: 5,
     moduleNameMapper: {
         "\\.(scss|css)$": "jest-css-modules",
-        "\\.(png|ttf)$": "../../mocks/fileMock.js"
+        "\\.(png|ttf)$": "mocks/fileMock.js"
     },
     transform: {
         "^.+\\.js$": "babel-jest"
     },
-    collectCoverageFrom: ["*"],
+    collectCoverage: true,
+    collectCoverageFrom: ["src/client/*.js"],
     coveragePathIgnorePatterns: [
-        "./src/client/index.js",
-        "./src/client/status/*"
+        "src/client/index.js",
+        "src/client/status/*"
     ],
     coverageThreshold: {
         "global": {

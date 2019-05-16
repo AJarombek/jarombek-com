@@ -8,7 +8,7 @@ import React from 'react';
 import {render} from 'react-dom';
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 import '@babel/polyfill';
-import { injectGlobal } from 'styled-components';
+import { createGlobalStyle } from 'styled-components';
 
 import Home from './Home';
 import Blog from './Blog';
@@ -30,7 +30,7 @@ window.React = React;
 
 const RoutedApp = () => {
 
-    injectGlobal`${globalStyles}`;
+    const GlobalStyle = createGlobalStyle`${globalStyles}`;
 
     return (
     <Router>
@@ -42,6 +42,7 @@ const RoutedApp = () => {
             <Route path="/verify/:code" component={Verify}/>
             <Route path="/unsub/:code" component={Unsub} />
             <Route component={Home}/>
+            <GlobalStyle/>
         </Switch>
     </Router>
 )};

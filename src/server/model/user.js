@@ -51,4 +51,4 @@ const UserSchema = new Schema({
 UserSchema.index({subscribe_date: 1});
 UserSchema.index({first: 1, last: 1});
 
-module.exports = mongoose.model('User', UserSchema, 'user');
+export default mongoose.model('User', UserSchema, 'user');
