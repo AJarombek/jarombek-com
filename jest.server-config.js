@@ -14,7 +14,7 @@ module.exports = {
         "\\.(png|ttf)$": "mocks/fileMock.js"
     },
     collectCoverage: true,
-    collectCoverageFrom: ["src/server/*.js"],
+    collectCoverageFrom: ["src/server/**/*.js"],
     coverageThreshold: {
         "global": {
             "branches": 1,

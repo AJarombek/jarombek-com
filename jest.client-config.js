@@ -18,7 +18,7 @@ module.exports = {
         "^.+\\.js$": "babel-jest"
     },
     collectCoverage: true,
-    collectCoverageFrom: ["src/client/*.js"],
+    collectCoverageFrom: ["src/client/**/*.js"],
     coveragePathIgnorePatterns: [
         "src/client/index.js",
         "src/client/status/*"
