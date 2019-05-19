@@ -219,6 +219,9 @@ yarn server:deploy
 # Build with Docker
 # -----------------
 
+# Set the environment for the build
+export NODE_ENV=development
+
 docker image build -t jarombek-com:latest .
 docker image ls
 docker container run -d --name jarombek-com -p 80:8080 jarombek-com:latest

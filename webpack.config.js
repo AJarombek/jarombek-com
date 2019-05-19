@@ -21,13 +21,21 @@ const PATHS = {
     serverBuild: path.join(__dirname, 'dist/server/')
 };
 
-const PUBLIC_PATH = (process.env.NODE_ENV === 'development') ?
+const PUBLIC_PATH = (process.env.NODE_ENV === 'local') ?
     'http://localhost:8080/' :
     'https://jarombek.com/';
 
-const ENV = (process.env.NODE_ENV === 'development') ?
-    JSON.stringify('development') :
-    JSON.stringify('production');
+console.log(`NODE_ENV = ${process.env.NODE_ENV}`);
+
+let ENV = JSON.stringify('production');
+
+if (process.env.NODE_ENV === 'local') {
+    ENV = JSON.stringify('local');
+}
+
+if (process.env.NODE_ENV === 'development') {
+    ENV = JSON.stringify('development');
+}
 
 /**
  * Configuration specific to the Server bundles

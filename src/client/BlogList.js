@@ -27,9 +27,19 @@ class BlogList extends React.Component {
         super(props);
         console.debug('Inside BlogList constructor');
 
-        this.baseUrl = (process.env.NODE_ENV === 'production') ?
-            'https://jarombek.com' :
-            'http://localhost:8080';
+        switch (process.env.NODE_ENV) {
+            case 'production':
+                this.baseUrl = 'https://jarombek.io';
+                break;
+            case 'development':
+                this.baseUrl = 'https://dev.jarombek.io';
+                break;
+            case 'local':
+                this.baseUrl = 'http://localhost:8080';
+                break;
+            default:
+                this.baseUrl = 'https://jarombek.io';
+        }
 
         console.debug(`The environment: ${process.env.NODE_ENV}`);
         console.debug(`The URL to call: ${this.baseUrl}`);
