@@ -49,3 +49,33 @@ infrastructure as code.
 | `webpack.config.js`      | Main webpack configuration file.                                           |
 | `webpack.parts.js`       | Smaller webpack parts to combine with the main configuration.              |
 | `.yarn.lock`             | where Yarn stores the versions of each dependency.                         |
+
+### Version History
+
+**V.1.1.5 - Non-CSS Grid Browser Support**
+
+> Release Date: November 3rd, 2018
+
+**V.1.1.1 - Resume Page**
+
+> Release Date: September 16th, 2018
+
+**V.1.1.0 - Home Page 2.0**
+
+> Release Date: September 5th, 2018
+
+This update restyled the home page into three components with pictures - resume, articles, and statistics.
+
+**V.1.0.7 - Articles Text Search**
+
+> Release Date: August 19th, 2018
+
+**V.1.0.5 - Paginated Articles Page**
+
+> Release Date: August 11th, 2018
+
+**[V.1.0.0](https://github.com/AJarombek/jarombek-com/tree/v1.0.0) - MVP Release**
+
+> Release Date: May 10th, 2018
+
+This update marks the official release of my website.

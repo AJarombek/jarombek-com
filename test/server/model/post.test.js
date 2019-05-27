@@ -2,7 +2,7 @@ import mockingoose from 'mockingoose';
 import Post from '../../../src/server/model/post';
 
 /**
- * Testing the Post Mongoose Model with Mocha
+ * Testing the Post Mongoose Model
  * @author Andrew Jarombek
  * @since 5/15/2019
  */
