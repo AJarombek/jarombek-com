@@ -9,4 +9,5 @@ server-side rendering for React.js.
 
 | Filename             | Description                                                                |
 |----------------------|----------------------------------------------------------------------------|
+| `model/`             | Unit tests and suites for the MongoDB/Mongoose model objects.              |
 | `server.test.js`     | Unit tests for the servers API endpoints.                                  |

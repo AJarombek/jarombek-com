@@ -92,4 +92,18 @@ describe('Post Mongoose Validation', () => {
         // Should not reach this point
         expect(1 + 1).toBe(4);
     });
+
+    it('should succeed if the fields are valid', async () => {
+        const post = new Post(doc);
+
+        try {
+            await post.save();
+            return;
+        } catch (ex) {
+            console.log(ex);
+        }
+
+        // Should not reach this point
+        expect(1 + 1).toBe(4);
+    });
 });
