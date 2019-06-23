@@ -1,5 +1,6 @@
 import mockingoose from 'mockingoose';
 import Viewed from '../../../src/server/model/viewed';
+import {saveInvalidModel, saveValidModel} from "./modelUtil";
 
 /**
  * Testing the Viewed Mongoose Model
@@ -43,5 +44,39 @@ describe('Viewed Mongoose Client from MongoDB', () => {
             });
 
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(doc);
+    });
+});
+
+describe('Viewed Mongoose Validation', () => {
+
+    it('should fail if there are missing required fields', async () => {
+        const viewed = new Viewed();
+        await saveInvalidModel(viewed);
+    });
+
+    it('should fail if there is no name field', async () => {
+        const viewed = new Viewed(doc);
+        viewed.name = null;
+
+        await saveInvalidModel(viewed);
+    });
+
+    it('should succeed if the fields are valid', async () => {
+        const viewed = new Viewed(doc);
+        await saveValidModel(viewed);
+    });
+
+    it('should succeed if the type is "post"', async () => {
+        const viewed = new Viewed(doc);
+        viewed.type = 'post';
+
+        await saveValidModel(viewed);
+    });
+
+    it('should fail if the type is "other"', async () => {
+        const viewed = new Viewed(doc);
+        viewed.type = 'other';
+
+        await saveInvalidModel(viewed);
     });
 });

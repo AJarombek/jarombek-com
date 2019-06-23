@@ -1,5 +1,6 @@
 import mockingoose from 'mockingoose';
 import User from '../../../src/server/model/user';
+import {saveInvalidModel, saveValidModel} from "./modelUtil";
 
 /**
  * Testing the User Mongoose Model
@@ -48,5 +49,25 @@ describe('User Mongoose Client from MongoDB', () => {
             });
 
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(doc);
+    });
+});
+
+describe('User Mongoose Validation', () => {
+
+    it('should fail if there are missing required fields', async () => {
+        const user = new User();
+        await saveInvalidModel(user);
+    });
+
+    it('should fail if there is no email field', async () => {
+        const user = new User(doc);
+        user.email = null;
+
+        await saveInvalidModel(user);
+    });
+
+    it('should succeed if the fields are valid', async () => {
+        const user = new User(doc);
+        await saveValidModel(user);
     });
 });

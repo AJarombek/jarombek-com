@@ -5,6 +5,12 @@
 Unit tests for all components in the Node.js/Express back-end which exposes an API and configures 
 server-side rendering for React.js.
 
+Run the server unit tests with the following command:
+
+```bash
+npm run server:test
+```
+
 ### Files
 
 | Filename             | Description                                                                |
