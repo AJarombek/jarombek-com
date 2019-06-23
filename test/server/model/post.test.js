@@ -66,36 +66,41 @@ describe('Post Mongoose Validation', () => {
 
     it('should fail if there are missing required fields', async () => {
         const post = new Post();
-
-        try {
-            await post.save();
-        } catch (ex) {
-            console.log(ex);
-            return;
-        }
-
-        // Should not reach this point
-        expect(1 + 1).toBe(4);
+        await saveInvalidPost(post);
     });
 
     it('should fail if there is no title field', async () => {
         const post = new Post(doc);
         post.title = null;
 
-        try {
-            await post.save();
-        } catch (ex) {
-            console.log(ex);
-            return;
-        }
-
-        // Should not reach this point
-        expect(1 + 1).toBe(4);
+        await saveInvalidPost(post);
     });
 
     it('should succeed if the fields are valid', async () => {
         const post = new Post(doc);
+        await saveValidPost(post);
+    });
 
+    it('should succeed if the type is "retrospective"', async () => {
+        const post = new Post(doc);
+        post.type = 'retrospective';
+
+        await saveValidPost(post);
+    });
+
+    it('should fail if the type is "other"', async () => {
+        const post = new Post(doc);
+        post.type = 'other';
+
+        await saveInvalidPost(post);
+    });
+
+    /**
+     * Save a post to MongoDB that is expected to be valid
+     * @param post Object representing an article post.
+     * @return {Promise<void>}
+     */
+    const saveValidPost = async (post) => {
         try {
             await post.save();
             return;
@@ -105,5 +110,22 @@ describe('Post Mongoose Validation', () => {
 
         // Should not reach this point
         expect(1 + 1).toBe(4);
-    });
+    };
+
+    /**
+     * Save a post to MongoDB that is expected to be invalid
+     * @param post Object representing an article post.
+     * @return {Promise<void>}
+     */
+    const saveInvalidPost = async (post) => {
+        try {
+            await post.save();
+        } catch (ex) {
+            console.log(ex);
+            return;
+        }
+
+        // Should not reach this point
+        expect(1 + 1).toBe(4);
+    };
 });

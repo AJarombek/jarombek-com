@@ -29,16 +29,16 @@ class BlogList extends React.Component {
 
         switch (process.env.NODE_ENV) {
             case 'production':
-                this.baseUrl = 'https://jarombek.io';
+                this.baseUrl = 'https://jarombek.com';
                 break;
             case 'development':
-                this.baseUrl = 'https://dev.jarombek.io';
+                this.baseUrl = 'https://dev.jarombek.com';
                 break;
             case 'local':
                 this.baseUrl = 'http://localhost:8080';
                 break;
             default:
-                this.baseUrl = 'https://jarombek.io';
+                this.baseUrl = 'https://jarombek.com';
         }
 
         console.debug(`The environment: ${process.env.NODE_ENV}`);

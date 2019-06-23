@@ -11,3 +11,7 @@ server-side rendering for React.js.
 |----------------------|----------------------------------------------------------------------------|
 | `model/`             | Unit tests and suites for the MongoDB/Mongoose model objects.              |
 | `server.test.js`     | Unit tests for the servers API endpoints.                                  |
+
+### Resources
+
+[1] [Mockingoose NPM](https://www.npmjs.com/package/mockingoose)

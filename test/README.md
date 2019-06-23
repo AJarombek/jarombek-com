@@ -15,3 +15,7 @@ client:server:test
 | `client/`            | Unit tests for the front-end React.js client.                              |
 | `server/`            | Unit tests for the back-end Node.js/Express server.                        |
 | `setupTests.js`      | Enzyme configuration with Jest.                                            |
+
+### Resources
+
+[1] [Jest Expect](https://jestjs.io/docs/en/expect)

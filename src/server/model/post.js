@@ -40,7 +40,7 @@ const PostSchema = new Schema({
     type: {
         type: String,
         required: true,
-        enum: ['discovery', 'blog']
+        enum: ['discovery', 'blog', 'retrospective']
     },
     date: {
         type: Date,
