@@ -14,7 +14,8 @@ class PostDao {
      * @type {{}}
      * @example
      *  {
-     *
+     *      javascript: 5,
+     *      java: 2
      *  }
      */
     static postCountCache = {};
@@ -83,17 +84,8 @@ class PostDao {
 
         const skip = (page - 1) * limit;
 
-        const postPreviews = await Post.find({})
-            .skip(skip)
-            .limit(limit)
-            .sort({date: -1})
-            .exec();
-
-        const postContents = await PostContent.find({})
-            .skip(skip)
-            .limit(limit)
-            .sort({date: -1})
-            .exec();
+        const postPreviews = await PostDao.getPreviewsByDate(skip, limit, true);
+        const postContents = await PostDao.getPostContentByDate(skip, limit, true);
 
         await PostDao.updatePostCountCache("", async () => {
             const posts = await Post.find({});
@@ -124,7 +116,7 @@ class PostDao {
             return posts.length;
         });
 
-        const previews = await Post.find({}).skip(skip).limit(limit).sort({date: -1}).exec();
+        const previews = await PostDao.getPreviewsByDate(skip, limit, true);
 
         return previews.map(preview => preview.toObject());
     };
@@ -202,23 +194,13 @@ class PostDao {
      * @return {Promise<*>} - a single post from MongoDB
      */
     static getByName = async (name) => {
-        const post = await Post.findOne({name: name}).exec();
-        const postContent = await PostContent.findOne({name: name}).exec();
+        const post = await PostDao.getPreviewByName(name);
+        const postContent = await PostDao.getContentByName(name);
 
         return {
             ...post.toObject(),
             content: postContent.content
         }
-    };
-
-    /**
-     * Retrieve a single post preview by its name field.  All posts should have this field and it
-     * should be unique.  The response does NOT contain the posts content field.
-     * @param name - the name of the post
-     * @return {Promise<*>} - a single post preview from MongoDB
-     */
-    static getPreviewByName = async (name) => {
-        return await Post.findOne({name: name}).exec();
     };
 
     /**
@@ -261,7 +243,65 @@ class PostDao {
             next,
             last
         }
-    }
+    };
+
+    /*
+     * MongoDB Queries
+     */
+
+    /**
+     * Retrieve a single post preview by its name field.  All posts should have this field and it
+     * should be unique.  The response does NOT contain the posts content field.
+     * @param name - the name of the post
+     * @return {Promise<*>} - a single post preview from MongoDB
+     */
+    static getPreviewByName = async (name) => {
+        return await Post.findOne({name: name}).exec();
+    };
+
+    /**
+     * Retrieve the content of a single post based on its name.
+     * @param name - the name of the post that the content is bound to
+     * @return {Promise<*>} - a single post content from MongoDB
+     */
+    static getContentByName = async (name) => {
+        return await PostContent.findOne({name: name}).exec();
+    };
+
+    /**
+     * Retrieve a certain number (max) of post previews.  Previews can be returned in descending
+     * (newer previews first) or ascending (older previews first) order.
+     * @param skip - How many previews to skip before retrieving.
+     * @param limit - the maximum number of previews to return.
+     * @param descending - whether or not the previews should be returned in descending date order.
+     * @return {Promise<*>} - any number of post previews from MongoDB.
+     */
+    static getPreviewsByDate = async (skip=0, limit=1, descending=true) => {
+        const order = descending ? -1 : 1;
+        return await Post.find({})
+            .skip(skip)
+            .limit(limit)
+            .sort({date: order})
+            .exec();
+    };
+
+    /**
+     * Retrieve a certain number (max) of posts content.  Content can be returned in descending
+     * (newer posts first) or ascending (older posts first) order.
+     * @param skip - How many posts to skip before retrieving.
+     * @param limit - the maximum number of post contents to return.
+     * @param descending - whether or not the post contents should be returned in
+     * descending date order.
+     * @return {Promise<*>} - any number of posts content from MongoDB.
+     */
+    static getPostContentByDate = async (skip=0, limit=1, descending=true) => {
+        const order = descending ? -1 : 1;
+        return await PostContent.find({})
+            .skip(skip)
+            .limit(limit)
+            .sort({date: order})
+            .exec();
+    };
 }
 
 export default PostDao;

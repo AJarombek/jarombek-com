@@ -85,6 +85,8 @@ const postContentDocs = [
 const MockPostDao = PostDao;
 const getAll = MockPostDao.getAll;
 const getAllPreviews = MockPostDao.getAllPreviews;
+const getPreviewsByDate = MockPostDao.getPreviewsByDate;
+const getPostContentByDate = MockPostDao.getPostContentByDate;
 
 describe('getPaginatedPosts()', () => {
 
@@ -160,25 +162,73 @@ describe('updatePostCountCache()', () => {
 
 describe('getAll()', () => {
 
-    const postDocResult = [{
-        _id: '5cddf74012f3b15dfd29f603',
-        name: 'jun-30-2019-jest-test',
-        title: "Testing with Jest Part IV",
-        description: "none",
-        date: "2019-06-30T16:00:00.000Z",
-        type: 'discovery',
-        preview: [],
-        previewString: 'jest 4',
-        content: []
-    }];
-
     it('should return the expected posts', async () => {
+
+        const postDocResult = [
+            {
+                ...postPreviewDocs[0],
+                content: []
+            },
+            {
+                ...postPreviewDocs[1],
+                content: []
+            },
+            {
+                ...postPreviewDocs[2],
+                content: []
+            },
+            {
+                ...postPreviewDocs[3],
+                content: []
+            }
+        ];
+
         MockPostDao.getAll = getAll;
 
         mockingoose(Post).toReturn(postPreviewDocs);
         mockingoose(PostContent).toReturn(postContentDocs);
 
-        const result = await PostDao.getAll(1, 1);
+        const result = await MockPostDao.getAll(1, 4);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(postDocResult);
+    });
+
+    it('should skip posts properly', async () => {
+
+        const postDocResult = [
+            {
+                ...postPreviewDocs[2],
+                content: []
+            },
+            {
+                ...postPreviewDocs[3],
+                content: []
+            }
+        ];
+
+        // Simulate the Mongoose skip(), limit(), and sort() functions
+        const getByDate = (skip, limit, descending, array) => {
+            let compare;
+            if (descending) {
+                compare = (a, b) => a.date > b.date ? -1 : 1
+            } else {
+                compare = (a, b) => a.date > b.date ? 1 : -1
+            }
+
+            return array
+                .sort((a, b) => compare(a, b))
+                .filter((item, index) => index >= skip - 1 && index < skip + limit)
+        };
+
+        // Mock functions in the PostDao class
+        MockPostDao.getAll = getAll;
+        MockPostDao.getPreviewsByDate = (skip, limit, descending) => {
+            getByDate(skip, limit, descending, postPreviewDocs);
+        };
+        MockPostDao.getPostContentByDate = (skip, limit, descending) => {
+            getByDate(skip, limit, descending, postContentDocs);
+        };
+
+        const result = await MockPostDao.getAll(2, 2);
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(postDocResult);
     });
 });
