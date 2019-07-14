@@ -86,7 +86,28 @@ const MockPostDao = PostDao;
 const getAll = MockPostDao.getAll;
 const getAllPreviews = MockPostDao.getAllPreviews;
 const getPreviewsByDate = MockPostDao.getPreviewsByDate;
-const getPostContentByDate = MockPostDao.getPostContentByDate;
+const getContentByDate = MockPostDao.getContentByDate;
+const updatePostCountCache = MockPostDao.updatePostCountCache;
+
+/**
+ * Simulate the Mongoose skip(), limit(), and sort() functions.
+ * @param skip - the number of posts to skip from the beginning of the array.
+ * @param limit - the number of posts to return.  This effectively determines the page size.
+ * @param descending - whether to sort posts by their dates in a descending or ascending order.
+ * @param array - a collection of posts to compare
+ */
+const getByDate = (skip, limit, descending, array) => {
+    let compare;
+    if (descending) {
+        compare = (a, b) => a.date > b.date ? 1 : -1
+    } else {
+        compare = (a, b) => a.date > b.date ? -1 : 1
+    }
+
+    return array
+        .sort((a, b) => compare(a, b))
+        .filter((item, index) => index >= skip && index < skip + limit)
+};
 
 describe('getPaginatedPosts()', () => {
 
@@ -194,6 +215,7 @@ describe('getAll()', () => {
 
     it('should skip posts properly', async () => {
 
+        // The expected result from invoking getAll(2,2)
         const postDocResult = [
             {
                 ...postPreviewDocs[2],
@@ -205,28 +227,18 @@ describe('getAll()', () => {
             }
         ];
 
-        // Simulate the Mongoose skip(), limit(), and sort() functions
-        const getByDate = (skip, limit, descending, array) => {
-            let compare;
-            if (descending) {
-                compare = (a, b) => a.date > b.date ? -1 : 1
-            } else {
-                compare = (a, b) => a.date > b.date ? 1 : -1
-            }
-
-            return array
-                .sort((a, b) => compare(a, b))
-                .filter((item, index) => index >= skip - 1 && index < skip + limit)
-        };
-
         // Mock functions in the PostDao class
         MockPostDao.getAll = getAll;
         MockPostDao.getPreviewsByDate = (skip, limit, descending) => {
-            getByDate(skip, limit, descending, postPreviewDocs);
+            return getByDate(skip, limit, descending, postPreviewDocs);
         };
-        MockPostDao.getPostContentByDate = (skip, limit, descending) => {
-            getByDate(skip, limit, descending, postContentDocs);
+        MockPostDao.getContentByDate = (skip, limit, descending) => {
+            return getByDate(skip, limit, descending, postContentDocs);
         };
+        MockPostDao.updatePostCountCache = (query, getCount) => `${query},${getCount}`;
+
+        // Mock the toObject() function used by Mongoose
+        Object.prototype.toObject = function () {return this};
 
         const result = await MockPostDao.getAll(2, 2);
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(postDocResult);
@@ -237,10 +249,38 @@ describe('getAllPreviews()', () => {
 
     it('should return the expected post previews', async () => {
         MockPostDao.getAllPreviews = getAllPreviews;
+        MockPostDao.getPreviewsByDate = getPreviewsByDate;
+        MockPostDao.getContentByDate = getContentByDate;
 
         mockingoose(Post).toReturn(postPreviewDocs);
 
         const result = await PostDao.getAllPreviews(1, 4);
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(postPreviewDocs);
+    });
+
+    it('should skip post previews properly', async () => {
+
+        // The expected result from invoking getAllPreviews(2,2)
+        const postPreviewDocsResult = postPreviewDocs.slice(2, 4);
+
+        mockingoose(Post).toReturn(postPreviewDocs);
+
+        // Mock functions in the PostDao class
+        MockPostDao.getPreviewsByDate = (skip, limit, descending) => {
+            return getByDate(skip, limit, descending, postPreviewDocs);
+        };
+
+        // Mock the toObject() function used by Mongoose
+        Object.prototype.toObject = function () {return this};
+
+        const result = await PostDao.getAllPreviews(2, 2);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(postPreviewDocsResult);
+    });
+});
+
+describe('getQueried()', () => {
+
+    it('should return the expected posts', async () => {
+        
     });
 });

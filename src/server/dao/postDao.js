@@ -85,7 +85,7 @@ class PostDao {
         const skip = (page - 1) * limit;
 
         const postPreviews = await PostDao.getPreviewsByDate(skip, limit, true);
-        const postContents = await PostDao.getPostContentByDate(skip, limit, true);
+        const postContents = await PostDao.getContentByDate(skip, limit, true);
 
         await PostDao.updatePostCountCache("", async () => {
             const posts = await Post.find({});
@@ -133,15 +133,8 @@ class PostDao {
         limit = +limit;
         const skip = (page - 1) * limit;
 
-        const postPreviews = await Post.find({'$text': {'$search': query}})
-            .select({'score': {'$meta': 'textScore'}})
-            .sort({date: -1})
-            .exec();
-
-        const postContents = await PostContent.find({'$text': {'$search': query}})
-            .select({'score': {'$meta': 'textScore'}})
-            .sort({date: -1})
-            .exec();
+        const postPreviews = await PostDao.getPreviewByTextSearch(query, {date: -1});
+        const postContents = await PostDao.getContentByTextSearch(query, {date: -1});
 
         await PostDao.updatePostCountCache(query, () => postPreviews.length);
 
@@ -175,10 +168,7 @@ class PostDao {
         limit = +limit;
         const skip = (page - 1) * limit;
 
-        const postPreviews = await Post.find({'$text': {'$search': query}})
-            .select({'score': {'$meta': 'textScore'}})
-            .sort({'score': {'$meta': 'textScore'}})
-            .exec();
+        const postPreviews = await PostDao.getPreviewByTextSearch(query);
 
         await PostDao.updatePostCountCache(query, () => postPreviews.length);
 
@@ -294,12 +284,40 @@ class PostDao {
      * descending date order.
      * @return {Promise<*>} - any number of posts content from MongoDB.
      */
-    static getPostContentByDate = async (skip=0, limit=1, descending=true) => {
+    static getContentByDate = async (skip=0, limit=1, descending=true) => {
         const order = descending ? -1 : 1;
         return await PostContent.find({})
             .skip(skip)
             .limit(limit)
             .sort({date: order})
+            .exec();
+    };
+
+    /**
+     * Retrieve post previews based on a text search.  MongoDB has basic text search capabilities.
+     * @param query - a query to perform a text search on.
+     * @param sortRule - a rule to sort previews that match the text search.
+     * @return {Promise<*>} - any number of post previews from MongoDB.
+     */
+    static getPreviewByTextSearch = async (query="",
+                                           sortRule={'score': {'$meta': 'textScore'}}) => {
+        return await Post.find({'$text': {'$search': query}})
+            .select({'score': {'$meta': 'textScore'}})
+            .sort(sortRule)
+            .exec();
+    };
+
+    /**
+     * Retrieve post contents based on a text search.  MongoDB has basic text search capabilities.
+     * @param query - a query to perform a text search on.
+     * @param sortRule - a rule to sort previews that match the text search.
+     * @return {Promise<*>} - any number of post contents from MongoDB.
+     */
+    static getContentByTextSearch = async (query="",
+                                           sortRule={'score': {'$meta': 'textScore'}}) => {
+        return await Post.find({'$text': {'$search': query}})
+            .select({'score': {'$meta': 'textScore'}})
+            .sort(sortRule)
             .exec();
     };
 }

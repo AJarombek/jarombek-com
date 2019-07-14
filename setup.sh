@@ -207,6 +207,10 @@ npm update
 # Build Locally in Bash
 # ---------------------
 
+# Ensure the proper Node.js version is used
+nvm list
+nvm use v10.15.3
+
 # Set the node environment to development for proper Webpack builds
 export NODE_ENV=development
 
