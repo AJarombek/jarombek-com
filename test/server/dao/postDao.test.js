@@ -281,6 +281,26 @@ describe('getAllPreviews()', () => {
 describe('getQueried()', () => {
 
     it('should return the expected posts', async () => {
-        
+
+        const additionalProps = {
+            previewString: null,
+            content: [],
+            score: 0
+        };
+
+        const expectedResult = postPreviewDocs.map((preview) => {
+            return {...preview, ...additionalProps}
+        });
+
+        // Mock functions in the PostDao class
+        MockPostDao.updatePostCountCache = (query, getCount) => `${query},${getCount}`;
+        MockPostDao.getPreviewByTextSearch = () => postPreviewDocs;
+        MockPostDao.getContentByTextSearch = () => postContentDocs;
+
+        // Mock the toObject() function used by Mongoose
+        Object.prototype.toObject = function () {return this};
+
+        const result = await PostDao.getQueried(1, 4);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
     });
 });
