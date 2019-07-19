@@ -280,13 +280,13 @@ describe('getAllPreviews()', () => {
 
 describe('getQueried()', () => {
 
-    it('should return the expected posts', async () => {
+    const additionalProps = {
+        previewString: null,
+        content: [],
+        score: 0
+    };
 
-        const additionalProps = {
-            previewString: null,
-            content: [],
-            score: 0
-        };
+    it('should return the expected posts', async () => {
 
         const expectedResult = postPreviewDocs.map((preview) => {
             return {...preview, ...additionalProps}
@@ -302,5 +302,33 @@ describe('getQueried()', () => {
 
         const result = await PostDao.getQueried(1, 4);
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
+    });
+
+    it('should skip posts properly', async () => {
+
+        const expectedResult = postPreviewDocs.slice(2, 4).map((preview) => {
+            return {...preview, ...additionalProps}
+        });
+
+        // Mock functions in the PostDao class
+        MockPostDao.updatePostCountCache = (query, getCount) => `${query},${getCount}`;
+        MockPostDao.getPreviewByTextSearch = () => postPreviewDocs;
+        MockPostDao.getContentByTextSearch = () => postContentDocs;
+
+        // Mock the toObject() function used by Mongoose
+        Object.prototype.toObject = function () {return this};
+
+        const result = await PostDao.getQueried(2, 2);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
+    });
+});
+
+describe('getQueriedPreviews()', () => {
+    it('should return the expected posts', async () => {
+
+    });
+
+    it('should skip posts properly', async () => {
+
     });
 });
