@@ -219,23 +219,34 @@ yarn client:dev
 yarn server:dev
 yarn server:deploy
 
-# -----------------
-# Build with Docker
-# -----------------
+# -------------------------
+# Build with Docker for AWS
+# -------------------------
+
+# Delete all unused docker objects
+docker system prune
 
 # Set the environment for the build
 export NODE_ENV=development
 
-docker image build -t jarombek-com:latest .
+docker image build -t jarombek-com:latest -f aws.dockerfile .
 docker image ls
 docker container run -d --name jarombek-com -p 80:8080 jarombek-com:latest
 docker container stop jarombek-com
 docker container rm jarombek-com
 
 # Push to Docker Hub
-docker image build -t jarombek-com:latest .
+docker image build -t jarombek-com:latest -f aws.dockerfile .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
 docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.5
 docker push ajarombek/jarombek-com:1.1.5
+
+# -----------------------------
+# Build with Docker for Testing
+# -----------------------------
+
+docker image build -t jarombek-com-test:latest -f test.dockerfile .
+docker container run -d --name jarombek-com-test jarombek-com-test:latest
+docker container logs jarombek-com-test
