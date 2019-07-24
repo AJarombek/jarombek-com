@@ -29,14 +29,12 @@ RUN mongod --fork --logpath /var/log/mongodb.log \
     && mongo --quiet test/database/testDBSetup.js \
     && mongod --shutdown
 
-# Start MongoDB in the container
-RUN mongod --config /etc/mongodb.conf --smallfiles &
-
 RUN apt-get update \
     && apt-get install -y curl \
     && curl -sL https://deb.nodesource.com/setup_10.x | bash \
     && apt-get install -y nodejs \
     && npm install yarn -g \
+    && npm install jest -g \
     && yarn
 
-CMD ["yarn", "server:test"]
+CMD ["bash", "test-cmd.sh"]

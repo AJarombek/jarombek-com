@@ -187,9 +187,13 @@ class PostDao {
         const post = await PostDao.getPreviewByName(name);
         const postContent = await PostDao.getContentByName(name);
 
-        return {
-            ...post.toObject(),
-            content: postContent.content
+        if (post && postContent) {
+            return {
+                ...post.toObject(),
+                content: postContent.content
+            }
+        } else {
+            return null;
         }
     };
 

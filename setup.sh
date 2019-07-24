@@ -248,5 +248,6 @@ docker push ajarombek/jarombek-com:1.1.5
 # -----------------------------
 
 docker image build -t jarombek-com-test:latest -f test.dockerfile .
-docker container run -d --name jarombek-com-test jarombek-com-test:latest
+docker container rm jarombek-com-test
+docker container run --name jarombek-com-test jarombek-com-test:latest
 docker container logs jarombek-com-test

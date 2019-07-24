@@ -88,6 +88,9 @@ const getAllPreviews = MockPostDao.getAllPreviews;
 const getPreviewsByDate = MockPostDao.getPreviewsByDate;
 const getContentByDate = MockPostDao.getContentByDate;
 const updatePostCountCache = MockPostDao.updatePostCountCache;
+const getQueried = MockPostDao.getQueried;
+const getQueriedPreviews = MockPostDao.getQueriedPreviews;
+const getByName = MockPostDao.getByName;
 
 /**
  * Simulate the Mongoose skip(), limit(), and sort() functions.
@@ -292,6 +295,9 @@ describe('getQueried()', () => {
             return {...preview, ...additionalProps}
         });
 
+        // Restore original getQueried() function
+        MockPostDao.getQueried = getQueried;
+
         // Mock functions in the PostDao class
         MockPostDao.updatePostCountCache = (query, getCount) => `${query},${getCount}`;
         MockPostDao.getPreviewByTextSearch = () => postPreviewDocs;
@@ -310,6 +316,9 @@ describe('getQueried()', () => {
             return {...preview, ...additionalProps}
         });
 
+        // Restore original getQueried() function
+        MockPostDao.getQueried = getQueried;
+
         // Mock functions in the PostDao class
         MockPostDao.updatePostCountCache = (query, getCount) => `${query},${getCount}`;
         MockPostDao.getPreviewByTextSearch = () => postPreviewDocs;
@@ -326,9 +335,72 @@ describe('getQueried()', () => {
 describe('getQueriedPreviews()', () => {
     it('should return the expected posts', async () => {
 
+        const expectedResult = postPreviewDocs;
+
+        // Restore original getQueriedPreviews() function
+        MockPostDao.getQueriedPreviews = getQueriedPreviews;
+
+        // Mock functions in the PostDao class
+        MockPostDao.updatePostCountCache = (query, getCount) => `${query},${getCount}`;
+        MockPostDao.getPreviewByTextSearch = () => postPreviewDocs;
+
+        // Mock the toObject() function used by Mongoose
+        Object.prototype.toObject = function () {return this};
+
+        const result = await PostDao.getQueriedPreviews(1, 4);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
     });
 
     it('should skip posts properly', async () => {
 
+        const expectedResult = postPreviewDocs.slice(2, 4);
+
+        // Restore original getQueriedPreviews() function
+        MockPostDao.getQueriedPreviews = getQueriedPreviews;
+
+        // Mock functions in the PostDao class
+        MockPostDao.updatePostCountCache = (query, getCount) => `${query},${getCount}`;
+        MockPostDao.getPreviewByTextSearch = () => postPreviewDocs;
+
+        // Mock the toObject() function used by Mongoose
+        Object.prototype.toObject = function () {return this};
+
+        const result = await PostDao.getQueriedPreviews(2, 2);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
+    });
+});
+
+describe('getByName()', () => {
+
+    // Restore original getByName() function
+    MockPostDao.getByName = getByName;
+
+    // Mock functions in the PostDao class
+    MockPostDao.getPreviewByName = (name) =>
+        postPreviewDocs.filter(post => post.name === name)[0];
+    MockPostDao.getContentByName = (name) =>
+        postContentDocs.filter(post => post.name === name)[0];
+
+    // Mock the toObject() function used by Mongoose
+    Object.prototype.toObject = function () {return this};
+
+    it('should get post by name', async () => {
+
+        const expectedResult = {
+            ...postPreviewDocs[1],
+            content: postContentDocs[1].content
+        };
+
+        const result = await PostDao.getByName('jul-1-2019-jest-test-pt2');
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
+    });
+
+    it('should return null if no post has a matching name', async () => {
+
+        // Restore original getByName() function
+        MockPostDao.getByName = getByName;
+
+        const result = await PostDao.getByName(null);
+        expect(result).toBeNull();
     });
 });
