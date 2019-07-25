@@ -404,3 +404,84 @@ describe('getByName()', () => {
         expect(result).toBeNull();
     });
 });
+
+describe('generatePaginatedPostsLinks()', () => {
+
+    it('should return links from first page as expected', async () => {
+
+        const expectedResult = {
+            first: '',
+            prev: '',
+            next: '<test.jarombek.com?page=1&limit=4>; rel="next";',
+            last: '<test.jarombek.com?page=1&limit=4>; rel="last";'
+        };
+
+        MockPostDao.postCountCache = {'_': 4};
+
+        const result = await PostDao.generatePaginatedPostsLinks(0, 4, 'test.jarombek.com', '_');
+        console.info(result);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
+    });
+
+    it('should return links from middle page as expected', async () => {
+
+        const expectedResult = {
+            first: '<test.jarombek.com?page=1&limit=5>; rel="first";',
+            prev: '<test.jarombek.com?page=1&limit=5>; rel="prev";',
+            next: '<test.jarombek.com?page=3&limit=5>; rel="next";',
+            last: '<test.jarombek.com?page=4&limit=5>; rel="last";'
+        };
+
+        MockPostDao.postCountCache = {'_': 20};
+
+        const result = await PostDao.generatePaginatedPostsLinks(2, 5, 'test.jarombek.com', '_');
+        console.info(result);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
+    });
+
+    it('should return links from last page as expected', async () => {
+
+        const expectedResult = {
+            first: '<test.jarombek.com?page=1&limit=5>; rel="first";',
+            prev: '<test.jarombek.com?page=3&limit=5>; rel="prev";',
+            next: '',
+            last: ''
+        };
+
+        MockPostDao.postCountCache = {'_': 20};
+
+        const result = await PostDao.generatePaginatedPostsLinks(4, 5, 'test.jarombek.com', '_');
+        console.info(result);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
+    });
+
+    it('should return links from other query as expected', async () => {
+
+        const expectedResult = {
+            first: '<test.jarombek.com?page=1&limit=5&query=js>; rel="first";',
+            prev: '<test.jarombek.com?page=2&limit=5&query=js>; rel="prev";',
+            next: '<test.jarombek.com?page=4&limit=5&query=js>; rel="next";',
+            last: '<test.jarombek.com?page=5&limit=5&query=js>; rel="last";'
+        };
+
+        MockPostDao.postCountCache = {'_': 5, 'js': 25};
+
+        const result = await PostDao.generatePaginatedPostsLinks(3, 5, 'test.jarombek.com', 'js');
+        console.info(result);
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
+    });
+});
+
+describe('getPreviewByName()', () => {
+
+    it('should return post preview document as expected', async () => {
+
+    });
+});
+
+describe('getContentByName()', () => {
+
+    it('should return post content document as expected', async () => {
+
+    });
+});
