@@ -91,6 +91,8 @@ const updatePostCountCache = MockPostDao.updatePostCountCache;
 const getQueried = MockPostDao.getQueried;
 const getQueriedPreviews = MockPostDao.getQueriedPreviews;
 const getByName = MockPostDao.getByName;
+const getPreviewByName = MockPostDao.getPreviewByName;
+const getContentByName = MockPostDao.getContentByName;
 
 /**
  * Simulate the Mongoose skip(), limit(), and sort() functions.
@@ -419,7 +421,6 @@ describe('generatePaginatedPostsLinks()', () => {
         MockPostDao.postCountCache = {'_': 4};
 
         const result = await PostDao.generatePaginatedPostsLinks(0, 4, 'test.jarombek.com', '_');
-        console.info(result);
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
     });
 
@@ -435,7 +436,6 @@ describe('generatePaginatedPostsLinks()', () => {
         MockPostDao.postCountCache = {'_': 20};
 
         const result = await PostDao.generatePaginatedPostsLinks(2, 5, 'test.jarombek.com', '_');
-        console.info(result);
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
     });
 
@@ -451,7 +451,6 @@ describe('generatePaginatedPostsLinks()', () => {
         MockPostDao.postCountCache = {'_': 20};
 
         const result = await PostDao.generatePaginatedPostsLinks(4, 5, 'test.jarombek.com', '_');
-        console.info(result);
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
     });
 
@@ -467,7 +466,6 @@ describe('generatePaginatedPostsLinks()', () => {
         MockPostDao.postCountCache = {'_': 5, 'js': 25};
 
         const result = await PostDao.generatePaginatedPostsLinks(3, 5, 'test.jarombek.com', 'js');
-        console.info(result);
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
     });
 });
@@ -476,12 +474,60 @@ describe('getPreviewByName()', () => {
 
     it('should return post preview document as expected', async () => {
 
+        const expectedResult = {
+            name: "jul-18-2019-mongodb",
+            title: "Intro to MongoDB",
+            description: "intro to mongodb",
+            date: new Date('2019-07-18T12:00:00'),
+            type: "Discovery",
+            views: 0,
+            tags: [
+                {
+                    name: "JavaScript",
+                    picture: "https://asset.jarombek.com/logos/js.png",
+                    color: "javascript"
+                },
+                {
+                    name: "MongoDB",
+                    picture: "https://asset.jarombek.com/logos/mongodb.png",
+                    color: "mongodb"
+                }
+            ],
+            preview: [],
+            previewString: "",
+            sources: []
+        };
+
+        const result = await PostDao.getPreviewByName('jul-18-2019-mongodb');
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
     });
 });
 
 describe('getContentByName()', () => {
 
     it('should return post content document as expected', async () => {
+
+        const expectedResult = {
+            name: "jul-18-2019-mongodb",
+            content: [],
+            contentString: ""
+        };
+
+        const result = await PostDao.getContentByName('jul-18-2019-mongodb');
+        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
+    });
+});
+
+describe('getPreviewsByDate()', () => {
+
+    it('should return post preview documents as expected', async () => {
+
+    });
+});
+
+describe('getContentByDate()', () => {
+
+    it('should return post content documents as expected', async () => {
 
     });
 });

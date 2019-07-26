@@ -2,9 +2,10 @@
 # Author: Andrew Jarombek
 # Date: 5/19/2019
 
-version: '3'
+version: '3.7'
 services:
   app:
-    build: .
+    build: ../../
+    dockerfile: aws.dockerfile
     environment:
       - NODE_ENV=production
