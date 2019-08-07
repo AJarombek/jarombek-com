@@ -8,4 +8,4 @@
 mongod --config /etc/mongodb.conf --smallfiles &
 
 # Execute the unit tests
-yarn server:test
+yarn server:test -- --detectOpenHandles
