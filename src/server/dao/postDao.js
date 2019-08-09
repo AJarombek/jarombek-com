@@ -319,7 +319,7 @@ class PostDao {
      */
     static getContentByTextSearch = async (query="",
                                            sortRule={'score': {'$meta': 'textScore'}}) => {
-        return await Post.find({'$text': {'$search': query}})
+        return await PostContent.find({'$text': {'$search': query}})
             .select({'score': {'$meta': 'textScore'}})
             .sort(sortRule)
             .exec();

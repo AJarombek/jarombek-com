@@ -52,7 +52,7 @@ describe('getContentByName()', () => {
         const expectedResult = {
             name: "jul-18-2019-mongodb",
             content: [],
-            contentString: ""
+            contentString: "javascript and mongodb"
         };
 
         const result = await PostDao.getContentByName('jul-18-2019-mongodb');
@@ -101,7 +101,7 @@ describe('getContentByDate()', () => {
             name: "jul-20-2019-react",
             date: (new Date('2019-07-20T12:00:00')).toISOString(),
             content: [],
-            contentString: ""
+            contentString: "javascript and react and more javascript"
         }];
 
         const result = await PostDao.getContentByDate();
@@ -113,9 +113,77 @@ describe('getPreviewByTextSearch()', () => {
 
     it('should return post preview documents as expected', async () => {
 
-        const expectedResult = [];
+        const expectedResult = [
+            {
+                name: "jul-17-2019-jest-testing",
+                title: "Jest Testing",
+                description: "jest testing",
+                date: (new Date('2019-07-17T12:00:00')).toISOString(),
+                type: "Discovery",
+                views: 0,
+                tags: [
+                    {
+                        name: "JavaScript",
+                        picture: "https://asset.jarombek.com/logos/js.png",
+                        color: "javascript"
+                    }
+                ],
+                preview: [],
+                previewString: "",
+                sources: [],
+                score: 5.5
+            },
+            {
+                name: "jul-18-2019-mongodb",
+                title: "Intro to MongoDB",
+                description: "intro to mongodb",
+                date: (new Date('2019-07-18T12:00:00')).toISOString(),
+                type: "Discovery",
+                views: 0,
+                tags: [
+                    {
+                        name: "JavaScript",
+                        picture: "https://asset.jarombek.com/logos/js.png",
+                        color: "javascript"
+                    },
+                    {
+                        name: "MongoDB",
+                        picture: "https://asset.jarombek.com/logos/mongodb.png",
+                        color: "mongodb"
+                    }
+                ],
+                preview: [],
+                previewString: "",
+                sources: [],
+                score: 5.5
+            },
+            {
+                name: "jul-20-2019-react",
+                title: "Learning React",
+                description: "learning react",
+                date: (new Date('2019-07-20T12:00:00')).toISOString(),
+                type: "Discovery",
+                views: 0,
+                tags: [
+                    {
+                        name: "React",
+                        picture: "https://asset.jarombek.com/logos/react.png",
+                        color: "react"
+                    },
+                    {
+                        name: "JavaScript",
+                        picture: "https://asset.jarombek.com/logos/js.png",
+                        color: "javascript"
+                    }
+                ],
+                preview: [],
+                previewString: "",
+                sources: [],
+                score: 5.5
+            }
+        ];
 
-        const result = await PostDao.getPreviewByTextSearch();
+        const result = await PostDao.getPreviewByTextSearch("javascript");
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
     });
 });
@@ -124,9 +192,31 @@ describe('getContentByTextSearch()', () => {
 
     it('should return post content documents as expected', async () => {
 
-        const expectedResult = [];
+        const expectedResult = [
+            {
+                name: "jul-20-2019-react",
+                date: (new Date('2019-07-20T12:00:00')).toISOString(),
+                content: [],
+                contentString: "javascript and react and more javascript",
+                score: 5
+            },
+            {
+                name: "jul-17-2019-jest-testing",
+                date: (new Date('2019-07-17T12:00:00')).toISOString(),
+                content: [],
+                contentString: "jest and javascript",
+                score: 3.333333333333333
+            },
+            {
+                name: "jul-18-2019-mongodb",
+                date: (new Date('2019-07-18T12:00:00')).toISOString(),
+                content: [],
+                contentString: "javascript and mongodb",
+                score: 3.333333333333333
+            }
+        ];
 
-        const result = await PostDao.getContentByTextSearch();
+        const result = await PostDao.getContentByTextSearch("javascript");
         expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
     });
 });

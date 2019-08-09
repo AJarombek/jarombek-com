@@ -65,10 +65,17 @@ const update = (req, res) => {
     ViewedDao.update(req.post).then((newViewed) => {
         res.json(newViewed);
     }, (reason => {
-        res.status(400).json({
-            error: `Failed to Update Post Viewed Count: ${req.post.name}`,
-            message: reason
-        });
+        if (req.post) {
+            res.status(400).json({
+                error: `Failed to Update Post Viewed Count: ${req.post.name}`,
+                message: reason
+            });
+        } else {
+            res.status(404).json({
+                error: `No Post found in the HTTP request parameters.`,
+                message: reason
+            });
+        }
     }));
 };
 
