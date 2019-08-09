@@ -13,6 +13,11 @@ const PostContentSchema = new Schema({
         type: String,
         required: true
     },
+    date: {
+        type: Date,
+        default: Date.now(),
+        required: true
+    },
     content: {
         type: Array,
         required: true
@@ -24,6 +29,7 @@ const PostContentSchema = new Schema({
 });
 
 PostContentSchema.index({name: 1});
+PostContentSchema.index({date: 1});
 
 PostContentSchema.index(
     {

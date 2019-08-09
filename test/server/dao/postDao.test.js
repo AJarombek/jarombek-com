@@ -5,7 +5,6 @@
  */
 
 import PostDao from '../../../src/server/dao/postDao';
-import mongoose from 'mongoose';
 import mockingoose from 'mockingoose';
 import Post from '../../../src/server/model/post';
 import PostContent from '../../../src/server/model/postContent';
@@ -111,101 +110,6 @@ const getByDate = (skip, limit, descending, array) => {
         .sort((a, b) => compare(a, b))
         .filter((item, index) => index >= skip && index < skip + limit)
 };
-
-describe('getPreviewByName()', () => {
-
-    beforeAll(() => {
-        console.info('connecting to mongoDB...');
-        mongoose.connect('mongodb://localhost:27017/jarombekcom');
-    });
-
-    it('should return post preview document as expected', async () => {
-
-        const expectedResult = {
-            name: "jul-18-2019-mongodb",
-            title: "Intro to MongoDB",
-            description: "intro to mongodb",
-            date: new Date('2019-07-18T12:00:00'),
-            type: "Discovery",
-            views: 0,
-            tags: [
-                {
-                    name: "JavaScript",
-                    picture: "https://asset.jarombek.com/logos/js.png",
-                    color: "javascript"
-                },
-                {
-                    name: "MongoDB",
-                    picture: "https://asset.jarombek.com/logos/mongodb.png",
-                    color: "mongodb"
-                }
-            ],
-            preview: [],
-            previewString: "",
-            sources: []
-        };
-
-        const result = await PostDao.getPreviewByName('jul-18-2019-mongodb');
-        console.info(result);
-        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
-    });
-});
-
-describe('getContentByName()', () => {
-
-    it('should return post content document as expected', async () => {
-
-        const expectedResult = {
-            name: "jul-18-2019-mongodb",
-            content: [],
-            contentString: ""
-        };
-
-        const result = await PostDao.getContentByName('jul-18-2019-mongodb');
-        console.info(result);
-        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
-    });
-});
-
-describe('getPreviewsByDate()', () => {
-
-    it('should return post preview documents as expected', async () => {
-        const expectedResult = null;
-        const result = await PostDao.getPreviewsByDate();
-        console.info(result);
-        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
-    });
-});
-
-describe('getContentByDate()', () => {
-
-    it('should return post content documents as expected', async () => {
-        const expectedResult = null;
-        const result = await PostDao.getContentByDate();
-        console.info(result);
-        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
-    });
-});
-
-describe('getPreviewByTextSearch()', () => {
-
-    it('should return post preview documents as expected', async () => {
-        const expectedResult = null;
-        const result = await PostDao.getPreviewByTextSearch();
-        console.info(result);
-        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
-    });
-});
-
-describe('getContentByTextSearch()', () => {
-
-    it('should return post content documents as expected', async () => {
-        const expectedResult = null;
-        const result = await PostDao.getContentByTextSearch();
-        console.info(result);
-        expect(JSON.parse(JSON.stringify(result))).toMatchObject(expectedResult);
-    });
-});
 
 describe('getPaginatedPosts()', () => {
 

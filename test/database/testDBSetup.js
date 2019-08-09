@@ -99,24 +99,28 @@ db.posts.insertOne({
 
 db.posts_content.insertOne({
     name: "jul-17-2019-jest-testing",
+    date: new Date('2019-07-17T12:00:00'),
     content: [],
     contentString: ""
 });
 
 db.posts_content.insertOne({
     name: "jul-18-2019-mongodb",
+    date: new Date('2019-07-18T12:00:00'),
     content: [],
     contentString: ""
 });
 
 db.posts_content.insertOne({
     name: "jul-19-2019-docker",
+    date: new Date('2019-07-19T12:00:00'),
     content: [],
     contentString: ""
 });
 
 db.posts_content.insertOne({
     name: "jul-20-2019-react",
+    date: new Date('2019-07-20T12:00:00'),
     content: [],
     contentString: ""
 });
