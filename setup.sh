@@ -212,7 +212,7 @@ nvm list
 nvm use v10.15.3
 
 # Set the node environment to development for proper Webpack builds
-export NODE_ENV=development
+export NODE_ENV=local
 
 # Build with webpack for dev environment bundles and deploy locally
 yarn client:dev

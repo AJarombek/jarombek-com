@@ -35,19 +35,14 @@ class Verify extends React.Component {
      * and initialize the state
      */
     componentDidMount() {
-        console.info("Inside Verify ComponentDidMount");
-
         const {code} = this.props.match.params;
 
         if (code) {
-
-            console.info(`Verifying user with code: ${code}`);
             this.setState({status: VerifyStatus.VERIFYING});
 
             // If the url of this component has a verification code, use it to try and verify
             // a user.
             Verify.verifyUser(code, this.baseUrl).then((status) => {
-                console.info(status);
 
                 // The outcome of the verification is dependent on the HTTP status code
                 // of the response
@@ -56,13 +51,11 @@ class Verify extends React.Component {
                 } else {
                     this.setState({status: VerifyStatus.VERIFY_FAILURE});
                 }
-            }, (reason) => {
-                console.error(reason);
+            }, () => {
                 this.setState({status: VerifyStatus.VERIFY_FAILURE});
             });
 
         } else {
-            console.info('No Code Supplied.');
             this.setState({status: VerifyStatus.NO_CODE});
         }
     }
@@ -75,7 +68,6 @@ class Verify extends React.Component {
      * @return {Promise<number>}
      */
     static async verifyUser(code, baseUrl) {
-        console.info(`PATCH ${baseUrl}/api/user/verify/${code}`);
         const response = await fetch(
             `${baseUrl}/api/user/verify/${code}`,
             {
@@ -85,17 +77,13 @@ class Verify extends React.Component {
             }
         );
 
-        console.info(response);
-        const json = await response.json();
-        console.info(`Updated User JSON: ${JSON.stringify(json)}`);
-
+        await response.json();
         return response.status;
     }
 
     render() {
         const {status} = this.state;
         const {code} = this.props.match.params;
-        console.debug(this.state);
         return (
             <WebsiteTemplate hideSubscribe={true}>
                 <Helmet>

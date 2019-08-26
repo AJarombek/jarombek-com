@@ -24,7 +24,6 @@ class Blog extends React.Component {
 
     constructor(props) {
         super(props);
-        console.debug('Inside Blog constructor');
 
         switch (process.env.NODE_ENV) {
             case 'production':
@@ -39,9 +38,6 @@ class Blog extends React.Component {
             default:
                 this.baseUrl = 'https://jarombek.com';
         }
-
-        console.info(`The environment: ${process.env.NODE_ENV}`);
-        console.info(`The URL to call: ${this.baseUrl}`);
 
         // Only set an empty state if it does not already exist -
         // it may have been set on the server side render
@@ -62,10 +58,7 @@ class Blog extends React.Component {
      * call before interacting with the DOM
      */
     componentWillMount() {
-        console.debug("Inside Blog ComponentWillMount");
-
         if (this.props.post && this.props.post.name === this.props.match.params.name) {
-            console.info(`Mounting Component with Post in State: ${this.props.post.name}`);
             this.setState({
                 post: JSXConverter.createPostJSX(this.props.post)
             });
@@ -79,10 +72,6 @@ class Blog extends React.Component {
      * interacting with the DOM, so this only happens on client side code
      */
     componentDidMount() {
-        console.debug("Inside Blog ComponentDidMount");
-
-        console.info(this.props);
-
         if (this.props.location.hash.length === 0) {
             window.scrollTo(0, 0);
         }
@@ -94,14 +83,10 @@ class Blog extends React.Component {
         if (name) {
 
             if (!this.state.post || this.state.post.name !== name) {
-                console.info(`Fetching Post with name ${name}`);
                 this.fetchPostAndUpdate(name)
-                    .catch(err => {
-                        console.error(err);
+                    .catch(() => {
                         this.setState({post: null});
                     });
-            } else {
-                console.info(`Post Was in Initial State`);
             }
         }
     }
@@ -110,7 +95,6 @@ class Blog extends React.Component {
      * Called after the component updated.
      */
     componentDidUpdate() {
-        console.debug("Inside Blog componentDidUpdate");
         if (this.props.location.hash.length === 0) {
             window.scrollTo(0, 0);
         }
@@ -121,14 +105,11 @@ class Blog extends React.Component {
      * @param nextProps - the props that are about to replace the existing props
      */
     componentWillReceiveProps(nextProps) {
-        console.debug("Inside Blog ComponentWillReceiveProps");
-
         const {name} = nextProps.match.params;
 
         if (name) {
             this.fetchPostAndUpdate(name)
-                .catch(err => {
-                    console.error(err);
+                .catch(() => {
                     this.setState({post: []});
                 });
         }
@@ -140,7 +121,6 @@ class Blog extends React.Component {
      */
     async fetchPostAndUpdate(name) {
         const {post, loaded} = await BlogDelegator.fetchPost(this.baseUrl, name);
-        console.debug(post);
 
         // Increment the viewed count for the fetched post
         BlogDelegator.viewedPost(loaded, this.baseUrl);
@@ -153,8 +133,6 @@ class Blog extends React.Component {
      */
     render() {
         const {post, subscribing} = this.state;
-        console.debug('Inside Blog Render');
-        console.debug(this.state);
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
                 <div className="jarombek-background">

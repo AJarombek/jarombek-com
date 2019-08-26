@@ -25,7 +25,6 @@ class BlogList extends React.Component {
 
     constructor(props) {
         super(props);
-        console.debug('Inside BlogList constructor');
 
         switch (process.env.NODE_ENV) {
             case 'production':
@@ -40,9 +39,6 @@ class BlogList extends React.Component {
             default:
                 this.baseUrl = 'https://jarombek.com';
         }
-
-        console.debug(`The environment: ${process.env.NODE_ENV}`);
-        console.debug(`The URL to call: ${this.baseUrl}`);
 
         // Cache the posts loaded from the server for when the state gets cleared
         this.postsCache = {};
@@ -69,19 +65,14 @@ class BlogList extends React.Component {
      * call before interacting with the DOM
      */
     componentWillMount() {
-        console.debug("Inside BlogList ComponentWillMount");
-        console.debug(this.props);
-
         if (this.props.posts) {
 
             const {posts} = this.props;
             const {query} = queryString.parse(this.props.location.search);
 
             const links = [this.props.first, this.props.prev, this.props.next, this.props.last];
-
             const {first, prev, next, last} = BlogDelegator.generateLinks(links);
 
-            console.debug(`Mounting Component with # of Posts: ${posts.length}`);
             this.setState({
                 shouldUpdate: true,
                 posts: JSXConverter.createPostsJSX(posts),
@@ -101,7 +92,6 @@ class BlogList extends React.Component {
      * interacting with the DOM, so this only happens on client side code
      */
     componentDidMount() {
-        console.debug("Inside BlogList ComponentDidMount");
 
         // Remove any data that was sent from the server side render.  Forgetting to do this
         // can cause strange behavior when re-constructing components client side.
@@ -117,17 +107,13 @@ class BlogList extends React.Component {
         if (!this.state.posts) {
             const url = `/api/post/preview?page=${postPage}${queryUrl}`;
 
-            console.info(`Fetching All Posts`);
             this.fetchPostsAndUpdate(url, postPage, queryStr)
-                .catch(err => {
-                    console.error(err);
+                .catch(() => {
                     this.setState({
                         shouldUpdate: true,
                         posts: []
                     });
                 });
-        } else {
-            console.info(`Posts Were in Initial State`);
         }
     }
 
@@ -136,7 +122,6 @@ class BlogList extends React.Component {
      * @param nextProps - the props that are about to replace the existing props
      */
     componentWillReceiveProps(nextProps) {
-        console.debug("Inside BlogList ComponentWillReceiveProps");
 
         // By default React doesn't move to the top of the page when new props are received
         // and the URL changes - so we have to handle it ourselves
@@ -160,8 +145,6 @@ class BlogList extends React.Component {
         const queryUrl = query ? `&query=${query}` : '';
 
         if (this.postsCache[queryStr] && this.postsCache[queryStr][postPage]) {
-
-            console.info(`${postPage} Page of Posts Found in Cache for Query: ${queryStr}`);
 
             const sortedPages = Object.entries(this.pageCache[queryStr]).sort();
 
@@ -188,13 +171,9 @@ class BlogList extends React.Component {
             });
 
         } else {
-
             const url = `/api/post/preview?page=${postPage}${queryUrl}`;
-
-            console.debug(`Fetching ${postPage} Page of Posts for query ${queryStr}...`);
             this.fetchPostsAndUpdate(url, postPage, queryStr)
-                .catch(err => {
-                    console.error(err);
+                .catch(() => {
                     this.setState({
                         shouldUpdate: true,
                         posts: []
@@ -337,8 +316,7 @@ class BlogList extends React.Component {
         this.props.history.push(`/blog?query=${query}&page=1`);
 
         this.fetchPostsAndUpdate(`/api/post/preview?query="${query}"`, 1, query)
-            .catch(err => {
-                console.error(err);
+            .catch(() => {
                 this.setState({
                     shouldUpdate: true,
                     posts: []
@@ -350,8 +328,6 @@ class BlogList extends React.Component {
      * Render the JSX
      */
     render() {
-        console.debug('Inside BlogList Render');
-
         const {posts, executedQuery, ...links} = this.state;
         const {page} = queryString.parse(this.props.location.search);
 
@@ -373,10 +349,6 @@ class BlogList extends React.Component {
                 ...last.link && {[`${last.page}`]: last.link}
             }
         };
-
-        console.debug(this.state);
-        console.debug(this.pageCache);
-        console.debug(this.postsCache);
 
         return (
             <WebsiteTemplate subscribeAction={ () =>

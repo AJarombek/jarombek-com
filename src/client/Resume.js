@@ -21,7 +21,6 @@ class Resume extends React.Component {
 
     constructor(props) {
         super(props);
-        console.debug('Inside Resume constructor');
 
         const {title, content, languages, technologies} = resumeSections[0];
 
@@ -63,7 +62,6 @@ class Resume extends React.Component {
      * @param nextProps - the props that are about to replace the existing props.
      */
     componentWillReceiveProps(nextProps) {
-        console.info("Inside Resume ComponentWillReceiveProps");
         this.initResumeContent(nextProps);
     }
 
@@ -102,8 +100,6 @@ class Resume extends React.Component {
             prevPosition,
             title
         } = this.state;
-
-        console.debug('Inside Resume Render');
 
         return (
             <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>

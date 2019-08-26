@@ -303,9 +303,6 @@ const content2017 = [
         ]
     }
 ];
-    `
-
-`;
 
 const content2018 = [
     {
@@ -316,9 +313,10 @@ const content2018 = [
             {
                 "el":"#text",
                 "attributes":null,
-                "value":`In 2018 I spent time on two different teams at Gartner.  On the first team 
-                    I developed features for a Java application that passed messages with RabbitMQ. 
-                     For the second team I worked on a Jenkins pipeline for database deployments.`,
+                "value":`In 2018 I spent time with two different teams at Gartner.  On the first  
+                     team I developed features for a Java application that passed messages with 
+                     RabbitMQ. On the second team I created a Jenkins pipeline that automated 
+                     database script deployments for the entire company.`,
                 "children":null
             }
         ]
@@ -360,7 +358,7 @@ const content2018 = [
                     {
                         "el":"#text",
                         "attributes":null,
-                        "value":"Jarombek.com",
+                        "value":"jarombek.com",
                         "children":null
                     }
                 ]
@@ -370,21 +368,6 @@ const content2018 = [
                 "attributes":null,
                 "value":` which follows the MERN stack.  My personal website also uses AWS Lambda 
                     functions, AWS API Gateway, a Node.js command line application, and Terraform.`,
-                "children":null
-            }
-        ]
-    },
-    {
-        "el":"p",
-        "attributes":null,
-        "value":null,
-        "children":[
-            {
-                "el":"#text",
-                "attributes":null,
-                "value":`Currently I am developing more features for my personal website and 
-                    writing 1-2 software development articles each week.  I continue to build my 
-                    personal brand and document all my knowledge and hard work.`,
                 "children":null
             }
         ]
@@ -400,9 +383,36 @@ const content2019 = [
             {
                 "el":"#text",
                 "attributes":null,
-                "value":`In 2019 I will continue writing software development articles each week 
-                    and iterating on my applications.  I hope to finish my personal websites 
-                    initial functionality and begin creating SaintsXCTF Version II.`,
+                "value":`In 2019 I also worked for two different teams at Gartner.  On the first 
+                    team I wrote Continuous Integration Jenkins jobs and transitioned the teams  
+                    application model from a monolithic app to microservices.  I created a Jenkins 
+                    job which deployed microservices to EKS (Amazon Elastic Kubernetes Service).  
+                    I provided each microservice with Kubernetes configuration.  After graduating 
+                    from Gartner's IT rotational program, I switched to my second team.  On the 
+                    second team I developed new features for `,
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://www.gartner.com/reviews/home"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"PeerInsights",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":`, a public facing website that 
+                    provides peer reviews on technology products.  It uses Oracle, Elasticsearch, 
+                    Java (Spring), React.js, and Sass for its technology stack.`,
                 "children":null
             }
         ]
@@ -415,9 +425,130 @@ const content2019 = [
             {
                 "el":"#text",
                 "attributes":null,
-                "value":`My time in Gartner's rotational program will conclude in the summer of 
-                    2019 and I look forward to the chapter of my software development career that 
-                    follows.`,
+                "value":`In my free time I improved the infrastructure of my first website `,
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://www.saintsxctf.com/"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"SaintsXCTF.com",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":`.  I moved it onto AWS and wrote the entire infrastructure as code with `,
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-infrastructure"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"Terraform",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":`.  I also wrote Terraform IaC for my personal website `,
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/jarombek-com-infrastructure"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"jarombek.com",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":` and changed the website infrastructure from a virtual machine to 
+                    containers.  I also focused on creating unit tests in Python for all my 
+                    infrastructure.  Additionally my AWS Infrastructure has its own `,
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/global-aws-infrastructure"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"Jenkins server",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":` for `,
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/global-jenkins-jobs"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"automating tasks",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":`.`,
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":`Currently I'm developing more features for my personal website, working 
+                    on version II of my SaintsXCTF website, and trying to write one software 
+                    development article per week.  I'm continuing to build my personal brand and 
+                    document all my knowledge and hard work.`,
                 "children":null
             }
         ]
@@ -489,7 +620,9 @@ const resumeSections = [
             "JavaScript",
             "Java",
             "TypeScript",
+            "Groovy",
             "Sass",
+            "Haskell",
             "HTML"
         ],
         technologies: [
@@ -507,10 +640,23 @@ const resumeSections = [
         year: 2018
     },
     {
-        title: "Looking Ahead",
+        title: "Moving my Software Ecosystem onto the Cloud",
         content: JSXConverter.createContentJSX(content2019),
-        languages: [],
-        technologies: [],
+        languages: [
+            "Python",
+            "JavaScript",
+            "Java",
+            "Sass",
+            "HCL",
+            "C#",
+            "HTML"
+        ],
+        technologies: [
+            "React",
+            "Jenkins",
+            "Terraform",
+            "CloudFormation"
+        ],
         year: 2019
     }
 ];

@@ -35,19 +35,14 @@ class Unsub extends React.Component {
      * and initialize the state
      */
     componentDidMount() {
-        console.info("Inside Unsub ComponentDidMount");
-
         const {code} = this.props.match.params;
 
         if (code) {
-
-            console.info(`Unsubscribing user with code: ${code}`);
             this.setState({status: UnsubStatus.UNSUBSCRIBING});
 
             // If the url of this component has an unsubscribe code, use it to try and
             // remove a users subscription.
             Unsub.unsubscribeUser(code, this.baseUrl).then((status) => {
-                console.info(status);
 
                 // The outcome of the un-subscription is dependent on the HTTP status code
                 // of the response
@@ -56,13 +51,11 @@ class Unsub extends React.Component {
                 } else {
                     this.setState({status: UnsubStatus.UNSUBSCRIBE_FAILURE});
                 }
-            }, (reason) => {
-                console.error(reason);
+            }, () => {
                 this.setState({status: UnsubStatus.UNSUBSCRIBE_FAILURE});
             });
 
         } else {
-            console.info('No Code Supplied.');
             this.setState({status: UnsubStatus.NO_CODE});
         }
     }
@@ -75,7 +68,6 @@ class Unsub extends React.Component {
      * @return {Promise<number>}
      */
     static async unsubscribeUser(code, baseUrl) {
-        console.info(`PATCH ${baseUrl}/api/user/unsub/${code}`);
         const response = await fetch(
             `${baseUrl}/api/user/unsub/${code}`,
             {
@@ -85,17 +77,13 @@ class Unsub extends React.Component {
             }
         );
 
-        console.info(response);
-        const json = await response.json();
-        console.info(`Updated User JSON: ${JSON.stringify(json)}`);
-
+        await response.json();
         return response.status;
     }
 
     render() {
         const {status} = this.state;
         const {code} = this.props.match.params;
-        console.debug(this.state);
         return (
             <WebsiteTemplate hideSubscribe={true}>
                 <div className="jarombek-background jarombek-verify-background">

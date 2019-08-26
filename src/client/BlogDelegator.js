@@ -20,27 +20,19 @@ class BlogDelegator {
      */
     static async fetchPosts(baseUrl, url) {
 
-        console.debug(`GET ${baseUrl}${url}`);
-
         const response = await fetch(`${baseUrl}${url}`);
-
         const link = response.headers.get('Link');
-        const total = response.headers.get('X-Total-Count');
-        console.info(`Link Header: ${link}`);
-        console.debug(`X-Total-Count Header: ${total}`);
 
         // The only important link headers to us are prev and next
         const {first, prev, next, last} = BlogDelegator.parseLinks(link);
 
         const json = await response.json();
-        console.debug(`Posts JSON: ${JSON.stringify(json)}`);
 
         // Transform JSON to JSX
         const posts = JSXConverter.createPostsJSX(json);
 
         // Create a list of all the new posts that were loaded from the API
         const loaded = posts.map(post => post.name);
-        console.debug(`Names of Posts in Posts JSON: ${loaded}`);
 
         return {
             posts,
@@ -63,9 +55,6 @@ class BlogDelegator {
         const response = await fetch(`${baseUrl}/api/post/content/${name}`);
 
         const json = await response.json();
-
-        console.debug(`Posts JSON: ${JSON.stringify(json)}`);
-
         const post = JSXConverter.createPostJSX(json);
 
         return {post: post, loaded: post.name};
@@ -84,7 +73,6 @@ class BlogDelegator {
         const matches = links.match(globalRegex);
 
         const linksObject = BlogDelegator.generateLinks(matches, regex);
-        console.debug(linksObject);
         return linksObject;
     }
 
@@ -135,7 +123,6 @@ class BlogDelegator {
      * @param baseUrl - the base of the url dependent on the environment
      */
     static viewedPost(name, baseUrl) {
-        console.info(`PUT ${baseUrl}/api/viewed/post/${name}`);
         fetch(`${baseUrl}/api/viewed/post/${name}`, {method: 'PUT'});
     }
 }

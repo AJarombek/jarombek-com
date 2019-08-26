@@ -158,10 +158,7 @@ class Subscribe extends React.Component {
             firstName, lastNameValid, lastName,
             passwordValid, password} = this.state;
 
-        if (emailValid && firstNameValid &&
-            lastNameValid && passwordValid) {
-
-            console.info(`Valid ${email} ${firstName} ${lastName} ${password}`);
+        if (emailValid && firstNameValid && lastNameValid && passwordValid) {
 
             // The status of the form is that the form inputs are valid and an API call can be made
             this.setState({submitStatus: SubmitStatus.SUBMIT_VALID});
@@ -177,13 +174,11 @@ class Subscribe extends React.Component {
                         this.setState({submitStatus: SubmitStatus.SUBMIT_FAIL});
                     }
                 })
-                .catch(err => {
-                    console.error(err);
+                .catch(() => {
                     this.setState({submitStatus: SubmitStatus.SUBMIT_FAIL});
                 });
 
         } else {
-            console.info("Invalid");
             this.setState({
                 submitStatus: SubmitStatus.SUBMIT_INVALID
             });
@@ -200,7 +195,6 @@ class Subscribe extends React.Component {
      * @return {Promise<number>} - a promise containing the HTTP response status code once resolved
      */
     static async createUser(email, firstName, lastName, password, baseUrl) {
-        console.info(`POST ${baseUrl}/api/user`);
         const response = await fetch(
             `${baseUrl}/api/user`,
             {
@@ -215,10 +209,7 @@ class Subscribe extends React.Component {
             },
         );
 
-        console.info(response);
-        const json = await response.json();
-        console.info(`User JSON: ${JSON.stringify(json)}`);
-
+        await response.json();
         return response.status;
     }
 
@@ -226,7 +217,6 @@ class Subscribe extends React.Component {
         const {submitStatus, emailValid, email, firstNameValid, firstName,
             lastNameValid, lastName, passwordValid, passwordProperLength,
             passwordContainsLetter, passwordContainsNonLetter, password} = this.state;
-        console.debug(this.state);
         return (
             <div className="jarbek-subscribe">
                 <p className="jarbek-subscribe-title">Sign Up for Monthly Notifications</p>
