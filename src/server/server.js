@@ -72,9 +72,6 @@ const renderComponentsToHTML = async (url) => {
         last = postsData.last;
     }
 
-    console.debug(`AOT Post: ${JSON.stringify(post)}`);
-    console.debug(`AOT Posts: ${JSON.stringify(posts)}`);
-
     return {
         html: renderToString(
             <StaticRouter location={url} context={{}}>
@@ -226,7 +223,6 @@ const htmlResponse = async (url) =>
  */
 const respond = async (req, res) => {
     const response = await htmlResponse(req.url);
-    console.debug(response);
     res.status(200).send(response);
 };
 

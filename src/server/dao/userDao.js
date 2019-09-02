@@ -56,20 +56,13 @@ class UserDao {
      * @return {Promise<*>} the newly created user once resolved, or an error message on failure
      */
     static insert = async (user) => {
-        console.info(`Email: ${user.email}`);
-
         const existingUser = await UserDao.getByEmail(user.email);
 
-        console.info(`User: ${user}`);
-
         if (existingUser) {
-            console.info(`User already exists with email ${user.email}`);
-            throw Error('User already exists');
+            throw Error(`User already exists with email ${user.email}`);
         } else {
-
             // The email isn't in use, so create the new user!
             const newUser = await User.create(user);
-            console.info(`New User Created: ${newUser}`);
 
             // Audit the creation of a new user
             const audit = new Audit({
@@ -123,8 +116,6 @@ class UserDao {
     static unsub = async (code) => {
         const user = await UserDao.getByUnsubCode(code);
 
-        console.info(`User with unsubscription code: ${JSON.stringify(user.toObject())}`);
-
         // If the user has an email property we can assume it is valid
         if (user.email) {
 
@@ -172,8 +163,6 @@ class UserDao {
      */
     static verify = async (code) => {
         const user = await UserDao.getByVerifyCode(code);
-
-        console.info(`User with verification code: ${JSON.stringify(user.toObject())}`);
 
         // If the user has an email property we can assume it is valid
         if (user.email) {
