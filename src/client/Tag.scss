@@ -34,6 +34,7 @@ $powershell-blue: rgba(89, 150, 240, 0.6);
 $docker-blue: rgba(44, 128, 193, 0.6);
 $k8s-blue: rgba(50, 109, 230, 0.6);
 $eks-blue: rgba(52, 123, 246, 0.6);
+$aws-rds-blue: rgba(45, 114, 184, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
 $bootstrap-purple: rgba(85, 39, 76, 0.6);
@@ -48,14 +49,18 @@ $gulp-red: rgba(212, 74, 71, 0.6);
 $angular-red: rgba(222, 52, 50, 0.6);
 $oracle-red: rgba(237, 56, 51, 0.6);
 $unicode-red: rgba(255, 229, 229, 0.6);
+$aws-s3-red: rgba(224, 82, 67, 0.6);
+$aws-sm-red: rgba(214, 50, 46, 0.6);
 $html-orange: rgba(239, 101, 55, 0.6);
 $rabbitmq-orange: rgba(239, 100, 55, 0.6);
 $yaml-orange: rgba(239, 145, 62, 0.6);
 $aws-orange: rgba(244, 154, 62, 0.6);
 $ec2-orange: rgba(242, 133, 59, 0.6);
 $awslambda-orange: rgba(241, 124, 58, 0.6);
+$aws-vpc-endpoint-orange: rgba(241, 124, 58, 0.6);
 $d3-orange: rgba(231, 147, 86, 0.6);
 $svg-orange: rgba(238, 174, 90, 0.6);
+$mysql-orange: rgba(244, 158, 67, 0.6);
 $jenkins-lightskin: rgba(240, 214, 183, 0.6);
 $express-gray: rgba(224, 226, 228, 0.6);
 $json-gray: rgba(121, 119, 119, 0.6);
@@ -171,6 +176,10 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($eks-blue, 10%);
 }
 
+.jarombek-tag-color-awsrds {
+  background-color: lighten($aws-rds-blue, 10%);
+}
+
 .jarombek-tag-color-swift {
   background-color: lighten($swift-red, 10%);
 }
@@ -193,6 +202,14 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-unicode {
   background-color: $unicode-red;
+}
+
+.jarombek-tag-color-awss3 {
+  background-color: $aws-s3-red;
+}
+
+.jarombek-tag-color-awssm {
+  background-color: $aws-sm-red;
 }
 
 .jarombek-tag-color-html {
@@ -219,12 +236,20 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($awslambda-orange, 10%);
 }
 
+.jarombek-tag-color-awsvpcendpoint {
+  background-color: lighten($aws-vpc-endpoint-orange, 10%);
+}
+
 .jarombek-tag-color-d3 {
   background-color: lighten($d3-orange, 10%);
 }
 
 .jarombek-tag-color-svg {
   background-color: lighten($svg-orange, 10%);
+}
+
+.jarombek-tag-color-mysql {
+  background-color: lighten($mysql-orange, 10%);
 }
 
 .jarombek-tag-color-jenkins {
