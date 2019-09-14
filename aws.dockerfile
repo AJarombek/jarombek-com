@@ -17,7 +17,7 @@ RUN yarn client:build
 FROM node:8-alpine AS app
 
 LABEL maintainer="andrew@jarombek.com" \
-      version="1.2.0" \
+      version="1.1.6" \
       description="Dockerfile for Andrew Jarombek's Personal Website & Software Development Blog"
 
 # We only need the bundle created by Webpack to run the application

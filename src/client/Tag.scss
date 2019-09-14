@@ -13,6 +13,7 @@ $mongodb-green: rgba(98, 172, 82, 0.6);
 $vim-green: rgba(69, 153, 53, 0.6);
 $bash-green: rgba(162, 253, 146, 0.6);
 $cloudformation-green: rgba(117, 157, 59, 0.6);
+$aws-iam-green: rgba(117, 156, 62, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
 $babel-yellow: rgba(249, 220, 74, 0.6);
@@ -35,6 +36,8 @@ $docker-blue: rgba(44, 128, 193, 0.6);
 $k8s-blue: rgba(50, 109, 230, 0.6);
 $eks-blue: rgba(52, 123, 246, 0.6);
 $aws-rds-blue: rgba(45, 114, 184, 0.6);
+$elasticsearch-blue: rgba(63, 165, 222, 0.6);
+$elk-aqua: rgba(83, 191, 176, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
 $bootstrap-purple: rgba(85, 39, 76, 0.6);
@@ -43,6 +46,7 @@ $csharp-purple: rgba(120, 62, 129, 0.6);
 $webassembly-purple: rgba(92, 99, 232, 0.6);
 $sass-pink: rgba(213, 130, 172, 0.6);
 $graphql-pink: rgba(229, 53, 171, 0.6);
+$kibana-pink: rgba(237, 80, 152, 0.6);
 $swift-red: rgba(236, 69, 72, 0.6);
 $mongoose-red: rgba(157, 56, 56, 0.6);
 $gulp-red: rgba(212, 74, 71, 0.6);
@@ -90,6 +94,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-cloudformation {
   background-color: lighten($cloudformation-green, 10%);
+}
+
+.jarombek-tag-color-awsiam {
+  background-color: lighten($aws-iam-green, 10%);
 }
 
 .jarombek-tag-color-javascript {
@@ -178,6 +186,14 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-awsrds {
   background-color: lighten($aws-rds-blue, 10%);
+}
+
+.jarombek-tag-color-elasticsearch {
+  background-color: lighten($elasticsearch-blue, 10%);
+}
+
+.jarombek-tag-color-elk {
+  background-color: lighten($elk-aqua, 10%);
 }
 
 .jarombek-tag-color-swift {
@@ -286,6 +302,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-graphql {
   background-color: lighten($graphql-pink, 10%);
+}
+
+.jarombek-tag-color-kibana {
+  background-color: lighten($kibana-pink, 10%);
 }
 
 .jarombek-tag-color-express {
