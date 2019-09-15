@@ -17,6 +17,7 @@ import Unsub from "./Unsub";
 import gs from "./globalStyles";
 import BlogList from "./BlogList";
 import Resume from "./Resume";
+import Statistics from './Statistics';
 
 let globalStyles = '';
 
@@ -39,6 +40,7 @@ const RoutedApp = () => {
             <Route path="/blog/:name" render={(props) => <Blog {...props} {...window.__STATE__}/>}/>
             <Route path="/blog" render={(props) => <BlogList {...props} {...window.__STATE__}/>}/>
             <Route path="/resume" component={Resume} />
+            <Route path="/stats" component={Statistics} />
             <Route path="/verify/:code" component={Verify}/>
             <Route path="/unsub/:code" component={Unsub} />
             <Route component={Home}/>

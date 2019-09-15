@@ -193,6 +193,10 @@ yarn add @babel/plugin-proposal-class-properties --dev
 # Allow webpack to ignore Files
 yarn add ignore-loader --dev
 
+# D3 visualizations for the statistics graph
+yarn add d3
+yarn add react-faux-dom
+
 # -------------------
 # Update Dependencies
 # -------------------
