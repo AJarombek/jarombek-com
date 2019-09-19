@@ -21,13 +21,15 @@ import Home from "../client/Home";
 import Unsub from "../client/Unsub";
 import Verify from "../client/Verify";
 import BlogList from "../client/BlogList";
+import Resume from "../client/Resume";
+import Statistics from "../client/Statistics";
 import gs from "../client/globalStyles";
 
 import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
 import userRoute from "./route/userRouter";
+import statsRoute from "./route/statsRouter";
 import PostDao from "./dao/postDao";
-import Resume from "../client/Resume";
 
 mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 
@@ -35,6 +37,7 @@ mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 const postRouter = postRoute();
 const viewedRouter = viewedRoute();
 const userRouter = userRoute();
+const statsRouter = statsRoute();
 
 global.React = React;
 
@@ -84,6 +87,7 @@ const renderComponentsToHTML = async (url) => {
                         (props) => <BlogList {...props} {...{posts, first, prev, next, last}} />
                     }/>
                     <Route path="/resume" component={Resume} />
+                    <Route path="/stats" component={Statistics} />
                     <Route path="/verify/:code" component={Verify}/>
                     <Route path="/unsub/:code" component={Unsub}/>
                     <Route component={Home}/>
@@ -234,6 +238,7 @@ app.use(bodyParser.json({limit: '50mb'}));
 app.use('/api/post', postRouter);
 app.use('/api/viewed', viewedRouter);
 app.use('/api/user', userRouter);
+app.use('/api/stats', statsRouter);
 
 app.use(express.static(path.join(__dirname, '..')));
 

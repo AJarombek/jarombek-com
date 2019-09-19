@@ -32,6 +32,12 @@
   border-bottom: 1px solid $color-default;
 }
 
+.jarbek-subscribe-coming-soon {
+  @include sylexiad;
+  text-align: center;
+  font-style: italic;
+}
+
 .jarbek-subscribe-form {
   display: grid;
   grid-template-rows: [email] 10% [email-comment] 10% [first-name] 10%

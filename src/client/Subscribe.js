@@ -19,7 +19,7 @@ class Subscribe extends React.Component {
             'https://jarombek.com' :
             'http://localhost:8080';
 
-        this.state = {};
+        this.state = { enabled: false };
     }
 
     static propTypes = {
@@ -213,163 +213,241 @@ class Subscribe extends React.Component {
         return response.status;
     }
 
-    render() {
-        const {submitStatus, emailValid, email, firstNameValid, firstName,
-            lastNameValid, lastName, passwordValid, passwordProperLength,
+    renderEmailInput() {
+        const {submitStatus, emailValid, email} = this.state;
+
+        return (
+            <>
+                <div className="jarbek-input jarbek-input-email">
+                    <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
+                    && !emailValid ? "jarbek-input-warning": "" }
+                           type="email"
+                           name="email"
+                           autoComplete="username"
+                           placeholder="Email"
+                           onChange={(e) => this.onChangeEmail(e)} />
+                </div>
+                <div className="jarbek-input-email-comment">
+                    { email ?
+                        <div className="jarbek-input-comment-active">
+                            { emailValid ?
+                                <p className="jarbek-input-valid">
+                                    &#x2714; Valid Email Entered
+                                </p>:
+                                <p className="jarbek-input-invalid">
+                                    &#x2718; Invalid Email Entered
+                                </p>
+                            }
+                        </div>:
+                        <div> </div>
+                    }
+                </div>
+            </>
+        );
+    }
+
+    renderFirstNameInput() {
+        const {submitStatus, firstNameValid, firstName} = this.state;
+
+        return (
+            <>
+                <div className="jarbek-input jarbek-input-first">
+                    <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
+                    && !firstNameValid ? "jarbek-input-warning": "" }
+                           type="text"
+                           name="first"
+                           placeholder="First Name"
+                           onChange={(e) => this.onChangeFirstName(e)} />
+                </div>
+                <div className="jarbek-input-first-name-comment">
+                    { firstName ?
+                        firstNameValid ?
+                            <div> </div>:
+                            <div className="jarbek-input-comment-active">
+                                <p className="jarbek-input-invalid">
+                                    &#x2718; Invalid First Name Entered
+                                </p>
+                            </div>:
+                        <div> </div>
+                    }
+                </div>
+            </>
+        );
+    }
+
+    renderLastNameInput() {
+        const {submitStatus, lastNameValid, lastName} = this.state;
+
+        return (
+            <>
+                <div className="jarbek-input jarbek-input-last">
+                    <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
+                    && !lastNameValid ? "jarbek-input-warning": "" }
+                           type="text"
+                           name="last"
+                           placeholder="Last Name"
+                           onChange={(e) => this.onChangeLastName(e)} />
+                </div>
+                <div className="jarbek-input-last-name-comment">
+                    { lastName ?
+                        lastNameValid ?
+                            <div> </div>:
+                            <div className="jarbek-input-comment-active">
+                                <p className="jarbek-input-invalid">
+                                    &#x2718; Invalid Last Name Entered
+                                </p>
+                            </div>:
+                        <div> </div>
+                    }
+                </div>
+            </>
+        );
+    }
+
+    renderPasswordInput() {
+        const {submitStatus, passwordValid, passwordProperLength,
             passwordContainsLetter, passwordContainsNonLetter, password} = this.state;
+
+        return (
+            <>
+                <div className="jarbek-input jarbek-input-password">
+                    <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
+                    && !passwordValid ? "jarbek-input-warning": "" }
+                           type="password"
+                           name="password"
+                           placeholder="Password"
+                           onChange={(e) => this.onChangePassword(e)} />
+                </div>
+                <div className="jarbek-input-password-comment">
+                    { password ?
+                        <div className="jarbek-input-comment-active">
+                            { passwordValid ?
+                                <p className="jarbek-input-valid">
+                                    &#x2714; Valid Password
+                                </p>:
+                                <p className="jarbek-input-invalid">
+                                    &#x2718; Invalid Password
+                                </p>
+                            }
+                            { passwordProperLength ?
+                                <p className="jarbek-input-valid">
+                                    &#x2714; Password Must Be Over 7 Characters
+                                </p>:
+                                <p className="jarbek-input-invalid">
+                                    &#x2718; Password Must Be Over 7 Characters
+                                </p>
+                            }
+                            { passwordContainsLetter ?
+                                <p className="jarbek-input-valid">
+                                    &#x2714; Password Must Contain a Letter
+                                </p>:
+                                <p className="jarbek-input-invalid">
+                                    &#x2718; Password Must Contain a Letter
+                                </p>
+                            }
+                            { passwordContainsNonLetter ?
+                                <p className="jarbek-input-valid">
+                                    &#x2714; Password Must Contain a Number or Symbol
+                                </p>:
+                                <p className="jarbek-input-invalid">
+                                    &#x2718; Password Must Contain a Number or Symbol
+                                </p>
+                            }
+                        </div>:
+                        <div> </div>
+                    }
+                </div>
+            </>
+        );
+    }
+
+    renderSubscribing() {
+        const {submitStatus} = this.state;
+
+        return (
+            <div className="jarbek-subscribe-form">
+                {this.renderEmailInput()}
+                {this.renderFirstNameInput()}
+                {this.renderLastNameInput()}
+                {this.renderPasswordInput()}
+                { submitStatus === SubmitStatus.SUBMIT ||
+                submitStatus === SubmitStatus.SUBMIT_VALID ?
+
+                    <Loading className="jarbek-input-submit" />:
+                    <Button className="jarbek-input-submit" size="long"
+                            activeColor="primary" onClick={() => this.onSubmit()}>
+                        SUBSCRIBE
+                    </Button>
+                }
+            </div>
+        );
+    }
+
+    renderSubmitted() {
+        const {submitStatus} = this.state;
+
+        return (
+            <div className="jarbek-subscribe-form">
+                { submitStatus === SubmitStatus.SUBMIT_SUCCESS ?
+                    <p className="jarbek-input-completed">
+                        Thank you for subscribing!  I sent an email confirming your
+                        subscription.  Emails are sent once a month
+                        with everything I have worked on related to Software
+                        Development!  For additional information you can contact me at
+                        andrew@jarombek.com.
+                    </p>:
+                    (submitStatus === SubmitStatus.SUBMIT_NO_CHANGE) ?
+                        <p className="jarbek-input-completed">
+                            This email is already subscribed!
+                        </p>:
+                        <p className="jarbek-input-completed">
+                            Something went wrong!  Note: This error message is a feature,
+                            not a bug.
+                        </p>
+                }
+                <Button className="jarbek-input-submit" size="long"
+                        activeColor="primary" onClick={() => this.props.exit()}>
+                    CONTINUE
+                </Button>
+            </div>
+        );
+    }
+
+    /**
+     * Render the Subscription form or a message describing the status of the users subscription.
+     * @return {*} React Elements.
+     */
+    renderSubscriptionForm() {
+        const {submitStatus} = this.state;
+
+        if (submitStatus === SubmitStatus.SUBMIT_FAIL ||
+            submitStatus === SubmitStatus.SUBMIT_SUCCESS ||
+            submitStatus === SubmitStatus.SUBMIT_NO_CHANGE) {
+
+            return this.renderSubmitted();
+        } else {
+            return this.renderSubscribing()
+        }
+    }
+
+    /**
+     * Render the Subscription component containing input fields, validation for input text,
+     * and a submit button.
+     * @return {*} React Elements.
+     */
+    render() {
+        const {enabled} = this.state;
         return (
             <div className="jarbek-subscribe">
                 <p className="jarbek-subscribe-title">Sign Up for Monthly Notifications</p>
                 <div className="jarbek-divider">
                     <div> </div>
                 </div>
-                { submitStatus === SubmitStatus.SUBMIT_FAIL ||
-                    submitStatus === SubmitStatus.SUBMIT_SUCCESS ||
-                    submitStatus === SubmitStatus.SUBMIT_NO_CHANGE ?
-                    <div className="jarbek-subscribe-form">
-                        { submitStatus === SubmitStatus.SUBMIT_SUCCESS ?
-                            <p className="jarbek-input-completed">
-                                Thank you for subscribing!  I sent an email confirming your
-                                subscription.  Emails are sent once a month
-                                with everything I have worked on related to Software
-                                Development!  For additional information you can contact me at
-                                andrew@jarombek.com.
-                            </p>:
-                            (submitStatus === SubmitStatus.SUBMIT_NO_CHANGE) ?
-                                <p className="jarbek-input-completed">
-                                    This email is already subscribed!
-                                </p>:
-                                <p className="jarbek-input-completed">
-                                    Something went wrong!  Note: This error message is a feature,
-                                    not a bug.
-                                </p>
-                        }
-                        <Button className="jarbek-input-submit" size="long"
-                                activeColor="primary" onClick={() => this.props.exit()}>
-                            CONTINUE
-                        </Button>
-                    </div>:
-                    <div className="jarbek-subscribe-form">
-                        <div className="jarbek-input jarbek-input-email">
-                            <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
-                                            && !emailValid ? "jarbek-input-warning": "" }
-                                   type="email"
-                                   name="email"
-                                   autoComplete="username"
-                                   placeholder="Email"
-                                   onChange={(e) => this.onChangeEmail(e)} />
-                        </div>
-                        <div className="jarbek-input-email-comment">
-                            { email ?
-                                <div className="jarbek-input-comment-active">
-                                    { emailValid ?
-                                        <p className="jarbek-input-valid">
-                                            &#x2714; Valid Email Entered
-                                        </p>:
-                                        <p className="jarbek-input-invalid">
-                                            &#x2718; Invalid Email Entered
-                                        </p>
-                                    }
-                                </div>:
-                                <div> </div>
-                            }
-                        </div>
-                        <div className="jarbek-input jarbek-input-first">
-                            <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
-                                            && !firstNameValid ? "jarbek-input-warning": "" }
-                                   type="text"
-                                   name="first"
-                                   placeholder="First Name"
-                                   onChange={(e) => this.onChangeFirstName(e)} />
-                        </div>
-                        <div className="jarbek-input-first-name-comment">
-                            { firstName ?
-                                firstNameValid ?
-                                    <div> </div>:
-                                    <div className="jarbek-input-comment-active">
-                                        <p className="jarbek-input-invalid">
-                                            &#x2718; Invalid First Name Entered
-                                        </p>
-                                    </div>:
-                                <div> </div>
-                            }
-                        </div>
-                        <div className="jarbek-input jarbek-input-last">
-                            <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
-                                            && !lastNameValid ? "jarbek-input-warning": "" }
-                                   type="text"
-                                   name="last"
-                                   placeholder="Last Name"
-                                   onChange={(e) => this.onChangeLastName(e)} />
-                        </div>
-                        <div className="jarbek-input-last-name-comment">
-                            { lastName ?
-                                lastNameValid ?
-                                    <div> </div>:
-                                    <div className="jarbek-input-comment-active">
-                                        <p className="jarbek-input-invalid">
-                                            &#x2718; Invalid Last Name Entered
-                                        </p>
-                                    </div>:
-                                <div> </div>
-                            }
-                        </div>
-                        <div className="jarbek-input jarbek-input-password">
-                            <input className={ submitStatus === SubmitStatus.SUBMIT_INVALID
-                                            && !passwordValid ? "jarbek-input-warning": "" }
-                                   type="password"
-                                   name="password"
-                                   placeholder="Password"
-                                   onChange={(e) => this.onChangePassword(e)} />
-                        </div>
-                        <div className="jarbek-input-password-comment">
-                            { password ?
-                                <div className="jarbek-input-comment-active">
-                                    { passwordValid ?
-                                        <p className="jarbek-input-valid">
-                                            &#x2714; Valid Password
-                                        </p>:
-                                        <p className="jarbek-input-invalid">
-                                            &#x2718; Invalid Password
-                                        </p>
-                                    }
-                                    { passwordProperLength ?
-                                        <p className="jarbek-input-valid">
-                                            &#x2714; Password Must Be Over 7 Characters
-                                        </p>:
-                                        <p className="jarbek-input-invalid">
-                                            &#x2718; Password Must Be Over 7 Characters
-                                        </p>
-                                    }
-                                    { passwordContainsLetter ?
-                                        <p className="jarbek-input-valid">
-                                            &#x2714; Password Must Contain a Letter
-                                        </p>:
-                                        <p className="jarbek-input-invalid">
-                                            &#x2718; Password Must Contain a Letter
-                                        </p>
-                                    }
-                                    { passwordContainsNonLetter ?
-                                        <p className="jarbek-input-valid">
-                                            &#x2714; Password Must Contain a Number or Symbol
-                                        </p>:
-                                        <p className="jarbek-input-invalid">
-                                            &#x2718; Password Must Contain a Number or Symbol
-                                        </p>
-                                    }
-                                </div>:
-                                <div> </div>
-                            }
-                        </div>
-                        { submitStatus === SubmitStatus.SUBMIT ||
-                        submitStatus === SubmitStatus.SUBMIT_VALID ?
-
-                            <Loading className="jarbek-input-submit" />:
-                            <Button className="jarbek-input-submit" size="long"
-                                    activeColor="primary" onClick={() => this.onSubmit()}>
-                                SUBSCRIBE
-                            </Button>
-                        }
+                { enabled ?
+                    this.renderSubscriptionForm()
+                    :
+                    <div className="jarbek-subscribe-coming-soon">
+                        Subscription Emails Coming in 2020
                     </div>
                 }
             </div>
