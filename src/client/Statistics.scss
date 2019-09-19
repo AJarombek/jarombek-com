@@ -1,0 +1,16 @@
+/*
+ * Sass styling for the Statistics component
+ * @author Andrew Jarombek
+ * @since 9/18/2019
+ */
+
+@import "styles/mixins/sylexiads";
+
+#jarbek-statistics {
+
+  .jarbek-statistics-header {
+    @include sylexiad;
+    font-size: 28px;
+    text-align: center;
+  }
+}

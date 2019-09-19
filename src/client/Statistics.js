@@ -16,15 +16,25 @@ class Statistics extends React.Component {
         this.state = {};
     }
 
-    componentWillMount() {
-        this.setState({data: {}});
+    componentDidMount() {
+        this.fetchStatistics()
+            .catch(() => {
+                this.setState({
+                    data: {}
+                });
+            });
+    }
+
+    async fetchStatistics() {
+        const url = `/api/stats`;
     }
 
     render() {
         const {data} = this.state;
         return (
-            <div>
-                <StatisticsGraph data={data} />
+            <div id="jarbek-statistics">
+                <p className="jarbek-statistics-header">Programming Language Statistics</p>
+                <StatisticsGraph data={data} disabled={true} />
                 <StatisticsChart data={data} />
             </div>
         )

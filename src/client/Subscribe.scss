@@ -40,9 +40,9 @@
 
 .jarbek-subscribe-form {
   display: grid;
-  grid-template-rows: [email] 10% [email-comment] 10% [first-name] 10%
-                      [first-name-comment] 10% [last-name] 10% [last-name-comment] 10%
-                      [password] 10% [password-comment] 10% [button] 20% [bottom];
+  grid-template-rows: [email] auto [email-comment] auto [first-name] auto
+                      [first-name-comment] auto [last-name] auto [last-name-comment] auto
+                      [password] auto [password-comment] auto [button] auto [bottom];
   grid-template-columns: [left] 100% [right];
 }
 

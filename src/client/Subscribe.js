@@ -213,6 +213,11 @@ class Subscribe extends React.Component {
         return response.status;
     }
 
+    /**
+     * Render the email input field for a user subscribing.  Show validations if the
+     * input text is invalid.
+     * @return {*} React Elements.
+     */
     renderEmailInput() {
         const {submitStatus, emailValid, email} = this.state;
 
@@ -246,6 +251,11 @@ class Subscribe extends React.Component {
         );
     }
 
+    /**
+     * Render the first name input field for a user subscribing.  Show validations if the
+     * first name contains invalid characters.
+     * @return {*} React Elements.
+     */
     renderFirstNameInput() {
         const {submitStatus, firstNameValid, firstName} = this.state;
 
@@ -275,6 +285,11 @@ class Subscribe extends React.Component {
         );
     }
 
+    /**
+     * Render the last name input field for a user subscribing.  Show validations if the
+     * last name contains invalid characters.
+     * @return {*} React Elements.
+     */
     renderLastNameInput() {
         const {submitStatus, lastNameValid, lastName} = this.state;
 
@@ -304,6 +319,11 @@ class Subscribe extends React.Component {
         );
     }
 
+    /**
+     * Render the password input field for a user subscribing.  Show validations if the password
+     * doesn't follow the required rules.
+     * @return {*} React Elements.
+     */
     renderPasswordInput() {
         const {submitStatus, passwordValid, passwordProperLength,
             passwordContainsLetter, passwordContainsNonLetter, password} = this.state;
@@ -361,6 +381,10 @@ class Subscribe extends React.Component {
         );
     }
 
+    /**
+     * Render React elements which create a subscription input form.
+     * @return {*} React Elements.
+     */
     renderSubscribing() {
         const {submitStatus} = this.state;
 
@@ -383,6 +407,10 @@ class Subscribe extends React.Component {
         );
     }
 
+    /**
+     * Render messages that are displayed if the user submitted their subscription request.
+     * @return {*} React Elements.
+     */
     renderSubmitted() {
         const {submitStatus} = this.state;
 
