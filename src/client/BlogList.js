@@ -20,25 +20,15 @@ import BlogDelegator from "./BlogDelegator";
 import JSXConverter from "./JSXConverter";
 import PaginationBar from "./PaginationBar";
 import SearchBar from "./SearchBar";
+import BaseURL from './BaseURL';
 
 class BlogList extends React.Component {
 
     constructor(props) {
         super(props);
 
-        switch (process.env.NODE_ENV) {
-            case 'production':
-                this.baseUrl = 'https://jarombek.com';
-                break;
-            case 'development':
-                this.baseUrl = 'https://dev.jarombek.com';
-                break;
-            case 'local':
-                this.baseUrl = 'http://localhost:8080';
-                break;
-            default:
-                this.baseUrl = 'https://jarombek.com';
-        }
+        // Get the Base URL of the API depending on the environment.
+        this.baseUrl = BaseURL.get();
 
         // Cache the posts loaded from the server for when the state gets cleared
         this.postsCache = {};

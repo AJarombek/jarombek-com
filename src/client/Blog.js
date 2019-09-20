@@ -19,25 +19,15 @@ import TitleImage from './TitleImage';
 import Subscribe from "./Subscribe";
 import BlogDelegator from "./BlogDelegator";
 import JSXConverter from "./JSXConverter";
+import BaseURL from './BaseURL';
 
 class Blog extends React.Component {
 
     constructor(props) {
         super(props);
 
-        switch (process.env.NODE_ENV) {
-            case 'production':
-                this.baseUrl = 'https://jarombek.com';
-                break;
-            case 'development':
-                this.baseUrl = 'https://dev.jarombek.com';
-                break;
-            case 'local':
-                this.baseUrl = 'http://localhost:8080';
-                break;
-            default:
-                this.baseUrl = 'https://jarombek.com';
-        }
+        // Get the Base URL of the API depending on the environment.
+        this.baseUrl = BaseURL.get();
 
         // Only set an empty state if it does not already exist -
         // it may have been set on the server side render

@@ -5,7 +5,7 @@
  */
 
 import express from 'express';
-import StatsDao from '../dao/statsDao';
+import StatisticsDao from '../dao/statisticsDao';
 
 /**
  * Create the REST API for language statistics.
@@ -54,7 +54,7 @@ const languageRoute = (router) => {
  * @param res - HTTP response body.
  */
 const getAll = (req, res) => {
-    StatsDao.getAll().then((stats) => {
+    StatisticsDao.getAll().then((stats) => {
         res.json(stats);
     }, (reason => {
         res.status(400).json({
@@ -73,7 +73,7 @@ const getAll = (req, res) => {
  * @param next - the next step on middleware in the router.
  */
 const languageMiddleware = (req, res, next) => {
-    StatsDao.getByLanguageName(req.params.name).then((stats) => {
+    StatisticsDao.getByLanguageName(req.params.name).then((stats) => {
         req.stats = stats;
         next();
     }, (reason => {

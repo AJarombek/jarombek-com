@@ -1,14 +1,14 @@
 import mongoose from 'mongoose';
 
 /**
- * Schema for the Stats object in MongoDB
+ * Schema for the Statistics object in MongoDB
  * @author Andrew Jarombek
  * @since 9/16/2019
  */
 
 const Schema = mongoose.Schema;
 
-const StatsSchema = new Schema({
+const StatisticsSchema = new Schema({
     name: {
         type: String,
         required: true
@@ -27,6 +27,6 @@ const StatsSchema = new Schema({
     }
 });
 
-StatsSchema.index({name: 1});
+StatisticsSchema.index({name: 1});
 
-export default mongoose.model('Stats', StatsSchema, 'stats');
+export default mongoose.model('Statistics', StatisticsSchema, 'statistics');

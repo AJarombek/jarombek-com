@@ -13,7 +13,7 @@ const StatisticsGraph = ({data={}, disabled=false}) => {
     );
 };
 
-StatisticsGraph.PropTypes = {
+StatisticsGraph.propTypes = {
     data: PropTypes.object.isRequired,
     disabled: PropTypes.bool
 };

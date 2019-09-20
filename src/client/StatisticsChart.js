@@ -16,7 +16,7 @@ const StatisticsChart = ({data={}}) => {
     );
 };
 
-StatisticsChart.PropTypes = {
+StatisticsChart.propTypes = {
     data: PropTypes.object.isRequired
 };
 

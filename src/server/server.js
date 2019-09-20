@@ -28,7 +28,7 @@ import gs from "../client/globalStyles";
 import postRoute from "./route/postRouter";
 import viewedRoute from "./route/viewedRouter";
 import userRoute from "./route/userRouter";
-import statsRoute from "./route/statsRouter";
+import statisticsRoute from "./route/statisticsRouter";
 import PostDao from "./dao/postDao";
 
 mongoose.connect('mongodb://127.0.0.1/jarombekcom');
@@ -37,7 +37,7 @@ mongoose.connect('mongodb://127.0.0.1/jarombekcom');
 const postRouter = postRoute();
 const viewedRouter = viewedRoute();
 const userRouter = userRoute();
-const statsRouter = statsRoute();
+const statisticsRouter = statisticsRoute();
 
 global.React = React;
 
@@ -238,7 +238,7 @@ app.use(bodyParser.json({limit: '50mb'}));
 app.use('/api/post', postRouter);
 app.use('/api/viewed', viewedRouter);
 app.use('/api/user', userRouter);
-app.use('/api/stats', statsRouter);
+app.use('/api/stats', statisticsRouter);
 
 app.use(express.static(path.join(__dirname, '..')));
 
