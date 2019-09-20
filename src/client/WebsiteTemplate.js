@@ -8,10 +8,10 @@ import React from 'react';
 import WebsiteNav from './WebsiteNav';
 import PropTypes from "prop-types";
 
-const WebsiteTemplate = ({children, subscribeAction, hideSubscribe}) => {
+const WebsiteTemplate = ({children, hideSubscribe}) => {
     return (
         <div className="jarombek-template">
-            <WebsiteNav hideSubscribe={hideSubscribe} subscribeAction={subscribeAction} />
+            <WebsiteNav hideSubscribe={hideSubscribe} />
             {children}
         </div>
     );
@@ -19,12 +19,10 @@ const WebsiteTemplate = ({children, subscribeAction, hideSubscribe}) => {
 
 WebsiteTemplate.propTypes = {
     children: PropTypes.any,
-    subscribeAction: PropTypes.func,
     hideSubscribe: PropTypes.bool
 };
 
 WebsiteTemplate.defaultProps = {
-    subscribeAction: f=>f,
     hideSubscribe: false
 };
 

@@ -4,9 +4,19 @@
  * @since 9/18/2019
  */
 
+@import "./styles/variables";
 @import "styles/mixins/sylexiads";
 
 #jarbek-statistics {
+  padding-top: 100px;
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    padding-top: 90px;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    padding-top: 80px;
+  }
 
   .jarbek-statistics-header {
     @include sylexiad;

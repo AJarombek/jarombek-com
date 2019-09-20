@@ -10,8 +10,6 @@ import {Helmet} from 'react-helmet';
 import {Link} from 'react-router-dom';
 
 import WebsiteTemplate from './WebsiteTemplate';
-import Modal from './Modal';
-import Subscribe from "./Subscribe";
 import TitleImage from "./TitleImage";
 import Timeline from "./Timeline";
 import resumeSections from "./resumeSections";
@@ -34,8 +32,7 @@ class Resume extends React.Component {
             title,
             content,
             languages,
-            technologies,
-            subscribing: false
+            technologies
         };
     }
 
@@ -94,7 +91,6 @@ class Resume extends React.Component {
      */
     render() {
         const {
-            subscribing,
             points,
             position,
             prevPosition,
@@ -102,7 +98,7 @@ class Resume extends React.Component {
         } = this.state;
 
         return (
-            <WebsiteTemplate subscribeAction={ () => this.setState({subscribing: true}) }>
+            <WebsiteTemplate>
                 <div className="jarbek-resume">
                     <Helmet>
                         <title>Andrew Jarombek Resume</title>
@@ -198,11 +194,6 @@ class Resume extends React.Component {
                         )}
                     </div>
                 </div>
-                { (subscribing) ?
-                    <Modal clickBackground={() => this.setState({subscribing: false})}>
-                        <Subscribe exit={() => this.setState({subscribing: false})} />
-                    </Modal> : null
-                }
             </WebsiteTemplate>
         );
     }

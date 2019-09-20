@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import WebsiteTemplate from './WebsiteTemplate';
 import StatisticsGraph from './StatisticsGraph';
 import StatisticsChart from './StatisticsChart';
 import BaseURL from './BaseURL';
@@ -53,11 +54,13 @@ class Statistics extends React.Component {
     render() {
         const {data} = this.state;
         return (
-            <div id="jarbek-statistics">
-                <p className="jarbek-statistics-header">Programming Language Statistics</p>
-                <StatisticsGraph data={data} disabled={true} />
-                <StatisticsChart data={data} />
-            </div>
+            <WebsiteTemplate subscribeAction={ () => {} }>
+                <div id="jarbek-statistics">
+                    <p className="jarbek-statistics-header">Programming Language Statistics</p>
+                    <StatisticsGraph data={data} disabled={true} />
+                    <StatisticsChart data={data} />
+                </div>
+            </WebsiteTemplate>
         )
     }
 }

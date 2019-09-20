@@ -13,9 +13,7 @@ import queryString from 'query-string';
 
 import WebsiteTemplate from './WebsiteTemplate';
 import Loading from "./Loading";
-import Modal from './Modal';
 import BlogPreview from "./BlogPreview";
-import Subscribe from "./Subscribe";
 import BlogDelegator from "./BlogDelegator";
 import JSXConverter from "./JSXConverter";
 import PaginationBar from "./PaginationBar";
@@ -341,8 +339,7 @@ class BlogList extends React.Component {
         };
 
         return (
-            <WebsiteTemplate subscribeAction={ () =>
-                this.setState({shouldUpdate: true, subscribing: true}) }>
+            <WebsiteTemplate>
                 <div className="jarombek-background">
                     <Helmet>
                         <title>Andrew Jarombek&#39;s Software Development Blog</title>
@@ -377,13 +374,6 @@ class BlogList extends React.Component {
                                        link={`/blog?${queryUrl}page=`}/>
                     </div>
                 </div>
-                { (this.state.subscribing) ?
-                    <Modal clickBackground={() =>
-                        this.setState({shouldUpdate: true, subscribing: false})}>
-                        <Subscribe exit={() =>
-                            this.setState({shouldUpdate: true, subscribing: false})} />
-                    </Modal> : null
-                }
             </WebsiteTemplate>
         );
     }

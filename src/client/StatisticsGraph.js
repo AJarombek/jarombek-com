@@ -7,14 +7,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const StatisticsGraph = ({data={}, disabled=false}) => {
+const StatisticsGraph = ({data=[], disabled=false}) => {
     return (
-        disabled ? <div>Statistics Chart Coming Fall 2018</div> : <div> </div>
+        disabled ?
+            <div id="jarbek-statistics-graph">Statistics Graph Coming Fall 2018</div> :
+            <div id="jarbek-statistics-graph"> </div>
     );
 };
 
 StatisticsGraph.propTypes = {
-    data: PropTypes.object.isRequired,
+    data: PropTypes.array,
     disabled: PropTypes.bool
 };
 

@@ -8,7 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import StatisticsGraph from "./StatisticsGraph";
 
-const StatisticsChart = ({data={}}) => {
+const StatisticsChart = ({data=[]}) => {
     return (
         <div>
 
@@ -17,7 +17,7 @@ const StatisticsChart = ({data={}}) => {
 };
 
 StatisticsChart.propTypes = {
-    data: PropTypes.object.isRequired
+    data: PropTypes.array
 };
 
 export default StatisticsChart;
