@@ -7,6 +7,8 @@
 @import "./styles/variables";
 
 .jarombek-comparison-table-entry {
+  flex-grow: 1;
+  width: 300px;
   padding-left: 10px;
   padding-right: 10px;
 }

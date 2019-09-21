@@ -9,21 +9,30 @@
   padding-bottom: 60px;
 
   display: grid;
+  display: -ms-grid;
   grid-template-columns: 100%;
   grid-template-areas: "post"
                        "foot";
+  -ms-grid-columns: 100%;
+  -ms-grid-rows: auto auto;
 }
 
 .jarombek-blog-none {
   justify-self: center;
+  -ms-grid-row-align: center;
   height: 100vh;
   padding-top: 50px;
 }
 
 .jarombek-blog-footer {
   grid-area: foot;
+  -ms-grid-column: 1;
+  -ms-grid-row: 2;
+
   justify-self: center;
   align-self: center;
+  -ms-grid-row-align: center;
+  -ms-grid-column-align: center;
 
   text-align: center;
 

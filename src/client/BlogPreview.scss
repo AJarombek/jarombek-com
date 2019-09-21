@@ -26,6 +26,8 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
 @supports (grid-area: auto) {
   .jarombek-blog-preview {
     display: grid;
+    display: -ms-grid;
+
     grid-template-columns: $blog-preview-grid-desktop;
     grid-template-areas:
            "header  header  header "
@@ -33,15 +35,19 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
            "tags    tags    tags   "
            "content content content"
            "  .     footer    .    ";
+    -ms-grid-columns: $blog-preview-grid-desktop;
+    -ms-grid-rows: auto auto auto auto auto;
 
     // For small desktop screens, reduce the padding on the side of the post contents in half
     @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
       grid-template-columns: $blog-preview-grid-mobile-large;
+      -ms-grid-columns: $blog-preview-grid-mobile-large;
     }
 
     // For mobile screens, make the padding on the side of posts nearly non-existent
     @media screen and (max-width: $width-mobile) {
       grid-template-columns: $blog-preview-grid-mobile-small;
+      -ms-grid-columns: $blog-preview-grid-mobile-small;
     }
   }
 }
@@ -55,11 +61,19 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
 @supports (grid-area: auto) {
   .jarombek-blog-preview-headers {
     grid-area: header;
+    -ms-grid-column: 1;
+    -ms-grid-column-span: 3;
+    -ms-grid-row: 1;
 
     display: grid;
+    display: -ms-grid;
+
     grid-template-columns: 1fr 1fr;
-    grid-gap: 10px;
     grid-template-areas: "header-type header-date";
+    -ms-grid-columns: 1fr 1fr;
+    -ms-grid-rows: auto;
+
+    grid-gap: 10px;
   }
 }
 
@@ -80,6 +94,8 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
     margin: 10px;
 
     align-self: center;
+    -ms-grid-column-align: center;
+
     text-align: center;
 
     @media screen and (max-width: $width-mobile-small) {
@@ -91,7 +107,11 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
 @supports (grid-area: auto) {
   .jarombek-blog-preview-type {
     grid-area: header-type;
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+
     justify-self: start;
+    -ms-grid-row-align: start;
   }
 }
 
@@ -109,7 +129,11 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
 @supports (grid-area: auto) {
   .jarombek-blog-preview-date {
     grid-area: header-date;
+    -ms-grid-column: 2;
+    -ms-grid-row: 1;
+
     justify-self: end;
+    -ms-grid-row-align: end;
   }
 }
 
@@ -130,6 +154,8 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
       grid-area: #{$field};
       justify-self: center;
       align-self: center;
+      -ms-grid-row-align: center;
+      -ms-grid-column-align: center;
     }
   }
 }

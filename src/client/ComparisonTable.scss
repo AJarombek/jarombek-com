@@ -11,9 +11,7 @@ $header-color: #e4e4e4;
 $primary-table-color: #e2eaea;
 $secondary-table-color: #edf9fb;
 
-.jarombek-comparison-table {
-
-}
+.jarombek-comparison-table {}
 
 .jarombek-ct-header-color-default {
   background-color: $header-color;
@@ -30,12 +28,14 @@ $secondary-table-color: #edf9fb;
 }
 
 .jarombek-ct-body {
-  display: grid;
+  display: flex;
+  display: -ms-flex;
 
-  // auto-fill means "as many as will fit"
-  // minmax() in this case says the grid track will be no less than 350px and no more than 1fr
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  grid-gap: 5px;
+  flex-direction: row;
+  -ms-flex-direction: row;
+
+  flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
 }
 
 .jarombek-ct-primary-color-default > .jarombek-comparison-table-entry:nth-child(even) {
