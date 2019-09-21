@@ -27,20 +27,27 @@
 @supports (grid-area: auto) {
   .jarombek-nav {
     display: grid;
+    display: -ms-grid;
+
     grid-template-columns: [start] 20% [begin-title] 60% [end-title] 20% [end];
     grid-template-rows: [start] 100% [end];
+    -ms-grid-columns: 20% 60% 20%;
+    -ms-grid-rows: 100%;
 
     @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
       grid-template-columns: [start] 30% [begin-title] 40% [end-title] 30% [end];
+      -ms-grid-columns: 30% 40% 30%;
     }
 
     // Mobile screens remove the left container from the grid
     @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
       grid-template-columns: [start] 0 [begin-title] 60% [end-title] 40% [end];
+      -ms-grid-columns: 0 60% 40%;
     }
 
     @media screen and (max-width: $width-mobile-small) {
       grid-template-columns: [start] 0 [begin-title] 60% [end-title] 40% [end];
+      -ms-grid-columns: 0 60% 40%;
     }
   }
 }
@@ -56,12 +63,15 @@
 @each $nav in 'left', 'right', 'middle' {
   .jarombek-nav-#{$nav} {
     text-decoration: none;
+
     align-self: center;
+    -ms-grid-column-align: center;
   }
 
   @supports (grid-area: auto) {
     .jarombek-nav-#{$nav} {
       justify-self: center;
+      -ms-grid-row-align: center;
     }
   }
 }
@@ -145,6 +155,7 @@
   .jarombek-nav-middle {
     @media screen and (max-width: $width-mobile) {
       justify-self: left;
+      -ms-grid-row-align: start;
     }
   }
 }

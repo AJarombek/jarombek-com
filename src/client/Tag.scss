@@ -370,6 +370,7 @@ $default: rgba(204, 204, 204, 0.6);
 @supports (grid-area: auto) {
   .jarombek-tag-small div {
     display: grid;
+    display: -ms-grid;
   }
 }
 
@@ -387,8 +388,12 @@ $default: rgba(204, 204, 204, 0.6);
 @supports (grid-area: auto) {
   .jarombek-tag-large div {
     display: grid;
-    grid-template-rows: [top] 100% [bottom];
+    display: -ms-grid;
+
     grid-template-columns: [image] 40px [label] calc(100% - 39px) [end];
+    grid-template-rows: [top] 100% [bottom];
+    -ms-grid-columns: 40px calc(100% - 39px);
+    -ms-grid-rows: 100%;
   }
 }
 
@@ -420,8 +425,13 @@ $default: rgba(204, 204, 204, 0.6);
   .jarombek-tag-picture {
     // Goes in this order: row-start, column-start, row-end, column-end
     grid-area: top / image / bottom / label;
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+
     justify-self: center;
     align-self: center;
+    -ms-grid-row-align: center;
+    -ms-grid-column-align: center;
   }
 }
 
@@ -445,6 +455,7 @@ $default: rgba(204, 204, 204, 0.6);
 @supports (grid-area: auto) {
   .jarombek-tag-name {
     justify-self: center;
+    -ms-grid-row-align: center;
   }
 }
 
@@ -485,6 +496,8 @@ $default: rgba(204, 204, 204, 0.6);
 @supports (grid-area: auto) {
   .jarombek-tag-large div p {
     grid-area: top / label / bottom / end;
+    -ms-grid-column: 2;
+    -ms-grid-row: 1;
   }
 }
 

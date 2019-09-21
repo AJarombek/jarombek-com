@@ -134,8 +134,13 @@ $search-bar-input-border-color: #ccc;
 @supports (grid-area: auto) {
   .jarbek-search-bar input {
     grid-area: input;
-    align-self: center;
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+
     justify-self: center;
+    align-self: center;
+    -ms-grid-row-align: center;
+    -ms-grid-column-align: center;
   }
 }
 
@@ -173,6 +178,8 @@ $search-bar-input-border-color: #ccc;
 @supports (grid-area: auto) {
   .jarbek-search-bar div {
     grid-area: button;
+    -ms-grid-column: 2;
+    -ms-grid-row: 1;
   }
 }
 

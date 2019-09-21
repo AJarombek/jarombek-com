@@ -28,10 +28,14 @@ $jarbek-update-date-color: #999;
 @supports (grid-area: auto) {
   .jarbek-update-info {
     display: grid;
+    display: -ms-grid;
+
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
             ".    date"
             "body body";
+    -ms-grid-columns: 1fr 1fr;
+    -ms-grid-rows: auto auto;
   }
 }
 
@@ -54,7 +58,11 @@ $jarbek-update-date-color: #999;
 @supports (grid-area: auto) {
   .jarbek-update-info-date {
     grid-area: date;
+    -ms-grid-column: 2;
+    -ms-grid-row: 1;
+
     justify-self: end;
+    -ms-grid-row-align: end;
   }
 }
 
@@ -68,10 +76,17 @@ $jarbek-update-date-color: #999;
 @supports (grid-area: auto) {
   .jarbek-update-info-body {
     grid-area: body;
+    -ms-grid-column: 1;
+    -ms-grid-row: 2;
+    -ms-grid-row-span: 2;
 
     display: grid;
+    display: -ms-grid;
+
     grid-template-columns: 1fr 4fr;
     grid-template-areas: "logo content";
+    -ms-grid-columns: 1fr 4fr;
+    -ms-grid-rows: auto;
   }
 }
 
@@ -84,8 +99,13 @@ $jarbek-update-date-color: #999;
 @supports (grid-area: auto) {
   .jarbek-update-info-picture-container {
     grid-area: logo;
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+
     justify-self: center;
     align-self: center;
+    -ms-grid-row-align: center;
+    -ms-grid-column-align: center;
   }
 }
 
@@ -112,6 +132,8 @@ $jarbek-update-date-color: #999;
 @supports (grid-area: auto) {
   .jarbek-update-info-contents {
     grid-area: content;
+    -ms-grid-column: 2;
+    -ms-grid-row: 1;
   }
 }
 

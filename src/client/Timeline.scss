@@ -21,13 +21,13 @@ $timeline-offset-desktop-s: -45px;
 $timeline-offset-mobile-l: -30px;
 $timeline-offset-mobile-s: -25px;
 
-@supports not (grid-area: auto) {
+@supports not (display: flex) {
   .jarbek-timeline-section {
     display: none;
   }
 }
 
-@supports (grid-area: auto) {
+@supports (display: flex) {
   .jarbek-timeline {
     width: 100%;
     margin-left: $timeline-offset-desktop-xl;
@@ -54,39 +54,48 @@ $timeline-offset-mobile-s: -25px;
   }
 
   .jarbek-timeline > div {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, 150px);
+    display: flex;
+    display: -ms-flexbox;
 
     justify-content: center;
     align-content: center;
-
-    @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
-      grid-template-columns: repeat(auto-fit, 140px);
-    }
-
-    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-      grid-template-columns: repeat(auto-fit, 120px);
-    }
-
-    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
-      grid-template-columns: repeat(auto-fit, 90px);
-    }
-
-    @media screen and (max-width: $width-mobile-small) {
-      grid-template-columns: repeat(auto-fit, 70px);
-    }
   }
 
   .jarbek-timeline-section {
     display: grid;
+    display: -ms-grid;
+
+    grid-template-columns: 9fr 1fr;
     grid-template-areas:
             "line point"
             ".    label";
-    grid-template-columns: 9fr 1fr;
+    -ms-grid-columns: 9fr 1fr;
+    -ms-grid-rows: auto auto;
+
+    width: 150px;
+
+    @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+      width: 140px;
+    }
+
+    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+      width: 120px;
+    }
+
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      width: 90px;
+    }
+
+    @media screen and (max-width: $width-mobile-small) {
+      width: 70px;
+    }
   }
 
   .jarbek-timeline-point {
     grid-area: point;
+    -ms-grid-column: 2;
+    -ms-grid-row: 1;
+
     background-color: $color-default;
     width: $circle-dimension;
     height: $circle-dimension;
@@ -126,6 +135,9 @@ $timeline-offset-mobile-s: -25px;
 
   .jarbek-timeline-line {
     grid-area: line;
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+
     background-color: $color-default;
     height: 5px;
     margin-right: -5px;
@@ -146,6 +158,9 @@ $timeline-offset-mobile-s: -25px;
   .jarbek-timeline-label {
     @include longway;
     grid-area: label;
+    -ms-grid-column: 2;
+    -ms-grid-row: 2;
+
     text-align: center;
     font-size: 18px;
 

@@ -40,10 +40,14 @@
 
 .jarbek-subscribe-form {
   display: grid;
+  display: -ms-grid;
+
+  grid-template-columns: [left] 100% [right];
   grid-template-rows: [email] auto [email-comment] auto [first-name] auto
                       [first-name-comment] auto [last-name] auto [last-name-comment] auto
                       [password] auto [password-comment] auto [button] auto [bottom];
-  grid-template-columns: [left] 100% [right];
+  -ms-grid-columns: 100%;
+  -ms-grid-rows: auto auto auto auto auto auto auto auto auto;
 }
 
 .jarbek-input {
@@ -108,6 +112,10 @@
 
 .jarbek-input-completed {
   grid-area: email / left / button / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 1;
+  -ms-grid-row-span: 8;
+
   @include sylexiad;
   color: #999;
   font-size: 20px;
@@ -117,40 +125,62 @@
 .jarbek-input input[type="email"] {
   // Goes in this order: row-start, column-start, row-end, column-end
   grid-area: email / left / email-comment / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 1;
 }
 
 .jarbek-input-email-comment {
   grid-area: email-comment / left / first-name / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 2;
 }
 
 .jarbek-input input[type="first"] {
   grid-area: first-name / left / first-name-comment / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 3;
 }
 
 .jarbek-input-first-name-comment {
   grid-area: first-name-comment / left / last-name / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 4;
 }
 
 .jarbek-input input[type="last"] {
   grid-area: last-name / left / last-name-comment / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 5;
 }
 
 .jarbek-input-last-name-comment {
   grid-area: last-name-comment / left / password / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 6;
 }
 
 .jarbek-input input[type="password"] {
   grid-area: password / left / password-comment / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 7;
 }
 
 .jarbek-input-password-comment {
   grid-area: password-comment / left / button / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 8;
 }
 
 .jarbek-input-submit {
   grid-area: button / left / bottom / right;
+  -ms-grid-column: 1;
+  -ms-grid-row: 9;
+
   justify-self: center;
   align-self: center;
+  -ms-grid-row-align: center;
+  -ms-grid-column-align: center;
+
   padding-top: 30px;
 }
 
