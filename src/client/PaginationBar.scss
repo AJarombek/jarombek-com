@@ -17,6 +17,7 @@
 @supports (grid-area: auto) {
   .jarbek-pagination-bar {
     display: grid;
+    
     grid-gap: 10px;
     grid-template-columns: repeat(auto-fit, 45px);
 

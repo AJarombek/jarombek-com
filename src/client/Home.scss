@@ -146,6 +146,7 @@ body {
 @supports (grid-area: auto) {
   .jarbek-home-break p {
     display: grid;
+    display: -ms-grid;
     align-content: center;
   }
 }
