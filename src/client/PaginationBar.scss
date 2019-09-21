@@ -12,24 +12,23 @@
   @include sylexiad-bold;
   font-size: 28px;
   color: #aaa;
-}
 
-@supports (grid-area: auto) {
-  .jarbek-pagination-bar {
-    display: grid;
-    
-    grid-gap: 10px;
-    grid-template-columns: repeat(auto-fit, 45px);
+  @supports (grid-area: auto) {
+    display: flex;
+    display: -ms-flexbox;
 
     justify-content: center;
     align-content: center;
   }
-}
 
-@supports not (grid-area: auto) {
-  .jarbek-pagination-bar {
+  @supports not (grid-area: auto) {
     display: table;
     margin: 0 auto;
+  }
+
+  .jarbek-pag-current {
+    font-size: 42px;
+    color: darken($color-secondary, 40%);
   }
 }
 
@@ -37,8 +36,10 @@
   @each $page in 'first', 'first-spread', 'previous-item', 'current',
   'next-item', 'last-spread', 'last' {
     .jarbek-pag-#{$page} {
-      justify-self: center;
+      width: 45px;
+      text-align: center;
       align-self: center;
+      justify-self: center;
     }
   }
 }
@@ -66,9 +67,4 @@
       @include transition(color, darken($color-primary, 40%));
     }
   }
-}
-
-.jarbek-pag-current {
-  font-size: 42px;
-  color: darken($color-secondary, 40%);
 }

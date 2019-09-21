@@ -6,12 +6,19 @@
 
 .jarbek-picture-button {
   display: grid;
+  display: -ms-grid;
+
   grid-template-rows: [top] 100% [bottom];
   grid-template-columns: [image] 50px [label] calc(100% - 50px) [end];
+  -ms-grid-columns: 100%;
+  -ms-grid-rows: 50% calc(100% - 50px);
 }
 
 .jarbek-pb-picture {
   grid-area: top / image / bottom / label;
+  -ms-grid-column: 1;
+  -ms-grid-row: 1;
+
   justify-self: center;
   align-self: center;
 
@@ -25,8 +32,14 @@
 
 .jarbek-pb-text {
   grid-area: top / label / bottom / end;
+  -ms-grid-column: 1;
+  -ms-grid-row: 2;
+
   justify-self: center;
   align-self: center;
+  -ms-grid-row-align: center;
+  -ms-grid-column-align: center;
+
   padding-left: 20px;
   padding-right: 20px;
 }

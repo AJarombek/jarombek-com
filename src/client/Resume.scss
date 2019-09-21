@@ -33,11 +33,11 @@ $tech-height: 50px;
     height: 85vh;
     padding-top: 80px;
   }
-}
 
-@supports (grid-area: auto) {
-  .jarbek-resume {
+  @supports (grid-area: auto) {
     display: grid;
+    display: -ms-grid;
+
     grid-template-areas:
             "timeline timeline timeline"
             ".        title    ."
@@ -48,58 +48,91 @@ $tech-height: 50px;
                         $title-height
                         $content-height
                         $tech-height;
+    -ms-grid-columns: 1fr 8fr 1fr;
+    -ms-grid-rows: $timeline-height-grid
+                   $title-height
+                   $content-height
+                   $tech-height;
 
     @media screen and (min-width: $width-large-desktop) {
       grid-template-rows: $timeline-height-grid
                           calc(#{$title-height} + 15)
                           $content-height
                           calc(#{$tech-height} + 10);
+      -ms-grid-rows: $timeline-height-grid
+                     calc(#{$title-height} + 15)
+                     $content-height
+                     calc(#{$tech-height} + 10);
     }
   }
 
-  @each $section in 'timeline', 'title', 'prev', 'content', 'next', 'tech' {
-    .jarbek-resume-#{$section} {
-      grid-area: #{$section};
-    }
-  }
-}
-
-@supports not (grid-area: auto) {
-  .jarbek-resume {
+  @supports not (grid-area: auto) {
     display: table;
   }
-}
 
-.jarbek-resume-title {
-  overflow-x: hidden;
-  padding-top: 16px;
-
-  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
-    padding-top: 8px;
+  @supports (grid-area: auto) {
+    @each $section in 'timeline', 'title', 'prev', 'content', 'next', 'tech' {
+      .jarbek-resume-#{$section} {
+        grid-area: #{$section};
+      }
+    }
   }
 
-  @media screen and (max-width: $width-mobile-small) {
-    padding-top: 4px;
-  }
-}
+  // IE 9-11
+  @media screen and (min-width:0\0) {
+    .jarbek-resume-timeline {
+      -ms-grid-column: 1;
+      -ms-grid-column-span: 3;
+      -ms-grid-row: 1;
+    }
 
-@supports (grid-area: auto) {
+    .jarbek-resume-title {
+      -ms-grid-column: 2;
+      -ms-grid-row: 2;
+    }
+
+    .jarbek-resume-prev {
+      -ms-grid-column: 1;
+      -ms-grid-row: 3;
+    }
+
+    .jarbek-resume-content {
+      -ms-grid-column: 2;
+      -ms-grid-row: 3;
+    }
+
+    .jarbek-resume-next {
+      -ms-grid-column: 3;
+      -ms-grid-row: 3;
+    }
+
+    .jarbek-resume-tech {
+      -ms-grid-column: 2;
+      -ms-grid-row: 4;
+    }
+  }
+
   .jarbek-resume-title {
-    position: relative;
-  }
-}
+    overflow-x: hidden;
+    padding-top: 16px;
 
-@supports not (grid-area: auto) {
-  .jarbek-resume-title {
-    height: 50px;
-    width: 100%;
-    padding-bottom: 50px;
-  }
-}
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      padding-top: 8px;
+    }
 
-@supports not (grid-area: auto) {
-  .jarbek-resume-title {
-    height: $title-height;
+    @media screen and (max-width: $width-mobile-small) {
+      padding-top: 4px;
+    }
+
+    @supports (grid-area: auto) {
+      position: relative;
+    }
+
+    @supports not (grid-area: auto) {
+      height: $title-height;
+      width: 100%;
+      padding-bottom: 50px;
+    }
   }
 }
 
@@ -169,6 +202,8 @@ $tech-height: 50px;
   .jarbek-resume-prev {
     justify-self: start;
     align-self: center;
+    -ms-grid-row-align: start;
+    -ms-grid-column-align: center;
   }
 }
 
@@ -344,6 +379,8 @@ $tech-height: 50px;
   .jarbek-resume-next {
     justify-self: end;
     align-self: center;
+    -ms-grid-row-align: end;
+    -ms-grid-column-align: center;
   }
 }
 

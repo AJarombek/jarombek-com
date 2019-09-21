@@ -37,6 +37,7 @@ $search-bar-input-border-color: #ccc;
 
 .jarbek-search-bar {
   align-content: center;
+  -ms-grid-column-align: center;
 
   width: $search-bar-width-large;
   height: $search-bar-height-desktop;
@@ -94,7 +95,12 @@ $search-bar-input-border-color: #ccc;
 @supports (grid-area: auto) {
   .jarbek-search-bar {
     display: grid;
+    display: -ms-grid;
+
     grid-template-areas: "input button";
+    -ms-grid-columns: auto auto;
+    -ms-grid-rows: auto;
+
     grid-gap: $search-bar-gap;
     justify-content: center;
   }
