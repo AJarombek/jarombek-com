@@ -5,7 +5,8 @@ yarn-error.log
 node_modules/*
 dist/*
 coverage/*
-src/client/assets/*
+src/client/assets/*.ttf
+src/client/assets/*.otf
 aws.sh
 client-stats.json
 server-stats.json
