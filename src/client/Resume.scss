@@ -36,7 +36,6 @@ $tech-height: 50px;
 
   @supports (grid-area: auto) {
     display: grid;
-    display: -ms-grid;
 
     grid-template-areas:
             "timeline timeline timeline"
@@ -48,21 +47,12 @@ $tech-height: 50px;
                         $title-height
                         $content-height
                         $tech-height;
-    -ms-grid-columns: 1fr 8fr 1fr;
-    -ms-grid-rows: $timeline-height-grid
-                   $title-height
-                   $content-height
-                   $tech-height;
 
     @media screen and (min-width: $width-large-desktop) {
       grid-template-rows: $timeline-height-grid
                           calc(#{$title-height} + 15)
                           $content-height
                           calc(#{$tech-height} + 10);
-      -ms-grid-rows: $timeline-height-grid
-                     calc(#{$title-height} + 15)
-                     $content-height
-                     calc(#{$tech-height} + 10);
     }
   }
 
@@ -80,6 +70,21 @@ $tech-height: 50px;
 
   // IE 9-11
   @media screen and (min-width:0\0) {
+    display: -ms-grid;
+
+    -ms-grid-columns: 1fr 8fr 1fr;
+    -ms-grid-rows: $timeline-height-grid
+                   $title-height
+                   $content-height
+                   $tech-height;
+
+    @media screen and (min-width: $width-large-desktop) {
+      -ms-grid-rows: $timeline-height-grid
+                     calc(#{$title-height} + 15)
+                     $content-height
+                     calc(#{$tech-height} + 10);
+    }
+
     .jarbek-resume-timeline {
       -ms-grid-column: 1;
       -ms-grid-column-span: 3;
@@ -379,8 +384,6 @@ $tech-height: 50px;
   .jarbek-resume-next {
     justify-self: end;
     align-self: center;
-    -ms-grid-row-align: end;
-    -ms-grid-column-align: center;
   }
 }
 
@@ -390,6 +393,14 @@ $tech-height: 50px;
     vertical-align: middle;
     height: 100%;
     width: 5vw;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarbek-resume-next {
+    -ms-grid-row-align: end;
+    -ms-grid-column-align: center;
   }
 }
 
