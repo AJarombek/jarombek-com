@@ -146,7 +146,6 @@ body {
 @supports (grid-area: auto) {
   .jarbek-home-break p {
     display: grid;
-    display: -ms-grid;
     align-content: center;
   }
 }
@@ -156,6 +155,22 @@ body {
     position: absolute;
     left: 50%;
     transform: translate(-50%, 45%);
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarbek-home-break {
+    display: -ms-grid;
+    -ms-grid-column-align: center;
+    -ms-grid-columns: 1fr;
+    -ms-grid-row-align: center;
+    -ms-grid-rows: 1fr 1fr 1fr 1fr 1fr;
+
+    p {
+      -ms-grid-column: 1;
+      -ms-grid-row: 3;
+    }
   }
 }
 

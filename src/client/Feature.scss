@@ -86,18 +86,23 @@
 
     @supports (grid-area: auto) {
       display: grid;
-      display: -ms-grid;
-
       grid-template-columns: 1fr 1fr;
-      -ms-grid-columns: 1fr 1fr;
-      -ms-grid-rows: auto;
-
       grid-gap: 20px;
 
       @media screen and (max-width: $width-mobile + 200) {
         grid-template-columns: 1fr;
-        -ms-grid-columns: 1fr;
         grid-gap: 10px;
+      }
+    }
+
+    // IE 9-11
+    @media screen and (min-width: 0\0) {
+      display: -ms-grid;
+      -ms-grid-columns: 1fr 1fr;
+      -ms-grid-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
+
+      @media screen and (max-width: $width-mobile + 200) {
+        -ms-grid-columns: 1fr;
       }
     }
 
@@ -160,45 +165,55 @@
         }
       }
     }
+  }
 
-    &.jarbek-feature-orientation-left .jarbek-feature-content {
-      // IE 9-11
-      @media screen and (min-width:0\0) {
+  &.jarbek-feature-orientation-left .jarbek-feature-content {
+    // IE 9-11
+    @media screen and (min-width:0\0) {
+      display: block;
+      -ms-grid-column: 1;
+      -ms-grid-row: 3;
+
+      @media screen and (max-width: $width-mobile + 200) {
         -ms-grid-column: 1;
-        -ms-grid-row: 1;
-
-        @media screen and (max-width: $width-mobile + 200) {
-          -ms-grid-column: 1;
-          -ms-grid-row: 1;
-        }
+        -ms-grid-row: 3;
       }
     }
+  }
 
-    &.jarbek-feature-orientation-right .jarbek-feature-content {
+  &.jarbek-feature-orientation-right .jarbek-feature-content {
+    // IE 9-11
+    @media screen and (min-width:0\0) {
+      display: block;
+      -ms-grid-column: 2;
+      -ms-grid-row: 3;
+
+      @media screen and (max-width: $width-mobile + 200) {
+        -ms-grid-column: 1;
+        -ms-grid-row: 3;
+      }
+    }
+  }
+
+  .jarbek-feature-content-picture {
+    @supports (grid-area: auto) {
+      grid-area: picture;
+
+      justify-self: center;
+      align-self: center;
+      -ms-grid-row-align: center;
+      -ms-grid-column-align: center;
+    }
+
+    @supports not (grid-area: auto) {
+      display: none;
+    }
+
+    figure {
+
       // IE 9-11
       @media screen and (min-width:0\0) {
-        -ms-grid-column: 2;
-        -ms-grid-row: 1;
-
-        @media screen and (max-width: $width-mobile + 200) {
-          -ms-grid-column: 1;
-          -ms-grid-row: 1;
-        }
-      }
-    }
-
-    .jarbek-feature-content-picture {
-      @supports (grid-area: auto) {
-        grid-area: picture;
-
-        justify-self: center;
-        align-self: center;
-        -ms-grid-row-align: center;
-        -ms-grid-column-align: center;
-      }
-
-      @supports not (grid-area: auto) {
-        display: none;
+        height: 100%;
       }
 
       img {
@@ -212,32 +227,41 @@
         @media screen and (max-width: $width-mobile + 200) {
           max-height: 45vh;
         }
-      }
-    }
 
-    &.jarbek-feature-orientation-left .jarbek-feature-content-picture {
-      // IE 9-11
-      @media screen and (min-width:0\0) {
-        -ms-grid-column: 2;
-        -ms-grid-row: 1;
-
-        @media screen and (max-width: $width-mobile + 200) {
-          -ms-grid-column: 1;
-          -ms-grid-row: 2;
+        // IE 9-11
+        @media screen and (min-width:0\0) {
+          height: 100%;
+          max-height: none;
+          margin: 0 auto;
+          display: block;
         }
       }
     }
+  }
 
-    &.jarbek-feature-orientation-right .jarbek-feature-content-picture {
-      // IE 9-11
-      @media screen and (min-width:0\0) {
+  &.jarbek-feature-orientation-left .jarbek-feature-content-picture {
+    // IE 9-11
+    @media screen and (min-width:0\0) {
+      -ms-grid-column: 2;
+      -ms-grid-row: 2;
+
+      @media screen and (max-width: $width-mobile + 200) {
         -ms-grid-column: 1;
-        -ms-grid-row: 1;
+        -ms-grid-row: 2;
+      }
+    }
+  }
 
-        @media screen and (max-width: $width-mobile + 200) {
-          -ms-grid-column: 1;
-          -ms-grid-row: 2;
-        }
+  &.jarbek-feature-orientation-right .jarbek-feature-content-picture {
+    // IE 9-11
+    @media screen and (min-width:0\0) {
+      -ms-grid-column: 1;
+      -ms-grid-row: 2;
+      -ms-grid-row-span: 4;
+
+      @media screen and (max-width: $width-mobile + 200) {
+        -ms-grid-column: 1;
+        -ms-grid-row: 2;
       }
     }
   }
