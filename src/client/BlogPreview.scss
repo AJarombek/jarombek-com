@@ -26,7 +26,6 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
 @supports (grid-area: auto) {
   .jarombek-blog-preview {
     display: grid;
-    display: -ms-grid;
 
     grid-template-columns: $blog-preview-grid-desktop;
     grid-template-areas:
@@ -35,19 +34,15 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
            "tags    tags    tags   "
            "content content content"
            "  .     footer    .    ";
-    -ms-grid-columns: $blog-preview-grid-desktop;
-    -ms-grid-rows: auto auto auto auto auto;
 
     // For small desktop screens, reduce the padding on the side of the post contents in half
     @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
       grid-template-columns: $blog-preview-grid-mobile-large;
-      -ms-grid-columns: $blog-preview-grid-mobile-large;
     }
 
     // For mobile screens, make the padding on the side of posts nearly non-existent
     @media screen and (max-width: $width-mobile) {
       grid-template-columns: $blog-preview-grid-mobile-small;
-      -ms-grid-columns: $blog-preview-grid-mobile-small;
     }
   }
 }
@@ -58,21 +53,32 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
   }
 }
 
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-preview {
+    display: -ms-grid;
+
+    -ms-grid-columns: $blog-preview-grid-desktop;
+    -ms-grid-rows: auto auto auto auto auto;
+
+    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+      -ms-grid-columns: $blog-preview-grid-mobile-large;
+    }
+
+    @media screen and (max-width: $width-mobile) {
+      -ms-grid-columns: $blog-preview-grid-mobile-small;
+    }
+  }
+}
+
 @supports (grid-area: auto) {
   .jarombek-blog-preview-headers {
     grid-area: header;
-    -ms-grid-column: 1;
-    -ms-grid-column-span: 3;
-    -ms-grid-row: 1;
 
     display: grid;
-    display: -ms-grid;
 
     grid-template-columns: 1fr 1fr;
     grid-template-areas: "header-type header-date";
-    -ms-grid-columns: 1fr 1fr;
-    -ms-grid-rows: auto;
-
     grid-gap: 10px;
   }
 }
@@ -82,6 +88,20 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
     display: table;
     height: 45px;
     width: 100%;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-preview-headers {
+    -ms-grid-column: 1;
+    -ms-grid-column-span: 3;
+    -ms-grid-row: 1;
+
+    display: -ms-grid;
+
+    -ms-grid-columns: 1fr 1fr;
+    -ms-grid-rows: auto;
   }
 }
 
@@ -107,10 +127,16 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
 @supports (grid-area: auto) {
   .jarombek-blog-preview-type {
     grid-area: header-type;
+    justify-self: start;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-preview-type {
     -ms-grid-column: 1;
     -ms-grid-row: 1;
 
-    justify-self: start;
     -ms-grid-row-align: start;
   }
 }
@@ -129,10 +155,16 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
 @supports (grid-area: auto) {
   .jarombek-blog-preview-date {
     grid-area: header-date;
+    justify-self: end;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-preview-date {
     -ms-grid-column: 2;
     -ms-grid-row: 1;
 
-    justify-self: end;
     -ms-grid-row-align: end;
   }
 }
@@ -149,11 +181,15 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
 }
 
 @each $field in 'title', 'tags', 'content', 'footer' {
-  @supports (grid-area: auto) {
-    .jarombek-blog-preview-#{$field} {
+  .jarombek-blog-preview-#{$field} {
+    @supports (grid-area: auto) {
       grid-area: #{$field};
       justify-self: center;
       align-self: center;
+    }
+
+    // IE 9-11
+    @media screen and (min-width:0\0) {
       -ms-grid-row-align: center;
       -ms-grid-column-align: center;
     }
