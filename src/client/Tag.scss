@@ -387,7 +387,7 @@ $default: rgba(204, 204, 204, 0.6);
 // IE 9-11
 @media screen and (min-width:0\0) {
   .jarombek-tag-small div {
-    display: -ms-grid;
+    display: -ms-flexbox;
   }
 }
 
