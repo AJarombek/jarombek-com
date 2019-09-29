@@ -28,21 +28,17 @@ $blog-post-padding-mobile: 2;
     right: $post-margin;
     bottom: 40px;
   }
-}
 
-@supports (grid-area: auto) {
-  .jarombek-blog-post {
+  $p-desktop-l: $blog-post-padding-desktop-large + 0%;
+  $p-desktop-s: $blog-post-padding-desktop-small + 0%;
+  $p-mobile: $blog-post-padding-mobile + 0%;
 
-    $p-desktop-l: $blog-post-padding-desktop-large + 0%;
-    $p-desktop-s: $blog-post-padding-desktop-small + 0%;
-    $p-mobile: $blog-post-padding-mobile + 0%;
+  $w-desktop-l: calc(100% - (#{$p-desktop-l} * 2));
+  $w-desktop-s: calc(100% - (#{$p-desktop-s} * 2));
+  $w-mobile: calc(100% - (#{$p-mobile} * 2));
 
-    $w-desktop-l: calc(100% - (#{$p-desktop-l} * 2));
-    $w-desktop-s: calc(100% - (#{$p-desktop-s} * 2));
-    $w-mobile: calc(100% - (#{$p-mobile} * 2));
-
+  @supports (grid-area: auto) {
     display: grid;
-    display: -ms-grid;
 
     grid-template-columns: $p-desktop-l $w-desktop-l $p-desktop-l;
     grid-template-areas:
@@ -51,18 +47,30 @@ $blog-post-padding-mobile: 2;
             " .    tags    .  "
             " .   content  .  "
             " .   sources  .  ";
-    -ms-grid-columns: $p-desktop-l $w-desktop-l $p-desktop-l;
-    -ms-grid-rows: auto auto auto auto auto;
 
     // For small desktop screens, reduce the padding on the side of the post contents in half
     @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
       grid-template-columns: $p-desktop-s $w-desktop-s $p-desktop-s;
-      -ms-grid-columns: $p-desktop-s $w-desktop-s $p-desktop-s;
     }
 
     // For mobile screens, make the padding on the side of posts nearly non-existent
     @media screen and (max-width: $width-mobile) {
       grid-template-columns: $p-mobile $w-mobile $p-mobile;
+    }
+  }
+
+  // IE 9-11
+  @media screen and (min-width:0\0) {
+    display: -ms-grid;
+
+    -ms-grid-columns: $p-desktop-l $w-desktop-l $p-desktop-l;
+    -ms-grid-rows: auto auto auto auto auto;
+
+    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+      -ms-grid-columns: $p-desktop-s $w-desktop-s $p-desktop-s;
+    }
+
+    @media screen and (max-width: $width-mobile) {
       -ms-grid-columns: $p-mobile $w-mobile $p-mobile;
     }
   }
@@ -92,38 +100,31 @@ $blog-post-padding-mobile: 2;
     .jarombek-blog-#{$header} {
       justify-self: center;
       align-self: center;
-      -ms-grid-row-align: center;
-      -ms-grid-column-align: center;
     }
+  }
+
+  // IE 9-11
+  @media screen and (min-width:0\0) {
+    -ms-grid-row-align: center;
+    -ms-grid-column-align: center;
   }
 }
 
 @supports (grid-area: auto) {
   .jarombek-blog-headers {
     grid-area: head;
-    -ms-grid-column: 1;
-    -ms-grid-column-span: 3;
-    -ms-grid-row: 1;
 
     display: grid;
-    display: -ms-grid;
-
     grid-template-columns: 25% 50% 25%;
     grid-template-areas: "type  .  date";
-    -ms-grid-columns: 25% 50% 25%;
-    -ms-grid-rows: auto;
   }
 
   .jarombek-blog-type {
     grid-area: type;
-    -ms-grid-column: 1;
-    -ms-grid-row: 1;
   }
 
   .jarombek-blog-date {
     grid-area: date;
-    -ms-grid-column: 3;
-    -ms-grid-row: 1;
   }
 }
 
@@ -153,6 +154,29 @@ $blog-post-padding-mobile: 2;
   }
 }
 
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-headers {
+    -ms-grid-column: 1;
+    -ms-grid-column-span: 3;
+    -ms-grid-row: 1;
+
+    display: -ms-grid;
+    -ms-grid-columns: 25% 50% 25%;
+    -ms-grid-rows: auto;
+  }
+
+  .jarombek-blog-type {
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+  }
+
+  .jarombek-blog-date {
+    -ms-grid-column: 3;
+    -ms-grid-row: 1;
+  }
+}
+
 .jarombek-blog-title {
   padding-top: 35px;
   padding-bottom: 50px;
@@ -163,11 +187,19 @@ $blog-post-padding-mobile: 2;
 @supports (grid-area: auto) {
   .jarombek-blog-title {
     grid-area: title;
-    -ms-grid-column: 2;
-    -ms-grid-row: 2;
 
     justify-self: center;
     align-self: center;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-title {
+    display: block;
+    -ms-grid-column: 2;
+    -ms-grid-row: 2;
+
     -ms-grid-row-align: center;
     -ms-grid-column-align: center;
   }
@@ -204,8 +236,6 @@ $blog-post-padding-mobile: 2;
 @supports (grid-area: auto) {
   .jarombek-blog-tags {
     grid-area: tags;
-    -ms-grid-column: 2;
-    -ms-grid-row: 3;
   }
 }
 
@@ -213,6 +243,14 @@ $blog-post-padding-mobile: 2;
   .jarombek-blog-tags {
     display: table;
     margin: 0 auto;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-tags {
+    -ms-grid-column: 2;
+    -ms-grid-row: 3;
   }
 }
 
@@ -224,6 +262,12 @@ $blog-post-padding-mobile: 2;
 @supports (grid-area: auto) {
   .jarombek-blog-content {
     grid-area: content;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-content {
     -ms-grid-column: 2;
     -ms-grid-row: 4;
   }
@@ -258,6 +302,12 @@ $blog-post-padding-mobile: 2;
 @supports (grid-area: auto) {
   .jarombek-blog-sources {
     grid-area: sources;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-sources {
     -ms-grid-column: 2;
     -ms-grid-row: 5;
   }
