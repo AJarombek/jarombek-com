@@ -22,12 +22,17 @@ $blog-list-large: $width-small-desktop + 1200;
 @supports (grid-area: auto) {
   .jarombek-blog-list {
     display: grid;
-    display: -ms-grid;
     grid-template-areas: "search"
                          "posts";
+    grid-gap: 20px;
+  }
+}
+
+@media screen and (min-width:0\0) {
+  .jarombek-blog-list {
+    display: -ms-grid;
     -ms-grid-columns: auto;
     -ms-grid-rows: auto auto;
-    grid-gap: 20px;
   }
 }
 
@@ -50,16 +55,24 @@ $blog-list-large: $width-small-desktop + 1200;
 @supports (grid-area: auto) {
   .jarombek-blog-list-search {
     grid-area: search;
+    justify-self: start;
+    align-self: center;
+
+    @media screen and (max-width: $blog-list-small) {
+      justify-self: normal;
+    }
+  }
+}
+
+@media screen and (min-width:0\0) {
+  .jarombek-blog-list-search {
     -ms-grid-column: 1;
     -ms-grid-row: 1;
 
-    justify-self: start;
-    align-self: center;
     -ms-grid-row-align: start;
     -ms-grid-column-align: center;
 
     @media screen and (max-width: $blog-list-small) {
-      justify-self: normal;
       -ms-grid-row-align: stretch;
     }
   }
@@ -91,32 +104,46 @@ $blog-list-large: $width-small-desktop + 1200;
 @supports (grid-area: auto) {
   .jarombek-posts-grid {
     grid-area: posts;
-    -ms-grid-column: 1;
-    -ms-grid-row: 2;
 
     display: grid;
-    display: -ms-grid;
-
     grid-template-columns: 1fr 1fr 1fr;
-    -ms-grid-columns: 1fr 1fr 1fr;
     grid-gap: 20px;
 
     @media screen and (max-width: $blog-list-large) and (min-width: $blog-list-medium + 1) {
       grid-template-columns: 1fr 1fr;
-      -ms-grid-columns: 1fr 1fr;
       grid-gap: 20px;
     }
 
     @media screen and (max-width: $blog-list-medium) and (min-width: $blog-list-small + 1) {
       grid-template-columns: 1fr;
-      -ms-grid-columns: 1fr;
       grid-gap: 10px;
     }
 
     @media screen and (max-width: $blog-list-small) {
       grid-template-columns: 1fr;
-      -ms-grid-columns: 1fr;
       grid-gap: 5px;
+    }
+  }
+}
+
+@media screen and (min-width:0\0) {
+  .jarombek-posts-grid {
+    -ms-grid-column: 1;
+    -ms-grid-row: 2;
+
+    display: -ms-grid;
+    -ms-grid-columns: 1fr 1fr 1fr;
+
+    @media screen and (max-width: $blog-list-large) and (min-width: $blog-list-medium + 1) {
+      -ms-grid-columns: 1fr 1fr;
+    }
+
+    @media screen and (max-width: $blog-list-medium) and (min-width: $blog-list-small + 1) {
+      -ms-grid-columns: 1fr;
+    }
+
+    @media screen and (max-width: $blog-list-small) {
+      -ms-grid-columns: 1fr;
     }
   }
 }
@@ -130,6 +157,11 @@ $blog-list-large: $width-small-desktop + 1200;
 @supports (grid-area: auto) {
   .jarombek-blog-list-none {
     grid-area: posts;
+  }
+}
+
+@media screen and (min-width:0\0) {
+  .jarombek-blog-list-none {
     -ms-grid-column: 1;
     -ms-grid-row: 2;
   }

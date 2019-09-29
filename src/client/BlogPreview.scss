@@ -57,6 +57,7 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
 @media screen and (min-width:0\0) {
   .jarombek-blog-preview {
     display: -ms-grid;
+    margin-bottom: 20px;
 
     -ms-grid-columns: $blog-preview-grid-desktop;
     -ms-grid-rows: auto auto auto auto auto;
@@ -193,6 +194,33 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
       -ms-grid-row-align: center;
       -ms-grid-column-align: center;
     }
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-blog-preview-title {
+    display: block;
+    -ms-grid-column: 2;
+    -ms-grid-row: 2;
+  }
+
+  .jarombek-blog-preview-tags {
+    -ms-grid-column: 1;
+    -ms-grid-column-span: 3;
+    -ms-grid-row: 3;
+  }
+
+  .jarombek-blog-preview-content {
+    -ms-grid-column: 1;
+    -ms-grid-column-span: 3;
+    -ms-grid-row: 4;
+  }
+
+  .jarombek-blog-preview-footer {
+    display: block;
+    -ms-grid-column: 2;
+    -ms-grid-row: 5;
   }
 }
 
