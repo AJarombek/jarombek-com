@@ -21,20 +21,21 @@ const PATHS = {
     serverBuild: path.join(__dirname, 'dist/server/')
 };
 
-const PUBLIC_PATH = (process.env.NODE_ENV === 'local') ?
-    'http://localhost:8080/' :
-    'https://jarombek.com/';
-
 console.log(`NODE_ENV = ${process.env.NODE_ENV}`);
 
-let ENV = JSON.stringify('production');
-
-if (process.env.NODE_ENV === 'local') {
-    ENV = JSON.stringify('local');
-}
-
-if (process.env.NODE_ENV === 'development') {
-    ENV = JSON.stringify('development');
+let ENV, PUBLIC_PATH;
+switch (process.env.NODE_ENV) {
+    case 'local':
+        ENV = 'local';
+        PUBLIC_PATH = 'http://localhost:8080/';
+        break;
+    case 'development':
+        ENV = 'development';
+        PUBLIC_PATH = 'https://jarombek.com/';
+        break;
+    default:
+        ENV = 'production';
+        PUBLIC_PATH = 'https://jarombek.com/';
 }
 
 /**

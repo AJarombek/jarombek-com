@@ -10,5 +10,5 @@ Source code for the `jarombek.com` website.  Separated into two groups:
 
 | Directory Name    | Description                                                                 |
 |-------------------|-----------------------------------------------------------------------------|
-| `client`          | The websites server code (JavaScript, Sass).                                |
-| `server`          | The websites client code (JavaScript).                                      |
+| `client`          | The websites client code (JavaScript, Sass).                                |
+| `server`          | The websites server code (JavaScript).                                      |

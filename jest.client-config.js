@@ -12,7 +12,7 @@ module.exports = {
     maxConcurrency: 5,
     moduleNameMapper: {
         "\\.(scss|css)$": "jest-css-modules",
-        "\\.(png|ttf)$": "mocks/fileMock.js"
+        "\\.(png|ttf)$": "../../mocks/fileMock.js"
     },
     transform: {
         "^.+\\.js$": "babel-jest"
@@ -20,15 +20,14 @@ module.exports = {
     collectCoverage: true,
     collectCoverageFrom: ["src/client/**/*.js"],
     coveragePathIgnorePatterns: [
-        "src/client/index.js",
-        "src/client/status/*"
+        "src/client/index.js"
     ],
     coverageThreshold: {
         "global": {
-            "branches": 1,
-            "functions": 1,
-            "lines": 1,
-            "statements": 1
+            "branches": 100,
+            "functions": 100,
+            "lines": 100,
+            "statements": 100
         }
     },
     // https://github.com/jsdom/jsdom/issues/2304#issuecomment-408324623

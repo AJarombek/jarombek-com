@@ -56,6 +56,10 @@ $oracle-red: rgba(237, 56, 51, 0.6);
 $unicode-red: rgba(255, 229, 229, 0.6);
 $aws-s3-red: rgba(224, 82, 67, 0.6);
 $aws-sm-red: rgba(214, 50, 46, 0.6);
+$sql-server-red: rgba(187, 75, 77, 0.6);
+$jest-red: rgba(153, 66, 91, 0.6);
+$enzyme-red: rgba(254, 89, 94, 0.6);
+$npm-red: rgba(204, 53, 51, 0.6);
 $html-orange: rgba(239, 101, 55, 0.6);
 $rabbitmq-orange: rgba(239, 100, 55, 0.6);
 $yaml-orange: rgba(239, 145, 62, 0.6);
@@ -227,6 +231,22 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-awssm {
   background-color: $aws-sm-red;
+}
+
+.jarombek-tag-color-sqlserver {
+  background-color: lighten($sql-server-red, 10%);
+}
+
+.jarombek-tag-color-jest {
+  background-color: $jest-red;
+}
+
+.jarombek-tag-color-enzyme {
+  background-color: lighten($enzyme-red, 10%);
+}
+
+.jarombek-tag-color-npm {
+  background-color: lighten($npm-red, 10%);
 }
 
 .jarombek-tag-color-html {

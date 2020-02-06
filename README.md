@@ -48,7 +48,7 @@ infrastructure as code.
 | `setup.sh`               | Bash commands for setting up the application.                              |
 | `webpack.config.js`      | Main webpack configuration file.                                           |
 | `webpack.parts.js`       | Smaller webpack parts to combine with the main configuration.              |
-| `.yarn.lock`             | where Yarn stores the versions of each dependency.                         |
+| `.yarn.lock`             | Where Yarn stores the versions of each dependency.                         |
 
 ### Version History
 
