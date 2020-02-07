@@ -36,7 +36,6 @@ $tech-height: 50px;
 
   @supports (grid-area: auto) {
     display: grid;
-    display: -ms-grid;
 
     grid-template-areas:
             "timeline timeline timeline"
@@ -47,22 +46,13 @@ $tech-height: 50px;
     grid-template-rows: $timeline-height-grid
                         $title-height
                         $content-height
-                        $tech-height;
-    -ms-grid-columns: 1fr 8fr 1fr;
-    -ms-grid-rows: $timeline-height-grid
-                   $title-height
-                   $content-height
-                   $tech-height;
+                        calc(#{$tech-height} + 25px);
 
     @media screen and (min-width: $width-large-desktop) {
       grid-template-rows: $timeline-height-grid
-                          calc(#{$title-height} + 15)
+                          calc(#{$title-height} + 25px)
                           $content-height
-                          calc(#{$tech-height} + 10);
-      -ms-grid-rows: $timeline-height-grid
-                     calc(#{$title-height} + 15)
-                     $content-height
-                     calc(#{$tech-height} + 10);
+                          calc(#{$tech-height} + 35px);
     }
   }
 
@@ -80,6 +70,21 @@ $tech-height: 50px;
 
   // IE 9-11
   @media screen and (min-width:0\0) {
+    display: -ms-grid;
+
+    -ms-grid-columns: 1fr 8fr 1fr;
+    -ms-grid-rows: $timeline-height-grid
+                   $title-height
+                   $content-height
+                   calc(#{$tech-height} + 25px);
+
+    @media screen and (min-width: $width-large-desktop) {
+      -ms-grid-rows: $timeline-height-grid
+                     calc(#{$title-height} + 25px)
+                     $content-height
+                     calc(#{$tech-height} + 35px);
+    }
+
     .jarbek-resume-timeline {
       -ms-grid-column: 1;
       -ms-grid-column-span: 3;
@@ -94,6 +99,10 @@ $tech-height: 50px;
     .jarbek-resume-prev {
       -ms-grid-column: 1;
       -ms-grid-row: 3;
+
+      display: -ms-flexbox;
+      align-items: center;
+      justify-content: center;
     }
 
     .jarbek-resume-content {
@@ -104,6 +113,10 @@ $tech-height: 50px;
     .jarbek-resume-next {
       -ms-grid-column: 3;
       -ms-grid-row: 3;
+
+      display: -ms-flexbox;
+      align-items: center;
+      justify-content: center;
     }
 
     .jarbek-resume-tech {
@@ -133,22 +146,23 @@ $tech-height: 50px;
       width: 100%;
       padding-bottom: 50px;
     }
-  }
-}
 
-.jarbek-resume-title > div {
-  position: absolute;
-}
+    & > div {
+      position: absolute;
 
-@supports (grid-area: auto) {
-  .jarbek-resume-title > div {
-    width: 100%;
-  }
-}
+      @supports (grid-area: auto) {
+        width: 100%;
+      }
 
-@supports not (grid-area: auto) {
-  .jarbek-resume-title > div {
-    width: 96%;
+      @supports not (grid-area: auto) {
+        width: 96%;
+      }
+
+      // IE 9-11
+      @media screen and (min-width:0\0) {
+        position: static;
+      }
+    }
   }
 }
 
@@ -175,6 +189,13 @@ $tech-height: 50px;
 }
 
 @supports not (grid-area: auto) {
+  .jarbek-resume-title-just-viewed-right, .jarbek-resume-title-just-viewed-left {
+    display: none;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
   .jarbek-resume-title-just-viewed-right, .jarbek-resume-title-just-viewed-left {
     display: none;
   }
@@ -273,11 +294,15 @@ $tech-height: 50px;
     height: 100px;
     z-index: 1;
     content: "";
-    bottom: 50px;
+    bottom: 75px;
     left: 0;
 
     @media screen and (max-width: $width-mobile) {
       display: none;
+    }
+
+    @media screen and (min-width: $width-large-desktop) {
+      bottom: 85px;
     }
   }
 }
@@ -371,6 +396,13 @@ $tech-height: 50px;
   }
 }
 
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarbek-resume-content-just-viewed-right, .jarbek-resume-content-just-viewed-left {
+    display: none;
+  }
+}
+
 .jarbek-resume-content > div > p {
   margin-bottom: 25px;
 }
@@ -379,8 +411,6 @@ $tech-height: 50px;
   .jarbek-resume-next {
     justify-self: end;
     align-self: center;
-    -ms-grid-row-align: end;
-    -ms-grid-column-align: center;
   }
 }
 
@@ -437,23 +467,30 @@ $tech-height: 50px;
     white-space: nowrap;
     overflow-x: scroll;
   }
-}
 
-@supports (grid-area: auto) {
-  .jarbek-resume-tech {
+  @supports (grid-area: auto) {
     position: relative;
   }
-}
 
-@supports not (grid-area: auto) {
-  .jarbek-resume-tech {
+  @supports not (grid-area: auto) {
     display: none;
   }
-}
 
-.jarbek-resume-tech > div {
-  position: absolute;
-  width: 100%;
+  // IE 9-11
+  @media screen and (min-width:0\0) {
+    display: -ms-flexbox;
+    justify-content: center;
+  }
+
+  & > div {
+    position: absolute;
+    width: 100%;
+
+    // IE 9-11
+    @media screen and (min-width:0\0) {
+      position: static;
+    }
+  }
 }
 
 .jarbek-resume-tech strong {
@@ -496,6 +533,13 @@ $tech-height: 50px;
 
   .jarbek-resume-tech-just-viewed-right {
     animation: slide-out-right 1s forwards;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarbek-resume-tech-just-viewed-left, .jarbek-resume-tech-just-viewed-right {
+    display: none;
   }
 }
 

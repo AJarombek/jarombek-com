@@ -22,164 +22,196 @@
   @media screen and (max-width: $width-mobile-small) {
     height: 55px;
   }
-}
 
-@supports (grid-area: auto) {
-  .jarombek-nav {
+  @supports (grid-area: auto) {
     display: grid;
-    display: -ms-grid;
 
     grid-template-columns: [start] 20% [begin-title] 60% [end-title] 20% [end];
     grid-template-rows: [start] 100% [end];
-    -ms-grid-columns: 20% 60% 20%;
-    -ms-grid-rows: 100%;
 
     @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
       grid-template-columns: [start] 30% [begin-title] 40% [end-title] 30% [end];
-      -ms-grid-columns: 30% 40% 30%;
     }
 
     // Mobile screens remove the left container from the grid
     @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
       grid-template-columns: [start] 0 [begin-title] 60% [end-title] 40% [end];
-      -ms-grid-columns: 0 60% 40%;
     }
 
     @media screen and (max-width: $width-mobile-small) {
       grid-template-columns: [start] 0 [begin-title] 60% [end-title] 40% [end];
-      -ms-grid-columns: 0 60% 40%;
     }
   }
-}
 
-@supports not (grid-area: auto) {
-  .jarombek-nav {
+  @supports not (grid-area: auto) {
     display: table;
     width: 100%;
     height: 70px;
   }
-}
 
-@each $nav in 'left', 'right', 'middle' {
-  .jarombek-nav-#{$nav} {
-    text-decoration: none;
+  // IE 9-11
+  @media screen and (min-width: 0\0) {
+    display: -ms-grid;
 
-    align-self: center;
-    -ms-grid-column-align: center;
+    -ms-grid-columns: 20% 60% 20%;
+    -ms-grid-rows: 100%;
+
+    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+      -ms-grid-columns: 30% 40% 30%;
+    }
+
+    // Mobile screens remove the left container from the grid
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      -ms-grid-columns: 0 60% 40%;
+    }
+
+    @media screen and (max-width: $width-mobile-small) {
+      -ms-grid-columns: 0 60% 40%;
+    }
   }
 
-  @supports (grid-area: auto) {
+  @each $nav in 'left', 'right', 'middle' {
     .jarombek-nav-#{$nav} {
-      justify-self: center;
-      -ms-grid-row-align: center;
+      text-decoration: none;
+      align-self: center;
+
+      @supports (grid-area: auto) {
+        justify-self: center;
+      }
     }
   }
-}
 
-.jarombek-nav-left {
-  color: #666;
-  font-size: 18px;
-  @include transition("color", #000, $speed: ease-in-out);
-
-  // Make the blog link invisible on mobile screens
-  @media screen and (max-width: $width-mobile) {
-    visibility: hidden;
-  }
-}
-
-@supports not (grid-area: auto) {
   .jarombek-nav-left {
-    display: table-cell;
-    vertical-align: middle;
-    height: 100%;
-    width: 20%;
+    color: #666;
+    font-size: 18px;
+    @include transition("color", #000, $speed: ease-in-out);
 
-    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-      width: 30%;
-    }
-
+    // Make the blog link invisible on mobile screens
     @media screen and (max-width: $width-mobile) {
-      width: 0;
-      display: none;
+      visibility: hidden;
+    }
+
+    @supports not (grid-area: auto) {
+      display: table-cell;
+      vertical-align: middle;
+      height: 100%;
+      width: 20%;
+
+      @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+        width: 30%;
+      }
+
+      @media screen and (max-width: $width-mobile) {
+        width: 0;
+        display: none;
+      }
+    }
+
+    // IE 9-11
+    @media screen and (min-width: 0\0) {
+      -ms-grid-column: 1;
+      -ms-grid-row: 1;
+      display: block;
+
+      figure {
+        display: -ms-flexbox;
+        height: 100%;
+
+        img {
+          margin: auto;
+        }
+      }
+    }
+
+    img {
+      height: 45px;
+
+      @supports not (grid-area: auto) {
+        display: block;
+        margin: 0 auto;
+      }
     }
   }
-}
 
-.jarombek-nav-left img {
-  height: 45px;
-}
-
-@supports not (grid-area: auto) {
-  .jarombek-nav-left img {
-    display: block;
-    margin: 0 auto;
-  }
-}
-
-.jarombek-nav-middle {
-  color: #333;
-  font-size: 32px;
-  @include transition("color", #000, $speed: ease-in-out);
-
-  // Move the website title from the middle to the left on mobile screens
-  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
-    margin-left: 50px;
-    font-size: 28px;
-  }
-
-  @media screen and (max-width: $width-mobile-small) {
-    margin-left: 15px;
-    font-size: 22px;
-  }
-}
-
-@supports not (grid-area: auto) {
   .jarombek-nav-middle {
-    display: table-cell;
-    vertical-align: middle;
-    text-align: center;
-    height: 100%;
-    width: 60%;
+    color: #333;
+    font-size: 32px;
+    @include transition("color", #000, $speed: ease-in-out);
 
-    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-      width: 40%;
+    // Move the website title from the middle to the left on mobile screens
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      margin-left: 50px;
+      font-size: 28px;
     }
 
-    @media screen and (max-width: $width-mobile) {
+    @media screen and (max-width: $width-mobile-small) {
+      margin-left: 15px;
+      font-size: 22px;
+    }
+
+    @supports not (grid-area: auto) {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: center;
+      height: 100%;
       width: 60%;
+
+      @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+        width: 40%;
+      }
+
+      @media screen and (max-width: $width-mobile) {
+        width: 60%;
+      }
+    }
+
+    @supports (grid-area: auto) {
+      @media screen and (max-width: $width-mobile) {
+        justify-self: left;
+        -ms-grid-row-align: start;
+      }
+    }
+
+    // IE 9-11
+    @media screen and (min-width: 0\0) {
+      -ms-grid-column: 2;
+      -ms-grid-row: 1;
+
+      display: -ms-flexbox;
+      justify-content: center;
+      align-items: center;
     }
   }
-}
 
-@supports (grid-area: auto) {
-  .jarombek-nav-middle {
-    @media screen and (max-width: $width-mobile) {
-      justify-self: left;
-      -ms-grid-row-align: start;
-    }
-  }
-}
-
-@supports not (grid-area: auto) {
   .jarombek-nav-right {
-    display: table-cell;
-    vertical-align: middle;
-    height: 100%;
-    width: 20%;
+    @supports not (grid-area: auto) {
+      display: table-cell;
+      vertical-align: middle;
+      height: 100%;
+      width: 20%;
 
-    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-      width: 30%;
+      @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+        width: 30%;
+      }
+
+      @media screen and (max-width: $width-mobile) {
+        width: 40%;
+      }
+
+      button {
+        display: block;
+        margin: 0 auto;
+      }
     }
 
-    @media screen and (max-width: $width-mobile) {
-      width: 40%;
-    }
-  }
-}
+    // IE 9-11
+    @media screen and (min-width: 0\0) {
+      -ms-grid-column: 3;
+      -ms-grid-row: 1;
 
-@supports not (grid-area: auto) {
-  .jarombek-nav-right button {
-    display: block;
-    margin: 0 auto;
+      display: -ms-flexbox;
+      align-items: center;
+      justify-content: center;
+    }
   }
 }

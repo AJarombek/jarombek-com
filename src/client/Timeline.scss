@@ -23,185 +23,189 @@ $timeline-offset-mobile-s: -25px;
 
 @supports not (display: flex) {
   .jarbek-timeline-section {
-    display: none;
+    display: none !important;
   }
 }
 
-@supports (display: flex) {
-  .jarbek-timeline {
-    width: 100%;
-    margin-left: $timeline-offset-desktop-xl;
+.jarbek-timeline {
+  width: 100%;
+  margin-left: $timeline-offset-desktop-xl;
 
-    @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
-      margin-left: $timeline-offset-desktop-l;
-    }
-
-    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-      margin-left: $timeline-offset-desktop-s;
-    }
-
-    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
-      margin-left: $timeline-offset-mobile-l;
-    }
-
-    @media screen and (max-width: $width-mobile-small) {
-      margin-left: $timeline-offset-mobile-s;
-    }
+  @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+    margin-left: $timeline-offset-desktop-l;
   }
 
-  .jarbek-timeline > div {
-    width: 100%;
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    margin-left: $timeline-offset-desktop-s;
   }
 
-  .jarbek-timeline > div {
-    display: flex;
-    display: -ms-flexbox;
-
-    justify-content: center;
-    align-content: center;
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    margin-left: $timeline-offset-mobile-l;
   }
 
-  .jarbek-timeline-section {
-    display: grid;
-    display: -ms-grid;
+  @media screen and (max-width: $width-mobile-small) {
+    margin-left: $timeline-offset-mobile-s;
+  }
+}
 
-    grid-template-columns: 9fr 1fr;
-    grid-template-areas:
-            "line point"
-            ".    label";
-    -ms-grid-columns: 9fr 1fr;
-    -ms-grid-rows: auto auto;
+.jarbek-timeline > div {
+  width: 100%;
+}
 
-    width: 150px;
+.jarbek-timeline > div {
+  display: flex;
+  display: -ms-flexbox;
 
-    @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
-      width: 140px;
-    }
+  justify-content: center;
+  align-content: center;
+}
 
-    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-      width: 120px;
-    }
+.jarbek-timeline-section {
+  display: grid;
+  display: -ms-grid;
 
-    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
-      width: 90px;
-    }
+  grid-template-columns: 9fr 1fr;
+  grid-template-areas:
+          "line point"
+          ".    label";
+  -ms-grid-columns: 9fr 1fr;
+  -ms-grid-rows: auto auto;
 
-    @media screen and (max-width: $width-mobile-small) {
-      width: 70px;
-    }
+  width: 150px;
+
+  @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+    width: 140px;
   }
 
-  .jarbek-timeline-point {
-    grid-area: point;
-    -ms-grid-column: 2;
-    -ms-grid-row: 1;
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    width: 120px;
+  }
 
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    width: 90px;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    width: 70px;
+  }
+}
+
+.jarbek-timeline-point {
+  grid-area: point;
+  -ms-grid-column: 2;
+  -ms-grid-row: 1;
+
+  background-color: $color-default;
+  width: $circle-dimension;
+  height: $circle-dimension;
+
+  border-radius: 50%;
+
+  @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+    width: $circle-dimension-desktop-large;
+    height: $circle-dimension-desktop-large;
+  }
+
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    width: $circle-dimension-desktop;
+    height: $circle-dimension-desktop;
+  }
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    width: $circle-dimension-mobile;
+    height: $circle-dimension-mobile;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    width: $circle-dimension-mobile-small;
+    height: $circle-dimension-mobile-small;
+  }
+}
+
+.jarbek-timeline-point-active {
+  background-color: $color-secondary;
+  box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
+  animation: activate 1s;
+}
+
+.jarbek-timeline-point-inactive {
+  animation: deactivate 0.5s;
+}
+
+.jarbek-timeline-line {
+  grid-area: line;
+  -ms-grid-column: 1;
+  -ms-grid-row: 1;
+
+  background-color: $color-default;
+  height: 5px;
+  margin-right: -5px;
+  align-self: center;
+
+  // IE 9-11
+  @media screen and (min-width:0\0) {
+    margin-top: 13px;
+    margin-left: 18px;
+  }
+}
+
+.jarbek-timeline-line-active {
+  background-color: $color-secondary;
+  height: 7px;
+  box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
+  animation: activate 0.5s;
+}
+
+.jarbek-timeline-line-inactive {
+  animation: deactivate 1s;
+}
+
+.jarbek-timeline-label {
+  @include longway;
+  grid-area: label;
+  -ms-grid-column: 2;
+  -ms-grid-row: 2;
+
+  text-align: center;
+  font-size: 18px;
+
+  @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
+    font-size: 16px;
+  }
+
+  @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
+    font-size: 14px;
+  }
+
+  @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+    font-size: 12px;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    font-size: 10px;
+  }
+}
+
+@keyframes activate {
+  0% {
     background-color: $color-default;
-    width: $circle-dimension;
-    height: $circle-dimension;
-
-    border-radius: 50%;
-
-    @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
-      width: $circle-dimension-desktop-large;
-      height: $circle-dimension-desktop-large;
-    }
-
-    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-      width: $circle-dimension-desktop;
-      height: $circle-dimension-desktop;
-    }
-
-    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
-      width: $circle-dimension-mobile;
-      height: $circle-dimension-mobile;
-    }
-
-    @media screen and (max-width: $width-mobile-small) {
-      width: $circle-dimension-mobile-small;
-      height: $circle-dimension-mobile-small;
-    }
+    box-shadow: 0 0 0 rgba(0,0,0,0);
   }
 
-  .jarbek-timeline-point-active {
+  100% {
     background-color: $color-secondary;
     box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
-    animation: activate 1s;
   }
+}
 
-  .jarbek-timeline-point-inactive {
-    animation: deactivate 0.5s;
-  }
-
-  .jarbek-timeline-line {
-    grid-area: line;
-    -ms-grid-column: 1;
-    -ms-grid-row: 1;
-
-    background-color: $color-default;
-    height: 5px;
-    margin-right: -5px;
-    align-self: center;
-  }
-
-  .jarbek-timeline-line-active {
+@keyframes deactivate {
+  0% {
     background-color: $color-secondary;
-    height: 7px;
     box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
-    animation: activate 0.5s;
   }
 
-  .jarbek-timeline-line-inactive {
-    animation: deactivate 1s;
-  }
-
-  .jarbek-timeline-label {
-    @include longway;
-    grid-area: label;
-    -ms-grid-column: 2;
-    -ms-grid-row: 2;
-
-    text-align: center;
-    font-size: 18px;
-
-    @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
-      font-size: 16px;
-    }
-
-    @media screen and (max-width: $width-small-desktop) and (min-width: $width-mobile + 1) {
-      font-size: 14px;
-    }
-
-    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
-      font-size: 12px;
-    }
-
-    @media screen and (max-width: $width-mobile-small) {
-      font-size: 10px;
-    }
-  }
-
-  @keyframes activate {
-    0% {
-      background-color: $color-default;
-      box-shadow: 0 0 0 rgba(0,0,0,0);
-    }
-
-    100% {
-      background-color: $color-secondary;
-      box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
-    }
-  }
-
-  @keyframes deactivate {
-    0% {
-      background-color: $color-secondary;
-      box-shadow: 0 1px 8px rgba(135, 255, 223, 0.8);
-    }
-
-    100% {
-      background-color: $color-default;
-      box-shadow: 0 0 0 rgba(0,0,0,0);
-    }
+  100% {
+    background-color: $color-default;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
   }
 }

@@ -390,7 +390,6 @@ $default: rgba(204, 204, 204, 0.6);
 @supports (grid-area: auto) {
   .jarombek-tag-small div {
     display: grid;
-    display: -ms-grid;
   }
 }
 
@@ -405,21 +404,35 @@ $default: rgba(204, 204, 204, 0.6);
   }
 }
 
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-tag-small div {
+    display: -ms-flexbox;
+  }
+}
+
 @supports (grid-area: auto) {
   .jarombek-tag-large div {
     display: grid;
-    display: -ms-grid;
 
     grid-template-columns: [image] 40px [label] calc(100% - 39px) [end];
     grid-template-rows: [top] 100% [bottom];
-    -ms-grid-columns: 40px calc(100% - 39px);
-    -ms-grid-rows: 100%;
   }
 }
 
 @supports not (grid-area: auto) {
   .jarombek-tag-large div {
     display: table;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-tag-large div {
+    display: -ms-grid;
+
+    -ms-grid-columns: 40px calc(100% - 39px);
+    -ms-grid-rows: 100%;
   }
 }
 
@@ -445,13 +458,9 @@ $default: rgba(204, 204, 204, 0.6);
   .jarombek-tag-picture {
     // Goes in this order: row-start, column-start, row-end, column-end
     grid-area: top / image / bottom / label;
-    -ms-grid-column: 1;
-    -ms-grid-row: 1;
 
     justify-self: center;
     align-self: center;
-    -ms-grid-row-align: center;
-    -ms-grid-column-align: center;
   }
 }
 
@@ -459,6 +468,17 @@ $default: rgba(204, 204, 204, 0.6);
   .jarombek-tag-picture {
     display: table-cell;
     vertical-align: middle;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-tag-picture {
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+
+    -ms-grid-row-align: center;
+    -ms-grid-column-align: center;
   }
 }
 
@@ -475,7 +495,6 @@ $default: rgba(204, 204, 204, 0.6);
 @supports (grid-area: auto) {
   .jarombek-tag-name {
     justify-self: center;
-    -ms-grid-row-align: center;
   }
 }
 
@@ -483,6 +502,13 @@ $default: rgba(204, 204, 204, 0.6);
   .jarombek-tag-name {
     display: table-cell;
     vertical-align: middle;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-tag-name {
+    -ms-grid-row-align: center;
   }
 }
 
@@ -516,6 +542,12 @@ $default: rgba(204, 204, 204, 0.6);
 @supports (grid-area: auto) {
   .jarombek-tag-large div p {
     grid-area: top / label / bottom / end;
+  }
+}
+
+// IE 9-11
+@media screen and (min-width:0\0) {
+  .jarombek-tag-large div p {
     -ms-grid-column: 2;
     -ms-grid-row: 1;
   }

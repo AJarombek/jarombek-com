@@ -13,58 +13,67 @@
   font-size: 28px;
   color: #aaa;
 
-  @supports (grid-area: auto) {
+  @supports (display: flex) {
     display: flex;
-    display: -ms-flexbox;
 
     justify-content: center;
     align-content: center;
   }
 
-  @supports not (grid-area: auto) {
+  @supports not (display: flex) {
     display: table;
     margin: 0 auto;
+  }
+
+  // IE 9-11
+  @media screen and (min-width:0\0) {
+    display: -ms-flexbox;
+    align-items: center;
+    justify-content: center;
   }
 
   .jarbek-pag-current {
     font-size: 42px;
     color: darken($color-secondary, 40%);
   }
-}
 
-@supports (grid-area: auto) {
   @each $page in 'first', 'first-spread', 'previous-item', 'current',
   'next-item', 'last-spread', 'last' {
     .jarbek-pag-#{$page} {
-      width: 45px;
-      text-align: center;
-      align-self: center;
-      justify-self: center;
+
+      @supports (display: flex) {
+        width: 45px;
+        text-align: center;
+        align-self: center;
+        justify-self: center;
+      }
+
+      @supports not (display: flex) {
+        display: table-cell;
+        vertical-align: middle;
+        width: 45px;
+      }
+
+      // IE 9-11
+      @media screen and (min-width:0\0) {
+        width: 45px;
+        text-align: center;
+      }
     }
   }
-}
-@supports not (grid-area: auto) {
-  @each $page in 'first', 'first-spread', 'previous-item', 'current',
-  'next-item', 'last-spread', 'last' {
+
+  @each $page in 'first', 'previous-item', 'next-item', 'last' {
     .jarbek-pag-#{$page} {
-      display: table-cell;
-      vertical-align: middle;
-      width: 45px;
-    }
-  }
-}
+      @include transition(text-decoration, underline);
+      @include transition(text-decoration-color, #ccc);
+      cursor: pointer;
+      text-decoration: none;
+      color: darken($color-primary, 40%);
 
-@each $page in 'first', 'previous-item', 'next-item', 'last' {
-  .jarbek-pag-#{$page} {
-    @include transition(text-decoration, underline);
-    @include transition(text-decoration-color, #ccc);
-    cursor: pointer;
-    text-decoration: none;
-    color: darken($color-primary, 40%);
-
-    p {
-      color: #aaa;
-      @include transition(color, darken($color-primary, 40%));
+      p {
+        color: #aaa;
+        @include transition(color, darken($color-primary, 40%));
+      }
     }
   }
 }
