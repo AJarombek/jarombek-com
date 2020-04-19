@@ -37,6 +37,9 @@ $k8s-blue: rgba(50, 109, 230, 0.6);
 $eks-blue: rgba(52, 123, 246, 0.6);
 $aws-rds-blue: rgba(45, 114, 184, 0.6);
 $elasticsearch-blue: rgba(63, 165, 222, 0.6);
+$numpy-blue: rgba(102, 132, 224, 0.6);
+$pandas-blue: rgba(15, 3, 84, 0.6);
+$r-blue: rgba(31, 100, 182, 0.6);
 $elk-aqua: rgba(83, 191, 176, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
@@ -54,6 +57,7 @@ $gulp-red: rgba(212, 74, 71, 0.6);
 $angular-red: rgba(222, 52, 50, 0.6);
 $oracle-red: rgba(237, 56, 51, 0.6);
 $unicode-red: rgba(255, 229, 229, 0.6);
+$aws-cloudfront-red: rgba(224, 82, 67, 0.6);
 $aws-s3-red: rgba(224, 82, 67, 0.6);
 $aws-sm-red: rgba(214, 50, 46, 0.6);
 $sql-server-red: rgba(187, 75, 77, 0.6);
@@ -197,6 +201,18 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($elasticsearch-blue, 10%);
 }
 
+.jarombek-tag-color-numpy {
+  background-color: $numpy-blue;
+}
+
+.jarombek-tag-color-pandas {
+  background-color: lighten($pandas-blue, 10%);
+}
+
+.jarombek-tag-color-r {
+  background-color: lighten($r-blue, 10%);
+}
+
 .jarombek-tag-color-elk {
   background-color: lighten($elk-aqua, 10%);
 }
@@ -223,6 +239,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-unicode {
   background-color: $unicode-red;
+}
+
+.jarombek-tag-color-awscloudfront {
+  background-color: $aws-cloudfront-red;
 }
 
 .jarombek-tag-color-awss3 {

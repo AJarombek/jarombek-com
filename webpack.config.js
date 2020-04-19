@@ -26,15 +26,15 @@ console.log(`NODE_ENV = ${process.env.NODE_ENV}`);
 let ENV, PUBLIC_PATH;
 switch (process.env.NODE_ENV) {
     case 'local':
-        ENV = 'local';
+        ENV = JSON.stringify('local');
         PUBLIC_PATH = 'http://localhost:8080/';
         break;
     case 'development':
-        ENV = 'development';
+        ENV = JSON.stringify('development');
         PUBLIC_PATH = 'https://jarombek.com/';
         break;
     default:
-        ENV = 'production';
+        ENV = JSON.stringify('production');
         PUBLIC_PATH = 'https://jarombek.com/';
 }
 
