@@ -197,6 +197,9 @@ yarn add ignore-loader --dev
 yarn add d3
 yarn add react-faux-dom
 
+# End-to-End testing
+yarn add cypress --dev
+
 # -------------------
 # Update Dependencies
 # -------------------
@@ -244,8 +247,8 @@ docker image build -t jarombek-com:latest -f aws.dockerfile .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.9
-docker push ajarombek/jarombek-com:1.1.9
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.10
+docker push ajarombek/jarombek-com:1.1.10
 
 # -----------------------------
 # Build with Docker for Testing

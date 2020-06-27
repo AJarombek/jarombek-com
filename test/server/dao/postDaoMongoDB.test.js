@@ -7,7 +7,7 @@
 import mongoose from 'mongoose';
 import PostDao from "../../../src/server/dao/postDao";
 
-describe('getPreviewByName()', () => {
+describe.skip('getPreviewByName()', () => {
 
     beforeAll(() => {
         console.info('connecting to mongoDB...');
@@ -45,7 +45,7 @@ describe('getPreviewByName()', () => {
     });
 });
 
-describe('getContentByName()', () => {
+describe.skip('getContentByName()', () => {
 
     it('should return post content document as expected', async () => {
 
@@ -60,7 +60,7 @@ describe('getContentByName()', () => {
     });
 });
 
-describe('getPreviewsByDate()', () => {
+describe.skip('getPreviewsByDate()', () => {
 
     it('should return post preview documents as expected', async () => {
 
@@ -93,7 +93,7 @@ describe('getPreviewsByDate()', () => {
     });
 });
 
-describe('getContentByDate()', () => {
+describe.skip('getContentByDate()', () => {
 
     it('should return post content documents as expected', async () => {
 
@@ -109,7 +109,7 @@ describe('getContentByDate()', () => {
     });
 });
 
-describe('getPreviewByTextSearch()', () => {
+describe.skip('getPreviewByTextSearch()', () => {
 
     it('should return post preview documents as expected', async () => {
 
@@ -188,7 +188,7 @@ describe('getPreviewByTextSearch()', () => {
     });
 });
 
-describe('getContentByTextSearch()', () => {
+describe.skip('getContentByTextSearch()', () => {
 
     it('should return post content documents as expected', async () => {
 

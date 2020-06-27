@@ -20,7 +20,7 @@ const MockAudit = Audit;
 const createAudit = MockAudit.create;
 
 describe('insert()', () => {
-    it('should throw error if the user already exists', async () => {
+    it.skip('should throw error if the user already exists', async () => {
         MockUserDao.getByEmail = (email) => email === 'andrew@jarombek.com';
 
         const reponse = await MockUserDao.insert({email: 'andrew@jarombek.com'});
@@ -28,7 +28,7 @@ describe('insert()', () => {
             .toThrowError(new Error('User already exists with email andrew@jarombek.com'));
     });
 
-    it("should return the new user if the user doesn't yet exists", async () => {
+    it.skip("should return the new user if the user doesn't already exist", async () => {
 
         const newUser = {
             email: 'andrew@jarombek.com',

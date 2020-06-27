@@ -7,6 +7,7 @@
 import mongoose from 'mongoose';
 import UserDao from "../../../src/server/dao/userDao";
 
-describe('insert()', () => {
+describe.skip('insert()', () => {
 
+    it('...', () => {})
 });

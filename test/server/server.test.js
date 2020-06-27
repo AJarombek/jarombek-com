@@ -8,22 +8,22 @@ import server from '../../src/server/server';
  */
 
 // Tests for the postRouter GET requests for Article Content
-describe("GET '/api/post/content'", () => {
-    test('It responded with a 200', () => {
+describe.skip("GET '/api/post/content'", () => {
+    it('It responded with a 200', () => {
         return request(server).get('/api/post/content').expect(200);
     });
 });
 
 // Tests for the postRouter GET requests for Article Previews
-describe("GET '/api/post/preview'", () => {
-    test('It responded with a 200', () => {
+describe.skip("GET '/api/post/preview'", () => {
+    it('It responded with a 200', () => {
         return request(server).get('/api/post/preview').expect(200);
     });
 });
 
 // Tests for the viewedRouter PUT requests
-describe("PUT '/api/viewed/post/'", () => {
-    test('It responded with a 404', () => {
+describe.skip("PUT '/api/viewed/post/'", () => {
+    it('It responded with a 404', () => {
         return request(server).put('/api/viewed/post/test-post').expect(404);
     });
 });

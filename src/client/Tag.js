@@ -13,7 +13,7 @@ const Tag = ({ name, picture, color, showPicture }) => {
         <div className={`jarombek-tag-color-${color}`}>
             {showPicture ?
                 <figure>
-                    <img className="jarombek-tag-picture" src={picture}/>
+                    <img className="jarombek-tag-picture" src={picture} alt=""/>
                 </figure>
                 : null
             }

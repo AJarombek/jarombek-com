@@ -10,8 +10,8 @@ import hljs from 'highlightjs';
 
 class CodeSnippet extends React.Component {
 
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.defaultLanguage = {
             title: "",
@@ -158,6 +158,11 @@ class CodeSnippet extends React.Component {
                 prop: "docker",
                 title: "Dockerfile",
                 highlightClass: "docker"
+            },
+            {
+                prop: "r",
+                title: "R",
+                highlightClass: "r"
             }
         ];
     }

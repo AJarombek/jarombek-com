@@ -17,7 +17,6 @@ import WebsiteTemplate from "../../src/client/WebsiteTemplate";
 import Tag from "../../src/client/Tag";
 import TagList from "../../src/client/TagList";
 import PictureButton from "../../src/client/PictureButton";
-import BlogPost from "../../src/client/BlogPost";
 import Definition from "../../src/client/Definition";
 
 /* App Component */
@@ -115,40 +114,4 @@ const pictureButton = shallow(<PictureButton activeColor="default" picture="">Te
 
 test('PictureButton matches snapshot', () => {
     expect(toJSON(pictureButton)).toMatchSnapshot();
-});
-
-/* BlogPost Component */
-
-const blogPostView = <BlogPost
-        name="Test" title="Test"
-        date={ moment().format('YYYY-MM-DD') }
-        type="Discovery"
-        content={[]}
-        sources={
-           [{
-               startName: "Start",
-               endName: "End",
-               linkName: "Link",
-               link: "jarombek.com"
-           }]
-        }
-    />;
-
-const blogPostNoSourcesView = <BlogPost
-        name="Test"
-        title="Test"
-        date={ moment().format('YYYY-MM-DD') }
-        type="Discovery"
-        content={[]}
-    />;
-
-const blogPost = shallow(blogPostView);
-const blogPostNoSources = shallow(blogPostNoSourcesView);
-
-test('BlogPost matches snapshot', () => {
-    expect(toJSON(blogPost)).toMatchSnapshot();
-});
-
-test('BlogPost No Sources matches snapshot', () => {
-    expect(toJSON(blogPostNoSources)).toMatchSnapshot();
 });

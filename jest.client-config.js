@@ -24,10 +24,10 @@ module.exports = {
     ],
     coverageThreshold: {
         "global": {
-            "branches": 100,
-            "functions": 100,
-            "lines": 100,
-            "statements": 100
+            "branches": 10,
+            "functions": 25,
+            "lines": 30,
+            "statements": 30
         }
     },
     // https://github.com/jsdom/jsdom/issues/2304#issuecomment-408324623
