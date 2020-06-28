@@ -11,3 +11,4 @@ aws.sh
 client-stats.json
 server-stats.json
 **/__snapshots__
+.nyc_output
