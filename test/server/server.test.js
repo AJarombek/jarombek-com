@@ -1,5 +1,5 @@
 import request from 'supertest';
-import server from '../../src/server/server';
+//import server from '../../src/server/server';
 
 /**
  * Setup server tests for the Express/Node.js APIs with Jest and Supertest

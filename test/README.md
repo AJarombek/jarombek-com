@@ -1,11 +1,12 @@
 ### Overview
 
 Testing suite for the `jarombek.com` front-end React code and backend Node.js/Express code.  The 
-testing framework used is Jest.  To run the test suite, execute the following command from the 
+testing framework used is Jest.  To run the test suite, execute the following commands from the 
 projects root directory (where `package.json` is located).
 
 ```bash
-client:server:test
+yarn client:test
+yarn server:test
 ```
 
 ### Files
