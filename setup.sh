@@ -222,6 +222,7 @@ nvm use v10.15.3
 export NODE_ENV=local
 
 # Build with webpack for dev environment bundles and deploy locally
+yarn
 yarn client:dev
 yarn server:dev
 yarn server:deploy
@@ -247,8 +248,8 @@ docker image build -t jarombek-com:latest -f aws.dockerfile .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.10
-docker push ajarombek/jarombek-com:1.1.10
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.11
+docker push ajarombek/jarombek-com:1.1.11
 
 # -----------------------------
 # Build with Docker for Testing

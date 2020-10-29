@@ -40,6 +40,7 @@ $elasticsearch-blue: rgba(63, 165, 222, 0.6);
 $numpy-blue: rgba(102, 132, 224, 0.6);
 $pandas-blue: rgba(15, 3, 84, 0.6);
 $r-blue: rgba(31, 100, 182, 0.6);
+$packer-blue: rgba(27, 174, 254, 0.6);
 $elk-aqua: rgba(83, 191, 176, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
@@ -60,6 +61,7 @@ $unicode-red: rgba(255, 229, 229, 0.6);
 $aws-cloudfront-red: rgba(224, 82, 67, 0.6);
 $aws-s3-red: rgba(224, 82, 67, 0.6);
 $aws-sm-red: rgba(214, 50, 46, 0.6);
+$efs-red: rgba(214, 50, 46, 0.6);
 $sql-server-red: rgba(187, 75, 77, 0.6);
 $jest-red: rgba(153, 66, 91, 0.6);
 $enzyme-red: rgba(254, 89, 94, 0.6);
@@ -79,6 +81,7 @@ $express-gray: rgba(224, 226, 228, 0.6);
 $json-gray: rgba(121, 119, 119, 0.6);
 $batch-gray: rgba(206, 215, 220, 0.6);
 $haskell-gray: rgba(153, 153, 153, 0.6);
+$ansible-black: rgba(27, 26, 25, 0.6);
 $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-neo4j {
@@ -213,6 +216,10 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($r-blue, 10%);
 }
 
+.jarombek-tag-color-packer {
+  background-color: lighten($packer-blue, 10%);
+}
+
 .jarombek-tag-color-elk {
   background-color: lighten($elk-aqua, 10%);
 }
@@ -251,6 +258,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-awssm {
   background-color: $aws-sm-red;
+}
+
+.jarombek-tag-color-efs {
+  background-color: $efs-red;
 }
 
 .jarombek-tag-color-sqlserver {
@@ -367,6 +378,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-haskell {
   background-color: $haskell-gray;
+}
+
+.jarombek-tag-color-ansible {
+  background-color: lighten($ansible-black, 10%);
 }
 
 .jarombek-tag-color-default {
