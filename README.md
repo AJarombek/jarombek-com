@@ -30,6 +30,36 @@ send subscription emails to people who subscribe to my website.
 - [jarombek-com-aws](https://github.com/AJarombek/jarombek-com-aws): legacy AWS configuration prior to
 infrastructure as code.
 
+### Commands
+
+**Start the Development Server Locally**
+
+```bash
+nvm use v10.15.3
+
+# Install Dependencies
+yarn
+
+# Run the webpack builds
+export NODE_ENV=local
+yarn client:dev
+yarn server:dev
+
+# Start the development server
+yarn server:deploy
+```
+
+**Push images to DockerHub**
+
+```bash
+docker image build -t jarombek-com:latest -f aws.dockerfile .
+docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
+docker push ajarombek/jarombek-com:latest
+
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.12
+docker push ajarombek/jarombek-com:1.1.12
+```
+
 ### Files
 
 | Filename                 | Description                                                                |

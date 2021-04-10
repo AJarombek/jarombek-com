@@ -475,7 +475,7 @@ class Subscribe extends React.Component {
                     this.renderSubscriptionForm()
                     :
                     <div className="jarbek-subscribe-coming-soon">
-                        Subscription Emails Coming in 2020
+                        Subscription Emails Coming Soon
                     </div>
                 }
             </div>

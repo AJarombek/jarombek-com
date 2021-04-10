@@ -10,7 +10,7 @@ import PropTypes from 'prop-types';
 const StatisticsGraph = ({data=[], disabled=false}) => {
     return (
         disabled ?
-            <div id="jarbek-statistics-graph">Statistics Graph Coming 2020</div> :
+            <div id="jarbek-statistics-graph">Statistics Graph Coming Soon</div> :
             <div id="jarbek-statistics-graph"> </div>
     );
 };

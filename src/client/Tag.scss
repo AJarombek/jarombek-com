@@ -15,6 +15,7 @@ $bash-green: rgba(162, 253, 146, 0.6);
 $cloudformation-green: rgba(117, 157, 59, 0.6);
 $aws-iam-green: rgba(117, 156, 62, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
+$jss-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
 $babel-yellow: rgba(249, 220, 74, 0.6);
 $python-yellow: rgba(249, 239, 180, 0.6);
@@ -114,6 +115,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-javascript {
   background-color: $javascript-yellow;
+}
+
+.jarombek-tag-color-jss {
+  background-color: $jss-yellow;
 }
 
 .jarombek-tag-color-ecmascript6 {

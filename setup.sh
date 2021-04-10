@@ -248,8 +248,8 @@ docker image build -t jarombek-com:latest -f aws.dockerfile .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.11
-docker push ajarombek/jarombek-com:1.1.11
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.12
+docker push ajarombek/jarombek-com:1.1.12
 
 # -----------------------------
 # Build with Docker for Testing
