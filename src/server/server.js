@@ -15,6 +15,7 @@ import {renderToString} from 'react-dom/server';
 import {StaticRouter, Switch, Route} from 'react-router-dom';
 import {Helmet} from 'react-helmet';
 import queryString from 'query-string';
+import cors from 'cors';
 
 import Blog from "../client/Blog";
 import Home from "../client/Home";
@@ -31,7 +32,11 @@ import userRoute from "./route/userRouter";
 import statisticsRoute from "./route/statisticsRouter";
 import PostDao from "./dao/postDao";
 
-mongoose.connect('mongodb://127.0.0.1/jarombekcom');
+const mongoEndpoint = process.env.NODE_ENV === 'local' ?
+    'mongodb://127.0.0.1/jarombekcom' :
+    'mongodb://jarombek-com-database/jarombekcom';
+
+mongoose.connect(mongoEndpoint);
 
 // API CRUD routes for a MongoDB collection
 const postRouter = postRoute();
@@ -231,6 +236,13 @@ const respond = async (req, res) => {
 };
 
 const app = express();
+
+app.use(cors({
+    origin: ['https://www.jarombek.com', 'https://jarombek.com'],
+    methods: 'GET,HEAD,PUT,PATCH,POST',
+    preflightContinue: false,
+    optionsSuccessStatus: 200
+}))
 
 app.use(helmet({}));
 app.use(bodyParser.json({limit: '50mb'}));
