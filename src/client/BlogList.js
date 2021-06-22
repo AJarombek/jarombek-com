@@ -65,6 +65,7 @@ class BlogList extends React.Component {
                 shouldUpdate: true,
                 posts: JSXConverter.createPostsJSX(posts),
                 executedQuery: query,
+                defaultSearch: query,
                 first,
                 prev,
                 next,
@@ -95,7 +96,7 @@ class BlogList extends React.Component {
         if (!this.state.posts) {
             const url = `/api/post/preview?page=${postPage}${queryUrl}`;
 
-            this.fetchPostsAndUpdate(url, postPage, queryStr)
+            this.fetchPostsAndUpdate(url, postPage, queryStr, query)
                 .catch(() => {
                     this.setState({
                         shouldUpdate: true,
@@ -120,6 +121,7 @@ class BlogList extends React.Component {
             shouldUpdate: true,
             posts: null,
             potentialQuery: null,
+            defaultSearch: null,
             first: null,
             prev: null,
             next: null,
@@ -152,6 +154,7 @@ class BlogList extends React.Component {
                 shouldUpdate: true,
                 posts: this.postsCache[queryStr][postPage],
                 executedQuery: queryStr,
+                defaultSearch: query,
                 first: firstPage && +firstPage[0] !== postPage ? firstPage[1] : null,
                 prev: prevPage ? prevPage[1] : null,
                 next: nextPage ? nextPage[1] : null,
@@ -160,7 +163,7 @@ class BlogList extends React.Component {
 
         } else {
             const url = `/api/post/preview?page=${postPage}${queryUrl}`;
-            this.fetchPostsAndUpdate(url, postPage, queryStr)
+            this.fetchPostsAndUpdate(url, postPage, queryStr, query)
                 .catch(() => {
                     this.setState({
                         shouldUpdate: true,
@@ -175,10 +178,11 @@ class BlogList extends React.Component {
      * @param url - optional url parameter.  It will default to a param-less url
      * @param pageNumber - the number representing the page of blog posts to fetch.
      * It will default to the first page (1).
-     * @param query -
+     * @param query - The search query made on blog posts
+     * @param defaultSearch - A default value for the search bar
      * @returns {Promise<void>}
      */
-    async fetchPostsAndUpdate(url='/api/post/preview', pageNumber=1, query="") {
+    async fetchPostsAndUpdate(url='/api/post/preview', pageNumber=1, query="", defaultSearch="") {
         const {posts, first, prev, next, last} =
             await BlogDelegator.fetchPosts(this.baseUrl, url);
 
@@ -197,6 +201,7 @@ class BlogList extends React.Component {
             shouldUpdate: true,
             posts,
             executedQuery: query,
+            defaultSearch,
             first,
             prev,
             next,
@@ -303,7 +308,7 @@ class BlogList extends React.Component {
     queryPosts(query) {
         this.props.history.push(`/blog?query=${query}&page=1`);
 
-        this.fetchPostsAndUpdate(`/api/post/preview?query="${query}"`, 1, query)
+        this.fetchPostsAndUpdate(`/api/post/preview?query="${query}"`, 1, query, query)
             .catch(() => {
                 this.setState({
                     shouldUpdate: true,
@@ -316,7 +321,7 @@ class BlogList extends React.Component {
      * Render the JSX
      */
     render() {
-        const {posts, executedQuery, ...links} = this.state;
+        const {posts, executedQuery, defaultSearch, ...links} = this.state;
         const {page} = queryString.parse(this.props.location.search);
 
         const queryVar = executedQuery || "_";
@@ -354,9 +359,12 @@ class BlogList extends React.Component {
                     { (posts) ?
                         <div className="jarombek-blog-list">
                             <div className="jarombek-blog-list-search">
-                                <SearchBar onSearch={() => this.onClickSearch()}
-                                        onChangeSearch={(e) => this.onChangeSearchBar(e)}
-                                        onKeyPressSearch={(e) => this.onKeyUpSearchBar(e)}/>
+                                <SearchBar
+                                    onSearch={() => this.onClickSearch()}
+                                    onChangeSearch={(e) => this.onChangeSearchBar(e)}
+                                    onKeyPressSearch={(e) => this.onKeyUpSearchBar(e)}
+                                    defaultValue={defaultSearch}
+                                />
                             </div>
                             <div className="jarombek-posts-grid">
                                 {posts.map(post =>

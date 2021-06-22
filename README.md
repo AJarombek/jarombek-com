@@ -39,6 +39,7 @@ nvm use v12.18.4
 
 # Install Dependencies
 yarn
+npm rebuild node-sass
 
 # Run the webpack builds
 export NODE_ENV=local

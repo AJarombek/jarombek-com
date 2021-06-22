@@ -36,7 +36,16 @@ const mongoEndpoint = process.env.NODE_ENV === 'local' ?
     'mongodb://127.0.0.1/jarombekcom' :
     'mongodb://jarombek-com-database/jarombekcom';
 
-mongoose.connect(mongoEndpoint);
+const mongoConnectWithRetry = () => {
+    mongoose.connect(mongoEndpoint, (err) => {
+        if (err) {
+            console.error('Failed to connect to MongoDB. Retrying in 5 seconds...');
+            setTimeout(mongoConnectWithRetry, 5000);
+        }
+    });
+};
+
+mongoConnectWithRetry();
 
 // API CRUD routes for a MongoDB collection
 const postRouter = postRoute();
