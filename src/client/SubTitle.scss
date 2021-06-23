@@ -1,0 +1,26 @@
+/**
+ * Sass styling for the SubTitle component
+ * @author Andrew Jarombek
+ * @since 6/22/2021
+ */
+
+@import "./styles/variables";
+@import "./styles/mixins/sylexiads";
+
+.jarbek-sub-title {
+  .jarbek-section-title-content {
+    font-size: 28px;
+  }
+
+  .jarbek-section-title-above {
+    height: 50px;
+  }
+
+  .jarbek-section-title-content:before {
+    font-size: 28px;
+
+    @media screen and (max-width: $width-mobile-small) {
+      font-size: 24px;
+    }
+  }
+}

@@ -14,6 +14,7 @@ $vim-green: rgba(69, 153, 53, 0.6);
 $bash-green: rgba(162, 253, 146, 0.6);
 $cloudformation-green: rgba(117, 157, 59, 0.6);
 $aws-iam-green: rgba(117, 156, 62, 0.6);
+$android-green: rgba(46, 223, 132, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
 $jss-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
@@ -42,6 +43,7 @@ $numpy-blue: rgba(102, 132, 224, 0.6);
 $pandas-blue: rgba(15, 3, 84, 0.6);
 $r-blue: rgba(31, 100, 182, 0.6);
 $packer-blue: rgba(27, 174, 254, 0.6);
+$jquery-blue: rgba(8, 104, 171, 0.6);
 $elk-aqua: rgba(83, 191, 176, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
@@ -50,6 +52,7 @@ $terraform-purple: rgba(91, 76, 230, 0.6);
 $csharp-purple: rgba(120, 62, 129, 0.6);
 $webassembly-purple: rgba(92, 99, 232, 0.6);
 $dotnetcore-purple: rgba(92, 42, 146, 0.6);
+$redux-purple: rgba(118, 74, 189, 0.6);
 $sass-pink: rgba(213, 130, 172, 0.6);
 $graphql-pink: rgba(229, 53, 171, 0.6);
 $kibana-pink: rgba(237, 80, 152, 0.6);
@@ -82,7 +85,9 @@ $express-gray: rgba(224, 226, 228, 0.6);
 $json-gray: rgba(121, 119, 119, 0.6);
 $batch-gray: rgba(206, 215, 220, 0.6);
 $haskell-gray: rgba(153, 153, 153, 0.6);
+$ios-gray: rgba(111, 115, 117, 0.6);
 $ansible-black: rgba(27, 26, 25, 0.6);
+$flask-black: rgba(37, 37, 37, 0.6);
 $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-neo4j {
@@ -111,6 +116,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-awsiam {
   background-color: lighten($aws-iam-green, 10%);
+}
+
+.jarombek-tag-color-android {
+  background-color: lighten($android-green, 10%);
 }
 
 .jarombek-tag-color-javascript {
@@ -223,6 +232,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-packer {
   background-color: lighten($packer-blue, 10%);
+}
+
+.jarombek-tag-color-jquery {
+  background-color: lighten($jquery-blue, 10%);
 }
 
 .jarombek-tag-color-elk {
@@ -357,6 +370,10 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($dotnetcore-purple, 10%);
 }
 
+.jarombek-tag-color-redux {
+  background-color: lighten($redux-purple, 10%);
+}
+
 .jarombek-tag-color-sass {
   background-color: lighten($sass-pink, 10%);
 }
@@ -385,8 +402,16 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: $haskell-gray;
 }
 
+.jarombek-tag-color-ios {
+  background-color: lighten($ios-gray, 10%);
+}
+
 .jarombek-tag-color-ansible {
   background-color: lighten($ansible-black, 10%);
+}
+
+.jarombek-tag-color-flask {
+  background-color: lighten($flask-black, 10%);
 }
 
 .jarombek-tag-color-default {

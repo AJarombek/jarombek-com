@@ -7,6 +7,7 @@ import uuid from 'uuid/v4';
 import SectionTitle from "./SectionTitle";
 import MathNotation from "./MathNotation";
 import UpdateInfo from "./UpdateInfo";
+import SubTitle from "./SubTitle";
 
 /**
  * Class to convert blog posts from JSON to JSX
@@ -115,6 +116,8 @@ class JSXConverter {
             return ComparisonTableEntry;
         } else if (tag === 'sectiontitle') {
             return SectionTitle;
+        } else if (tag === 'subtitle') {
+            return SubTitle;
         } else if (tag === 'mathnotation') {
             return MathNotation;
         } else if (tag === 'updateinfo') {
