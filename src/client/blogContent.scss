@@ -154,4 +154,37 @@ $inline-gray: rgba(204, 204, 204, 0.25);
     font-size: 32px;
     color: #333;
   }
+
+  ul, ol {
+    background-color: #87ffdf33;
+    border-radius: 8px;
+    padding: 25px;
+
+    margin-bottom: 20px;
+    margin-top: 20px;
+
+    li {
+      font-size: 20px;
+      padding: 10px 0;
+
+      code.jarombek-inline-code {
+        font-size: 16px;
+        padding: 3px;
+      }
+    }
+  }
+
+  ul {
+    li {
+      list-style-type: square;
+      margin: 0 10px;
+    }
+  }
+
+  ol {
+    li {
+      list-style-type: upper-roman;
+      margin: 0 20px;
+    }
+  }
 }

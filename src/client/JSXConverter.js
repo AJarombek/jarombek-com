@@ -8,6 +8,7 @@ import SectionTitle from "./SectionTitle";
 import MathNotation from "./MathNotation";
 import UpdateInfo from "./UpdateInfo";
 import SubTitle from "./SubTitle";
+import Note from "./Note";
 
 /**
  * Class to convert blog posts from JSON to JSX
@@ -120,6 +121,8 @@ class JSXConverter {
             return SubTitle;
         } else if (tag === 'mathnotation') {
             return MathNotation;
+        } else if (tag === 'note') {
+            return Note;
         } else if (tag === 'updateinfo') {
             return UpdateInfo;
         } else {
