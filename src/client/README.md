@@ -1,12 +1,12 @@
 ## Overview
 
-Root directory of the client-side source code.  The client is written in React.js and uses Sass for 
+Root directory of the client-side source code.  The client uses React.js for UI components and Sass for 
 stylesheets.
 
 ## Files
 
-This directory contains many different files.  Most of them are reusable React components used 
-throughout the application.  The following sections group these files logically.
+This directory contains many files.  Most of them are reusable React components used throughout the application.  The 
+following sections group these files logically.
 
 ## Global Code
 

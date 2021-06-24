@@ -1,0 +1,37 @@
+/*
+ * Sass styling for the Note component
+ * @author Andrew Jarombek
+ * @since 6/24/2021
+ */
+
+@import "./styles/mixins/elegantIcons";
+@import "./styles/mixins/sylexiads";
+@import "./styles/variables";
+
+.jarbek-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: lighten($color-warning, 10%);
+  border-radius: 2px;
+  padding: 20px 25px;
+  margin: 20px 0;
+  transition: all .4s ease;
+
+  // You are so strong and inspire me so much.  I believe you can overcome any challenge thrown your way.
+
+  &:hover {
+    box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+  }
+
+  .jarbek-note-icon {
+    @include elegantIcons;
+    font-size: 32px;
+    padding: 10px 30px 10px 10px;
+    color: #555;
+  }
+
+  .jarbek-note-body {
+    @include sylexiad;
+  }
+}

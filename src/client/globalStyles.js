@@ -40,6 +40,14 @@ globalStyles.dev = `
     src: url("http://localhost:8080/client/assets/Longway-Regular.otf") 
         format("opentype");
   }
+  
+  @font-face {
+    font-family: ElegantIcons;
+    font-weight: bold;
+    src: url("http://localhost:8080/client/assets/ElegantIcons.eot?#iefix") format("opentype"),
+        url("http://localhost:8080/client/assets/ElegantIcons.ttf") format("truetype"),
+        url("http://localhost:8080/client/assets/ElegantIcons.woff") format("woff");
+  }
 `;
 
 globalStyles.prod = `
@@ -71,6 +79,14 @@ globalStyles.prod = `
     font-family: Longway;
     font-weight: bold;
     src: url("https://asset.jarombek.com/fonts/Longway-Regular.otf") format("opentype");
+  }
+  
+  @font-face {
+    font-family: ElegantIcons;
+    font-weight: bold;
+    src: url("https://asset.jarombek.com/fonts/ElegantIcons.eot?#iefix") format("opentype"),
+        url("https://asset.jarombek.com/fonts/ElegantIcons.ttf") format("truetype"),
+        url("https://asset.jarombek.com/fonts/ElegantIcons.woff") format("woff");
   }
 `;
 
