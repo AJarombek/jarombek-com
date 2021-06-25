@@ -12,10 +12,14 @@ module.exports = {
         node: true,
         jest: true
     },
-    extends: ['eslint:recommended', 'plugin:react/recommended'],
     parser: "babel-eslint",
+    extends: [
+        'eslint:recommended',
+        'plugin:react/recommended',
+        'prettier'
+    ],
     parserOptions: {
-        ecmaVersion: 7,
+        ecmaVersion: 2020,
         sourceType: "module",
         ecmaFeatures: {
             jsx: true,
@@ -23,18 +27,38 @@ module.exports = {
             experimentalObjectRestSpread: true
         }
     },
+    settings: {
+        react: {
+            version: "detect"
+        }
+    },
+    plugins: [
+        "prettier",
+        "react-hooks"
+    ],
     rules: {
         "comma-dangle": ["error", "never"],
-        "max-len": ["error", {"code" : 100}],
+        "max-len": ["error", {"code" : 120}],
+        "quotes": ["error", "single", { "avoidEscape": true }],
+        "react/prop-types": ["off"],
+        "react/no-unescaped-entities": ["off"],
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
         "no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
         "no-var": "error",
         "prefer-const": "error",
-        "no-console": "off"
+        "no-console": "off",
+        "prettier/prettier": ["error", {
+            "singleQuote": true,
+            "printWidth": 120,
+            "trailingComma": "none",
+        }]
     },
-    settings: {
-        react: {
-            pragma: "React",
-            version: "16.2.0"
-        }
-    }
+    ignorePatterns: [
+        'webpack.config.js',
+        'webpack.parts.js',
+        'jest.client-config.js',
+        'jest.server-config.js',
+        '.eslintrc.js'
+    ]
 };

@@ -71,6 +71,7 @@ docker push ajarombek/jarombek-com:1.1.15
 | `.babelrc`               | Configuration for Babel.                                                   |
 | `.dockerignore`          | Directories and files for Docker to ignore when building an image.         |
 | `.eslintrc.js`           | Configuration for ESLint.                                                  |
+| `.prettierignore`        | File patterns for the Prettier code formatter to ignore.                   |
 | `.travis.yml`            | Continuous Integration config for TravisCI.                                |
 | `Dockerfile`             | Blueprint for a Docker image used to containerize the application.         |
 | `jest.client-config.js`  | Jest unit testing configuration for the client side code.                  |
