@@ -1,6 +1,6 @@
 # jarombek-com
 
-[![Build Status](https://travis-ci.org/AJarombek/jarombek-com.svg?branch=master)](https://travis-ci.org/AJarombek/jarombek-com)
+![Maintained Label](https://img.shields.io/badge/Maintained-Yes-brightgreen?style=for-the-badge)
 
 Contains code for my personal website [jarombek.com](https://jarombek.com).  The website uses a MERN 
 stack (MongoDB, Express, React.js, Node.js).  All the source code is found under the `src` 

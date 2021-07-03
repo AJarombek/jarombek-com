@@ -44,6 +44,8 @@ $pandas-blue: rgba(15, 3, 84, 0.6);
 $r-blue: rgba(31, 100, 182, 0.6);
 $packer-blue: rgba(27, 174, 254, 0.6);
 $jquery-blue: rgba(8, 104, 171, 0.6);
+$go-blue: rgba(90, 202, 226, 0.6);
+$dynamodb-blue: rgba(27, 115, 187, 0.6);
 $elk-aqua: rgba(83, 191, 176, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
@@ -236,6 +238,14 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-jquery {
   background-color: lighten($jquery-blue, 10%);
+}
+
+.jarombek-tag-color-go {
+  background-color: lighten($go-blue, 10%);
+}
+
+.jarombek-tag-color-dynamodb {
+  background-color: lighten($dynamodb-blue, 10%);
 }
 
 .jarombek-tag-color-elk {
