@@ -50,6 +50,15 @@ yarn server:dev
 yarn server:deploy
 ```
 
+**Run Cypress E2E Tests Locally**
+
+As a prerequisite for running end to end tests, make sure the server is running.
+
+```bash
+nvm use v12.18.4
+yarn cy:open
+```
+
 **Push images to DockerHub**
 
 ```bash
