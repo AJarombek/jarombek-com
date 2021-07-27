@@ -13,8 +13,10 @@ $mongodb-green: rgba(98, 172, 82, 0.6);
 $vim-green: rgba(69, 153, 53, 0.6);
 $bash-green: rgba(162, 253, 146, 0.6);
 $cloudformation-green: rgba(117, 157, 59, 0.6);
+$cloudwatch-green: rgba(112, 150, 63, 0.6);
 $aws-iam-green: rgba(117, 156, 62, 0.6);
 $android-green: rgba(46, 223, 132, 0.6);
+$selenium-green: rgba(0, 180, 0, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
 $jss-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
@@ -47,6 +49,7 @@ $jquery-blue: rgba(8, 104, 171, 0.6);
 $go-blue: rgba(90, 202, 226, 0.6);
 $dynamodb-blue: rgba(27, 115, 187, 0.6);
 $elk-aqua: rgba(83, 191, 176, 0.6);
+$puppeteer-aqua: rgba(13, 204, 152, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
 $jwt-purple: rgba(216, 85, 249, 0.6);
 $bootstrap-purple: rgba(85, 39, 76, 0.6);
@@ -116,12 +119,20 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($cloudformation-green, 10%);
 }
 
+.jarombek-tag-color-cloudwatch {
+  background-color: lighten($cloudwatch-green, 10%);
+}
+
 .jarombek-tag-color-awsiam {
   background-color: lighten($aws-iam-green, 10%);
 }
 
 .jarombek-tag-color-android {
   background-color: lighten($android-green, 10%);
+}
+
+.jarombek-tag-color-selenium {
+  background-color: lighten($selenium-green, 10%);
 }
 
 .jarombek-tag-color-javascript {
@@ -250,6 +261,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-elk {
   background-color: lighten($elk-aqua, 10%);
+}
+
+.jarombek-tag-color-puppeteer {
+  background-color: lighten($puppeteer-aqua, 10%);
 }
 
 .jarombek-tag-color-swift {
