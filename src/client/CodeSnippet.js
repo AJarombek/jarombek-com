@@ -146,7 +146,7 @@ class CodeSnippet extends React.Component {
       {
         prop: 'webassembly',
         title: 'WebAssembly',
-        highlightClass: 'lisp'
+        highlightClass: 'webassembly'
       },
       {
         prop: 'powershell',
@@ -167,6 +167,16 @@ class CodeSnippet extends React.Component {
         prop: 'go',
         title: 'Go',
         highlightClass: 'go'
+      },
+      {
+        prop: 'nginx',
+        title: 'Nginx',
+        highlightClass: 'nginx'
+      },
+      {
+        prop: 'less',
+        title: 'Less',
+        highlightClass: 'less'
       }
     ];
   }

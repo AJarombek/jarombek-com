@@ -17,6 +17,7 @@ $cloudwatch-green: rgba(112, 150, 63, 0.6);
 $aws-iam-green: rgba(117, 156, 62, 0.6);
 $android-green: rgba(46, 223, 132, 0.6);
 $selenium-green: rgba(0, 180, 0, 0.6);
+$nginx-green: rgba(67, 160, 71, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
 $jss-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
@@ -48,6 +49,7 @@ $packer-blue: rgba(27, 174, 254, 0.6);
 $jquery-blue: rgba(8, 104, 171, 0.6);
 $go-blue: rgba(90, 202, 226, 0.6);
 $dynamodb-blue: rgba(27, 115, 187, 0.6);
+$less-blue: rgba(33, 70, 116, 0.6);
 $elk-aqua: rgba(83, 191, 176, 0.6);
 $puppeteer-aqua: rgba(13, 204, 152, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
@@ -91,6 +93,7 @@ $json-gray: rgba(121, 119, 119, 0.6);
 $batch-gray: rgba(206, 215, 220, 0.6);
 $haskell-gray: rgba(153, 153, 153, 0.6);
 $ios-gray: rgba(111, 115, 117, 0.6);
+$cypress-gray: rgba(92, 92, 94, 0.6);
 $ansible-black: rgba(27, 26, 25, 0.6);
 $flask-black: rgba(37, 37, 37, 0.6);
 $default: rgba(204, 204, 204, 0.6);
@@ -133,6 +136,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-selenium {
   background-color: lighten($selenium-green, 10%);
+}
+
+.jarombek-tag-color-nginx {
+  background-color: lighten($nginx-green, 10%);
 }
 
 .jarombek-tag-color-javascript {
@@ -257,6 +264,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-dynamodb {
   background-color: lighten($dynamodb-blue, 10%);
+}
+
+.jarombek-tag-color-less {
+  background-color: lighten($less-blue, 10%);
 }
 
 .jarombek-tag-color-elk {
@@ -429,6 +440,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-ios {
   background-color: lighten($ios-gray, 10%);
+}
+
+.jarombek-tag-color-cypress {
+  background-color: lighten($cypress-gray, 10%);
 }
 
 .jarombek-tag-color-ansible {

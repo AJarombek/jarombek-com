@@ -66,8 +66,8 @@ docker image build -t jarombek-com:latest -f aws.dockerfile .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.16
-docker push ajarombek/jarombek-com:1.1.16
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.17
+docker push ajarombek/jarombek-com:1.1.17
 ```
 
 ### Files
