@@ -66,8 +66,8 @@ docker image build -t jarombek-com:latest -f aws.dockerfile .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.17
-docker push ajarombek/jarombek-com:1.1.17
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.1.19
+docker push ajarombek/jarombek-com:1.1.19
 ```
 
 ### Files
@@ -92,6 +92,13 @@ docker push ajarombek/jarombek-com:1.1.17
 | `.yarn.lock`             | Where Yarn stores the versions of each dependency.                         |
 
 ### Version History
+
+**V.1.1.19 - Google Analytics**
+
+> Release Date: September 7th, 2021
+
+Adding Google Analytics to the website to determine monthly page views.  Currently, the only activity tracking 
+available about the website is for Google Search clicks.
 
 **V.1.1.5 - Non-CSS Grid Browser Support**
 

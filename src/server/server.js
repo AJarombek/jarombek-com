@@ -11,38 +11,37 @@ import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import path from 'path';
 import React from 'react';
-import {renderToString} from 'react-dom/server';
-import {StaticRouter, Switch, Route} from 'react-router-dom';
-import {Helmet} from 'react-helmet';
+import { renderToString } from 'react-dom/server';
+import { StaticRouter, Switch, Route } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 import queryString from 'query-string';
 import cors from 'cors';
 
-import Blog from "../client/Blog";
-import Home from "../client/Home";
-import Unsub from "../client/Unsub";
-import Verify from "../client/Verify";
-import BlogList from "../client/BlogList";
-import Resume from "../client/Resume";
-import Statistics from "../client/Statistics";
-import gs from "../client/globalStyles";
+import Blog from '../client/Blog';
+import Home from '../client/Home';
+import Unsub from '../client/Unsub';
+import Verify from '../client/Verify';
+import BlogList from '../client/BlogList';
+import Resume from '../client/Resume';
+import Statistics from '../client/Statistics';
+import gs from '../client/globalStyles';
 
-import postRoute from "./route/postRouter";
-import viewedRoute from "./route/viewedRouter";
-import userRoute from "./route/userRouter";
-import statisticsRoute from "./route/statisticsRouter";
-import PostDao from "./dao/postDao";
+import postRoute from './route/postRouter';
+import viewedRoute from './route/viewedRouter';
+import userRoute from './route/userRouter';
+import statisticsRoute from './route/statisticsRouter';
+import PostDao from './dao/postDao';
 
-const mongoEndpoint = process.env.NODE_ENV === 'local' ?
-    'mongodb://127.0.0.1/jarombekcom' :
-    'mongodb://jarombek-com-database/jarombekcom';
+const mongoEndpoint =
+  process.env.NODE_ENV === 'local' ? 'mongodb://127.0.0.1/jarombekcom' : 'mongodb://jarombek-com-database/jarombekcom';
 
 const mongoConnectWithRetry = () => {
-    mongoose.connect(mongoEndpoint, (err) => {
-        if (err) {
-            console.error('Failed to connect to MongoDB. Retrying in 5 seconds...');
-            setTimeout(mongoConnectWithRetry, 5000);
-        }
-    });
+  mongoose.connect(mongoEndpoint, (err) => {
+    if (err) {
+      console.error('Failed to connect to MongoDB. Retrying in 5 seconds...');
+      setTimeout(mongoConnectWithRetry, 5000);
+    }
+  });
 };
 
 mongoConnectWithRetry();
@@ -62,59 +61,53 @@ global.React = React;
  * route and a post object if the route is for a specific blog post
  */
 const renderComponentsToHTML = async (url) => {
+  console.info(`URL: ${url}`);
 
-    console.info(`URL: ${url}`);
+  let post, posts;
+  let first, prev, next, last;
 
-    let post, posts;
-    let first, prev, next, last;
+  const singlePostPattern = /\/blog\/([0-9-a-z]+)$/;
+  const postListPattern = /\/blog.*$/;
 
-    const singlePostPattern = /\/blog\/([0-9-a-z]+)$/;
-    const postListPattern = /\/blog.*$/;
+  if (singlePostPattern.exec(url)) {
+    console.info('Ahead of Time Query Single Post');
 
-    if (singlePostPattern.exec(url)) {
-        console.info('Ahead of Time Query Single Post');
+    // Get the blog post that corresponds to this URL
+    post = await getUrlPost(url, singlePostPattern);
+  } else if (postListPattern.exec(url)) {
+    console.info('Ahead of Time Query Post List');
+    const postsData = await getListOfPosts(url);
 
-        // Get the blog post that corresponds to this URL
-        post = await getUrlPost(url, singlePostPattern);
+    // Get the fields out of the postsData object pertaining to the posts and associated links
+    posts = postsData.posts;
+    first = postsData.first;
+    prev = postsData.prev;
+    next = postsData.next;
+    last = postsData.last;
+  }
 
-    } else if (postListPattern.exec(url)) {
-        console.info('Ahead of Time Query Post List');
-        const postsData = await getListOfPosts(url);
-
-        // Get the fields out of the postsData object pertaining to the posts and associated links
-        posts = postsData.posts;
-        first = postsData.first;
-        prev = postsData.prev;
-        next = postsData.next;
-        last = postsData.last;
-    }
-
-    return {
-        html: renderToString(
-            <StaticRouter location={url} context={{}}>
-                <Switch>
-                    <Route exact path="/" component={Home}/>
-                    <Route path="/blog/:name" render={
-                        (props) => <Blog {...props} {...{post: post}}/>
-                    }/>
-                    <Route path="/blog" render={
-                        (props) => <BlogList {...props} {...{posts, first, prev, next, last}} />
-                    }/>
-                    <Route path="/resume" component={Resume} />
-                    <Route path="/stats" component={Statistics} />
-                    <Route path="/verify/:code" component={Verify}/>
-                    <Route path="/unsub/:code" component={Unsub}/>
-                    <Route component={Home}/>
-                </Switch>
-            </StaticRouter>
-        ),
-        post,
-        posts,
-        first,
-        prev,
-        next,
-        last
-    };
+  return {
+    html: renderToString(
+      <StaticRouter location={url} context={{}}>
+        <Switch>
+          <Route exact path="/" component={Home} />
+          <Route path="/blog/:name" render={(props) => <Blog {...props} {...{ post: post }} />} />
+          <Route path="/blog" render={(props) => <BlogList {...props} {...{ posts, first, prev, next, last }} />} />
+          <Route path="/resume" component={Resume} />
+          <Route path="/stats" component={Statistics} />
+          <Route path="/verify/:code" component={Verify} />
+          <Route path="/unsub/:code" component={Unsub} />
+          <Route component={Home} />
+        </Switch>
+      </StaticRouter>
+    ),
+    post,
+    posts,
+    first,
+    prev,
+    next,
+    last
+  };
 };
 
 /**
@@ -128,18 +121,18 @@ const renderComponentsToHTML = async (url) => {
  * @param last - link to the last page of posts
  * @returns {Promise<string>} - A promise containing HTML to be sent in the response
  */
-const sendHtmlPage = async ({html, post, posts, first, prev, next, last}) => {
-    const helmet = Helmet.renderStatic();
+const sendHtmlPage = async ({ html, post, posts, first, prev, next, last }) => {
+  const helmet = Helmet.renderStatic();
 
-    let globalStyles = '';
+  let globalStyles = '';
 
-    if (process.env.NODE_ENV === 'development') {
-        globalStyles = gs.dev;
-    } else {
-        globalStyles = gs.prod;
-    }
+  if (process.env.NODE_ENV === 'development') {
+    globalStyles = gs.dev;
+  } else {
+    globalStyles = gs.prod;
+  }
 
-    return `
+  return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -154,17 +147,25 @@ const sendHtmlPage = async ({html, post, posts, first, prev, next, last}) => {
         <style>
           ${globalStyles}
         </style>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-89N9092F5K"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+    
+            gtag('config', 'G-89N9092F5K');
+        </script>
     </head>
     <body>
         <div id="react-container">${html}</div>
         <script>
-            window.__STATE__ = ${JSON.stringify({post, posts, first, prev, next, last})}
+            window.__STATE__ = ${JSON.stringify({ post, posts, first, prev, next, last })}
         </script>
         <script src="/client/vendor.js"></script>
         <script src="/client/bundle.js"></script>
     </body>
     </html>
-    `
+    `;
 };
 
 /**
@@ -174,24 +175,23 @@ const sendHtmlPage = async ({html, post, posts, first, prev, next, last}) => {
  * @return {Promise<*>} - a promise containing a blog post object
  */
 const getUrlPost = async (url, regex) => {
+  // First match the URL with a Regex of the expected pattern for accessing a blog post
+  const matches = url.match(regex);
 
-    // First match the URL with a Regex of the expected pattern for accessing a blog post
-    const matches = url.match(regex);
+  // In case the match fails, simply return nulls
+  const [, match] = matches || [null, null];
 
-    // In case the match fails, simply return nulls
-    const [ , match] = matches || [null, null];
+  console.debug(`Matching URL: ${match}`);
 
-    console.debug(`Matching URL: ${match}`);
+  let post = null;
 
-    let post = null;
+  // If the URL is valid, find the blog post in the database
+  if (match) {
+    post = await PostDao.getByName(match);
+    console.debug(`Post with matching name: ${post.name}`);
+  }
 
-    // If the URL is valid, find the blog post in the database
-    if (match) {
-        post = await PostDao.getByName(match);
-        console.debug(`Post with matching name: ${post.name}`);
-    }
-
-    return post;
+  return post;
 };
 
 /**
@@ -203,26 +203,25 @@ const getUrlPost = async (url, regex) => {
  * and links to other pages of posts
  */
 const getListOfPosts = async (url) => {
-    const queries = queryString.parseUrl(url);
+  const queries = queryString.parseUrl(url);
 
-    // These lines get items from the URL query string
-    const page = queries && queries.query && queries.query.page ? queries.query.page : 1;
-    const query = queries && queries.query && queries.query.query ? queries.query.query : "_";
+  // These lines get items from the URL query string
+  const page = queries && queries.query && queries.query.page ? queries.query.page : 1;
+  const query = queries && queries.query && queries.query.query ? queries.query.query : '_';
 
-    // The number of posts per page defaults to 12
-    const posts = await PostDao.getPaginatedPostPreviews(page, 12, query);
+  // The number of posts per page defaults to 12
+  const posts = await PostDao.getPaginatedPostPreviews(page, 12, query);
 
-    // generatePaginatedPostsLinks() expects an integer for the first argument so coerce 'page'
-    const {first, prev, next, last} =
-        PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post/preview', query);
+  // generatePaginatedPostsLinks() expects an integer for the first argument so coerce 'page'
+  const { first, prev, next, last } = PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post/preview', query);
 
-    return {
-        posts,
-        first,
-        prev,
-        next,
-        last
-    }
+  return {
+    posts,
+    first,
+    prev,
+    next,
+    last
+  };
 };
 
 /**
@@ -231,8 +230,7 @@ const getListOfPosts = async (url) => {
  * @param url - the url of the HTTP request
  * @returns {Promise<*>} - Promise containing HTML to be sent in the response
  */
-const htmlResponse = async (url) =>
-    await sendHtmlPage(await renderComponentsToHTML(url));
+const htmlResponse = async (url) => await sendHtmlPage(await renderComponentsToHTML(url));
 
 /**
  * Take the url passed in and render the HTML appropriately.  Then send it back in the response
@@ -240,21 +238,23 @@ const htmlResponse = async (url) =>
  * @param res - HTTP response
  */
 const respond = async (req, res) => {
-    const response = await htmlResponse(req.url);
-    res.status(200).send(response);
+  const response = await htmlResponse(req.url);
+  res.status(200).send(response);
 };
 
 const app = express();
 
-app.use(cors({
+app.use(
+  cors({
     origin: ['https://www.jarombek.com', 'https://jarombek.com'],
     methods: 'GET,HEAD,PUT,PATCH,POST',
     preflightContinue: false,
     optionsSuccessStatus: 200
-}))
+  })
+);
 
 app.use(helmet({}));
-app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.json({ limit: '50mb' }));
 
 app.use('/api/post', postRouter);
 app.use('/api/viewed', viewedRouter);
@@ -269,8 +269,8 @@ app.use(respond);
 const port = process.env.port || 8080;
 
 const server = app.listen(port, () => {
-   console.info(`Jarombek.com running on port ${port}`);
-   console.info(__dirname);
+  console.info(`Jarombek.com running on port ${port}`);
+  console.info(__dirname);
 });
 
 server.keepAliveTimeout = 120000;
