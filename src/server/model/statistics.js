@@ -9,24 +9,24 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const StatisticsSchema = new Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    first_year: {
-        type: Number,
-        required: true
-    },
-    lines: {
-        type: Array,
-        required: true
-    },
-    rank: {
-        type: Array,
-        required: true
-    }
+  name: {
+    type: String,
+    required: true
+  },
+  first_year: {
+    type: Number,
+    required: true
+  },
+  lines: {
+    type: Array,
+    required: true
+  },
+  rank: {
+    type: Array,
+    required: true
+  }
 });
 
-StatisticsSchema.index({name: 1});
+StatisticsSchema.index({ name: 1 });
 
 export default mongoose.model('Statistics', StatisticsSchema, 'statistics');

@@ -12,20 +12,24 @@ import StatisticsDao from '../dao/statisticsDao';
  * @return {*} The express router for statistics.
  */
 const routes = () => {
+  const statsRouter = express.Router();
 
-    const statsRouter = express.Router();
+  /**
+   * '/' Route
+   */
+  baseRoute(statsRouter);
 
-    /**
-     * '/' Route
-     */
-    baseRoute(statsRouter);
+  /**
+   * '/meta' Route
+   */
+  metaRoute(statsRouter);
 
-    /**
-     * '/:language' Route
-     */
-    languageRoute(statsRouter);
+  /**
+   * '/:language' Route
+   */
+  languageRoute(statsRouter);
 
-    return statsRouter;
+  return statsRouter;
 };
 
 /**
@@ -33,8 +37,15 @@ const routes = () => {
  * @param router - the express router for the stats API
  */
 const baseRoute = (router) => {
-    router.route('/')
-        .get(getAll);
+  router.route('/').get(getAll);
+};
+
+/**
+ * Handler for the statistics metadata routes of the API ('/meta' endpoints)
+ * @param router - the express router for the stats API
+ */
+const metaRoute = (router) => {
+  router.route('/meta').get(getMeta);
 };
 
 /**
@@ -42,10 +53,9 @@ const baseRoute = (router) => {
  * @param router - the express router for the stats API
  */
 const languageRoute = (router) => {
-    router.use('/:language', languageMiddleware);
+  router.use('/:language', languageMiddleware);
 
-    router.route('/:language')
-        .get(getOne);
+  router.route('/:language').get(getOne);
 };
 
 /**
@@ -54,14 +64,17 @@ const languageRoute = (router) => {
  * @param res - HTTP response body.
  */
 const getAll = (req, res) => {
-    StatisticsDao.getAll().then((stats) => {
-        res.json(stats);
-    }, (reason => {
-        res.status(400).json({
-            error: "Failed to Retrieve all language statistics",
-            message: reason
-        });
-    }));
+  StatisticsDao.getAll().then(
+    (stats) => {
+      res.json(stats);
+    },
+    (reason) => {
+      res.status(400).json({
+        error: 'Failed to Retrieve all language statistics',
+        message: reason
+      });
+    }
+  );
 };
 
 /**
@@ -73,15 +86,18 @@ const getAll = (req, res) => {
  * @param next - the next step on middleware in the router.
  */
 const languageMiddleware = (req, res, next) => {
-    StatisticsDao.getByLanguageName(req.params.name).then((stats) => {
-        req.stats = stats;
-        next();
-    }, (reason => {
-        res.status(400).json({
-            error: `Failed to Retrieve Language Statistics with Name: ${req.params.name}`,
-            message: reason
-        });
-    }));
+  StatisticsDao.getByLanguageName(req.params.name).then(
+    (stats) => {
+      req.stats = stats;
+      next();
+    },
+    (reason) => {
+      res.status(400).json({
+        error: `Failed to Retrieve Language Statistics with Name: ${req.params.name}`,
+        message: reason
+      });
+    }
+  );
 };
 
 /**
@@ -91,7 +107,26 @@ const languageMiddleware = (req, res, next) => {
  * @param res - HTTP response body.
  */
 const getOne = (req, res) => {
-    res.json(req.stats);
+  res.json(req.stats);
+};
+
+/**
+ * Get language statistics metadata from the database.
+ * @param req - HTTP request body.
+ * @param res - HTTP response body.
+ */
+const getMeta = (req, res) => {
+  StatisticsDao.getMetadata().then(
+    (meta) => {
+      res.json(meta);
+    },
+    (reason) => {
+      res.status(400).json({
+        error: 'Failed to Retrieve Language Statistics Metadata',
+        message: reason
+      });
+    }
+  );
 };
 
 export default routes;

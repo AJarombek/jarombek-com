@@ -7,17 +7,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const StatisticsGraph = ({data=[], disabled=false}) => {
-    return (
-        disabled ?
-            <div id="jarbek-statistics-graph">Statistics Graph Coming Soon</div> :
-            <div id="jarbek-statistics-graph"> </div>
-    );
+const StatisticsGraph = ({ data = [], disabled = false }) => {
+  return disabled ? (
+    <div id="jarbek-statistics-graph">Statistics Graph Coming Soon</div>
+  ) : (
+    <div id="jarbek-statistics-graph"> </div>
+  );
 };
 
 StatisticsGraph.propTypes = {
-    data: PropTypes.array,
-    disabled: PropTypes.bool
+  data: PropTypes.array,
+  disabled: PropTypes.bool
 };
 
 export default StatisticsGraph;

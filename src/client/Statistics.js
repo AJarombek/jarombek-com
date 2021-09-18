@@ -4,65 +4,44 @@
  * @since 9/14/2019
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import WebsiteTemplate from './WebsiteTemplate';
 import StatisticsGraph from './StatisticsGraph';
 import StatisticsChart from './StatisticsChart';
 import BaseURL from './BaseURL';
 
-class Statistics extends React.Component {
+const Statistics = () => {
+  const [stats, setStats] = useState({});
+  const [statsMeta, setStatsMeta] = useState({});
 
-    /**
-     * Set the initial state of the component and get the URL to use for API calls.
-     * @param props Props passed to the component from a parent component.
-     */
-    constructor(props) {
-        super(props);
+  const fetchStatistics = async () => {
+    const baseUrl = BaseURL.get();
+    const response = await fetch(`${baseUrl}/api/stats`);
+    const data = await response.json();
+    setStats(data);
+  };
 
-        // Get the Base URL of the API depending on the environment.
-        this.baseUrl = BaseURL.get();
+  const fetchStatisticsMetadata = async () => {
+    const baseUrl = BaseURL.get();
+    const response = await fetch(`${baseUrl}/api/stats/meta`);
+    const data = await response.json();
+    setStatsMeta(data);
+  };
 
-        this.state = {};
-    }
+  useEffect(() => {
+    fetchStatistics();
+    fetchStatisticsMetadata();
+  }, []);
 
-    /**
-     * When the component is about to mount, retrieve the programming language statistics
-     * from the API.
-     */
-    componentWillMount() {
-        this.fetchStatistics()
-            .catch(() => {
-                this.setState({data: {}});
-            });
-    }
-
-    /**
-     * Fetch the programming language lines code statistics from the API.
-     * @return {Promise<void>} A promise which should be caught in case the API call fails.
-     */
-    async fetchStatistics() {
-        const response = await fetch(`${this.baseUrl}/api/stats`);
-        const data = await response.json();
-        this.setState({data});
-    }
-
-    /**
-     * Render the Statistics page which displays a graph and chart containing my programming
-     * language lines coded statistics.
-     * @return {*} React elements.
-     */
-    render() {
-        const {data} = this.state;
-        return (
-            <WebsiteTemplate subscribeAction={ () => {} }>
-                <div id="jarbek-statistics">
-                    <p className="jarbek-statistics-header">Programming Language Statistics</p>
-                    <StatisticsGraph data={data} disabled={true} />
-                    <StatisticsChart data={data} />
-                </div>
-            </WebsiteTemplate>
-        )
-    }
-}
+  return (
+    <WebsiteTemplate subscribeAction={() => {}}>
+      <div id="jarbek-statistics">
+        <p className="jarbek-statistics-header">Programming Language Statistics</p>
+        <StatisticsGraph data={stats} disabled={true} />
+        <StatisticsChart data={stats} />
+      </div>
+    </WebsiteTemplate>
+  );
+};
 
 export default Statistics;
