@@ -11,7 +11,7 @@ import StatisticsChart from './StatisticsChart';
 import BaseURL from './BaseURL';
 
 const Statistics = () => {
-  const [stats, setStats] = useState({});
+  const [stats, setStats] = useState([]);
   const [statsMeta, setStatsMeta] = useState({});
 
   const fetchStatistics = async () => {
@@ -37,7 +37,7 @@ const Statistics = () => {
     <WebsiteTemplate subscribeAction={() => {}}>
       <div id="jarbek-statistics">
         <p className="jarbek-statistics-header">Programming Language Statistics</p>
-        <StatisticsGraph data={stats} disabled={true} />
+        <StatisticsGraph data={stats} lastUpdated={statsMeta?.updated} />
         <StatisticsChart data={stats} />
       </div>
     </WebsiteTemplate>
