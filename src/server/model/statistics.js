@@ -17,6 +17,10 @@ const StatisticsSchema = new Schema({
     type: Number,
     required: true
   },
+  color: {
+    type: String,
+    required: true
+  },
   lines: {
     type: Array,
     required: true

@@ -8,13 +8,14 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import LineChartLabel from './LineChartLabel';
 
 const StatisticsGraph = ({ data = [], lastUpdated }) => {
   const chartData = useMemo(() => {
     const arrayLength = new Date().getFullYear() - 2013;
     return [...Array(arrayLength).keys()].map((value, index) => {
       const yearData = {
-        date: value + 2014
+        year: value + 2014
       };
 
       data?.forEach((item) => {
@@ -35,12 +36,19 @@ const StatisticsGraph = ({ data = [], lastUpdated }) => {
           <LineChart width="100%" height="100%" data={chartData} margin={{ top: 15, right: 20, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasgarray="3 3" />
             <XAxis dataKey="year" />
-            <YAxis />
+            <YAxis domain={[0, 43000]} />
             <Tooltip />
             <Legend />
             <>
               {data.map((language) => (
-                <Line key={language.name} type="monotone" dataKey={language.name} stroke={language.color ?? '#CCC'} />
+                <Line
+                  key={language.name}
+                  type="monotone"
+                  dataKey={language.name}
+                  stroke={language.color ?? '#CCC'}
+                  strokeWidth={3}
+                  label={<LineChartLabel language={language.name} />}
+                />
               ))}
             </>
           </LineChart>
