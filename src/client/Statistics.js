@@ -7,8 +7,9 @@
 import React, { useState, useEffect } from 'react';
 import WebsiteTemplate from './WebsiteTemplate';
 import StatisticsGraph from './StatisticsGraph';
-import StatisticsChart from './StatisticsChart';
+import StatisticsTable from './StatisticsTable';
 import BaseURL from './BaseURL';
+import StatisticsRankGraph from './StatisticsRankGraph';
 
 const Statistics = () => {
   const [stats, setStats] = useState([]);
@@ -38,7 +39,8 @@ const Statistics = () => {
       <div id="jarbek-statistics">
         <p className="jarbek-statistics-header">Programming Language Statistics</p>
         <StatisticsGraph data={stats} lastUpdated={statsMeta?.updated} />
-        <StatisticsChart data={stats} />
+        <StatisticsTable data={stats} />
+        <StatisticsRankGraph data={stats} />
       </div>
     </WebsiteTemplate>
   );

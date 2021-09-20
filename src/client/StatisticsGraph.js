@@ -37,7 +37,11 @@ const StatisticsGraph = ({ data = [], lastUpdated }) => {
             <CartesianGrid strokeDasgarray="3 3" />
             <XAxis dataKey="year" />
             <YAxis domain={[0, 43000]} />
-            <Tooltip />
+            <Tooltip
+              itemSorter={(item) => 0 - item.value}
+              formatter={(value, name) => [value.toLocaleString(), name]}
+              filterNull={true}
+            />
             <Legend />
             <>
               {data.map((language) => (

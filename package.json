@@ -20,6 +20,7 @@
     "server:dev": "webpack --env serverDevelopment",
     "server:start": "webpack --env serverDevelopment --watch --display-error-details",
     "server:deploy": "node ./dist/server/bundle.js",
+    "start:local": "export NODE_ENV=local && yarn client:dev && yarn server:dev && yarn server:deploy",
     "lint": "eslint src",
     "prettier:check": "prettier src --check",
     "prettier:write": "prettier src --write"
@@ -37,6 +38,7 @@
     "base64-url": "^2.2.1",
     "bcrypt-nodejs": "^0.0.3",
     "body-parser": "^1.19.0",
+    "classnames": "^2.3.1",
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "helmet": "^3.18.0",
