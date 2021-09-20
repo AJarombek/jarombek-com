@@ -8,7 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-const LineChartLabel = ({ x, y, value, language, filtered = true, bold = false }) => {
+const LineChartLabel = ({ x, y, value, language, filtered = true, bold = false, fontSize = 11 }) => {
   return !filtered || value > 10000 ? (
     <text
       id="jarombek-line-chart-label"
@@ -16,7 +16,7 @@ const LineChartLabel = ({ x, y, value, language, filtered = true, bold = false }
       x={x}
       y={y}
       dy={-6}
-      fontSize={11}
+      fontSize={fontSize}
       textAnchor="middle"
     >
       {language}
@@ -30,7 +30,8 @@ LineChartLabel.propTypes = {
   y: PropTypes.number,
   value: PropTypes.number,
   filtered: PropTypes.bool,
-  bold: PropTypes.bool
+  bold: PropTypes.bool,
+  fontSize: PropTypes.number
 };
 
 export default LineChartLabel;

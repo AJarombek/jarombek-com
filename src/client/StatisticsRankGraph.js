@@ -28,8 +28,9 @@ const StatisticsRankGraph = ({ data = [] }) => {
 
   return (
     <div id="jarbek-statistics-rank-graph">
+      <h4>Programming Language Rankings</h4>
       <ResponsiveContainer height={600} width="95%">
-        <LineChart width="100%" height="100%" data={chartData} margin={{ top: 15, right: 20, left: 20, bottom: 5 }}>
+        <LineChart width="100%" height="100%" data={chartData} margin={{ top: 15, right: 40, left: 40, bottom: 5 }}>
           <CartesianGrid strokeDasgarray="3 3" />
           <XAxis dataKey="year" />
           <YAxis domain={[1, 15]} reversed={true} interval="preserveStartEnd" />
@@ -43,7 +44,7 @@ const StatisticsRankGraph = ({ data = [] }) => {
                 dataKey={language.name}
                 stroke={language.color ?? '#CCC'}
                 strokeWidth={3}
-                label={<LineChartLabel language={language.name} filtered={false} bold={true} />}
+                label={<LineChartLabel language={language.name} filtered={false} bold={true} fontSize={12} />}
               />
             ))}
           </>
