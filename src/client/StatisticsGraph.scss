@@ -11,10 +11,19 @@
   text-align: center;
   margin-top: 20px;
 
+  h4 {
+    font-size: 24px;
+    padding-bottom: 5px;
+  }
+
+  h6 {
+    font-size: 16px;
+  }
+
   .jarbek-statistics-graph-updated {
     text-align: left;
     margin-left: 5%;
-    margin-top: 40px;
+    margin-top: 20px;
     color: #aaa;
   }
 }

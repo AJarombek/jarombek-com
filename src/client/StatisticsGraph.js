@@ -28,12 +28,14 @@ const StatisticsGraph = ({ data = [], lastUpdated }) => {
 
   return (
     <div id="jarbek-statistics-graph">
+      <h4>Programming Language Lines Written</h4>
+      <h6>(By Andrew Jarombek)</h6>
       {lastUpdated && (
         <p className="jarbek-statistics-graph-updated">Last Updated: {moment(lastUpdated).format('MMM Do, YYYY')}</p>
       )}
       <div>
         <ResponsiveContainer height={500} width="95%">
-          <LineChart width="100%" height="100%" data={chartData} margin={{ top: 15, right: 20, left: 20, bottom: 5 }}>
+          <LineChart width="100%" height="100%" data={chartData} margin={{ top: 15, right: 30, left: 30, bottom: 5 }}>
             <CartesianGrid strokeDasgarray="3 3" />
             <XAxis dataKey="year" />
             <YAxis domain={[0, 43000]} />

@@ -5,7 +5,6 @@
  */
 
 @import "./styles/variables";
-@import "styles/mixins/sylexiads";
 
 #jarbek-statistics {
   padding-top: 100px;
@@ -16,11 +15,5 @@
 
   @media screen and (max-width: $width-mobile-small) {
     padding-top: 80px;
-  }
-
-  .jarbek-statistics-header {
-    @include sylexiad;
-    font-size: 28px;
-    text-align: center;
   }
 }

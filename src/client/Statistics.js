@@ -15,6 +15,10 @@ const Statistics = () => {
   const [stats, setStats] = useState([]);
   const [statsMeta, setStatsMeta] = useState({});
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const fetchStatistics = async () => {
     const baseUrl = BaseURL.get();
     const response = await fetch(`${baseUrl}/api/stats`);
@@ -37,7 +41,6 @@ const Statistics = () => {
   return (
     <WebsiteTemplate subscribeAction={() => {}}>
       <div id="jarbek-statistics">
-        <p className="jarbek-statistics-header">Programming Language Statistics</p>
         <StatisticsGraph data={stats} lastUpdated={statsMeta?.updated} />
         <StatisticsTable data={stats} />
         <StatisticsRankGraph data={stats} />

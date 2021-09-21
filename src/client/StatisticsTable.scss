@@ -5,8 +5,62 @@
  */
 
 @import "styles/mixins/sylexiads";
+@import "styles/variables";
 
 #jarbek-statistics-table {
   @include sylexiad;
   margin-top: 40px;
+  font-size: 18px;
+
+  table {
+    border-spacing: 1px;
+    margin: 0 auto;
+
+    tr {
+      border-bottom: 1px solid #bbb;
+
+      :last-child {
+        td {
+          border-bottom: 0;
+        }
+      }
+
+      &:nth-child(odd) {
+        background-color: #f3f3f3;
+      }
+
+      &:nth-child(even) {
+        background-color: #fff;
+      }
+
+      td:first-child {
+        @include sylexiad-bold;
+        color: #777;
+      }
+
+      td:last-child {
+        @include sylexiad-bold;
+      }
+    }
+
+    th, td {
+      margin: 0;
+      padding: 15px 12px;
+      text-align: end;
+    }
+
+    th {
+      @include sylexiad-bold;
+      background-color: darken($color-secondary, 35%);
+      color: white;
+
+      &:first-child {
+        border-radius: 5px 0 0 0;
+      }
+
+      &:last-child {
+        border-radius: 0 5px 0 0;
+      }
+    }
+  }
 }

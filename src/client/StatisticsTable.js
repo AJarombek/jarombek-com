@@ -31,18 +31,24 @@ const StatisticsTable = ({ data = [] }) => {
 
   const finalData = useMemo(() => {
     const yearArray = [...Array(new Date().getFullYear() - 2013).keys()];
-    return data.map((value) => {
-      const yearData = {
-        language: value.name,
-        total: value.lines.reduce((total, yearLines) => total + yearLines ?? 0, 0)
-      };
+    return data
+      .map((value) => {
+        const yearData = {
+          language: value.name,
+          total: value.lines.reduce((total, yearLines) => total + yearLines ?? 0, 0)
+        };
 
-      yearArray.forEach((year, index) => {
-        yearData[`${year + 2014}`] = value.lines[index];
-      });
+        yearArray.forEach((year, index) => {
+          yearData[`${year + 2014}`] = value.lines[index]?.toLocaleString();
+        });
 
-      return yearData;
-    });
+        return yearData;
+      })
+      .sort((a, b) => b.total - a.total)
+      .map((value) => ({
+        ...value,
+        total: value.total.toLocaleString()
+      }));
   }, [data]);
 
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable({
