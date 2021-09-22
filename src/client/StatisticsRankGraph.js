@@ -29,7 +29,7 @@ const StatisticsRankGraph = ({ data = [] }) => {
   return (
     <div id="jarbek-statistics-rank-graph">
       <h4>Programming Language Rankings</h4>
-      <ResponsiveContainer height={600} width="95%">
+      <ResponsiveContainer height={600} width="98%">
         <LineChart width="100%" height="100%" data={chartData} margin={{ top: 15, right: 40, left: 40, bottom: 5 }}>
           <CartesianGrid strokeDasgarray="3 3" />
           <XAxis dataKey="year" />

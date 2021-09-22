@@ -5,6 +5,7 @@
  */
 
 @import "styles/mixins/sylexiads";
+@import "styles/variables";
 
 #jarbek-statistics-rank-graph {
   @include sylexiad;
@@ -15,5 +16,29 @@
   h4 {
     font-size: 24px;
     padding-bottom: 30px;
+  }
+
+  text#jarombek-line-chart-label {
+    @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
+      font-size: 11px;
+    }
+
+    @media screen and (max-width: $width-mobile-small) {
+      display: none;
+    }
+  }
+
+  .recharts-wrapper {
+    @media screen and (max-width: $width-mobile-small) {
+      overflow: hidden;
+      left: -20px;
+    }
+  }
+
+  .recharts-legend-wrapper {
+    @media screen and (max-width: $width-mobile-small) {
+      overflow: hidden;
+      left: 70px !important;
+    }
   }
 }

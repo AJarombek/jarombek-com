@@ -5,6 +5,7 @@
  */
 
 @import "styles/mixins/sylexiads";
+@import "styles/variables";
 
 #jarbek-statistics-graph {
   @include sylexiad;
@@ -25,5 +26,19 @@
     margin-left: 5%;
     margin-top: 20px;
     color: #aaa;
+  }
+
+  .recharts-wrapper {
+    @media screen and (max-width: $width-mobile-small) {
+      overflow: hidden;
+      left: -10px;
+    }
+  }
+
+  .recharts-legend-wrapper {
+    @media screen and (max-width: $width-mobile-small) {
+      overflow: hidden;
+      left: 60px !important;
+    }
   }
 }

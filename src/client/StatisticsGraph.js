@@ -34,7 +34,7 @@ const StatisticsGraph = ({ data = [], lastUpdated }) => {
         <p className="jarbek-statistics-graph-updated">Last Updated: {moment(lastUpdated).format('MMM Do, YYYY')}</p>
       )}
       <div>
-        <ResponsiveContainer height={500} width="95%">
+        <ResponsiveContainer height={500} width="98%">
           <LineChart width="100%" height="100%" data={chartData} margin={{ top: 15, right: 30, left: 30, bottom: 5 }}>
             <CartesianGrid strokeDasgarray="3 3" />
             <XAxis dataKey="year" />
