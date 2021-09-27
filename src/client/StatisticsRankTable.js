@@ -1,14 +1,14 @@
 /**
- * StatisticsTable functional component.
+ * StatisticsRankTable functional component.
  * @author Andrew Jarombek
- * @since 9/14/2019
+ * @since 9/26/2021
  */
 
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import Table from './Table';
 
-const StatisticsTable = ({ data = [] }) => {
+const StatisticsRankTable = ({ data = [] }) => {
   const columns = useMemo(() => {
     const arrayLength = new Date().getFullYear() - 2013;
     const yearHeaders = [...Array(arrayLength).keys()].map((value) => ({
@@ -23,8 +23,8 @@ const StatisticsTable = ({ data = [] }) => {
       },
       ...yearHeaders,
       {
-        Header: 'Total',
-        accessor: 'total'
+        Header: 'Average Rank',
+        accessor: 'averageRank'
       }
     ];
   }, []);
@@ -35,27 +35,26 @@ const StatisticsTable = ({ data = [] }) => {
       .map((value) => {
         const yearData = {
           language: value.name,
-          total: value.lines.reduce((total, yearLines) => total + yearLines ?? 0, 0)
+          averageRank: (
+            value.rank.reduce((total, rank) => total + rank ?? 0, 0) /
+            value.rank.reduce((total, rank) => total + (rank != null ? 1 : 0), 0)
+          ).toFixed(1)
         };
 
         yearArray.forEach((year, index) => {
-          yearData[`${year + 2014}`] = value.lines[index]?.toLocaleString();
+          yearData[`${year + 2014}`] = value.rank[index];
         });
 
         return yearData;
       })
-      .sort((a, b) => b.total - a.total)
-      .map((value) => ({
-        ...value,
-        total: value.total.toLocaleString()
-      }));
+      .sort((a, b) => a.averageRank - b.averageRank);
   }, [data]);
 
   return <Table data={finalData} columns={columns} />;
 };
 
-StatisticsTable.propTypes = {
+StatisticsRankTable.propTypes = {
   data: PropTypes.array
 };
 
-export default StatisticsTable;
+export default StatisticsRankTable;

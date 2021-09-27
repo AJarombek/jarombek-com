@@ -1,5 +1,5 @@
 /*
- * Sass styling for the StatisticsTable component
+ * Sass styling for the Table component
  * @author Andrew Jarombek
  * @since 9/20/2021
  */
@@ -7,7 +7,7 @@
 @import "styles/mixins/sylexiads";
 @import "styles/variables";
 
-#jarbek-statistics-table {
+#jarbek-table {
   @include sylexiad;
   margin: 40px auto 0 auto;
   font-size: 20px;

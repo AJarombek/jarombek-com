@@ -10,6 +10,7 @@ import StatisticsGraph from './StatisticsGraph';
 import StatisticsTable from './StatisticsTable';
 import BaseURL from './BaseURL';
 import StatisticsRankGraph from './StatisticsRankGraph';
+import StatisticsRankTable from './StatisticsRankTable';
 
 const Statistics = () => {
   const [stats, setStats] = useState([]);
@@ -44,6 +45,7 @@ const Statistics = () => {
         <StatisticsGraph data={stats} lastUpdated={statsMeta?.updated} />
         <StatisticsTable data={stats} />
         <StatisticsRankGraph data={stats} />
+        <StatisticsRankTable data={stats} />
       </div>
     </WebsiteTemplate>
   );
