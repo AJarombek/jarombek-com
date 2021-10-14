@@ -177,6 +177,11 @@ class CodeSnippet extends React.Component {
         prop: 'less',
         title: 'Less',
         highlightClass: 'less'
+      },
+      {
+        prop: 'toml',
+        title: 'TOML',
+        highlightClass: 'toml'
       }
     ];
   }
