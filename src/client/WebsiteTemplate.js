@@ -6,24 +6,24 @@
 
 import React from 'react';
 import WebsiteNav from './WebsiteNav';
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 
-const WebsiteTemplate = ({children, hideSubscribe}) => {
-    return (
-        <div className="jarombek-template">
-            <WebsiteNav hideSubscribe={hideSubscribe} />
-            {children}
-        </div>
-    );
+const WebsiteTemplate = ({ children, hideSubscribe }) => {
+  return (
+    <div className="jarombek-template">
+      <WebsiteNav hideSubscribe={hideSubscribe} />
+      {children}
+    </div>
+  );
 };
 
 WebsiteTemplate.propTypes = {
-    children: PropTypes.any,
-    hideSubscribe: PropTypes.bool
+  children: PropTypes.any,
+  hideSubscribe: PropTypes.bool
 };
 
 WebsiteTemplate.defaultProps = {
-    hideSubscribe: false
+  hideSubscribe: false
 };
 
 export default WebsiteTemplate;

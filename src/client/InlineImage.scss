@@ -1,0 +1,21 @@
+/**
+ * Sass styling for the InlineImage component
+ * @author Andrew Jarombek
+ * @since 11/15/2021
+ */
+
+.jarombek-inline-image {
+  &.jarombek-image-padding-top {
+    margin-top: 20px;
+  }
+
+  &.jarombek-image-padding-bottom {
+    margin-bottom: 20px;
+  }
+
+  .jarombek-image-img {
+    max-width: 100%;
+    display: block;
+    margin: auto;
+  }
+}

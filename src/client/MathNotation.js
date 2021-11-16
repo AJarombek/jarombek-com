@@ -10,13 +10,15 @@ import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 const MathNotation = ({ tex }) => {
-    return <div className="jarbek-math-notation">
-        <BlockMath math={tex} />
-    </div>;
+  return (
+    <div className="jarbek-math-notation">
+      <BlockMath math={tex} />
+    </div>
+  );
 };
 
 MathNotation.propTypes = {
-    tex: PropTypes.string.isRequired
+  tex: PropTypes.string.isRequired
 };
 
 export default MathNotation;

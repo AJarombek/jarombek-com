@@ -6,125 +6,121 @@
  * @since 7/28/2018
  */
 
-import JSXConverter from "./JSXConverter";
+import JSXConverter from './JSXConverter';
 
 class BlogDelegator {
+  /**
+   * Fetch multiple posts from the API
+   * @param baseUrl - the base of the url dependent on the environment
+   * @param url - the url of the API call to make
+   * @return {Promise<{posts: *[], prev, next}>} - Once resolved, will return an
+   * object with the posts, previous page of posts, next page of posts, and a list
+   * of the fetched posts names
+   */
+  static async fetchPosts(baseUrl, url) {
+    const response = await fetch(`${baseUrl}${url}`);
+    const link = response.headers.get('Link');
 
-    /**
-     * Fetch multiple posts from the API
-     * @param baseUrl - the base of the url dependent on the environment
-     * @param url - the url of the API call to make
-     * @return {Promise<{posts: *[], prev, next}>} - Once resolved, will return an
-     * object with the posts, previous page of posts, next page of posts, and a list
-     * of the fetched posts names
-     */
-    static async fetchPosts(baseUrl, url) {
+    // The only important link headers to us are prev and next
+    const { first, prev, next, last } = BlogDelegator.parseLinks(link);
 
-        const response = await fetch(`${baseUrl}${url}`);
-        const link = response.headers.get('Link');
+    const json = await response.json();
 
-        // The only important link headers to us are prev and next
-        const {first, prev, next, last} = BlogDelegator.parseLinks(link);
+    // Transform JSON to JSX
+    const posts = JSXConverter.createPostsJSX(json);
 
-        const json = await response.json();
+    // Create a list of all the new posts that were loaded from the API
+    const loaded = posts.map((post) => post.name);
 
-        // Transform JSON to JSX
-        const posts = JSXConverter.createPostsJSX(json);
+    return {
+      posts,
+      first,
+      prev,
+      next,
+      last,
+      loaded
+    };
+  }
 
-        // Create a list of all the new posts that were loaded from the API
-        const loaded = posts.map(post => post.name);
+  /**
+   * Fetch a single post from the API
+   * @param baseUrl - the base of the url dependent on the environment
+   * @param name - the name of the post in MongoDB
+   * @return {Promise<{post: {}, loaded: *}>} - Once resolved, will return an object with the post
+   * and the fetched post name
+   */
+  static async fetchPost(baseUrl, name) {
+    const response = await fetch(`${baseUrl}/api/post/content/${name}`);
 
-        return {
-            posts,
-            first,
-            prev,
-            next,
-            last,
-            loaded
-        };
+    const json = await response.json();
+    const post = JSXConverter.createPostJSX(json);
+
+    return { post: post, loaded: post.name };
+  }
+
+  /**
+   * Parse the Link HTTP response header
+   * @param links - string representation of the Link header
+   * @returns {{}} - an object with all the links
+   */
+  static parseLinks(links) {
+    // Regular Expression to Parse Links
+    const globalRegex = /<([a-z0-9/?&="]+)>; rel="(\w+)"/g;
+    const regex = /<([a-z0-9/?&="]+)>; rel="(\w+)"/;
+
+    const matches = links.match(globalRegex);
+
+    const linksObject = BlogDelegator.generateLinks(matches, regex);
+    return linksObject;
+  }
+
+  /**
+   * Generate an object containing all the links from the HTTP header
+   * @param list - a list of all the links
+   * @param regex - the regular expression that will match the Link header
+   * @returns {{}} - an object of all the links where the rel is the property name and the
+   * contents of the angle brackets is the property value
+   */
+  static generateLinks(list, regex = /<([a-z0-9/?&="]+)>; rel="(\w+)"/) {
+    // Base case when list is empty
+    if (!list || list.length === 0) {
+      return {};
     }
 
-    /**
-     * Fetch a single post from the API
-     * @param baseUrl - the base of the url dependent on the environment
-     * @param name - the name of the post in MongoDB
-     * @return {Promise<{post: {}, loaded: *}>} - Once resolved, will return an object with the post
-     * and the fetched post name
-     */
-    static async fetchPost(baseUrl, name) {
-        const response = await fetch(`${baseUrl}/api/post/content/${name}`);
+    const [link, ...remaining] = list;
 
-        const json = await response.json();
-        const post = JSXConverter.createPostJSX(json);
+    if (link) {
+      const [, url, destination] = link.match(regex);
 
-        return {post: post, loaded: post.name};
+      // Recursively generateLinks until the list is empty
+      return {
+        [`${destination}`]: url,
+        ...BlogDelegator.generateLinks(remaining, regex)
+      };
+    } else {
+      return {
+        ...BlogDelegator.generateLinks(remaining, regex)
+      };
     }
+  }
 
-    /**
-     * Parse the Link HTTP response header
-     * @param links - string representation of the Link header
-     * @returns {{}} - an object with all the links
-     */
-    static parseLinks(links) {
-        // Regular Expression to Parse Links
-        const globalRegex = /<([a-z0-9/?&="]+)>; rel="(\w+)"/g;
-        const regex = /<([a-z0-9/?&="]+)>; rel="(\w+)"/;
+  /**
+   * Take a list of viewed posts and increment the view count on the server
+   * @param names - a list of post names that were viewed
+   * @param baseUrl - the base of the url dependent on the environment
+   */
+  static viewedPosts(names, baseUrl) {
+    names.forEach((name) => this.viewedPost(name, baseUrl));
+  }
 
-        const matches = links.match(globalRegex);
-
-        const linksObject = BlogDelegator.generateLinks(matches, regex);
-        return linksObject;
-    }
-
-    /**
-     * Generate an object containing all the links from the HTTP header
-     * @param list - a list of all the links
-     * @param regex - the regular expression that will match the Link header
-     * @returns {{}} - an object of all the links where the rel is the property name and the
-     * contents of the angle brackets is the property value
-     */
-    static generateLinks(list, regex=/<([a-z0-9/?&="]+)>; rel="(\w+)"/) {
-
-        // Base case when list is empty
-        if (!list || list.length === 0) {
-            return {};
-        }
-
-        const [link, ...remaining] = list;
-
-        if (link) {
-            const [, url, destination] = link.match(regex);
-
-            // Recursively generateLinks until the list is empty
-            return {
-                [`${destination}`]: url,
-                ...BlogDelegator.generateLinks(remaining, regex)
-            };
-
-        } else {
-            return {
-                ...BlogDelegator.generateLinks(remaining, regex)
-            };
-        }
-    }
-
-    /**
-     * Take a list of viewed posts and increment the view count on the server
-     * @param names - a list of post names that were viewed
-     * @param baseUrl - the base of the url dependent on the environment
-     */
-    static viewedPosts(names, baseUrl) {
-        names.forEach(name => this.viewedPost(name, baseUrl));
-    }
-
-    /**
-     * Take a post name and increment the count for the corresponding post on the server
-     * @param name - a post name that was viewed
-     * @param baseUrl - the base of the url dependent on the environment
-     */
-    static viewedPost(name, baseUrl) {
-        fetch(`${baseUrl}/api/viewed/post/${name}`, {method: 'PUT'});
-    }
+  /**
+   * Take a post name and increment the count for the corresponding post on the server
+   * @param name - a post name that was viewed
+   * @param baseUrl - the base of the url dependent on the environment
+   */
+  static viewedPost(name, baseUrl) {
+    fetch(`${baseUrl}/api/viewed/post/${name}`, { method: 'PUT' });
+  }
 }
 
 export default BlogDelegator;

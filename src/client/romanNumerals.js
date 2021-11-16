@@ -11,25 +11,25 @@
  * @return {string} a roman numeral string
  */
 export function toRomanNumeral(int) {
-    const romanNumerals = [
-        {number: 100, letter: 'C'},
-        {number: 90, letter: 'XC'},
-        {number: 50, letter: 'L'},
-        {number: 40, letter: 'XL'},
-        {number: 10, letter: 'X'},
-        {number: 9, letter: 'IX'},
-        {number: 5, letter: 'V'},
-        {number: 4, letter: 'IV'},
-        {number: 1, letter: 'I'}
-    ];
+  const romanNumerals = [
+    { number: 100, letter: 'C' },
+    { number: 90, letter: 'XC' },
+    { number: 50, letter: 'L' },
+    { number: 40, letter: 'XL' },
+    { number: 10, letter: 'X' },
+    { number: 9, letter: 'IX' },
+    { number: 5, letter: 'V' },
+    { number: 4, letter: 'IV' },
+    { number: 1, letter: 'I' }
+  ];
 
-    let convertedNumber = "";
-    for (const i in romanNumerals) {
-        while (int >= romanNumerals[i].number) {
-            convertedNumber += romanNumerals[i].letter;
-            int -= romanNumerals[i].number;
-        }
+  let convertedNumber = '';
+  for (const i in romanNumerals) {
+    while (int >= romanNumerals[i].number) {
+      convertedNumber += romanNumerals[i].letter;
+      int -= romanNumerals[i].number;
     }
+  }
 
-    return convertedNumber;
+  return convertedNumber;
 }
