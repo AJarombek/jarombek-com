@@ -123,6 +123,60 @@ body {
   }
 }
 
+.jarbek-home-occupation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: lighten($color-primary, 10%);
+  height: 180px;
+
+  & > .jarbek-home-occupation-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    p {
+      @include sylexiad;
+      font-size: 24px;
+
+      strong {
+        @include sylexiad-bold;
+      }
+
+      @media screen and (max-width: $width-mobile) {
+        font-size: 20px;
+      }
+
+      @media screen and (max-width: $width-mobile-small) {
+        font-size: 16px;
+      }
+    }
+
+    div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      p:nth-child(2) {
+        padding-left: 4px;
+
+        @media screen and (max-width: $width-mobile-small) {
+          padding: 0;
+        }
+      }
+
+      @media screen and (max-width: $width-mobile-small) {
+        flex-direction: column;
+      }
+    }
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    height: 120px;
+  }
+}
+
 // Use grid-area instead of grid because of Edge using an old CSS Grid spec
 @supports not (grid-area: auto) {
   .jarbek-home-break {

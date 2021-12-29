@@ -19,6 +19,7 @@ $android-green: rgba(46, 223, 132, 0.6);
 $selenium-green: rgba(0, 180, 0, 0.6);
 $nginx-green: rgba(67, 160, 71, 0.6);
 $uwsgi-green: rgba(181, 204, 95, 0.6);
+$flux-green: rgba(89, 195, 95, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
 $jss-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
@@ -147,6 +148,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-uwsgi {
   background-color: lighten($uwsgi-green, 10%);
+}
+
+.jarombek-tag-color-flux {
+  background-color: lighten($flux-green, 10%);
 }
 
 .jarombek-tag-color-javascript {

@@ -38,7 +38,7 @@ class Home extends React.Component {
             <div className="jarbek-home-title-container">
               <h1 className="jarbek-home-title">Andrew Jarombek</h1>
             </div>
-            <p className="jarbek-home-sub-title">Software Development Hub</p>
+            <p className="jarbek-home-sub-title">Software Development Website</p>
             <Link to="/blog" className="jarbek-home-blog-button">
               <Button activeColor="primary" passiveColor="primary">
                 BLOG
@@ -53,6 +53,19 @@ class Home extends React.Component {
           <p>
             Developing Software Since <strong>Summer 2016</strong>
           </p>
+        </div>
+        <div className="jarbek-home-occupation">
+          <div className="jarbek-home-occupation-text">
+            <div>
+              <p>Currently working as a </p>
+              <p>
+                <strong>Software Engineering Senior Advisor</strong>
+              </p>
+            </div>
+            <p>
+              at <strong>Evernorth</strong>.
+            </p>
+          </div>
         </div>
         <FeatureList id="features" featureList={websiteFeatures} />
         <TitleImage
