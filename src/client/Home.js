@@ -58,8 +58,8 @@ class Home extends React.Component {
           <div className="jarbek-home-occupation-text">
             <div>
               <p>Currently working as a </p>
-              <p>
-                <strong>Software Engineering Senior Advisor</strong>
+              <p className="jarbek-home-occupation-title">
+                <strong>Senior Staff Engineer/Software Engineering Senior Advisor</strong>
               </p>
             </div>
             <p>

@@ -140,6 +140,11 @@ body {
       @include sylexiad;
       font-size: 24px;
 
+      &.jarbek-home-occupation-title {
+        display: flex;
+        text-align: center;
+      }
+
       strong {
         @include sylexiad-bold;
       }
@@ -166,7 +171,7 @@ body {
         }
       }
 
-      @media screen and (max-width: $width-mobile-small) {
+      @media screen and (max-width: $width-small-desktop) {
         flex-direction: column;
       }
     }
