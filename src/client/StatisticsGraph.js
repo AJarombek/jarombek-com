@@ -4,31 +4,27 @@
  * @since 9/14/2019
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import LineChartLabel from './LineChartLabel';
 
-const StatisticsGraph = ({ data = [], lastUpdated }) => {
-  const chartData = useMemo(() => {
-    const arrayLength = new Date().getFullYear() - 2013;
-    return [...Array(arrayLength).keys()].map((value, index) => {
-      const yearData = {
-        year: value + 2014
-      };
-
-      data?.forEach((item) => {
-        yearData[item.name] = item.lines[index];
-      });
-
-      return yearData;
-    });
-  }, [data]);
-
+const StatisticsGraph = ({
+  data = [],
+  chartData = [],
+  lastUpdated,
+  scale = 'auto',
+  start,
+  end,
+  title,
+  legend = true,
+  filterLabels = true,
+  boldLabels = false
+}) => {
   return (
     <div id="jarbek-statistics-graph">
-      <h4>Programming Language Lines Written</h4>
+      <h4>{title}</h4>
       <h6>(By Andrew Jarombek)</h6>
       {lastUpdated && (
         <p className="jarbek-statistics-graph-updated">Last Updated: {moment(lastUpdated).format('MMM Do, YYYY')}</p>
@@ -38,13 +34,13 @@ const StatisticsGraph = ({ data = [], lastUpdated }) => {
           <LineChart width="100%" height="100%" data={chartData} margin={{ top: 15, right: 30, left: 30, bottom: 5 }}>
             <CartesianGrid strokeDasgarray="3 3" />
             <XAxis dataKey="year" />
-            <YAxis domain={[0, 43000]} />
+            <YAxis domain={[start, end]} scale={scale} allowDataOverflow={false} />
             <Tooltip
               itemSorter={(item) => 0 - item.value}
               formatter={(value, name) => [value.toLocaleString(), name]}
               filterNull={true}
             />
-            <Legend />
+            {legend && <Legend />}
             <>
               {data.map((language) => (
                 <Line
@@ -53,7 +49,7 @@ const StatisticsGraph = ({ data = [], lastUpdated }) => {
                   dataKey={language.name}
                   stroke={language.color ?? '#CCC'}
                   strokeWidth={3}
-                  label={<LineChartLabel language={language.name} />}
+                  label={<LineChartLabel language={language.name} filtered={filterLabels} bold={boldLabels} />}
                 />
               ))}
             </>
@@ -65,8 +61,16 @@ const StatisticsGraph = ({ data = [], lastUpdated }) => {
 };
 
 StatisticsGraph.propTypes = {
-  data: PropTypes.array,
-  lastUpdated: PropTypes.string
+  data: PropTypes.array.isRequired,
+  chartData: PropTypes.array.isRequired,
+  lastUpdated: PropTypes.string,
+  scale: PropTypes.string,
+  start: PropTypes.number.isRequired,
+  end: PropTypes.number.isRequired,
+  title: PropTypes.string.isRequired,
+  legend: PropTypes.bool,
+  filterLabels: PropTypes.bool,
+  boldLabels: PropTypes.bool
 };
 
 export default StatisticsGraph;

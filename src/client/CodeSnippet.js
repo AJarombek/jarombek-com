@@ -182,6 +182,11 @@ class CodeSnippet extends React.Component {
         prop: 'toml',
         title: 'TOML',
         highlightClass: 'toml'
+      },
+      {
+        prop: 'spl',
+        title: 'SPL',
+        highlightClass: 'javascript'
       }
     ];
   }
