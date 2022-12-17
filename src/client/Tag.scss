@@ -21,6 +21,7 @@ $nginx-green: rgba(67, 160, 71, 0.6);
 $uwsgi-green: rgba(181, 204, 95, 0.6);
 $flux-green: rgba(89, 195, 95, 0.6);
 $splunk-green: rgba(101, 166, 30, 0.6);
+$bazel-green: rgba(117, 210, 117, 0.6);
 $javascript-yellow: rgba(240, 219, 79, 0.6);
 $jss-yellow: rgba(240, 219, 79, 0.6);
 $ecmascript6-yellow: rgba(247, 223, 30, 0.6);
@@ -55,6 +56,7 @@ $dynamodb-blue: rgba(27, 115, 187, 0.6);
 $less-blue: rgba(33, 70, 116, 0.6);
 $airflow-blue: rgba(6, 198, 211, 0.6);
 $swiftui-blue: rgba(77, 196, 255, 0.6);
+$github-actions-blue: rgba(33, 136, 255, 0.6);
 $elk-aqua: rgba(83, 191, 176, 0.6);
 $puppeteer-aqua: rgba(13, 204, 152, 0.6);
 $php-purple: rgba(118, 122, 179, 0.6);
@@ -66,6 +68,8 @@ $webassembly-purple: rgba(92, 99, 232, 0.6);
 $dotnetcore-purple: rgba(92, 42, 146, 0.6);
 $redux-purple: rgba(118, 74, 189, 0.6);
 $eslint-purple: rgba(128, 128, 242, 0.6);
+$please-build-purple: rgba(191, 151, 255, 0.6);
+$goland-purple: rgba(165, 85, 252, 0.6);
 $sass-pink: rgba(213, 130, 172, 0.6);
 $graphql-pink: rgba(229, 53, 171, 0.6);
 $kibana-pink: rgba(237, 80, 152, 0.6);
@@ -159,6 +163,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-splunk {
   background-color: lighten($splunk-green, 10%);
+}
+
+.jarombek-tag-color-bazel {
+  background-color: lighten($bazel-green, 10%);
 }
 
 .jarombek-tag-color-javascript {
@@ -295,6 +303,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-swiftui {
   background-color: lighten($swiftui-blue, 10%);
+}
+
+.jarombek-tag-color-github-actions {
+  background-color: lighten($github-actions-blue, 10%);
 }
 
 .jarombek-tag-color-elk {
@@ -439,6 +451,14 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-eslint {
   background-color: lighten($eslint-purple, 10%);
+}
+
+.jarombek-tag-color-please-build {
+  background-color: lighten($please-build-purple, 10%);
+}
+
+.jarombek-tag-color-goland {
+  background-color: lighten($goland-purple, 10%);
 }
 
 .jarombek-tag-color-sass {

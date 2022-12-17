@@ -74,6 +74,11 @@ class CodeSnippet extends React.Component {
         highlightClass: 'html'
       },
       {
+        prop: 'xml',
+        title: 'XML',
+        highlightClass: 'xml'
+      },
+      {
         prop: 'typescript',
         title: 'TypeScript',
         highlightClass: 'typescript'
@@ -187,6 +192,11 @@ class CodeSnippet extends React.Component {
         prop: 'spl',
         title: 'SPL',
         highlightClass: 'javascript'
+      },
+      {
+        prop: 'starlark',
+        title: 'Starlark',
+        highlightClass: 'python'
       }
     ];
   }
