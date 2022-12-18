@@ -88,6 +88,7 @@ $sql-server-red: rgba(187, 75, 77, 0.6);
 $jest-red: rgba(153, 66, 91, 0.6);
 $enzyme-red: rgba(254, 89, 94, 0.6);
 $npm-red: rgba(204, 53, 51, 0.6);
+$databricks-red: rgba(255, 53, 32, 0.6);
 $html-orange: rgba(239, 101, 55, 0.6);
 $rabbitmq-orange: rgba(239, 100, 55, 0.6);
 $yaml-orange: rgba(239, 145, 62, 0.6);
@@ -98,6 +99,7 @@ $aws-vpc-endpoint-orange: rgba(241, 124, 58, 0.6);
 $d3-orange: rgba(231, 147, 86, 0.6);
 $svg-orange: rgba(238, 174, 90, 0.6);
 $mysql-orange: rgba(244, 158, 67, 0.6);
+$apache-spark-orange: rgba(227, 89, 21, 0.6);
 $jenkins-lightskin: rgba(240, 214, 183, 0.6);
 $express-gray: rgba(224, 226, 228, 0.6);
 $json-gray: rgba(121, 119, 119, 0.6);
@@ -373,6 +375,10 @@ $default: rgba(204, 204, 204, 0.6);
   background-color: lighten($npm-red, 10%);
 }
 
+.jarombek-tag-color-databricks {
+  background-color: lighten($databricks-red, 10%);
+}
+
 .jarombek-tag-color-html {
   background-color: lighten($html-orange, 10%);
 }
@@ -411,6 +417,10 @@ $default: rgba(204, 204, 204, 0.6);
 
 .jarombek-tag-color-mysql {
   background-color: lighten($mysql-orange, 10%);
+}
+
+.jarombek-tag-color-apache-spark {
+  background-color: lighten($apache-spark-orange, 10%);
 }
 
 .jarombek-tag-color-jenkins {
