@@ -30,7 +30,6 @@ class Subscribe extends React.Component {
   // Regular Expression Patterns
   static EMAIL_REGEX = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\.[a-zA-Z]{2,}$/;
   static NAME_REGEX = /^[^0-9~!@#$%^&*()?<>:;[\]{}|\\]+$/;
-  static PASSWORD_REGEX = /((?=.*[a-zA-Z])(?=.*[^a-zA-Z]))/;
 
   /**
    * Actions to perform when the email field is changed.  If the email in the input
@@ -108,39 +107,6 @@ class Subscribe extends React.Component {
   }
 
   /**
-   * Actions to perform when the password field is changed.  If the password
-   * input matches the password regex and its length is greater or equal to 8,
-   * the state property {passwordNameValid} of the component is set to true.  Otherwise,
-   * it is set to false.  The state is also updated with the new password value.
-   * @param e - the React event that occurred (which corresponds to a DOM event)
-   */
-  onChangePassword(e) {
-    const password = e.target.value;
-    this.setState(Subscribe.validatePassword(password));
-  }
-
-  /**
-   * Validate a password based on the password regex
-   * @param password - the password that needs validating
-   * @return {{email: *, emailValid}} - an object literal with the password in one
-   * property and whether the password is valid in another
-   */
-  static validatePassword(password) {
-    const passwordValid = !!password.match(Subscribe.PASSWORD_REGEX) && password.length >= 8;
-    const passwordProperLength = password.length >= 8;
-    const passwordContainsNonLetter = !!password.match(/[^a-zA-Z]+/);
-    const passwordContainsLetter = !!password.match(/[a-zA-Z]+/);
-
-    return {
-      password,
-      passwordValid,
-      passwordProperLength,
-      passwordContainsNonLetter,
-      passwordContainsLetter
-    };
-  }
-
-  /**
    * Actions to perform when the form is submitted.  If all the fields in the form
    * are valid, an API call is made to create a new user.  Depending on the status of the
    * form submission, the {submitStatus} state is changed accordingly
@@ -149,14 +115,13 @@ class Subscribe extends React.Component {
     // The status of the form is that it has just been submitted
     this.setState({ submitStatus: SubmitStatus.SUBMIT });
 
-    const { emailValid, email, firstNameValid, firstName, lastNameValid, lastName, passwordValid, password } =
-      this.state;
+    const { emailValid, email, firstNameValid, firstName, lastNameValid, lastName } = this.state;
 
-    if (emailValid && firstNameValid && lastNameValid && passwordValid) {
+    if (emailValid && firstNameValid && lastNameValid) {
       // The status of the form is that the form inputs are valid and an API call can be made
       this.setState({ submitStatus: SubmitStatus.SUBMIT_VALID });
 
-      Subscribe.createUser(email, firstName, lastName, password, this.baseUrl)
+      Subscribe.createUser(email, firstName, lastName, this.baseUrl)
         .then((status) => {
           // The success of the API is dependent on the HTTP status code
           if (status === 201) {
@@ -182,19 +147,17 @@ class Subscribe extends React.Component {
    * @param email - the users email
    * @param firstName - the users first name
    * @param lastName - the users last name
-   * @param password - the users non-hashed password
    * @param baseUrl - the base of the url dependent on the environment
    * @return {Promise<number>} - a promise containing the HTTP response status code once resolved
    */
-  static async createUser(email, firstName, lastName, password, baseUrl) {
+  static async createUser(email, firstName, lastName, baseUrl) {
     const response = await fetch(`${baseUrl}/api/user`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email,
         first: firstName,
-        last: lastName,
-        hash: password
+        last: lastName
       })
     });
 
@@ -312,64 +275,6 @@ class Subscribe extends React.Component {
   }
 
   /**
-   * Render the password input field for a user subscribing.  Show validations if the password
-   * doesn't follow the required rules.
-   * @return {*} React Elements.
-   */
-  renderPasswordInput() {
-    const {
-      submitStatus,
-      passwordValid,
-      passwordProperLength,
-      passwordContainsLetter,
-      passwordContainsNonLetter,
-      password
-    } = this.state;
-
-    return (
-      <>
-        <div className="jarbek-input jarbek-input-password">
-          <input
-            className={submitStatus === SubmitStatus.SUBMIT_INVALID && !passwordValid ? 'jarbek-input-warning' : ''}
-            type="password"
-            name="password"
-            placeholder="Password"
-            onChange={(e) => this.onChangePassword(e)}
-          />
-        </div>
-        <div className="jarbek-input-password-comment">
-          {password ? (
-            <div className="jarbek-input-comment-active">
-              {passwordValid ? (
-                <p className="jarbek-input-valid">&#x2714; Valid Password</p>
-              ) : (
-                <p className="jarbek-input-invalid">&#x2718; Invalid Password</p>
-              )}
-              {passwordProperLength ? (
-                <p className="jarbek-input-valid">&#x2714; Password Must Be Over 7 Characters</p>
-              ) : (
-                <p className="jarbek-input-invalid">&#x2718; Password Must Be Over 7 Characters</p>
-              )}
-              {passwordContainsLetter ? (
-                <p className="jarbek-input-valid">&#x2714; Password Must Contain a Letter</p>
-              ) : (
-                <p className="jarbek-input-invalid">&#x2718; Password Must Contain a Letter</p>
-              )}
-              {passwordContainsNonLetter ? (
-                <p className="jarbek-input-valid">&#x2714; Password Must Contain a Number or Symbol</p>
-              ) : (
-                <p className="jarbek-input-invalid">&#x2718; Password Must Contain a Number or Symbol</p>
-              )}
-            </div>
-          ) : (
-            <div> </div>
-          )}
-        </div>
-      </>
-    );
-  }
-
-  /**
    * Render React elements which create a subscription input form.
    * @return {*} React Elements.
    */
@@ -381,7 +286,6 @@ class Subscribe extends React.Component {
         {this.renderEmailInput()}
         {this.renderFirstNameInput()}
         {this.renderLastNameInput()}
-        {this.renderPasswordInput()}
         {submitStatus === SubmitStatus.SUBMIT || submitStatus === SubmitStatus.SUBMIT_VALID ? (
           <Loading className="jarbek-input-submit" />
         ) : (
@@ -404,15 +308,14 @@ class Subscribe extends React.Component {
       <div className="jarbek-subscribe-form">
         {submitStatus === SubmitStatus.SUBMIT_SUCCESS ? (
           <p className="jarbek-input-completed">
-            Thank you for subscribing! I sent an email confirming your subscription. Emails are sent once a month with
-            everything I have worked on related to Software Development! For additional information you can contact me
-            at andrew@jarombek.com.
+            Thank you for subscribing! An email was sent confirming your monthly subscription. For additional
+            information, contact me at andrew@jarombek.com.
           </p>
         ) : submitStatus === SubmitStatus.SUBMIT_NO_CHANGE ? (
-          <p className="jarbek-input-completed">This email is already subscribed!</p>
+          <p className="jarbek-input-completed">This email address is already subscribed!</p>
         ) : (
           <p className="jarbek-input-completed">
-            Something went wrong! Note: This error message is a feature, not a bug.
+            Something went wrong! Please try again, or contact andrew@jarombek.com if the issue persists.
           </p>
         )}
         <Button className="jarbek-input-submit" size="long" activeColor="primary" onClick={() => this.props.exit()}>

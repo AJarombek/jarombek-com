@@ -11,37 +11,36 @@ import base64 from 'base64-url';
 
 import emails from '../fn/emails';
 import UserDao from '../dao/userDao';
-import User from "../model/user";
+import User from '../model/user';
 
 /**
  * Create the REST API for users
  * @return {*} The express router for users
  */
 const routes = () => {
+  const userRouter = express.Router();
 
-    const userRouter = express.Router();
+  /**
+   * '/' Route
+   */
+  baseRoute(userRouter);
 
-    /**
-     * '/' Route
-     */
-    baseRoute(userRouter);
+  /**
+   * '/filter/:email' Route
+   */
+  filterEmailRoute(userRouter);
 
-    /**
-     * '/filter/:email' Route
-     */
-    filterEmailRoute(userRouter);
+  /**
+   * '/verify/:code' Route
+   */
+  verifyCodeRoute(userRouter);
 
-    /**
-     * '/verify/:code' Route
-     */
-    verifyCodeRoute(userRouter);
+  /**
+   * '/unsub/:code' Route
+   */
+  unsubCodeRoute(userRouter);
 
-    /**
-     * '/unsub/:code' Route
-     */
-    unsubCodeRoute(userRouter);
-
-    return userRouter;
+  return userRouter;
 };
 
 /**
@@ -49,9 +48,7 @@ const routes = () => {
  * @param router - the express router for the users API
  */
 const baseRoute = (router) => {
-    router.route('/')
-        .get(getAll)
-        .post(create);
+  router.route('/').get(getAll).post(create);
 };
 
 /**
@@ -59,11 +56,9 @@ const baseRoute = (router) => {
  * @param router - the express router for the users API
  */
 const filterEmailRoute = (router) => {
-    router.use('/filter/:email', filterEmailMiddleware);
+  router.use('/filter/:email', filterEmailMiddleware);
 
-    router.route('/filter/:email')
-        .get(get)
-        .delete(deleteOne);
+  router.route('/filter/:email').get(get).delete(deleteOne);
 };
 
 /**
@@ -71,8 +66,7 @@ const filterEmailRoute = (router) => {
  * @param router - the express router for the users API
  */
 const verifyCodeRoute = (router) => {
-    router.route('/verify/:code')
-        .patch(verifyCode);
+  router.route('/verify/:code').patch(verifyCode);
 };
 
 /**
@@ -80,8 +74,7 @@ const verifyCodeRoute = (router) => {
  * @param router - the express router for the users API
  */
 const unsubCodeRoute = (router) => {
-    router.route('/unsub/:code')
-        .patch(unsubCode);
+  router.route('/unsub/:code').patch(unsubCode);
 };
 
 /**
@@ -90,15 +83,17 @@ const unsubCodeRoute = (router) => {
  * @param res - HTTP response body
  */
 const getAll = (req, res) => {
-
-    UserDao.getAll().then((users) => {
-        res.json(users);
-    }, (reason => {
-        res.status(400).json({
-            error: "Failed to Retrieve all users",
-            message: reason
-        });
-    }));
+  UserDao.getAll().then(
+    (users) => {
+      res.json(users);
+    },
+    (reason) => {
+      res.status(400).json({
+        error: 'Failed to Retrieve all users',
+        message: reason
+      });
+    }
+  );
 };
 
 /**
@@ -109,61 +104,58 @@ const getAll = (req, res) => {
  * @param res - HTTP response body
  */
 const create = (req, res) => {
+  console.info(`Request Body: ${JSON.stringify(req.body)}`);
 
-    console.info(`Request Body: ${JSON.stringify(req.body)}`);
+  const user = new User(req.body);
+  console.info(`Creating User: ${user}`);
 
-    const user = new User(req.body);
-    console.info(`Creating User: ${user}`);
+  // First make sure that the user exists and that it has a password
+  if (user !== undefined && user.hash) {
+    // Then hash and salt the password with bcrypt - second parameter
+    // is the salt rounds, third is a callback while in progress.  We
+    // pass null to automatically generate a salt and because we don't
+    // need any progress updates
+    bcrypt.hash(user.hash, null, null, (err, hash) => {
+      if (err) {
+        console.error(err);
+        res.status(500).json({ error: err });
+      } else {
+        console.info(`Original User ${JSON.stringify(user)}`);
 
-    // First make sure that the user exists and that it has a password
-    if (user !== undefined && user.hash) {
+        const verify_cd = base64.encode(uuid());
+        const unsub_cd = base64.encode(uuid());
 
-        // Then hash and salt the password with bcrypt - second parameter
-        // is the salt rounds, third is a callback while in progress.  We
-        // pass null to automatically generate a salt and because we don't
-        // need any progress updates
-        bcrypt.hash(user.hash, null, null, (err, hash) => {
-            if (err) {
-                console.error(err);
-                res.status(500).json({error: err});
-            } else {
+        console.info(`UUID: ${uuid()}`);
 
-                console.info(`Original User ${JSON.stringify(user)}`);
+        const hashedUser = {
+          ...user.toObject(),
+          hash,
+          verify_cd,
+          unsub_cd
+        };
 
-                const verify_cd = base64.encode(uuid());
-                const unsub_cd = base64.encode(uuid());
+        console.info(`Hashed User ${JSON.stringify(hashedUser)}`);
 
-                console.info(`UUID: ${uuid()}`);
+        // Insert the new user
+        UserDao.insert(hashedUser).then(
+          (newUser) => {
+            // If the insert succeeds, send a welcome email
+            emails.sendWelcomeEmail(hashedUser.email, verify_cd, unsub_cd);
 
-                const hashedUser = {
-                    ...user.toObject(),
-                    hash,
-                    verify_cd,
-                    unsub_cd
-                };
-
-                console.info(`Hashed User ${JSON.stringify(hashedUser)}`);
-
-                // Insert the new user
-                UserDao.insert(hashedUser).then((newUser) => {
-
-                    // If the insert succeeds, send a welcome email
-                    emails.sendWelcomeEmail(hashedUser.email, verify_cd, unsub_cd);
-
-                    res.status(201).json(newUser);
-
-                }, (reason) => {
-                    res.status(400).json({
-                        error: `User Creation Failed: ${reason}`,
-                        message: reason
-                    });
-                });
-            }
-        });
-
-    } else {
-        res.status(500).json({error: "User must have a Password"});
-    }
+            res.status(201).json(newUser);
+          },
+          (reason) => {
+            res.status(400).json({
+              error: `User Creation Failed: ${reason}`,
+              message: reason
+            });
+          }
+        );
+      }
+    });
+  } else {
+    res.status(500).json({ error: 'User must have a Password' });
+  }
 };
 
 /**
@@ -174,17 +166,19 @@ const create = (req, res) => {
  * @param next - the next step on middleware in the router
  */
 const filterEmailMiddleware = (req, res, next) => {
-
-    UserDao.getByEmail(req.params.email).then((user) => {
-        console.info(`User with matching email: ${user.email}`);
-        req.user = user;
-        next();
-    }, (reason) => {
-        res.status(404).json({
-            error: "No User found with given email",
-            message: reason
-        });
-    });
+  UserDao.getByEmail(req.params.email).then(
+    (user) => {
+      console.info(`User with matching email: ${user.email}`);
+      req.user = user;
+      next();
+    },
+    (reason) => {
+      res.status(404).json({
+        error: 'No User found with given email',
+        message: reason
+      });
+    }
+  );
 };
 
 /**
@@ -194,7 +188,7 @@ const filterEmailMiddleware = (req, res, next) => {
  * @param res - HTTP response body
  */
 const get = (req, res) => {
-    res.json(req.user);
+  res.json(req.user);
 };
 
 /**
@@ -203,14 +197,17 @@ const get = (req, res) => {
  * @param res - HTTP response body
  */
 const deleteOne = (req, res) => {
-    UserDao.remove(req.user).then(() => {
-        res.status(204).send();
-    }, (reason => {
-        res.status(400).json({
-            error: "Failed to remove user",
-            message: reason
-        });
-    }));
+  UserDao.remove(req.user).then(
+    () => {
+      res.status(204).send();
+    },
+    (reason) => {
+      res.status(400).json({
+        error: 'Failed to remove user',
+        message: reason
+      });
+    }
+  );
 };
 
 /**
@@ -220,14 +217,17 @@ const deleteOne = (req, res) => {
  * @param res - HTTP response body
  */
 const verifyCode = (req, res) => {
-    UserDao.verify(req.params.code).then((user) => {
-        res.status(200).json(user);
-    }, (reason) => {
-        res.status(400).json({
-            error: "Failed to Verify user",
-            message: reason
-        });
-    });
+  UserDao.verify(req.params.code).then(
+    (user) => {
+      res.status(200).json(user);
+    },
+    (reason) => {
+      res.status(400).json({
+        error: 'Failed to Verify user',
+        message: reason
+      });
+    }
+  );
 };
 
 /**
@@ -237,14 +237,17 @@ const verifyCode = (req, res) => {
  * @param res - HTTP response body
  */
 const unsubCode = (req, res) => {
-    UserDao.unsub(req.params.code).then((user) => {
-        res.status(200).json(user);
-    }, (reason) => {
-        res.status(400).json({
-            error: "Failed to Unsubscribe user",
-            message: reason
-        });
-    });
+  UserDao.unsub(req.params.code).then(
+    (user) => {
+      res.status(200).json(user);
+    },
+    (reason) => {
+      res.status(400).json({
+        error: 'Failed to Unsubscribe user',
+        message: reason
+      });
+    }
+  );
 };
 
 export default routes;
