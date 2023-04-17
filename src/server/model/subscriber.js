@@ -8,7 +8,7 @@ import dynamoose from 'dynamoose';
 
 const Schema = dynamoose.Schema;
 
-const SubscribersSchema = new Schema({
+const SubscriberSchema = new Schema({
   email: {
     type: String,
     required: true
@@ -34,22 +34,24 @@ const SubscribersSchema = new Schema({
     type: String,
     required: true
   },
-  verify_cd: {
+  verify_code: {
     type: String,
     required: true
   },
-  unsub_cd: {
+  unsub_code: {
     type: String,
     required: true
   },
   verified: {
     type: Boolean,
+    required: false,
     default: false
   },
   deleted: {
     type: Boolean,
+    required: false,
     default: false
   }
 });
 
-export default dynamoose.model('Subscribers', SubscribersSchema);
+export default dynamoose.model('Subscribers', SubscriberSchema);

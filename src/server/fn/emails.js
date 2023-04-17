@@ -13,17 +13,14 @@ import fetch from 'isomorphic-fetch';
  * @param unsub - unsubscribe code
  */
 exports.sendWelcomeEmail = function sendWelcomeEmail(to, verify, unsub) {
-    fetch(
-        `https://fn.jarombek.com/v1/welcome-email/${to}`,
-        {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                verify,
-                unsub
-            })
-        }
-    );
+  fetch(`https://fn.jarombek.com/v1/welcome-email/${to}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      verify,
+      unsub
+    })
+  });
 };
 
 export default exports;

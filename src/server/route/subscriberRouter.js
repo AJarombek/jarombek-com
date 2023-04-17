@@ -1,46 +1,46 @@
 /**
- * Routes for the User API
+ * Routes for the Subscribers API
  * @author Andrew Jarombek
- * @since 6/2/2018
+ * @since 4/8/2023
  */
 
 import express from 'express';
-import bcrypt from 'bcrypt-nodejs';
+import moment from 'moment';
 import uuid from 'uuid/v4';
 import base64 from 'base64-url';
 
 import emails from '../fn/emails';
-import UserDao from '../dao/userDao';
-import User from '../model/user';
+import SubscribersDao from '../dao/subscribersDao';
+import Subscriber from '../model/subscriber';
 
 /**
  * Create the REST API for users
  * @return {*} The express router for users
  */
 const routes = () => {
-  const userRouter = express.Router();
+  const subscriberRouter = express.Router();
 
   /**
    * '/' Route
    */
-  baseRoute(userRouter);
+  baseRoute(subscriberRouter);
 
   /**
    * '/filter/:email' Route
    */
-  filterEmailRoute(userRouter);
+  filterEmailRoute(subscriberRouter);
 
   /**
    * '/verify/:code' Route
    */
-  verifyCodeRoute(userRouter);
+  verifyCodeRoute(subscriberRouter);
 
   /**
    * '/unsub/:code' Route
    */
-  unsubCodeRoute(userRouter);
+  unsubCodeRoute(subscriberRouter);
 
-  return userRouter;
+  return subscriberRouter;
 };
 
 /**
@@ -78,18 +78,18 @@ const unsubCodeRoute = (router) => {
 };
 
 /**
- * Get all the users in the database
+ * Get all the subscribers in the DynamoDB table
  * @param req - HTTP request body
  * @param res - HTTP response body
  */
 const getAll = (req, res) => {
-  UserDao.getAll().then(
-    (users) => {
-      res.json(users);
+  SubscribersDao.getAll().then(
+    (subscribers) => {
+      res.json(subscribers);
     },
     (reason) => {
       res.status(400).json({
-        error: 'Failed to Retrieve all users',
+        error: 'Failed to Retrieve all subscribers',
         message: reason
       });
     }
@@ -97,84 +97,69 @@ const getAll = (req, res) => {
 };
 
 /**
- * Create a new user in the database.  The password must be hashed before being stored, and
- * new unsubscribe and verify codes are added to the user.  If all goes smoothly with user creation,
- * a welcome email is sent to the users email address.
+ * Create a new subscriber in the database.  If all goes smoothly subscribing,
+ * a welcome email is sent to the provided email address.
  * @param req - HTTP request body
  * @param res - HTTP response body
  */
 const create = (req, res) => {
   console.info(`Request Body: ${JSON.stringify(req.body)}`);
 
-  const user = new User(req.body);
-  console.info(`Creating User: ${user}`);
+  const rawSubscriber = new Subscriber(req.body);
+  console.info(`Creating Subscriber: ${rawSubscriber}`);
 
-  // First make sure that the user exists and that it has a password
-  if (user !== undefined && user.hash) {
-    // Then hash and salt the password with bcrypt - second parameter
-    // is the salt rounds, third is a callback while in progress.  We
-    // pass null to automatically generate a salt and because we don't
-    // need any progress updates
-    bcrypt.hash(user.hash, null, null, (err, hash) => {
-      if (err) {
-        console.error(err);
-        res.status(500).json({ error: err });
-      } else {
-        console.info(`Original User ${JSON.stringify(user)}`);
+  if (rawSubscriber !== undefined && rawSubscriber.email && rawSubscriber.first && rawSubscriber.last) {
+    const verify_code = base64.encode(uuid());
+    const unsub_code = base64.encode(uuid());
+    const created = moment().format();
 
-        const verify_cd = base64.encode(uuid());
-        const unsub_cd = base64.encode(uuid());
+    const subscriber = {
+      ...rawSubscriber.toObject(),
+      subscribed: true,
+      created,
+      verify_code,
+      unsub_code
+    };
 
-        console.info(`UUID: ${uuid()}`);
+    console.info(`Subscriber object passed to DynamoDB ${JSON.stringify(subscriber)}`);
 
-        const hashedUser = {
-          ...user.toObject(),
-          hash,
-          verify_cd,
-          unsub_cd
-        };
+    // Insert the new user
+    SubscribersDao.insert(subscriber).then(
+      (newSubscriber) => {
+        // If the insert succeeds, send a welcome email
+        emails.sendWelcomeEmail(newSubscriber.email, verify_code, unsub_code);
 
-        console.info(`Hashed User ${JSON.stringify(hashedUser)}`);
-
-        // Insert the new user
-        UserDao.insert(hashedUser).then(
-          (newUser) => {
-            // If the insert succeeds, send a welcome email
-            emails.sendWelcomeEmail(hashedUser.email, verify_cd, unsub_cd);
-
-            res.status(201).json(newUser);
-          },
-          (reason) => {
-            res.status(400).json({
-              error: `User Creation Failed: ${reason}`,
-              message: reason
-            });
-          }
-        );
+        res.status(201).json(newSubscriber);
+      },
+      (reason) => {
+        res.status(400).json({
+          error: `Subscriber Creation Failed: ${reason}`,
+          message: reason
+        });
       }
-    });
+    );
   } else {
-    res.status(500).json({ error: 'User must have a Password' });
+    res.status(500).json({ error: 'Subscriber must have an email, first name, and last name' });
   }
 };
 
 /**
- * Middleware for routes that contain an email filter.  Find the user with a matching email in the
+ * Middleware for routes that contain an email filter.  Find the subscriber with a matching email in the
  * database here and pass it down to further route handlers.
  * @param req - HTTP request body
  * @param res - HTTP response body
  * @param next - the next step on middleware in the router
  */
 const filterEmailMiddleware = (req, res, next) => {
-  UserDao.getByEmail(req.params.email).then(
-    (user) => {
-      console.info(`User with matching email: ${user.email}`);
-      req.user = user;
+  SubscribersDao.getByEmail(req.params.email).then(
+    (subscriber) => {
+      console.info(`Subscriber with matching email: ${subscriber.email}`);
+      req.subscriber = subscriber;
       next();
     },
     (reason) => {
       res.status(404).json({
-        error: 'No User found with given email',
+        error: 'No subscriber found with given email',
         message: reason
       });
     }
@@ -182,28 +167,28 @@ const filterEmailMiddleware = (req, res, next) => {
 };
 
 /**
- * Get a single user.  The user object is simply returned as it was retrieved from the database
+ * Get a single subscriber.  The object is simply returned as it was retrieved from the table
  * in the middleware step.
  * @param req - HTTP request body
  * @param res - HTTP response body
  */
 const get = (req, res) => {
-  res.json(req.user);
+  res.json(req.subscriber);
 };
 
 /**
- * Delete a single user from the database.  The user object comes from the middleware step.
+ * Delete a single subscriber from the database.  The subscriber object comes from the middleware step.
  * @param req - HTTP request body
  * @param res - HTTP response body
  */
 const deleteOne = (req, res) => {
-  UserDao.remove(req.user).then(
+  SubscribersDao.remove(req.subscriber).then(
     () => {
       res.status(204).send();
     },
     (reason) => {
       res.status(400).json({
-        error: 'Failed to remove user',
+        error: 'Failed to remove subscriber',
         message: reason
       });
     }
@@ -211,19 +196,19 @@ const deleteOne = (req, res) => {
 };
 
 /**
- * Verify a user based on a verification code.  The user will be altered if the verification code
- * passed to the DAO matches the one for this user in the database.
+ * Verify a subscriber based on a verification code.  The subscriber will be altered if the verification code
+ * passed to the DAO matches the one for this subscriber in the database.
  * @param req - HTTP request body
  * @param res - HTTP response body
  */
 const verifyCode = (req, res) => {
-  UserDao.verify(req.params.code).then(
+  SubscribersDao.verify(req.params.code).then(
     (user) => {
       res.status(200).json(user);
     },
     (reason) => {
       res.status(400).json({
-        error: 'Failed to Verify user',
+        error: 'Failed to Verify subscriber',
         message: reason
       });
     }

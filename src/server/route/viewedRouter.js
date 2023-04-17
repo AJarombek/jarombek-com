@@ -13,15 +13,14 @@ import PostDao from '../dao/postDao';
  * @return {*} The express router for viewed items
  */
 const routes = () => {
+  const viewedRouter = express.Router();
 
-    const viewedRouter = express.Router();
+  /**
+   * '/post/:name' Route
+   */
+  postNameRoute(viewedRouter);
 
-    /**
-     * '/post/:name' Route
-     */
-    postNameRoute(viewedRouter);
-
-    return viewedRouter;
+  return viewedRouter;
 };
 
 /**
@@ -29,10 +28,9 @@ const routes = () => {
  * @param router - the express router for the viewed API
  */
 const postNameRoute = (router) => {
-    router.use('/post/:name', postNameMiddleware);
+  router.use('/post/:name', postNameMiddleware);
 
-    router.route('/post/:name')
-        .put(update);
+  router.route('/post/:name').put(update);
 };
 
 /**
@@ -43,16 +41,18 @@ const postNameRoute = (router) => {
  * @param next - the next step on middleware in the router
  */
 const postNameMiddleware = (req, res, next) => {
-
-    PostDao.getByName(req.params.name).then((post) => {
-        req.post = post;
-        next();
-    }, (reason => {
-        res.status(404).json({
-            error: `No Post found with given name`,
-            message: reason
-        });
-    }));
+  PostDao.getByName(req.params.name).then(
+    (post) => {
+      req.post = post;
+      next();
+    },
+    (reason) => {
+      res.status(404).json({
+        error: 'No Post found with given name',
+        message: reason
+      });
+    }
+  );
 };
 
 /**
@@ -61,22 +61,24 @@ const postNameMiddleware = (req, res, next) => {
  * @param res - HTTP response body
  */
 const update = (req, res) => {
-
-    ViewedDao.update(req.post).then((newViewed) => {
-        res.json(newViewed);
-    }, (reason => {
-        if (req.post) {
-            res.status(400).json({
-                error: `Failed to Update Post Viewed Count: ${req.post.name}`,
-                message: reason
-            });
-        } else {
-            res.status(404).json({
-                error: `No Post found in the HTTP request parameters.`,
-                message: reason
-            });
-        }
-    }));
+  ViewedDao.update(req.post).then(
+    (newViewed) => {
+      res.json(newViewed);
+    },
+    (reason) => {
+      if (req.post) {
+        res.status(400).json({
+          error: `Failed to Update Post Viewed Count: ${req.post.name}`,
+          message: reason
+        });
+      } else {
+        res.status(404).json({
+          error: 'No Post found in the HTTP request parameters.',
+          message: reason
+        });
+      }
+    }
+  );
 };
 
 export default routes;
