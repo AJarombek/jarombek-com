@@ -14,8 +14,8 @@ import SubscribersDao from '../dao/subscribersDao';
 import Subscriber from '../model/subscriber';
 
 /**
- * Create the REST API for users
- * @return {*} The express router for users
+ * Create the REST API for subscribers
+ * @return {*} The express router for subscribers
  */
 const routes = () => {
   const subscriberRouter = express.Router();
@@ -45,7 +45,7 @@ const routes = () => {
 
 /**
  * Handler for the base routes of the API ('/' endpoints)
- * @param router - the express router for the users API
+ * @param router - the express router for the subscribers API
  */
 const baseRoute = (router) => {
   router.route('/').get(getAll).post(create);
@@ -53,7 +53,7 @@ const baseRoute = (router) => {
 
 /**
  * Handler for the email filter routes of the API ('/filter/:email' endpoints)
- * @param router - the express router for the users API
+ * @param router - the express router for the subscribers API
  */
 const filterEmailRoute = (router) => {
   router.use('/filter/:email', filterEmailMiddleware);
@@ -63,7 +63,7 @@ const filterEmailRoute = (router) => {
 
 /**
  * Handler for the verify code routes of the API ('/verify/:code' endpoints)
- * @param router - the express router for the users API
+ * @param router - the express router for the subscribers API
  */
 const verifyCodeRoute = (router) => {
   router.route('/verify/:code').patch(verifyCode);
@@ -71,7 +71,7 @@ const verifyCodeRoute = (router) => {
 
 /**
  * Handler for the unsubscribe code routes of the API ('/unsub/:code' endpoints)
- * @param router - the express router for the users API
+ * @param router - the express router for the subscribers API
  */
 const unsubCodeRoute = (router) => {
   router.route('/unsub/:code').patch(unsubCode);
@@ -123,7 +123,7 @@ const create = (req, res) => {
 
     console.info(`Subscriber object passed to DynamoDB ${JSON.stringify(subscriber)}`);
 
-    // Insert the new user
+    // Insert the new Subscriber
     SubscribersDao.insert(subscriber).then(
       (newSubscriber) => {
         // If the insert succeeds, send a welcome email
@@ -203,8 +203,8 @@ const deleteOne = (req, res) => {
  */
 const verifyCode = (req, res) => {
   SubscribersDao.verify(req.params.code).then(
-    (user) => {
-      res.status(200).json(user);
+    (subscriber) => {
+      res.status(200).json(subscriber);
     },
     (reason) => {
       res.status(400).json({
@@ -216,19 +216,19 @@ const verifyCode = (req, res) => {
 };
 
 /**
- * Unsubscribe a user based on a verification code.  The user will be removed if the unsub code
- * passed to the DAO matches the one for this user in the database.
+ * Unsubscribe based on a verification code.  The subscriber will be removed if the unsub code
+ * passed to the DAO matches the one for this subscriber in the database.
  * @param req - HTTP request body
  * @param res - HTTP response body
  */
 const unsubCode = (req, res) => {
-  UserDao.unsub(req.params.code).then(
-    (user) => {
-      res.status(200).json(user);
+  SubscribersDao.unsub(req.params.code).then(
+    (subscriber) => {
+      res.status(200).json(subscriber);
     },
     (reason) => {
       res.status(400).json({
-        error: 'Failed to Unsubscribe user',
+        error: 'Failed to Unsubscribe subscriber',
         message: reason
       });
     }

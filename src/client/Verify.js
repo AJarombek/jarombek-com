@@ -39,7 +39,7 @@ class Verify extends React.Component {
 
       // If the url of this component has a verification code, use it to try and verify
       // a user.
-      Verify.verifyUser(code, this.baseUrl).then(
+      Verify.verifySubscriber(code, this.baseUrl).then(
         (status) => {
           // The outcome of the verification is dependent on the HTTP status code
           // of the response
@@ -65,8 +65,8 @@ class Verify extends React.Component {
    * @param baseUrl - the base of the url dependent on the environment
    * @return {Promise<number>}
    */
-  static async verifyUser(code, baseUrl) {
-    const response = await fetch(`${baseUrl}/api/user/verify/${code}`, {
+  static async verifySubscriber(code, baseUrl) {
+    const response = await fetch(`${baseUrl}/api/subscriber/verify/${code}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({})

@@ -58,25 +58,25 @@ class SubscribersDao {
     if (existingSubscriber) {
       throw Error(`Subscriber already exists with email ${subscriber.email}`);
     } else {
-      // The email isn't in use, so create the new user!
-      const newUser = await Subscriber.create(subscriber);
+      // The email isn't in use, so create the new subscriber!
+      const newSubscriber = await Subscriber.create(subscriber);
 
-      // Audit the creation of a new user
+      // Audit the creation of a new subscriber
       const audit = new Audit({
-        item_id: newUser._id,
+        item_id: newSubscriber.email,
         type: 'subscriber',
-        message: `Created Subscriber ${newUser.email}`,
+        message: `Created Subscriber ${newSubscriber.email}`,
         source: 'Jarombek.com NodeJS/Express API'
       });
 
       await Audit.create(audit);
 
-      return newUser;
+      return newSubscriber;
     }
   };
 
   /**
-   * Remove a user from the database based on the subscriber email.  A new document will be added to
+   * Remove a subscriber from the database based on the subscriber email.  A new document will be added to
    * the audit collection noting the subscriber removal.
    * @param subscriber - an object representing a subscriber
    * @return {Promise<void>} a promise that resolves once the function finishes
@@ -104,51 +104,51 @@ class SubscribersDao {
   };
 
   /**
-   * Unsubscribe a user and audit the update of the user in the database.  Will throw
-   * an error if the user was already deleted (unsubscribed) or if the user does not exist with
+   * Unsubscribe a subscriber and audit the update of the subscriber in the database.  Will throw
+   * an error if the subscriber was already deleted (unsubscribed) or if the subscriber does not exist with
    * the given unsubscription code.
-   * @param code - the users unsubscription code
+   * @param code - the subscribers unsubscription code
    * @return {Promise<*>}
    */
   static unsub = async (code) => {
-    const user = await UserDao.getByUnsubCode(code);
+    const subscriber = await SubscribersDao.getByUnsubCode(code);
 
-    // If the user has an email property we can assume it is valid
-    if (user.email) {
-      if (user.deleted === false) {
+    // If the subscriber has an email property we can assume it is valid
+    if (subscriber.email) {
+      if (subscriber.deleted === false) {
         // eslint-disable-next-line no-unused-vars
-        const { _id, ...userObject } = user.toObject();
+        const { _id, ...subscriberObject } = subscriber.toObject();
 
-        const deletedUser = {
-          ...userObject,
+        const deletedSubscriber = {
+          ...subscriberObject,
           deleted: true
         };
 
-        await User.update(
+        await Subscriber.update(
           {
-            email: user.email,
+            email: subscriber.email,
             deleted: false
           },
-          deletedUser
+          deletedSubscriber
         ).exec();
 
-        const updatedUser = UserDao.getByEmail(user.email);
+        const updatedSubscriber = SubscribersDao.getByEmail(subscriber.email);
 
         const audit = new Audit({
-          item_id: updatedUser._id,
-          type: 'user',
-          message: `Deleted User ${updatedUser.email}`,
+          item_id: updatedSubscriber.email,
+          type: 'subscriber',
+          message: `Deleted Subscriber ${updatedSubscriber.email}`,
           source: 'Jarombek.com NodeJS/Express API'
         });
 
         await Audit.create(audit);
 
-        return updatedUser;
+        return updatedSubscriber;
       } else {
-        throw `User already deleted with email: ${user.email}`;
+        throw `Subscriber already deleted with email: ${subscriber.email}`;
       }
     } else {
-      throw `User does not exist with unsubscription code: ${code}`;
+      throw `Subscriber does not exist with unsubscription code: ${code}`;
     }
   };
 
@@ -162,7 +162,7 @@ class SubscribersDao {
   static verify = async (code) => {
     const subscriber = await SubscribersDao.getByVerifyCode(code);
 
-    // If the user has an email property we can assume it is valid
+    // If the subscriber has an email property we can assume it is valid
     if (subscriber.email) {
       if (subscriber.verified === false) {
         // eslint-disable-next-line no-unused-vars
@@ -181,23 +181,23 @@ class SubscribersDao {
           verifiedSubscriber
         ).exec();
 
-        const updatedUser = UserDao.getByEmail(subscriber.email);
+        const updatedSubscriber = SubscribersDao.getByEmail(subscriber.email);
 
         const audit = new Audit({
-          item_id: updatedUser._id,
-          type: 'user',
-          message: `Updated/Verified User ${updatedUser.email}`,
+          item_id: updatedSubscriber.email,
+          type: 'subscriber',
+          message: `Updated/Verified Subscriber ${updatedSubscriber.email}`,
           source: 'Jarombek.com NodeJS/Express API'
         });
 
         await Audit.create(audit);
 
-        return updatedUser;
+        return updatedSubscriber;
       } else {
-        throw `User already verified with email: ${subscriber.email}`;
+        throw `Subscriber already verified with email: ${subscriber.email}`;
       }
     } else {
-      throw `User does not exist with verification code: ${code}`;
+      throw `Subscriber does not exist with verification code: ${code}`;
     }
   };
 }

@@ -15,8 +15,7 @@ class Subscribe extends React.Component {
     super(props);
 
     this.baseUrl = process.env.NODE_ENV === 'production' ? 'https://jarombek.com' : 'http://localhost:8080';
-
-    this.state = { enabled: false };
+    this.state = { enabled: true };
   }
 
   static propTypes = {
@@ -29,7 +28,6 @@ class Subscribe extends React.Component {
 
   // Regular Expression Patterns
   static EMAIL_REGEX = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\.[a-zA-Z]{2,}$/;
-  static NAME_REGEX = /^[^0-9~!@#$%^&*()?<>:;[\]{}|\\]+$/;
 
   /**
    * Actions to perform when the email field is changed.  If the email in the input
@@ -70,14 +68,14 @@ class Subscribe extends React.Component {
 
   /**
    * Validate a first name based on the name regex
-   * @param firstName - the name that needs validating
-   * @return {{email: *, emailValid}} - an object literal with the first name in one
+   * @param firstName {string} - the name that needs validating
+   * @return {{firstName: *, firstNameValid}} - an object literal with the first name in one
    * property and whether the first name is valid in another
    */
   static validateFirstName(firstName) {
     return {
       firstName,
-      firstNameValid: !!firstName.match(Subscribe.NAME_REGEX)
+      firstNameValid: firstName.trim().length > 0
     };
   }
 
@@ -95,14 +93,14 @@ class Subscribe extends React.Component {
 
   /**
    * Validate a last name based on the name regex
-   * @param lastName - the name that needs validating
-   * @return {{email: *, emailValid}} - an object literal with the last name in one
+   * @param lastName {string} - the name that needs validating
+   * @return {{lastName: *, lastNameValid}} - an object literal with the last name in one
    * property and whether the last name is valid in another
    */
   static validateLastName(lastName) {
     return {
       lastName,
-      lastNameValid: !!lastName.match(Subscribe.NAME_REGEX)
+      lastNameValid: lastName.trim().length > 0
     };
   }
 
@@ -121,7 +119,7 @@ class Subscribe extends React.Component {
       // The status of the form is that the form inputs are valid and an API call can be made
       this.setState({ submitStatus: SubmitStatus.SUBMIT_VALID });
 
-      Subscribe.createUser(email, firstName, lastName, this.baseUrl)
+      Subscribe.createSubscriber(email, firstName, lastName, this.baseUrl)
         .then((status) => {
           // The success of the API is dependent on the HTTP status code
           if (status === 201) {
@@ -150,8 +148,8 @@ class Subscribe extends React.Component {
    * @param baseUrl - the base of the url dependent on the environment
    * @return {Promise<number>} - a promise containing the HTTP response status code once resolved
    */
-  static async createUser(email, firstName, lastName, baseUrl) {
-    const response = await fetch(`${baseUrl}/api/user`, {
+  static async createSubscriber(email, firstName, lastName, baseUrl) {
+    const response = await fetch(`${baseUrl}/subscriber`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

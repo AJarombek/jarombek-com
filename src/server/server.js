@@ -28,7 +28,7 @@ import gs from '../client/globalStyles';
 
 import postRoute from './route/postRouter';
 import viewedRoute from './route/viewedRouter';
-import userRoute from './route/userRouter';
+import subscriberRoute from './route/subscriberRouter';
 import statisticsRoute from './route/statisticsRouter';
 import PostDao from './dao/postDao';
 
@@ -49,7 +49,7 @@ mongoConnectWithRetry();
 // API CRUD routes for a MongoDB collection
 const postRouter = postRoute();
 const viewedRouter = viewedRoute();
-const userRouter = userRoute();
+const subscriberRouter = subscriberRoute();
 const statisticsRouter = statisticsRoute();
 
 global.React = React;
@@ -258,7 +258,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 
 app.use('/api/post', postRouter);
 app.use('/api/viewed', viewedRouter);
-app.use('/api/user', userRouter);
+app.use('/api/subscriber', subscriberRouter);
 app.use('/api/stats', statisticsRouter);
 
 app.use(express.static(path.join(__dirname, '..')));

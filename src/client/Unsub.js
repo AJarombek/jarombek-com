@@ -39,7 +39,7 @@ class Unsub extends React.Component {
 
       // If the url of this component has an unsubscribe code, use it to try and
       // remove a users subscription.
-      Unsub.unsubscribeUser(code, this.baseUrl).then(
+      Unsub.unsubscribe(code, this.baseUrl).then(
         (status) => {
           // The outcome of the un-subscription is dependent on the HTTP status code
           // of the response
@@ -65,8 +65,8 @@ class Unsub extends React.Component {
    * @param baseUrl - the base of the url dependent on the environment
    * @return {Promise<number>}
    */
-  static async unsubscribeUser(code, baseUrl) {
-    const response = await fetch(`${baseUrl}/api/user/unsub/${code}`, {
+  static async unsubscribe(code, baseUrl) {
+    const response = await fetch(`${baseUrl}/api/subscriber/unsub/${code}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({})
