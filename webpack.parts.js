@@ -5,7 +5,7 @@
  */
 
 const webpack = require("webpack");
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 exports.generateSourceMaps = ({type}) => ({
     devtool: type
@@ -104,14 +104,13 @@ exports.loadServerSass = ({ include, exclude } = {}) => ({
  * production environments to generate a separate CSS bundle
  * @param include - files to whitelist for use of these loaders
  * @param exclude - files to blacklist from these loaders
- * @param use - specify which loaders to use
- * @param fallback - loader to be used if CSS is not extracted
  * @returns {{module: {rules: *[]}, plugins: *}}
  */
-exports.extractCSS = ({ include, exclude, useCss, useSass, fallback }) => {
+exports.extractCSS = ({ include, exclude }) => {
 
-    const plugin = new ExtractTextPlugin({
-        filename: '[name].css'
+    const plugin = new MiniCssExtractPlugin({
+        filename: '[name].css',
+        chunkFilename: '[id].css'
     });
 
     return {
@@ -121,19 +120,13 @@ exports.extractCSS = ({ include, exclude, useCss, useSass, fallback }) => {
                     test: /\.css$/,
                     include,
                     exclude,
-                    loader: plugin.extract({
-                        use: useCss,
-                        fallback
-                    })
+                    use: [MiniCssExtractPlugin.loader, "css-loader"]
                 },
                 {
                     test: /\.scss$/,
                     include,
                     exclude,
-                    loader: plugin.extract({
-                        use: useSass,
-                        fallback
-                    })
+                    use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"]
                 }
             ]
         },

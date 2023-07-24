@@ -6,7 +6,7 @@
 
 const path = require("path");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
-const merge = require("webpack-merge");
+const { merge } = require("webpack-merge");
 const webpack = require("webpack");
 const NodemonPlugin = require("nodemon-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
@@ -186,7 +186,7 @@ const clientDevConfig = merge([
             sourceMapFilename: "[name].map"
         }
     },
-    parts.generateSourceMaps({ type: 'cheap-module-eval-source-map' }),
+    parts.generateSourceMaps({ type: 'source-map' }),
     parts.devServer({
         host: process.env.HOST,
         port: process.env.PORT
@@ -233,11 +233,14 @@ const clientProdConfig = merge([
 ]);
 
 module.exports = (env) => {
-    if (env === "clientProduction") {
+    const webpack_env = env.webpack_env;
+    console.info(`WEBPACK ENV = ${webpack_env}`);
+
+    if (webpack_env === "clientProduction") {
         return merge(clientConfig, clientProdConfig);
-    } else if (env === "serverProduction") {
+    } else if (webpack_env === "serverProduction") {
         return merge(serverConfig, serverProdConfig);
-    } else if (env === "clientDevelopment") {
+    } else if (webpack_env === "clientDevelopment") {
         return merge(clientConfig, clientDevConfig);
     } else {
         return merge(serverConfig, serverDevConfig);

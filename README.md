@@ -35,7 +35,7 @@ infrastructure as code.
 **Start the Development Server Locally**
 
 ```bash
-nvm use v12.18.4
+nvm use v18.16.1
 
 # Install Dependencies
 yarn
@@ -55,7 +55,7 @@ yarn server:deploy
 As a prerequisite for running end to end tests, make sure the server is running.
 
 ```bash
-nvm use v12.18.4
+nvm use v18.16.1
 yarn cy:open
 ```
 
