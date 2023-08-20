@@ -10,6 +10,7 @@ const { merge } = require("webpack-merge");
 const webpack = require("webpack");
 const NodemonPlugin = require("nodemon-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const ESLintPlugin = require("eslint-webpack-plugin");
 
 const parts = require("./webpack.parts");
 
@@ -93,6 +94,7 @@ const serverConfig = merge([
  */
 const serverDevConfig = merge([
     {
+        mode: "development",
         plugins: [
             new NodemonPlugin()
         ]
@@ -109,6 +111,9 @@ const serverDevConfig = merge([
  * Configuration specific to the server bundles in a production environment
  */
 const serverProdConfig = merge([
+    {
+        mode: "production",
+    },
     parts.extractCSS({
         useSass: ["css-loader", "sass-loader"],
         useCss: ["css-loader"],
@@ -164,10 +169,12 @@ const clientConfig = merge([
             }),
             new webpack.DefinePlugin({
                 'process.env.NODE_ENV': ENV
+            }),
+            new ESLintPlugin({
+                failOnError: false
             })
         ]
     },
-    parts.lintJavaScript({ options: {emitWarning: true}}),
     parts.loadFonts({
         options: {
             name: 'assets/[name].[ext]',
@@ -181,6 +188,7 @@ const clientConfig = merge([
  */
 const clientDevConfig = merge([
     {
+        mode: "development",
         performance: {hints: false},
         output: {
             sourceMapFilename: "[name].map"
@@ -205,6 +213,7 @@ const clientDevConfig = merge([
  */
 const clientProdConfig = merge([
     {
+        mode: "production",
         optimization: {
             splitChunks: {
                 cacheGroups: {

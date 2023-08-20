@@ -39,29 +39,6 @@ exports.hotModuleReplacement = () => ({
 });
 
 /**
- * Lint JavaScript files with ESLint
- * @param include - files to whitelist for use of these loaders
- * @param exclude - files to blacklist from these loaders
- * @param options - additional options to pass to the ESLint loader
- * @returns {{module: {rules: *[]}}}
- */
-exports.lintJavaScript = ({ include, exclude, options }) => ({
-    module: {
-        rules: [
-            {
-                test: /\.js$/,
-                include,
-                exclude,
-                enforce: "pre",
-
-                loader: "eslint-loader",
-                options
-            }
-        ]
-    }
-});
-
-/**
  * Load a Sass stylesheet and compile it to CSS
  * @param include - files to whitelist for use of these loaders
  * @param exclude - files to blacklist from these loaders

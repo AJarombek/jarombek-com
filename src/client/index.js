@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render } from 'react-dom';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import '@babel/polyfill';
 import { createGlobalStyle } from 'styled-components';
 
@@ -34,7 +34,7 @@ const RoutedApp = () => {
 
   return (
     <Router>
-      <Switch>
+      <Routes>
         <Route exact path="/" component={Home} />
         <Route path="/blog/:name" render={(props) => <Blog {...props} {...window.__STATE__} />} />
         <Route path="/blog" render={(props) => <BlogList {...props} {...window.__STATE__} />} />
@@ -44,7 +44,7 @@ const RoutedApp = () => {
         <Route path="/unsub/:code" component={Unsub} />
         <Route component={Home} />
         <GlobalStyle />
-      </Switch>
+      </Routes>
     </Router>
   );
 };

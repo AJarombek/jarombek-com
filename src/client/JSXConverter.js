@@ -3,7 +3,7 @@ import Definition from './Definition';
 import ComparisonTableEntry from './ComparisonTableEntry';
 import CodeSnippet from './CodeSnippet';
 import ComparisonTable from './ComparisonTable';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import SectionTitle from './SectionTitle';
 import MathNotation from './MathNotation';
 import UpdateInfo from './UpdateInfo';

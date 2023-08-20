@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 import TagList from './TagList';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 const BlogPost = ({ name, title, type, date, tags = [], content, sources = [] }) => {
   let count = 0;

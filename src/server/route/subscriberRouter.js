@@ -6,7 +6,7 @@
 
 import express from 'express';
 import moment from 'moment';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import base64 from 'base64-url';
 
 import emails from '../fn/emails';
