@@ -22,10 +22,10 @@ const PATHS = {
     serverBuild: path.join(__dirname, 'dist/server/')
 };
 
-console.log(`NODE_ENV = ${process.env.NODE_ENV}`);
+console.log(`BUILD ENV = ${process.env.BUILD_ENV}`);
 
 let ENV, PUBLIC_PATH;
-switch (process.env.NODE_ENV) {
+switch (process.env.BUILD_ENV) {
     case 'local':
         ENV = JSON.stringify('local');
         PUBLIC_PATH = 'http://localhost:8080/';
@@ -67,7 +67,7 @@ const serverConfig = merge([
                     }
                 },
                 {
-                    test: /\.md$/,
+                    test: /\.md|html$/,
                     loader: "ignore-loader"
                 }
             ]
@@ -189,10 +189,7 @@ const clientConfig = merge([
 const clientDevConfig = merge([
     {
         mode: "development",
-        performance: {hints: false},
-        output: {
-            sourceMapFilename: "[name].map"
-        }
+        performance: {hints: false}
     },
     parts.generateSourceMaps({ type: 'source-map' }),
     parts.devServer({

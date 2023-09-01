@@ -42,7 +42,7 @@ yarn
 npm rebuild node-sass
 
 # Run the webpack builds
-export NODE_ENV=local
+export BUILD_ENV=local
 yarn client:dev
 yarn server:dev
 

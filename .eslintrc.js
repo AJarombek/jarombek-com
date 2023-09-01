@@ -12,7 +12,7 @@ module.exports = {
         node: true,
         jest: true
     },
-    parser: "babel-eslint",
+    parser: "@babel/eslint-parser",
     extends: [
         'eslint:recommended',
         'plugin:react/recommended',
@@ -55,6 +55,7 @@ module.exports = {
         }]
     },
     ignorePatterns: [
+        'node_modules/**',
         'webpack.config.js',
         'webpack.parts.js',
         'jest.client-config.js',
