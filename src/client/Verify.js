@@ -8,7 +8,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import VerifyStatus from './status/UserStatus';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
 
 import WebsiteTemplate from './WebsiteTemplate';
 import Loading from './Loading';
@@ -24,7 +23,7 @@ class Verify extends React.Component {
   }
 
   static propTypes = {
-    match: PropTypes.object.isRequired
+    match: PropTypes.object
   };
 
   /**
@@ -78,16 +77,8 @@ class Verify extends React.Component {
 
   render() {
     const { status } = this.state;
-    const { code } = this.props.match.params;
     return (
       <WebsiteTemplate hideSubscribe={true}>
-        <Helmet>
-          <title>Andrew Jarombek - User Verification</title>
-          <meta name="author" content="Andrew Jarombek" />
-          <meta name="description" content="Verify a user that subscribed to the website" />
-          <link rel="canonical" href={`https://jarombek.com/verify/${code}`} />
-          <link rel="icon" href={require('./assets/jarombek.png')} />
-        </Helmet>
         <div className="jarombek-background jarombek-verify-background">
           <div className="jarombek-verify">
             <div>

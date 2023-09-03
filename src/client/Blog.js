@@ -9,7 +9,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import 'isomorphic-fetch';
-import { Helmet } from 'react-helmet';
 
 import WebsiteTemplate from './WebsiteTemplate';
 import BlogPost from './BlogPost';
@@ -36,7 +35,7 @@ class Blog extends React.Component {
   }
 
   static propTypes = {
-    match: PropTypes.object.isRequired,
+    match: PropTypes.object,
     post: PropTypes.object
   };
 
@@ -125,13 +124,6 @@ class Blog extends React.Component {
           <div className="jarombek-blog">
             {post ? (
               <div>
-                <Helmet>
-                  <title>{post.title}</title>
-                  <meta name="author" content="Andrew Jarombek" />
-                  <meta name="description" content={post.description || `${post.title} | Andrew Jarombek`} />
-                  <link rel="canonical" href={`https://jarombek.com/blog/${post.name}`} />
-                  <link rel="icon" href={require('./assets/jarombek.png')} />
-                </Helmet>
                 <BlogPost key={post.name} {...post} />
               </div>
             ) : (

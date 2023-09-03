@@ -8,7 +8,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import 'isomorphic-fetch';
-import { Helmet } from 'react-helmet';
 import queryString from 'query-string';
 
 import WebsiteTemplate from './WebsiteTemplate';
@@ -41,7 +40,7 @@ class BlogList extends React.Component {
   }
 
   static propTypes = {
-    match: PropTypes.object.isRequired,
+    match: PropTypes.object,
     posts: PropTypes.array
   };
 
@@ -335,17 +334,6 @@ class BlogList extends React.Component {
     return (
       <WebsiteTemplate>
         <div className="jarombek-background">
-          <Helmet>
-            <title>Andrew Jarombek&#39;s Software Development Blog</title>
-            <meta name="author" content="Andrew Jarombek" />
-            <meta
-              name="description"
-              content={`Andrew Jarombek's Software Development Blog &
-                                Discovery Posts ${page ? `- Page ${page}` : ''}`}
-            />
-            <link rel="canonical" href={`https://jarombek.com/blog${page ? `?page=${page}` : ''}`} />
-            <link rel="icon" href={require('./assets/jarombek.png')} />
-          </Helmet>
           {posts ? (
             <div className="jarombek-blog-list">
               <div className="jarombek-blog-list-search">

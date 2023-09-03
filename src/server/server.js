@@ -12,8 +12,8 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
-import { StaticRouter, Switch, Route } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
+import { Routes, Route } from 'react-router-dom';
+import { StaticRouter } from 'react-router-dom/server';
 import queryString from 'query-string';
 import cors from 'cors';
 
@@ -89,16 +89,16 @@ const renderComponentsToHTML = async (url) => {
   return {
     html: renderToString(
       <StaticRouter location={url} context={{}}>
-        <Switch>
-          <Route exact path="/" component={Home} />
-          <Route path="/blog/:name" render={(props) => <Blog {...props} {...{ post: post }} />} />
-          <Route path="/blog" render={(props) => <BlogList {...props} {...{ posts, first, prev, next, last }} />} />
-          <Route path="/resume" component={Resume} />
-          <Route path="/stats" component={Statistics} />
-          <Route path="/verify/:code" component={Verify} />
-          <Route path="/unsub/:code" component={Unsub} />
-          <Route component={Home} />
-        </Switch>
+        <Routes>
+          <Route exact path="/" element={<Home />} />
+          <Route path="/blog/:name" element={<Blog post={post} />} />
+          <Route path="/blog" element={<BlogList posts={posts} first={first} prev={prev} next={next} last={last} />} />
+          <Route path="/resume" element={<Resume />} />
+          <Route path="/stats" element={<Statistics />} />
+          <Route path="/verify/:code" element={<Verify />} />
+          <Route path="/unsub/:code" element={<Unsub />} />
+          <Route element={<Home />} />
+        </Routes>
       </StaticRouter>
     ),
     post,
@@ -122,8 +122,6 @@ const renderComponentsToHTML = async (url) => {
  * @returns {Promise<string>} - A promise containing HTML to be sent in the response
  */
 const sendHtmlPage = async ({ html, post, posts, first, prev, next, last }) => {
-  const helmet = Helmet.renderStatic();
-
   let globalStyles = '';
 
   if (process.env.NODE_ENV === 'development') {
@@ -140,9 +138,6 @@ const sendHtmlPage = async ({ html, post, posts, first, prev, next, last }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="google-site-verification"
               content="axpbkHOqG9cnq6gACXKtvjaAbcEvsQ_01zoGQcA3y_M" />
-        ${helmet.title.toString()}
-        ${helmet.meta.toString()}
-        ${helmet.link.toString()}
         <link rel="stylesheet" href="/client/bundle.css">
         <style>
           ${globalStyles}

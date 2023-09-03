@@ -35,14 +35,14 @@ const RoutedApp = () => {
   return (
     <Router>
       <Routes>
-        <Route exact path="/" component={Home} />
-        <Route path="/blog/:name" render={(props) => <Blog {...props} {...window.__STATE__} />} />
-        <Route path="/blog" render={(props) => <BlogList {...props} {...window.__STATE__} />} />
-        <Route path="/resume" component={Resume} />
-        <Route path="/stats" component={Statistics} />
-        <Route path="/verify/:code" component={Verify} />
-        <Route path="/unsub/:code" component={Unsub} />
-        <Route component={Home} />
+        <Route exact path="/" element={<Home />} />
+        <Route path="/blog/:name" element={<Blog {...window.__STATE__} />} />
+        <Route path="/blog" element={<BlogList {...window.__STATE__} />} />
+        <Route path="/resume" element={<Resume />} />
+        <Route path="/stats" element={<Statistics />} />
+        <Route path="/verify/:code" element={<Verify />} />
+        <Route path="/unsub/:code" element={<Unsub />} />
+        <Route element={<Home />} />
         <GlobalStyle />
       </Routes>
     </Router>

@@ -6,7 +6,6 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 
 import WebsiteTemplate from './WebsiteTemplate';
@@ -36,7 +35,7 @@ class Resume extends React.Component {
   }
 
   static propTypes = {
-    match: PropTypes.object.isRequired,
+    match: PropTypes.object,
     location: PropTypes.object,
     points: PropTypes.number,
     position: PropTypes.number
@@ -93,13 +92,6 @@ class Resume extends React.Component {
     return (
       <WebsiteTemplate>
         <div className="jarbek-resume">
-          <Helmet>
-            <title>Andrew Jarombek Resume</title>
-            <meta name="author" content="Andrew Jarombek" />
-            <meta name="description" content="Andrew Jarombek Resume" />
-            <link rel="canonical" href={'https://jarombek.com/resume'} />
-            <link rel="icon" href={require('./assets/jarombek.png')} />
-          </Helmet>
           <div className="jarbek-resume-timeline">
             <Timeline points={+points} position={+position} labels={resumeSections.map((item) => item.year)} />
           </div>
