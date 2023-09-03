@@ -21,25 +21,15 @@ class BlogDelegator {
     const response = await fetch(`${baseUrl}${url}`);
     const link = response.headers.get('Link');
 
-    // The only important link headers to us are prev and next
-    const { first, prev, next, last } = BlogDelegator.parseLinks(link);
+    // The only important link header is last
+    const { last } = BlogDelegator.parseLinks(link);
 
     const json = await response.json();
 
     // Transform JSON to JSX
     const posts = JSXConverter.createPostsJSX(json);
 
-    // Create a list of all the new posts that were loaded from the API
-    const loaded = posts.map((post) => post.name);
-
-    return {
-      posts,
-      first,
-      prev,
-      next,
-      last,
-      loaded
-    };
+    return {posts, last};
   }
 
   /**

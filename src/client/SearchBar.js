@@ -8,14 +8,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Button from './Button';
 
-const SearchBar = ({ onChangeSearch, onKeyPressSearch, onSearch, defaultValue }) => {
+const SearchBar = ({ onChangeSearch, onKeyPressSearch, onSearch, value }) => {
   return (
     <div className="jarbek-search-bar">
       <input
         type="text"
         name="search"
         placeholder="Search"
-        defaultValue={defaultValue}
+        value={value}
         onKeyUp={onKeyPressSearch}
         onChange={onChangeSearch}
       />
@@ -30,7 +30,7 @@ SearchBar.propTypes = {
   onChangeSearch: PropTypes.func,
   onKeyPressSearch: PropTypes.func,
   onSearch: PropTypes.func,
-  defaultValue: PropTypes.string
+  value: PropTypes.string
 };
 
 SearchBar.defaultProps = {

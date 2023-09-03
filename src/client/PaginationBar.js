@@ -4,37 +4,40 @@
  * @since 8/4/2018
  */
 
-import React from 'react';
+import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { toRomanNumeral } from './romanNumerals';
 
-const PaginationBar = ({ first, previous, current, next, last, link }) => {
+const PaginationBar = ({ current, last, link }) => {
+  const previous = useMemo(() => current - 1, [current]);
+  const next = useMemo(() => current + 1, [current]);
+
   return (
     <div className="jarbek-pagination-bar">
-      {first && first.page ? (
-        <Link className="jarbek-pag-first" to={`${link}${first.page}`}>
-          <p>{toRomanNumeral(first.page)}</p>
+      {current !== 1 ? (
+        <Link className="jarbek-pag-first" to={`${link}1`}>
+          <p>I</p>
         </Link>
       ) : null}
-      {previous && previous.page && previous.page - first.page > 1 ? (
+      {previous - 1 > 1 ? (
         <p className="jarbek-pag-first-spread">...</p>
       ) : null}
-      {previous && previous.page && previous.page !== first.page ? (
-        <Link className="jarbek-pag-previous-item" to={`${link}${previous.page}`}>
-          <p>{toRomanNumeral(previous.page)}</p>
+      {previous !== 1 ? (
+        <Link className="jarbek-pag-previous-item" to={`${link}${previous}`}>
+          <p>{toRomanNumeral(previous)}</p>
         </Link>
       ) : null}
-      {current && current.page ? <p className="jarbek-pag-current">{toRomanNumeral(current.page)}</p> : null}
-      {next && next.page && next.page !== last.page ? (
-        <Link className="jarbek-pag-next-item" to={`${link}${next.page}`}>
-          <p>{toRomanNumeral(next.page)}</p>
+      {current ? <p className="jarbek-pag-current">{toRomanNumeral(current)}</p> : null}
+      {next !== last ? (
+        <Link className="jarbek-pag-next-item" to={`${link}${next}`}>
+          <p>{toRomanNumeral(next)}</p>
         </Link>
       ) : null}
-      {next && next.page && last.page - next.page > 1 ? <p className="jarbek-pag-last-spread">...</p> : null}
-      {last && last.page ? (
-        <Link className="jarbek-pag-last" to={`${link}${last.page}`}>
-          <p>{toRomanNumeral(last.page)}</p>
+      {last - next > 1 ? <p className="jarbek-pag-last-spread">...</p> : null}
+      {last !== current ? (
+        <Link className="jarbek-pag-last" to={`${link}${last}`}>
+          <p>{toRomanNumeral(last)}</p>
         </Link>
       ) : null}
     </div>
@@ -42,11 +45,8 @@ const PaginationBar = ({ first, previous, current, next, last, link }) => {
 };
 
 PaginationBar.propTypes = {
-  first: PropTypes.object,
-  previous: PropTypes.object,
-  current: PropTypes.object,
-  next: PropTypes.object,
-  last: PropTypes.object,
+  current: PropTypes.number,
+  last: PropTypes.number,
   link: PropTypes.string
 };
 

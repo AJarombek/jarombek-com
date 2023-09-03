@@ -63,27 +63,14 @@ global.React = React;
 const renderComponentsToHTML = async (url) => {
   console.info(`URL: ${url}`);
 
-  let post, posts;
-  let first, prev, next, last;
-
+  let post;
   const singlePostPattern = /\/blog\/([0-9-a-z]+)$/;
-  const postListPattern = /\/blog.*$/;
 
   if (singlePostPattern.exec(url)) {
     console.info('Ahead of Time Query Single Post');
 
     // Get the blog post that corresponds to this URL
     post = await getUrlPost(url, singlePostPattern);
-  } else if (postListPattern.exec(url)) {
-    console.info('Ahead of Time Query Post List');
-    const postsData = await getListOfPosts(url);
-
-    // Get the fields out of the postsData object pertaining to the posts and associated links
-    posts = postsData.posts;
-    first = postsData.first;
-    prev = postsData.prev;
-    next = postsData.next;
-    last = postsData.last;
   }
 
   return {
@@ -92,7 +79,7 @@ const renderComponentsToHTML = async (url) => {
         <Routes>
           <Route exact path="/" element={<Home />} />
           <Route path="/blog/:name" element={<Blog post={post} />} />
-          <Route path="/blog" element={<BlogList posts={posts} first={first} prev={prev} next={next} last={last} />} />
+          <Route path="/blog" element={<BlogList />} />
           <Route path="/resume" element={<Resume />} />
           <Route path="/stats" element={<Statistics />} />
           <Route path="/verify/:code" element={<Verify />} />
@@ -102,11 +89,6 @@ const renderComponentsToHTML = async (url) => {
       </StaticRouter>
     ),
     post,
-    posts,
-    first,
-    prev,
-    next,
-    last
   };
 };
 
@@ -121,7 +103,7 @@ const renderComponentsToHTML = async (url) => {
  * @param last - link to the last page of posts
  * @returns {Promise<string>} - A promise containing HTML to be sent in the response
  */
-const sendHtmlPage = async ({ html, post, posts, first, prev, next, last }) => {
+const sendHtmlPage = async ({ html, post }) => {
   let globalStyles = '';
 
   if (process.env.NODE_ENV === 'development') {
@@ -154,7 +136,7 @@ const sendHtmlPage = async ({ html, post, posts, first, prev, next, last }) => {
     <body>
         <div id="react-container">${html}</div>
         <script>
-            window.__STATE__ = ${JSON.stringify({ post, posts, first, prev, next, last })}
+            window.__STATE__ = ${JSON.stringify({ post })}
         </script>
         <script src="/client/vendor.js"></script>
         <script src="/client/bundle.js"></script>
