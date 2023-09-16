@@ -165,7 +165,8 @@ const clientConfig = merge([
         plugins: [
             new HtmlWebPackPlugin({
                 template: "./src/client/index.html",
-                filename: "./index.html"
+                filename: "./index.html",
+                favicon: "./src/client/assets/favicon.ico"
             }),
             new webpack.DefinePlugin({
                 'process.env.NODE_ENV': ENV
@@ -173,7 +174,18 @@ const clientConfig = merge([
             new ESLintPlugin({
                 failOnError: false
             })
-        ]
+        ],
+        optimization: {
+            splitChunks: {
+                cacheGroups: {
+                    commons: {
+                        test: /[\\/]node_modules[\\/]/,
+                        name: 'vendor',
+                        chunks: 'initial'
+                    }
+                }
+            }
+        }
     },
     parts.loadFonts({
         options: {
@@ -210,18 +222,7 @@ const clientDevConfig = merge([
  */
 const clientProdConfig = merge([
     {
-        mode: "production",
-        optimization: {
-            splitChunks: {
-                cacheGroups: {
-                    commons: {
-                        test: /[\\/]node_modules[\\/]/,
-                        name: 'vendor',
-                        chunks: 'initial'
-                    }
-                }
-            }
-        }
+        mode: "production"
     },
     parts.generateSourceMaps({ type: 'source-map' }),
     parts.extractCSS({

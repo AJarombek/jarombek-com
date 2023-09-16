@@ -29,7 +29,7 @@ class BlogDelegator {
     // Transform JSON to JSX
     const posts = JSXConverter.createPostsJSX(json);
 
-    return {posts, last};
+    return { posts, last };
   }
 
   /**

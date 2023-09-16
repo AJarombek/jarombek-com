@@ -1,12 +1,11 @@
-/* eslint-disable react/prop-types */
 /**
  * BlogList component
  * @author Andrew Jarombek
  * @since 8/1/2018
  */
 
-import React, {useEffect, useMemo, useState} from 'react';
-import {useNavigate, useParams} from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import 'isomorphic-fetch';
 
 import WebsiteTemplate from './WebsiteTemplate';
@@ -25,18 +24,19 @@ const BlogList = () => {
   const [last, setLast] = useState('1');
   const [searchQuery, setSearchQuery] = useState(query);
 
-  const queryUrl = useMemo(() => query && query !== '_' ? `query=${query}&` : '', [query]);
+  const queryUrl = useMemo(() => (query && query !== '_' ? `query=${query}&` : ''), [query]);
   const paginationLink = useMemo(() => {
     return query === '_' ? '/blog?page=' : `/blog?${queryUrl}page=`;
   }, [queryUrl]);
 
   useEffect(async () => {
     window.scrollTo(0, 0);
+    console.info('test!');
 
-    const {
-      posts: postsList,
-      last: lastLink,
-    } = await BlogDelegator.fetchPosts(BaseURL.get(), `/api/post/preview?${queryUrl}page=${page}`);
+    const { posts: postsList, last: lastLink } = await BlogDelegator.fetchPosts(
+      BaseURL.get(),
+      `/api/post/preview?${queryUrl}page=${page}`
+    );
 
     setPosts(postsList);
     setLast(lastLink);
@@ -51,7 +51,7 @@ const BlogList = () => {
     if (e.keyCode === 13 && searchQuery) {
       navigate(`/blog?query=${searchQuery}&page=${page}`);
     }
-  }
+  };
 
   /**
    * When the value in the text search bar changes, add it to the state under the property
@@ -61,7 +61,7 @@ const BlogList = () => {
    */
   const onChangeSearchBar = (e) => {
     setSearchQuery(e.target.value.trim());
-  }
+  };
 
   /**
    * When clicking the button to execute a text search, check if any value was entered.
@@ -71,38 +71,38 @@ const BlogList = () => {
     if (searchQuery) {
       navigate(`/blog?query=${searchQuery}&page=${page}`);
     }
-  }
+  };
 
   return (
-      <WebsiteTemplate>
-        <div className="jarombek-background">
-          {posts ? (
-              <div className="jarombek-blog-list">
-                <div className="jarombek-blog-list-search">
-                  <SearchBar
-                      onSearch={onClickSearch}
-                      onChangeSearch={onChangeSearchBar}
-                      onKeyPressSearch={onKeyUpSearchBar}
-                      value={searchQuery}
-                  />
-                </div>
-                <div className="jarombek-posts-grid">
-                  {posts.map((post) => (
-                      <BlogPreview key={post.name} {...post} />
-                  ))}
-                </div>
-              </div>
-          ) : (
-              <div className="jarombek-blog-list">
-                <Loading className="jarombek-blog-list-none" />
-              </div>
-          )}
-          <div className="jarombek-blog-list-footer">
-            <PaginationBar current={+page} last={+last} link={paginationLink} />
+    <WebsiteTemplate>
+      <div className="jarombek-background">
+        {posts ? (
+          <div className="jarombek-blog-list">
+            <div className="jarombek-blog-list-search">
+              <SearchBar
+                onSearch={onClickSearch}
+                onChangeSearch={onChangeSearchBar}
+                onKeyPressSearch={onKeyUpSearchBar}
+                value={searchQuery}
+              />
+            </div>
+            <div className="jarombek-posts-grid">
+              {posts.map((post) => (
+                <BlogPreview key={post.name} {...post} />
+              ))}
+            </div>
           </div>
+        ) : (
+          <div className="jarombek-blog-list">
+            <Loading className="jarombek-blog-list-none" />
+          </div>
+        )}
+        <div className="jarombek-blog-list-footer">
+          <PaginationBar current={+page} last={+last} link={paginationLink} />
         </div>
-      </WebsiteTemplate>
+      </div>
+    </WebsiteTemplate>
   );
-}
+};
 
 export default BlogList;

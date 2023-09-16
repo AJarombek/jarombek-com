@@ -90,5 +90,4 @@ globalStyles.prod = `
   }
 `;
 
-
 export default globalStyles;

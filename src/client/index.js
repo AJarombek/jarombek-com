@@ -33,19 +33,21 @@ const RoutedApp = () => {
   const GlobalStyle = createGlobalStyle`${globalStyles}`;
 
   return (
-    <Router>
-      <Routes>
-        <Route exact path="/" element={<Home />} />
-        <Route path="/blog/:name" element={<Blog {...window.__STATE__} />} />
-        <Route path="/blog" element={<BlogList {...window.__STATE__} />} />
-        <Route path="/resume" element={<Resume />} />
-        <Route path="/stats" element={<Statistics />} />
-        <Route path="/verify/:code" element={<Verify />} />
-        <Route path="/unsub/:code" element={<Unsub />} />
-        <Route element={<Home />} />
-        <GlobalStyle />
-      </Routes>
-    </Router>
+    <>
+      <GlobalStyle />
+      <Router>
+        <Routes>
+          <Route exact path="/" element={<Home />} />
+          <Route path="/blog/:name" element={<Blog />} />
+          <Route path="/blog" element={<BlogList />} />
+          <Route path="/resume" element={<Resume />} />
+          <Route path="/stats" element={<Statistics />} />
+          <Route path="/verify/:code" element={<Verify />} />
+          <Route path="/unsub/:code" element={<Unsub />} />
+          <Route element={<Home />} />
+        </Routes>
+      </Router>
+    </>
   );
 };
 

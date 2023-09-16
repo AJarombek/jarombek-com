@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import path from 'path';
+import crypto from 'crypto';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { Routes, Route } from 'react-router-dom';
@@ -88,7 +89,7 @@ const renderComponentsToHTML = async (url) => {
         </Routes>
       </StaticRouter>
     ),
-    post,
+    post
   };
 };
 
@@ -96,11 +97,6 @@ const renderComponentsToHTML = async (url) => {
  * Place the route specific HTML inside a generic HTML template
  * @param html - the route specific HTML
  * @param post - an initial blog post to be sent with the response
- * @param posts - an initial list of blog posts to be sent with the response
- * @param first - link to the first page of posts
- * @param prev - link to the previous page of posts
- * @param next - link to the next page of posts
- * @param last - link to the last page of posts
  * @returns {Promise<string>} - A promise containing HTML to be sent in the response
  */
 const sendHtmlPage = async ({ html, post }) => {
@@ -116,6 +112,7 @@ const sendHtmlPage = async ({ html, post }) => {
     <!DOCTYPE html>
     <html lang="en">
     <head>
+        <title>Andrew Jarombek</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="google-site-verification"
@@ -135,9 +132,6 @@ const sendHtmlPage = async ({ html, post }) => {
     </head>
     <body>
         <div id="react-container">${html}</div>
-        <script>
-            window.__STATE__ = ${JSON.stringify({ post })}
-        </script>
         <script src="/client/vendor.js"></script>
         <script src="/client/bundle.js"></script>
     </body>
@@ -230,7 +224,12 @@ app.use(
   })
 );
 
-app.use(helmet({}));
+app.use(
+  helmet({
+    contentSecurityPolicy: false
+  })
+);
+
 app.use(bodyParser.json({ limit: '50mb' }));
 
 app.use('/api/post', postRouter);
