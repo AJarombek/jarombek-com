@@ -208,7 +208,6 @@ const clientDevConfig = merge([
         host: process.env.HOST,
         port: process.env.PORT
     }),
-    parts.hotModuleReplacement(),
     parts.extractCSS({
         useSass: ["css-loader", "sass-loader"],
         useCss: ["css-loader"],

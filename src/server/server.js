@@ -10,12 +10,10 @@ import mongoose from 'mongoose';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import path from 'path';
-import crypto from 'crypto';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { Routes, Route } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
-import queryString from 'query-string';
 import cors from 'cors';
 
 import Blog from '../client/Blog';
@@ -96,10 +94,9 @@ const renderComponentsToHTML = async (url) => {
 /**
  * Place the route specific HTML inside a generic HTML template
  * @param html - the route specific HTML
- * @param post - an initial blog post to be sent with the response
  * @returns {Promise<string>} - A promise containing HTML to be sent in the response
  */
-const sendHtmlPage = async ({ html, post }) => {
+const sendHtmlPage = async ({ html }) => {
   let globalStyles = '';
 
   if (process.env.NODE_ENV === 'development') {
@@ -163,36 +160,6 @@ const getUrlPost = async (url, regex) => {
   }
 
   return post;
-};
-
-/**
- * Get a list of blog posts from MongoDB corresponding to the page query in the URL.  If there is
- * no page query, a default page of posts will be returned.  Also get links to corresponding
- * pages of blog posts.
- * @param url - the URL of the HTTP request
- * @return {Promise<*>} - a promise containing a list of blog posts
- * and links to other pages of posts
- */
-const getListOfPosts = async (url) => {
-  const queries = queryString.parseUrl(url);
-
-  // These lines get items from the URL query string
-  const page = queries && queries.query && queries.query.page ? queries.query.page : 1;
-  const query = queries && queries.query && queries.query.query ? queries.query.query : '_';
-
-  // The number of posts per page defaults to 12
-  const posts = await PostDao.getPaginatedPostPreviews(page, 12, query);
-
-  // generatePaginatedPostsLinks() expects an integer for the first argument so coerce 'page'
-  const { first, prev, next, last } = PostDao.generatePaginatedPostsLinks(+page, 12, '/api/post/preview', query);
-
-  return {
-    posts,
-    first,
-    prev,
-    next,
-    last
-  };
 };
 
 /**

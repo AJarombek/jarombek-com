@@ -27,19 +27,21 @@ const BlogList = () => {
   const queryUrl = useMemo(() => (query && query !== '_' ? `query=${query}&` : ''), [query]);
   const paginationLink = useMemo(() => {
     return query === '_' ? '/blog?page=' : `/blog?${queryUrl}page=`;
-  }, [queryUrl]);
+  }, [query, queryUrl]);
 
-  useEffect(async () => {
-    window.scrollTo(0, 0);
-    console.info('test!');
-
+  const fetchPosts = async (pageNumber, queryString) => {
     const { posts: postsList, last: lastLink } = await BlogDelegator.fetchPosts(
       BaseURL.get(),
-      `/api/post/preview?${queryUrl}page=${page}`
+      `/api/post/preview?${queryString}page=${pageNumber}`
     );
 
     setPosts(postsList);
     setLast(lastLink);
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    fetchPosts(page, queryUrl);
   }, [page, queryUrl]);
 
   /**

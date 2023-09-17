@@ -4,7 +4,6 @@
  * @since 3/22/2018
  */
 
-const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 exports.generateSourceMaps = ({type}) => ({
@@ -26,16 +25,6 @@ exports.devServer = ({ host, port } = {}) => ({
         overlay: true, // Displays an error overlay in the browser when the code is broken
         hotOnly: true // Don't perform the refresh in browser if hot loading fails
     }
-});
-
-/**
- * Use HotModuleReplacement in a development environment
- * @returns {{plugins: *[]}}
- */
-exports.hotModuleReplacement = () => ({
-    plugins: [
-        new webpack.HotModuleReplacementPlugin(),
-    ]
 });
 
 /**
