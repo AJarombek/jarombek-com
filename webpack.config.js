@@ -81,12 +81,8 @@ const serverConfig = merge([
             })
         ]
     },
-    parts.loadFonts({
-        options: {
-            name: 'assets/[name].[ext]',
-            publicPath: PUBLIC_PATH
-        }
-    })
+    parts.loadFonts(),
+    parts.loadImages()
 ]);
 
 /**
@@ -103,8 +99,7 @@ const serverDevConfig = merge([
         useSass: ["css-loader", "sass-loader"],
         useCss: ["css-loader"],
         fallback: "isomorphic-style-loader"
-    }),
-    parts.loadImages()
+    })
 ]);
 
 /**
@@ -118,13 +113,6 @@ const serverProdConfig = merge([
         useSass: ["css-loader", "sass-loader"],
         useCss: ["css-loader"],
         fallback: "isomorphic-style-loader"
-    }),
-    parts.loadImages({
-        options: {
-            limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
-            name: 'assets/[name].[ext]',
-            publicPath: PUBLIC_PATH
-        }
     })
 ]);
 
@@ -187,12 +175,8 @@ const clientConfig = merge([
             }
         }
     },
-    parts.loadFonts({
-        options: {
-            name: 'assets/[name].[ext]',
-            publicPath: PUBLIC_PATH
-        }
-    })
+    parts.loadFonts(),
+    parts.loadImages()
 ]);
 
 /**
@@ -212,8 +196,7 @@ const clientDevConfig = merge([
         useSass: ["css-loader", "sass-loader"],
         useCss: ["css-loader"],
         fallback: "isomorphic-style-loader"
-    }),
-    parts.loadImages()
+    })
 ]);
 
 /**
@@ -228,13 +211,6 @@ const clientProdConfig = merge([
         useSass: ["css-loader", "sass-loader"],
         useCss: ["css-loader"],
         fallback: "style-loader"
-    }),
-    parts.loadImages({
-        options: {
-            limit: 15000, // Inline an image in the JavaScript bundle if it is sized less than 15kB
-            name: 'assets/[name].[ext]',
-            publicPath: PUBLIC_PATH
-        }
     })
 ]);
 

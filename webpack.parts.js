@@ -102,46 +102,29 @@ exports.extractCSS = ({ include, exclude }) => {
 
 /**
  * Load images into the bundle
- * @param include - files to whitelist for use of URL loader
- * @param exclude - files to blacklist from URL loader
- * @param options - additional options to pass to the URL loader
  * @returns {{module: {rules: *[]}}}
  */
-exports.loadImages = ({ include, exclude, options } = {}) => ({
+exports.loadImages = () => ({
     module: {
         rules: [
             {
                 test: /\.(png|jpg|svg|gif)$/,
-                include,
-                exclude,
-                use: {
-                    loader: 'url-loader',
-                    options
-                }
+                type: 'asset/inline'
             }
-
         ]
     }
 });
 
 /**
  * Load fonts into the bundle
- * @param include - files to whitelist for use of file loader
- * @param exclude - files to blacklist from file loader
- * @param options - additional options to pass to the file loader
  * @returns {{module: {rules: *[]}}}
  */
-exports.loadFonts = ({ include, exclude, options } = {}) => ({
+exports.loadFonts = () => ({
     module: {
         rules: [
             {
                 test: /\.(eot|ttf|woff|woff2|otf|ico)(\?v=\d+\.\d+\.\d+)?$/,
-                include,
-                exclude,
-                use: {
-                    loader: 'file-loader',
-                    options
-                }
+                type: 'asset/resource'
             }
         ]
     }

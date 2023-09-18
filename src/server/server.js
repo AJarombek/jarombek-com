@@ -115,6 +115,7 @@ const sendHtmlPage = async ({ html }) => {
         <meta name="google-site-verification"
               content="axpbkHOqG9cnq6gACXKtvjaAbcEvsQ_01zoGQcA3y_M" />
         <link rel="stylesheet" href="/client/bundle.css">
+        <link rel="icon" href="https://asset.jarombek.com/" />
         <style>
           ${globalStyles}
         </style>
