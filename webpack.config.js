@@ -24,19 +24,16 @@ const PATHS = {
 
 console.log(`BUILD ENV = ${process.env.BUILD_ENV}`);
 
-let ENV, PUBLIC_PATH;
+let ENV;
 switch (process.env.BUILD_ENV) {
     case 'local':
         ENV = JSON.stringify('local');
-        PUBLIC_PATH = 'http://localhost:8080/';
         break;
     case 'development':
         ENV = JSON.stringify('development');
-        PUBLIC_PATH = 'https://jarombek.com/';
         break;
     default:
         ENV = JSON.stringify('production');
-        PUBLIC_PATH = 'https://jarombek.com/';
 }
 
 /**

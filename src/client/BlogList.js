@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import 'isomorphic-fetch';
 
 import WebsiteTemplate from './WebsiteTemplate';
@@ -18,16 +18,18 @@ import BaseURL from './BaseURL';
 
 const BlogList = () => {
   const navigate = useNavigate();
-  const { page = '1', query = '_' } = useParams();
+  const [searchParams] = useSearchParams();
 
+  const [page, setPage] = useState('1');
+  const [query, setQuery] = useState('_');
   const [posts, setPosts] = useState([]);
   const [last, setLast] = useState('1');
-  const [searchQuery, setSearchQuery] = useState(query);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const queryUrl = useMemo(() => (query && query !== '_' ? `query=${query}&` : ''), [query]);
   const paginationLink = useMemo(() => {
+    const queryUrl = query && query !== '_' ? `query=${query}&` : '';
     return query === '_' ? '/blog?page=' : `/blog?${queryUrl}page=`;
-  }, [query, queryUrl]);
+  }, [query]);
 
   const fetchPosts = async (pageNumber, queryString) => {
     const { posts: postsList, last: lastLink } = await BlogDelegator.fetchPosts(
@@ -40,9 +42,18 @@ const BlogList = () => {
   };
 
   useEffect(() => {
+    const newPage = searchParams.get('page') ?? '1';
+    const newQuery = searchParams.get('query') ?? '_';
+
+    setPage(newPage);
+    setQuery(newQuery);
+    setSearchQuery(newQuery === '_' ? '' : newQuery);
+
+    const queryUrl = newQuery && newQuery !== '_' ? `query=${newQuery}&` : '';
+
     window.scrollTo(0, 0);
-    fetchPosts(page, queryUrl);
-  }, [page, queryUrl]);
+    fetchPosts(newPage, queryUrl);
+  }, [searchParams]);
 
   /**
    * When a key is typed into the text search bar.  If the enter button is pressed and the
@@ -51,7 +62,7 @@ const BlogList = () => {
    */
   const onKeyUpSearchBar = (e) => {
     if (e.keyCode === 13 && searchQuery) {
-      navigate(`/blog?query=${searchQuery}&page=${page}`);
+      navigate(`/blog?query=${searchQuery}&page=1`);
     }
   };
 
@@ -71,7 +82,7 @@ const BlogList = () => {
    */
   const onClickSearch = () => {
     if (searchQuery) {
-      navigate(`/blog?query=${searchQuery}&page=${page}`);
+      navigate(`/blog?query=${searchQuery}&page=1`);
     }
   };
 

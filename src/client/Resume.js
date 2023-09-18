@@ -4,8 +4,8 @@
  * @since 9/8/2018
  */
 
-import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import WebsiteTemplate from './WebsiteTemplate';
 import TitleImage from './TitleImage';
@@ -13,11 +13,21 @@ import Timeline from './Timeline';
 import resumeSections from './resumeSections';
 
 const Resume = () => {
-  const [points, setPoints] = useState(5);
+  const [searchParams] = useSearchParams();
+
   const [position, setPosition] = useState(1);
   const [prevPosition, setPrevPosition] = useState(0);
 
-  const { title, content, languages, technologies } = useMemo(() => resumeSections[position - 1], [position]);
+  const points = useMemo(() => resumeSections.length, []);
+
+  useEffect(() => {
+    const page = +(searchParams.get('page') ?? 1);
+
+    if (page !== position) {
+      setPrevPosition(position);
+      setPosition(page);
+    }
+  }, [searchParams, position]);
 
   return (
     <WebsiteTemplate>
