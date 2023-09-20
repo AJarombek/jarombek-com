@@ -66,32 +66,40 @@ docker image build -t jarombek-com:latest -f aws.dockerfile .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.2.11
-docker push ajarombek/jarombek-com:1.2.11
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.3.0
+docker push ajarombek/jarombek-com:1.3.0
 ```
 
 ### Files
 
-| Filename                 | Description                                                                |
-|--------------------------|----------------------------------------------------------------------------|
-| `mocks`                  | Mocks for Jest unit testing.                                               |
-| `src`                    | Application source code for both client and server.                        |
-| `test`                   | Jest test code for both client and server.                                 |
-| `.babelrc`               | Configuration for Babel.                                                   |
-| `.dockerignore`          | Directories and files for Docker to ignore when building an image.         |
-| `.eslintrc.js`           | Configuration for ESLint.                                                  |
-| `.prettierignore`        | File patterns for the Prettier code formatter to ignore.                   |
-| `.travis.yml`            | Continuous Integration config for TravisCI.                                |
-| `Dockerfile`             | Blueprint for a Docker image used to containerize the application.         |
-| `jest.client-config.js`  | Jest unit testing configuration for the client side code.                  |
-| `jest.server-config.js`  | Jest unit testing configuration for the server side code.                  |
-| `package.json`           | Entry point for the npm application.  Contains dependency definitions.     |
-| `setup.sh`               | Bash commands for setting up the application.                              |
-| `webpack.config.js`      | Main webpack configuration file.                                           |
-| `webpack.parts.js`       | Smaller webpack parts to combine with the main configuration.              |
-| `.yarn.lock`             | Where Yarn stores the versions of each dependency.                         |
+| Filename                | Description                                                            |
+|-------------------------|------------------------------------------------------------------------|
+| `cypress`               | Cypress e2e test code.                                                 |
+| `mocks`                 | Mocks for Jest unit testing.                                           |
+| `src`                   | Application source code for both client and server.                    |
+| `test`                  | Jest test code for both client and server.                             |
+| `.babelrc`              | Configuration for Babel.                                               |
+| `.dockerignore`         | Directories and files for Docker to ignore when building an image.     |
+| `.eslintrc.js`          | Configuration for ESLint.                                              |
+| `.prettierignore`       | File patterns for the Prettier code formatter to ignore.               |
+| `aws.dockerfile`        | Dockerfile for an image that containerizes the application.            |
+| `cypress.json`          | Configuration for Cypress e2e tests.                                   |
+| `jest.client-config.js` | Jest unit testing configuration for the client side code.              |
+| `jest.server-config.js` | Jest unit testing configuration for the server side code.              |
+| `package.json`          | Entry point for the npm application.  Contains dependency definitions. |
+| `webpack.config.js`     | Main webpack configuration file.                                       |
+| `webpack.parts.js`      | Smaller webpack parts to combine with the main configuration.          |
+| `yarn.lock`             | Where Yarn stores the versions of each dependency.                     |
 
 ### Version History
+
+**[V.1.3.0](https://github.com/AJarombek/jarombek-com/tree/v1.3.0) - Webpack 5 and React 18 Release**
+
+> Release Date: September 20th, 2023
+
+* Update all third-party dependencies
+* Convert React class components to functional components
+* Update and simplify Webpack configuration
 
 **V.1.1.19 - Google Analytics**
 
