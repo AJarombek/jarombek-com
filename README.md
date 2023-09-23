@@ -74,6 +74,7 @@ docker push ajarombek/jarombek-com:1.3.0
 
 | Filename                | Description                                                            |
 |-------------------------|------------------------------------------------------------------------|
+| `.github`               | GitHub Actions for CI/CD pipelines.                                    |
 | `cypress`               | Cypress e2e test code.                                                 |
 | `mocks`                 | Mocks for Jest unit testing.                                           |
 | `src`                   | Application source code for both client and server.                    |

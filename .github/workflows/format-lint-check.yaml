@@ -1,0 +1,32 @@
+name: Format Check and Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  
+  schedule:
+    - cron: "0 5 * * 5"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: node:18.16.1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Initialize Yarn
+        run: yarn
+
+      - name: Lint JavaScript Code
+        run: yarn lint
+
+      - name: Check JavaScript Code Formatting
+        run: yarn prettier:check
