@@ -33,6 +33,7 @@ jobs:
 
       - name: Commit and Push Formatting Changes
         run: |
+          git config --global --add safe.directory $(realpath .)
           git config user.email "andrew@jarombek.com"
           git config user.name "Andrew Jarombek"
           git add .
