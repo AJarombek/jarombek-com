@@ -1,15 +1,9 @@
-name: Format and Lint
+name: Javascript Format Commit
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  
-  schedule:
-    - cron: "0 5 * * 5"
+      - feature/*
 
   workflow_dispatch:
 
@@ -25,23 +19,11 @@ jobs:
       - name: Initialize Yarn
         run: yarn
 
-      - name: Lint JavaScript Code
-        run: yarn lint
-
       - name: Format JavaScript Code
         run: yarn prettier:write
 
       - name: Commit and Push Formatting Changes
         run: |
-          git config --global --add safe.directory $(realpath .)
-          commit_hash=$(git rev-parse HEAD)
-          echo "Current commit hash: $commit_hash"
-  
-          current_branch=$(git branch --contains $commit_hash)
-          echo "Current branch: $current_branch"
-          
-          git checkout $current_branch
-  
           git config user.email "andrew@jarombek.com"
           git config user.name "Andrew Jarombek"
           git add .
