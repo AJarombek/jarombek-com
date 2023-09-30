@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 /**
  * Schema for the Audit object in MongoDB
@@ -13,24 +13,24 @@ const AuditSchema = new Schema(
     time: {
       type: Date,
       default: Date.now(),
-      expires: 604800 // Expires after a week
+      expires: 604800, // Expires after a week
     },
     item_id: Schema.Types.ObjectId,
     type: {
       type: String,
       required: true,
-      enum: ['post', 'subscriber']
+      enum: ["post", "subscriber"],
     },
     message: {
       type: String,
-      default: 'No Attached Message for Event'
+      default: "No Attached Message for Event",
     },
-    source: String
+    source: String,
   },
-  { capped: { size: 8192, max: 100, autoIndexId: true } }
+  { capped: { size: 8192, max: 100, autoIndexId: true } },
 );
 
 AuditSchema.index({ time: 1 });
 AuditSchema.index({ item_id: 1 });
 
-export default mongoose.model('Audit', AuditSchema, 'audit');
+export default mongoose.model("Audit", AuditSchema, "audit");

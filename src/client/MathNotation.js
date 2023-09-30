@@ -4,10 +4,10 @@
  * @since 10/6/2018
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import { BlockMath } from 'react-katex';
-import 'katex/dist/katex.min.css';
+import React from "react";
+import PropTypes from "prop-types";
+import { BlockMath } from "react-katex";
+import "katex/dist/katex.min.css";
 
 const MathNotation = ({ tex }) => {
   return (
@@ -18,7 +18,7 @@ const MathNotation = ({ tex }) => {
 };
 
 MathNotation.propTypes = {
-  tex: PropTypes.string.isRequired
+  tex: PropTypes.string.isRequired,
 };
 
 export default MathNotation;

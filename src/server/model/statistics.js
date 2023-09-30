@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 /**
  * Schema for the Statistics object in MongoDB
@@ -11,26 +11,26 @@ const Schema = mongoose.Schema;
 const StatisticsSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   first_year: {
     type: Number,
-    required: true
+    required: true,
   },
   color: {
     type: String,
-    required: true
+    required: true,
   },
   lines: {
     type: Array,
-    required: true
+    required: true,
   },
   rank: {
     type: Array,
-    required: true
-  }
+    required: true,
+  },
 });
 
 StatisticsSchema.index({ name: 1 });
 
-export default mongoose.model('Statistics', StatisticsSchema, 'statistics');
+export default mongoose.model("Statistics", StatisticsSchema, "statistics");

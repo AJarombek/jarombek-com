@@ -4,9 +4,9 @@
  * @since 4/8/2023
  */
 
-import Subscribers from '../model/subscriber';
-import Audit from '../model/audit';
-import Subscriber from '../model/subscriber';
+import Subscribers from "../model/subscriber";
+import Audit from "../model/audit";
+import Subscriber from "../model/subscriber";
 
 class SubscribersDao {
   /**
@@ -23,7 +23,7 @@ class SubscribersDao {
    * @return {Promise<*>}
    */
   static getByEmail = async (email) => {
-    return await Subscribers.query('email').eq(email).exec();
+    return await Subscribers.query("email").eq(email).exec();
   };
 
   /**
@@ -53,7 +53,9 @@ class SubscribersDao {
    * @return {Promise<*>} the newly created subscriber once resolved, or an error message on failure
    */
   static insert = async (subscriber) => {
-    const existingSubscriber = await SubscribersDao.getByEmail(subscriber.email);
+    const existingSubscriber = await SubscribersDao.getByEmail(
+      subscriber.email,
+    );
 
     if (existingSubscriber) {
       throw Error(`Subscriber already exists with email ${subscriber.email}`);
@@ -64,9 +66,9 @@ class SubscribersDao {
       // Audit the creation of a new subscriber
       const audit = new Audit({
         item_id: newSubscriber.email,
-        type: 'subscriber',
+        type: "subscriber",
         message: `Created Subscriber ${newSubscriber.email}`,
-        source: 'Jarombek.com NodeJS/Express API'
+        source: "Jarombek.com NodeJS/Express API",
       });
 
       await Audit.create(audit);
@@ -85,19 +87,21 @@ class SubscribersDao {
     await subscriber.remove();
 
     // Should return null if it was successfully deleted
-    const deleted = await Subscriber.findOne({ email: subscriber.email }).exec();
+    const deleted = await Subscriber.findOne({
+      email: subscriber.email,
+    }).exec();
 
     // Call the catch() function if the subscriber was not deleted
     if (deleted !== null) {
-      throw Error('Subscriber Still Exists');
+      throw Error("Subscriber Still Exists");
     }
 
     // Audit the deletion of a subscriber
     const audit = new Audit({
       item_id: subscriber._id,
-      type: 'subscriber',
+      type: "subscriber",
       message: `Deleted Subscriber: ${subscriber.email}`,
-      source: 'Jarombek.com NodeJS/Express API'
+      source: "Jarombek.com NodeJS/Express API",
     });
 
     await Audit.create(audit);
@@ -121,24 +125,24 @@ class SubscribersDao {
 
         const deletedSubscriber = {
           ...subscriberObject,
-          deleted: true
+          deleted: true,
         };
 
         await Subscriber.update(
           {
             email: subscriber.email,
-            deleted: false
+            deleted: false,
           },
-          deletedSubscriber
+          deletedSubscriber,
         ).exec();
 
         const updatedSubscriber = SubscribersDao.getByEmail(subscriber.email);
 
         const audit = new Audit({
           item_id: updatedSubscriber.email,
-          type: 'subscriber',
+          type: "subscriber",
           message: `Deleted Subscriber ${updatedSubscriber.email}`,
-          source: 'Jarombek.com NodeJS/Express API'
+          source: "Jarombek.com NodeJS/Express API",
         });
 
         await Audit.create(audit);
@@ -170,24 +174,24 @@ class SubscribersDao {
 
         const verifiedSubscriber = {
           ...subscriberObject,
-          verified: true
+          verified: true,
         };
 
         await Subscriber.update(
           {
             email: subscriber.email,
-            deleted: false
+            deleted: false,
           },
-          verifiedSubscriber
+          verifiedSubscriber,
         ).exec();
 
         const updatedSubscriber = SubscribersDao.getByEmail(subscriber.email);
 
         const audit = new Audit({
           item_id: updatedSubscriber.email,
-          type: 'subscriber',
+          type: "subscriber",
           message: `Updated/Verified Subscriber ${updatedSubscriber.email}`,
-          source: 'Jarombek.com NodeJS/Express API'
+          source: "Jarombek.com NodeJS/Express API",
         });
 
         await Audit.create(audit);

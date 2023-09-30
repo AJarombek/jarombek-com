@@ -74,6 +74,7 @@ docker push ajarombek/jarombek-com:1.3.0
 
 | Filename                | Description                                                            |
 |-------------------------|------------------------------------------------------------------------|
+| `.github`               | GitHub Actions for CI/CD pipelines.                                    |
 | `cypress`               | Cypress e2e test code.                                                 |
 | `mocks`                 | Mocks for Jest unit testing.                                           |
 | `src`                   | Application source code for both client and server.                    |
@@ -92,6 +93,12 @@ docker push ajarombek/jarombek-com:1.3.0
 | `yarn.lock`             | Where Yarn stores the versions of each dependency.                     |
 
 ### Version History
+
+**[V.1.3.1](https://github.com/AJarombek/jarombek-com/tree/v1.3.1) - GitHub Actions**
+
+> Release Date: September 30th, 2023
+
+* Create initial GitHub Actions for formatting and linting JavaScript
 
 **[V.1.3.0](https://github.com/AJarombek/jarombek-com/tree/v1.3.0) - Webpack 5 and React 18 Release**
 

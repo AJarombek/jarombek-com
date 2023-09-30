@@ -11,14 +11,14 @@ class BaseURL {
    */
   static get() {
     switch (process.env.NODE_ENV) {
-      case 'production':
-        return 'https://jarombek.com';
-      case 'development':
-        return 'https://dev.jarombek.com';
-      case 'local':
-        return 'http://localhost:8080';
+      case "production":
+        return "https://jarombek.com";
+      case "development":
+        return "https://dev.jarombek.com";
+      case "local":
+        return "http://localhost:8080";
       default:
-        return 'https://jarombek.com';
+        return "https://jarombek.com";
     }
   }
 }

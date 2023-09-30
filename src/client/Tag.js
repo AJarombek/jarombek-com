@@ -4,11 +4,11 @@
  * @since 4/8/2018
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 
 const Tag = ({ name, picture, color, showPicture }) => {
-  const size = showPicture ? 'large' : 'small';
+  const size = showPicture ? "large" : "small";
   return (
     <div className={`jarombek-tag jarombek-tag-${size}`}>
       <div className={`jarombek-tag-color-${color}`}>
@@ -27,13 +27,13 @@ Tag.propTypes = {
   name: PropTypes.string.isRequired,
   picture: PropTypes.string,
   color: PropTypes.string,
-  showPicture: PropTypes.bool
+  showPicture: PropTypes.bool,
 };
 
 Tag.defaultProps = {
-  picture: 'https://asset.jarombek.com/jarombek.png',
-  color: 'default',
-  showPicture: true
+  picture: "https://asset.jarombek.com/jarombek.png",
+  color: "default",
+  showPicture: true,
 };
 
 export default Tag;

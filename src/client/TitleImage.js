@@ -4,8 +4,8 @@
  * @since 4/3/2018
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 
 const TitleImage = ({ src, title, className, link }) => (
   <div className={className}>
@@ -26,12 +26,12 @@ TitleImage.propTypes = {
   src: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   className: PropTypes.string,
-  link: PropTypes.string
+  link: PropTypes.string,
 };
 
 TitleImage.defaultProps = {
-  src: '',
-  title: ''
+  src: "",
+  title: "",
 };
 
 export default TitleImage;

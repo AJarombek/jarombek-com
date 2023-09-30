@@ -4,8 +4,8 @@
  * @since 8/2/2018
  */
 
-import Post from '../model/post';
-import PostContent from '../model/postContent';
+import Post from "../model/post";
+import PostContent from "../model/postContent";
 
 class PostDao {
   /**
@@ -30,8 +30,10 @@ class PostDao {
    * @param query - a string query to perform a text search with
    * @return {Promise<*>} An array of posts from MongoDB
    */
-  static getPaginatedPosts = async (page = 1, limit = 12, query = '') => {
-    return query && query !== '_' ? PostDao.getQueried(page, limit, query) : PostDao.getAll(page, limit);
+  static getPaginatedPosts = async (page = 1, limit = 12, query = "") => {
+    return query && query !== "_"
+      ? PostDao.getQueried(page, limit, query)
+      : PostDao.getAll(page, limit);
   };
 
   /**
@@ -45,8 +47,12 @@ class PostDao {
    * @param query - a string query to perform a text search with
    * @return {Promise<*>} An array of post previews from MongoDB
    */
-  static getPaginatedPostPreviews = async (page = 1, limit = 12, query = '') => {
-    return query && query !== '_'
+  static getPaginatedPostPreviews = async (
+    page = 1,
+    limit = 12,
+    query = "",
+  ) => {
+    return query && query !== "_"
       ? PostDao.getQueriedPreviews(page, limit, query)
       : PostDao.getAllPreviews(page, limit);
   };
@@ -57,12 +63,14 @@ class PostDao {
    * @param getCount -
    * @return {Promise<void>}
    */
-  static updatePostCountCache = async (query = '', getCount = (f) => f) => {
-    query = query || '_';
+  static updatePostCountCache = async (query = "", getCount = (f) => f) => {
+    query = query || "_";
 
     if (!PostDao.postCountCache[query]) {
       PostDao.postCountCache[query] = await getCount();
-      console.info(`Set Post Count Cache To: ${JSON.stringify(PostDao.postCountCache)}`);
+      console.info(
+        `Set Post Count Cache To: ${JSON.stringify(PostDao.postCountCache)}`,
+      );
     }
   };
 
@@ -81,7 +89,7 @@ class PostDao {
     const postPreviews = await PostDao.getPreviewsByDate(skip, limit, true);
     const postContents = await PostDao.getContentByDate(skip, limit, true);
 
-    await PostDao.updatePostCountCache('', async () => {
+    await PostDao.updatePostCountCache("", async () => {
       const posts = await Post.find({});
       return posts.length;
     });
@@ -89,7 +97,7 @@ class PostDao {
     return postPreviews.map((post, index) => {
       return {
         ...post.toObject(),
-        content: postContents[index] ? postContents[index].content : []
+        content: postContents[index] ? postContents[index].content : [],
       };
     });
   };
@@ -105,7 +113,7 @@ class PostDao {
     limit = +limit;
     const skip = (page - 1) * limit;
 
-    await PostDao.updatePostCountCache('', async () => {
+    await PostDao.updatePostCountCache("", async () => {
       const posts = await Post.find({});
       return posts.length;
     });
@@ -122,24 +130,30 @@ class PostDao {
    * @param query - a string query to perform a text search with
    * @return {Promise<void>}
    */
-  static getQueried = async (page = 1, limit = 12, query = '') => {
+  static getQueried = async (page = 1, limit = 12, query = "") => {
     page = +page;
     limit = +limit;
     const skip = (page - 1) * limit;
 
-    const postPreviews = await PostDao.getPreviewByTextSearch(query, { date: -1 });
-    const postContents = await PostDao.getContentByTextSearch(query, { date: -1 });
+    const postPreviews = await PostDao.getPreviewByTextSearch(query, {
+      date: -1,
+    });
+    const postContents = await PostDao.getContentByTextSearch(query, {
+      date: -1,
+    });
 
     await PostDao.updatePostCountCache(query, () => postPreviews.length);
 
     const posts = postPreviews.map((preview, index) => {
-      const combinedScore = (preview.score || 0) + (postContents[index] ? postContents[index].score || 0 : 0);
+      const combinedScore =
+        (preview.score || 0) +
+        (postContents[index] ? postContents[index].score || 0 : 0);
 
       return {
         ...preview.toObject(),
         previewString: null,
         content: postContents[index] ? postContents[index].content : [],
-        score: combinedScore
+        score: combinedScore,
       };
     });
 
@@ -155,7 +169,7 @@ class PostDao {
    * @param query - a string query to perform a text search with
    * @return {Promise<void>}
    */
-  static getQueriedPreviews = async (page = 1, limit = 12, query = '') => {
+  static getQueriedPreviews = async (page = 1, limit = 12, query = "") => {
     page = +page;
     limit = +limit;
     const skip = (page - 1) * limit;
@@ -182,7 +196,7 @@ class PostDao {
     if (post && postContent) {
       return {
         ...post.toObject(),
-        content: postContent.content
+        content: postContent.content,
       };
     } else {
       return null;
@@ -200,12 +214,12 @@ class PostDao {
   static generatePaginatedPostsLinks = (page, limit, url, query) => {
     const location = page * limit;
 
-    let first = '';
-    let prev = '';
-    let next = '';
-    let last = '';
+    let first = "";
+    let prev = "";
+    let next = "";
+    let last = "";
 
-    const queryUrl = query && query !== '_' ? `&query=${query}` : '';
+    const queryUrl = query && query !== "_" ? `&query=${query}` : "";
 
     // If we are not on the first page of the API,
     // return the previous page and the first page urls
@@ -218,7 +232,7 @@ class PostDao {
     if (location < PostDao.postCountCache[query]) {
       next = `<${url}?page=${page + 1}&limit=${limit}${queryUrl}>; rel="next";`;
       last = `<${url}?page=${Math.ceil(
-        PostDao.postCountCache[query] / parseFloat(limit)
+        PostDao.postCountCache[query] / parseFloat(limit),
       )}&limit=${limit}${queryUrl}>; rel="last";`;
     }
 
@@ -226,7 +240,7 @@ class PostDao {
       first,
       prev,
       next,
-      last
+      last,
     };
   };
 
@@ -263,7 +277,11 @@ class PostDao {
    */
   static getPreviewsByDate = async (skip = 0, limit = 1, descending = true) => {
     const order = descending ? -1 : 1;
-    return await Post.find({}).skip(skip).limit(limit).sort({ date: order }).exec();
+    return await Post.find({})
+      .skip(skip)
+      .limit(limit)
+      .sort({ date: order })
+      .exec();
   };
 
   /**
@@ -277,7 +295,11 @@ class PostDao {
    */
   static getContentByDate = async (skip = 0, limit = 1, descending = true) => {
     const order = descending ? -1 : 1;
-    return await PostContent.find({}).skip(skip).limit(limit).sort({ date: order }).exec();
+    return await PostContent.find({})
+      .skip(skip)
+      .limit(limit)
+      .sort({ date: order })
+      .exec();
   };
 
   /**
@@ -286,9 +308,12 @@ class PostDao {
    * @param sortRule - a rule to sort previews that match the text search.
    * @return {Promise<*>} - any number of post previews from MongoDB.
    */
-  static getPreviewByTextSearch = async (query = '', sortRule = { score: { $meta: 'textScore' } }) => {
+  static getPreviewByTextSearch = async (
+    query = "",
+    sortRule = { score: { $meta: "textScore" } },
+  ) => {
     return await Post.find({ $text: { $search: query } })
-      .select({ score: { $meta: 'textScore' } })
+      .select({ score: { $meta: "textScore" } })
       .sort(sortRule)
       .exec();
   };
@@ -299,9 +324,12 @@ class PostDao {
    * @param sortRule - a rule to sort previews that match the text search.
    * @return {Promise<*>} - any number of post contents from MongoDB.
    */
-  static getContentByTextSearch = async (query = '', sortRule = { score: { $meta: 'textScore' } }) => {
+  static getContentByTextSearch = async (
+    query = "",
+    sortRule = { score: { $meta: "textScore" } },
+  ) => {
     return await PostContent.find({ $text: { $search: query } })
-      .select({ score: { $meta: 'textScore' } })
+      .select({ score: { $meta: "textScore" } })
       .sort(sortRule)
       .exec();
   };

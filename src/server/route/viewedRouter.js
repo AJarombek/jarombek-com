@@ -4,9 +4,9 @@
  * @since 5/17/2018
  */
 
-import express from 'express';
-import ViewedDao from '../dao/viewedDao';
-import PostDao from '../dao/postDao';
+import express from "express";
+import ViewedDao from "../dao/viewedDao";
+import PostDao from "../dao/postDao";
 
 /**
  * Create the REST API for viewed items
@@ -28,9 +28,9 @@ const routes = () => {
  * @param router - the express router for the viewed API
  */
 const postNameRoute = (router) => {
-  router.use('/post/:name', postNameMiddleware);
+  router.use("/post/:name", postNameMiddleware);
 
-  router.route('/post/:name').put(update);
+  router.route("/post/:name").put(update);
 };
 
 /**
@@ -48,10 +48,10 @@ const postNameMiddleware = (req, res, next) => {
     },
     (reason) => {
       res.status(404).json({
-        error: 'No Post found with given name',
-        message: reason
+        error: "No Post found with given name",
+        message: reason,
       });
-    }
+    },
   );
 };
 
@@ -69,15 +69,15 @@ const update = (req, res) => {
       if (req.post) {
         res.status(400).json({
           error: `Failed to Update Post Viewed Count: ${req.post.name}`,
-          message: reason
+          message: reason,
         });
       } else {
         res.status(404).json({
-          error: 'No Post found in the HTTP request parameters.',
-          message: reason
+          error: "No Post found in the HTTP request parameters.",
+          message: reason,
         });
       }
-    }
+    },
   );
 };
 

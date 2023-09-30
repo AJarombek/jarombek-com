@@ -5,39 +5,41 @@
  * @since 4/3/2018
  */
 
-import express from 'express';
-import mongoose from 'mongoose';
-import helmet from 'helmet';
-import bodyParser from 'body-parser';
-import path from 'path';
-import React from 'react';
-import { renderToString } from 'react-dom/server';
-import { Routes, Route } from 'react-router-dom';
-import { StaticRouter } from 'react-router-dom/server';
-import cors from 'cors';
+import express from "express";
+import mongoose from "mongoose";
+import helmet from "helmet";
+import bodyParser from "body-parser";
+import path from "path";
+import React from "react";
+import { renderToString } from "react-dom/server";
+import { Routes, Route } from "react-router-dom";
+import { StaticRouter } from "react-router-dom/server";
+import cors from "cors";
 
-import Blog from '../client/Blog';
-import Home from '../client/Home';
-import Unsub from '../client/Unsub';
-import Verify from '../client/Verify';
-import BlogList from '../client/BlogList';
-import Resume from '../client/Resume';
-import Statistics from '../client/Statistics';
-import gs from '../client/globalStyles';
+import Blog from "../client/Blog";
+import Home from "../client/Home";
+import Unsub from "../client/Unsub";
+import Verify from "../client/Verify";
+import BlogList from "../client/BlogList";
+import Resume from "../client/Resume";
+import Statistics from "../client/Statistics";
+import gs from "../client/globalStyles";
 
-import postRoute from './route/postRouter';
-import viewedRoute from './route/viewedRouter';
-import subscriberRoute from './route/subscriberRouter';
-import statisticsRoute from './route/statisticsRouter';
-import PostDao from './dao/postDao';
+import postRoute from "./route/postRouter";
+import viewedRoute from "./route/viewedRouter";
+import subscriberRoute from "./route/subscriberRouter";
+import statisticsRoute from "./route/statisticsRouter";
+import PostDao from "./dao/postDao";
 
 const mongoEndpoint =
-  process.env.NODE_ENV === 'local' ? 'mongodb://127.0.0.1/jarombekcom' : 'mongodb://jarombek-com-database/jarombekcom';
+  process.env.NODE_ENV === "local"
+    ? "mongodb://127.0.0.1/jarombekcom"
+    : "mongodb://jarombek-com-database/jarombekcom";
 
 const mongoConnectWithRetry = () => {
   mongoose.connect(mongoEndpoint, (err) => {
     if (err) {
-      console.error('Failed to connect to MongoDB. Retrying in 5 seconds...');
+      console.error("Failed to connect to MongoDB. Retrying in 5 seconds...");
       setTimeout(mongoConnectWithRetry, 5000);
     }
   });
@@ -66,7 +68,7 @@ const renderComponentsToHTML = async (url) => {
   const singlePostPattern = /\/blog\/([0-9-a-z]+)$/;
 
   if (singlePostPattern.exec(url)) {
-    console.info('Ahead of Time Query Single Post');
+    console.info("Ahead of Time Query Single Post");
 
     // Get the blog post that corresponds to this URL
     post = await getUrlPost(url, singlePostPattern);
@@ -85,9 +87,9 @@ const renderComponentsToHTML = async (url) => {
           <Route path="/unsub/:code" element={<Unsub />} />
           <Route element={<Home />} />
         </Routes>
-      </StaticRouter>
+      </StaticRouter>,
     ),
-    post
+    post,
   };
 };
 
@@ -97,9 +99,9 @@ const renderComponentsToHTML = async (url) => {
  * @returns {Promise<string>} - A promise containing HTML to be sent in the response
  */
 const sendHtmlPage = async ({ html }) => {
-  let globalStyles = '';
+  let globalStyles = "";
 
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     globalStyles = gs.dev;
   } else {
     globalStyles = gs.prod;
@@ -169,7 +171,8 @@ const getUrlPost = async (url, regex) => {
  * @param url - the url of the HTTP request
  * @returns {Promise<*>} - Promise containing HTML to be sent in the response
  */
-const htmlResponse = async (url) => await sendHtmlPage(await renderComponentsToHTML(url));
+const htmlResponse = async (url) =>
+  await sendHtmlPage(await renderComponentsToHTML(url));
 
 /**
  * Take the url passed in and render the HTML appropriately.  Then send it back in the response
@@ -185,27 +188,27 @@ const app = express();
 
 app.use(
   cors({
-    origin: ['https://www.jarombek.com', 'https://jarombek.com'],
-    methods: 'GET,HEAD,PUT,PATCH,POST',
+    origin: ["https://www.jarombek.com", "https://jarombek.com"],
+    methods: "GET,HEAD,PUT,PATCH,POST",
     preflightContinue: false,
-    optionsSuccessStatus: 200
-  })
+    optionsSuccessStatus: 200,
+  }),
 );
 
 app.use(
   helmet({
-    contentSecurityPolicy: false
-  })
+    contentSecurityPolicy: false,
+  }),
 );
 
-app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.json({ limit: "50mb" }));
 
-app.use('/api/post', postRouter);
-app.use('/api/viewed', viewedRouter);
-app.use('/api/subscriber', subscriberRouter);
-app.use('/api/stats', statisticsRouter);
+app.use("/api/post", postRouter);
+app.use("/api/viewed", viewedRouter);
+app.use("/api/subscriber", subscriberRouter);
+app.use("/api/stats", statisticsRouter);
 
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(path.join(__dirname, "..")));
 
 // Send the HTML and JavaScript bundle
 app.use(respond);

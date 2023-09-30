@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 /**
  * Schema for the StatisticsMeta object in MongoDB
@@ -11,8 +11,12 @@ const Schema = mongoose.Schema;
 const StatisticsMetaSchema = new Schema({
   updated: {
     type: Date,
-    required: true
-  }
+    required: true,
+  },
 });
 
-export default mongoose.model('StatisticsMeta', StatisticsMetaSchema, 'statisticsMeta');
+export default mongoose.model(
+  "StatisticsMeta",
+  StatisticsMetaSchema,
+  "statisticsMeta",
+);
