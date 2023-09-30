@@ -22,11 +22,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Checkout Branch
-        run: |
-          git config --global --add safe.directory $(realpath .)
-          git checkout $GITHUB_REF
-
       - name: Initialize Yarn
         run: yarn
 
@@ -38,6 +33,8 @@ jobs:
 
       - name: Commit and Push Formatting Changes
         run: |
+          git config --global --add safe.directory $(realpath .)
+          git checkout $GITHUB_REF
           git config user.email "andrew@jarombek.com"
           git config user.name "Andrew Jarombek"
           git add .
