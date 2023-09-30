@@ -1,4 +1,4 @@
-import dynamoose from 'dynamoose';
+import dynamoose from "dynamoose";
 
 /**
  * Schema for the Subscribers object in DynamoDB
@@ -11,47 +11,47 @@ const Schema = dynamoose.Schema;
 const SubscriberSchema = new Schema({
   email: {
     type: String,
-    required: true
+    required: true,
   },
   subscribed: {
     type: Date,
     default: Date.now(),
-    required: true
+    required: true,
   },
   first: {
     type: String,
-    required: true
+    required: true,
   },
   last: {
     type: String,
-    required: true
+    required: true,
   },
   created: {
     type: String,
-    required: true
+    required: true,
   },
   updated: {
     type: String,
-    required: true
+    required: true,
   },
   verify_code: {
     type: String,
-    required: true
+    required: true,
   },
   unsub_code: {
     type: String,
-    required: true
+    required: true,
   },
   verified: {
     type: Boolean,
     required: false,
-    default: false
+    default: false,
   },
   deleted: {
     type: Boolean,
     required: false,
-    default: false
-  }
+    default: false,
+  },
 });
 
-export default dynamoose.model('Subscribers', SubscriberSchema);
+export default dynamoose.model("Subscribers", SubscriberSchema);

@@ -4,15 +4,16 @@
  * @since 9/26/2021
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import { useTable } from 'react-table';
+import React from "react";
+import PropTypes from "prop-types";
+import { useTable } from "react-table";
 
 const Table = ({ data = [], columns = [] }) => {
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable({
-    columns,
-    data
-  });
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
+    useTable({
+      columns,
+      data,
+    });
 
   return (
     <div id="jarbek-table">
@@ -22,7 +23,7 @@ const Table = ({ data = [], columns = [] }) => {
             <tr key={i} {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column, j) => (
                 <th key={j} {...column.getHeaderProps()}>
-                  {column.render('Header')}
+                  {column.render("Header")}
                 </th>
               ))}
             </tr>
@@ -35,7 +36,7 @@ const Table = ({ data = [], columns = [] }) => {
               <tr key={i} {...row.getRowProps()}>
                 {row.cells.map((cell, j) => (
                   <td key={j} {...cell.getCellProps()}>
-                    {cell.render('Cell')}
+                    {cell.render("Cell")}
                   </td>
                 ))}
               </tr>
@@ -49,7 +50,7 @@ const Table = ({ data = [], columns = [] }) => {
 
 Table.propTypes = {
   data: PropTypes.array,
-  columns: PropTypes.array
+  columns: PropTypes.array,
 };
 
 export default Table;

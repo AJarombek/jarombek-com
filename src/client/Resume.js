@@ -4,13 +4,13 @@
  * @since 9/8/2018
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
-import WebsiteTemplate from './WebsiteTemplate';
-import TitleImage from './TitleImage';
-import Timeline from './Timeline';
-import resumeSections from './resumeSections';
+import WebsiteTemplate from "./WebsiteTemplate";
+import TitleImage from "./TitleImage";
+import Timeline from "./Timeline";
+import resumeSections from "./resumeSections";
 
 const Resume = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +21,7 @@ const Resume = () => {
   const points = useMemo(() => resumeSections.length, []);
 
   useEffect(() => {
-    const page = +(searchParams.get('page') ?? 1);
+    const page = +(searchParams.get("page") ?? 1);
 
     if (page !== position) {
       setPrevPosition(position);
@@ -33,7 +33,11 @@ const Resume = () => {
     <WebsiteTemplate>
       <div className="jarbek-resume">
         <div className="jarbek-resume-timeline">
-          <Timeline points={points} position={position} labels={resumeSections.map((item) => item.year)} />
+          <Timeline
+            points={points}
+            position={position}
+            labels={resumeSections.map((item) => item.year)}
+          />
         </div>
         <div className="jarbek-resume-title">
           {resumeSections.map((item, index) => (
@@ -42,18 +46,18 @@ const Resume = () => {
               className={`${
                 position === index + 1
                   ? prevPosition <= position
-                    ? 'jarbek-resume-title-active-right'
-                    : 'jarbek-resume-title-active-left'
-                  : ''
+                    ? "jarbek-resume-title-active-right"
+                    : "jarbek-resume-title-active-left"
+                  : ""
               }
                  ${
                    position !== index + 1
                      ? index + 1 === prevPosition
                        ? position > prevPosition
-                         ? 'jarbek-resume-title-just-viewed-left'
-                         : 'jarbek-resume-title-just-viewed-right'
-                       : 'jarbek-resume-title-inactive'
-                     : ''
+                         ? "jarbek-resume-title-just-viewed-left"
+                         : "jarbek-resume-title-just-viewed-right"
+                       : "jarbek-resume-title-inactive"
+                     : ""
                  }`}
             >
               <h5>{item.title}</h5>
@@ -61,7 +65,10 @@ const Resume = () => {
           ))}
         </div>
         {position !== 1 && (
-          <Link className="jarbek-resume-prev" to={`/resume?page=${position - 1}`}>
+          <Link
+            className="jarbek-resume-prev"
+            to={`/resume?page=${position - 1}`}
+          >
             <TitleImage src="./assets/down-black.png" title="" />
           </Link>
         )}
@@ -72,18 +79,18 @@ const Resume = () => {
               className={`${
                 position === index + 1
                   ? prevPosition <= position
-                    ? 'jarbek-resume-content-active-right'
-                    : 'jarbek-resume-content-active-left'
-                  : ''
+                    ? "jarbek-resume-content-active-right"
+                    : "jarbek-resume-content-active-left"
+                  : ""
               }
                  ${
                    position !== index + 1
                      ? index + 1 === prevPosition
                        ? position > prevPosition
-                         ? 'jarbek-resume-content-just-viewed-left'
-                         : 'jarbek-resume-content-just-viewed-right'
-                       : 'jarbek-resume-content-inactive'
-                     : ''
+                         ? "jarbek-resume-content-just-viewed-left"
+                         : "jarbek-resume-content-just-viewed-right"
+                       : "jarbek-resume-content-inactive"
+                     : ""
                  }`}
             >
               {item.content}
@@ -91,7 +98,10 @@ const Resume = () => {
           ))}
         </div>
         {position !== points ? (
-          <Link className="jarbek-resume-next" to={`/resume?page=${position + 1}`}>
+          <Link
+            className="jarbek-resume-next"
+            to={`/resume?page=${position + 1}`}
+          >
             <TitleImage src="./assets/down-black.png" title="" />
           </Link>
         ) : null}
@@ -102,30 +112,34 @@ const Resume = () => {
               className={`${
                 position === index + 1
                   ? prevPosition <= position
-                    ? 'jarbek-resume-tech-active-right'
-                    : 'jarbek-resume-tech-active-left'
-                  : ''
+                    ? "jarbek-resume-tech-active-right"
+                    : "jarbek-resume-tech-active-left"
+                  : ""
               }
                  ${
                    position !== index + 1
                      ? index + 1 === prevPosition
                        ? position > prevPosition
-                         ? 'jarbek-resume-tech-just-viewed-left'
-                         : 'jarbek-resume-tech-just-viewed-right'
-                       : 'jarbek-resume-tech-inactive'
-                     : ''
+                         ? "jarbek-resume-tech-just-viewed-left"
+                         : "jarbek-resume-tech-just-viewed-right"
+                       : "jarbek-resume-tech-inactive"
+                     : ""
                  }`}
             >
               {item.languages.length ? (
                 <p className="jarbek-resume-tech-languages">
                   <strong>Languages: </strong>
-                  {item.languages.reduce((acc, item, index) => (index ? `${acc}, ${item}` : `${item}`))}
+                  {item.languages.reduce((acc, item, index) =>
+                    index ? `${acc}, ${item}` : `${item}`,
+                  )}
                 </p>
               ) : null}
               {item.technologies.length ? (
                 <p className="jarbek-resume-tech-technologies">
                   <strong>Technologies: </strong>
-                  {item.technologies.reduce((acc, item, index) => (index ? `${acc}, ${item}` : `${item}`))}
+                  {item.technologies.reduce((acc, item, index) =>
+                    index ? `${acc}, ${item}` : `${item}`,
+                  )}
                 </p>
               ) : null}
             </div>

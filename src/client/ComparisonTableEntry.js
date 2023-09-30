@@ -4,8 +4,8 @@
  * @since 7/11/2018
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 
 const ComparisonTableEntry = ({ children }) => (
   <div className="jarombek-comparison-table-entry">
@@ -14,7 +14,7 @@ const ComparisonTableEntry = ({ children }) => (
 );
 
 ComparisonTableEntry.propTypes = {
-  children: PropTypes.any
+  children: PropTypes.any,
 };
 
 export default ComparisonTableEntry;

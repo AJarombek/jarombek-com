@@ -4,37 +4,37 @@
  * @since 8/1/2018
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import 'isomorphic-fetch';
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import "isomorphic-fetch";
 
-import WebsiteTemplate from './WebsiteTemplate';
-import Loading from './Loading';
-import BlogPreview from './BlogPreview';
-import BlogDelegator from './BlogDelegator';
-import PaginationBar from './PaginationBar';
-import SearchBar from './SearchBar';
-import BaseURL from './BaseURL';
+import WebsiteTemplate from "./WebsiteTemplate";
+import Loading from "./Loading";
+import BlogPreview from "./BlogPreview";
+import BlogDelegator from "./BlogDelegator";
+import PaginationBar from "./PaginationBar";
+import SearchBar from "./SearchBar";
+import BaseURL from "./BaseURL";
 
 const BlogList = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [page, setPage] = useState('1');
-  const [query, setQuery] = useState('_');
+  const [page, setPage] = useState("1");
+  const [query, setQuery] = useState("_");
   const [posts, setPosts] = useState([]);
-  const [last, setLast] = useState('1');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [last, setLast] = useState("1");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const paginationLink = useMemo(() => {
-    const queryUrl = query && query !== '_' ? `query=${query}&` : '';
-    return query === '_' ? '/blog?page=' : `/blog?${queryUrl}page=`;
+    const queryUrl = query && query !== "_" ? `query=${query}&` : "";
+    return query === "_" ? "/blog?page=" : `/blog?${queryUrl}page=`;
   }, [query]);
 
   const fetchPosts = async (pageNumber, queryString) => {
     const { posts: postsList, last: lastLink } = await BlogDelegator.fetchPosts(
       BaseURL.get(),
-      `/api/post/preview?${queryString}page=${pageNumber}`
+      `/api/post/preview?${queryString}page=${pageNumber}`,
     );
 
     setPosts(postsList);
@@ -42,14 +42,14 @@ const BlogList = () => {
   };
 
   useEffect(() => {
-    const newPage = searchParams.get('page') ?? '1';
-    const newQuery = searchParams.get('query') ?? '_';
+    const newPage = searchParams.get("page") ?? "1";
+    const newQuery = searchParams.get("query") ?? "_";
 
     setPage(newPage);
     setQuery(newQuery);
-    setSearchQuery(newQuery === '_' ? '' : newQuery);
+    setSearchQuery(newQuery === "_" ? "" : newQuery);
 
-    const queryUrl = newQuery && newQuery !== '_' ? `query=${newQuery}&` : '';
+    const queryUrl = newQuery && newQuery !== "_" ? `query=${newQuery}&` : "";
 
     window.scrollTo(0, 0);
     fetchPosts(newPage, queryUrl);

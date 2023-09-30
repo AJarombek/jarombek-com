@@ -4,10 +4,10 @@
  * @since 8/4/2018
  */
 
-import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
-import { toRomanNumeral } from './romanNumerals';
+import React, { useMemo } from "react";
+import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
+import { toRomanNumeral } from "./romanNumerals";
 
 const PaginationBar = ({ current, last, link }) => {
   const previous = useMemo(() => current - 1, [current]);
@@ -26,7 +26,9 @@ const PaginationBar = ({ current, last, link }) => {
           <p>{toRomanNumeral(previous)}</p>
         </Link>
       ) : null}
-      {current ? <p className="jarbek-pag-current">{toRomanNumeral(current)}</p> : null}
+      {current ? (
+        <p className="jarbek-pag-current">{toRomanNumeral(current)}</p>
+      ) : null}
       {next !== last ? (
         <Link className="jarbek-pag-next-item" to={`${link}${next}`}>
           <p>{toRomanNumeral(next)}</p>
@@ -45,7 +47,7 @@ const PaginationBar = ({ current, last, link }) => {
 PaginationBar.propTypes = {
   current: PropTypes.number,
   last: PropTypes.number,
-  link: PropTypes.string
+  link: PropTypes.string,
 };
 
 export default PaginationBar;

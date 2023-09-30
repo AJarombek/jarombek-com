@@ -6,7 +6,7 @@
  * @since 7/28/2018
  */
 
-import JSXConverter from './JSXConverter';
+import JSXConverter from "./JSXConverter";
 
 class BlogDelegator {
   /**
@@ -19,7 +19,7 @@ class BlogDelegator {
    */
   static async fetchPosts(baseUrl, url) {
     const response = await fetch(`${baseUrl}${url}`);
-    const link = response.headers.get('Link');
+    const link = response.headers.get("Link");
 
     // The only important link header is last
     const { last } = BlogDelegator.parseLinks(link);
@@ -85,11 +85,11 @@ class BlogDelegator {
       // Recursively generateLinks until the list is empty
       return {
         [`${destination}`]: url,
-        ...BlogDelegator.generateLinks(remaining, regex)
+        ...BlogDelegator.generateLinks(remaining, regex),
       };
     } else {
       return {
-        ...BlogDelegator.generateLinks(remaining, regex)
+        ...BlogDelegator.generateLinks(remaining, regex),
       };
     }
   }
@@ -109,7 +109,7 @@ class BlogDelegator {
    * @param baseUrl - the base of the url dependent on the environment
    */
   static viewedPost(name, baseUrl) {
-    fetch(`${baseUrl}/api/viewed/post/${name}`, { method: 'PUT' });
+    fetch(`${baseUrl}/api/viewed/post/${name}`, { method: "PUT" });
   }
 }
 

@@ -4,14 +4,14 @@
  * @since 3/21/2018
  */
 
-import React from 'react';
-import { hot } from 'react-hot-loader';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { hot } from "react-hot-loader";
+import { Link } from "react-router-dom";
 
-import Button from './Button';
-import TitleImage from './TitleImage';
-import FeatureList from './FeatureList';
-import websiteFeatures from './websiteFeatures';
+import Button from "./Button";
+import TitleImage from "./TitleImage";
+import FeatureList from "./FeatureList";
+import websiteFeatures from "./websiteFeatures";
 
 class Home extends React.Component {
   constructor(props) {
@@ -26,7 +26,9 @@ class Home extends React.Component {
             <div className="jarbek-home-title-container">
               <h1 className="jarbek-home-title">Andrew Jarombek</h1>
             </div>
-            <p className="jarbek-home-sub-title">Software Development Website</p>
+            <p className="jarbek-home-sub-title">
+              Software Development Website
+            </p>
             <Link to="/blog" className="jarbek-home-blog-button">
               <Button activeColor="primary" passiveColor="primary">
                 BLOG
@@ -47,7 +49,9 @@ class Home extends React.Component {
             <div>
               <p>Currently working as a </p>
               <p className="jarbek-home-occupation-title">
-                <strong>Senior Staff Engineer/Software Engineering Senior Advisor</strong>
+                <strong>
+                  Senior Staff Engineer/Software Engineering Senior Advisor
+                </strong>
               </p>
             </div>
             <p>

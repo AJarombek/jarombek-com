@@ -4,28 +4,28 @@
  * @since 9/14/2019
  */
 
-import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
-import Table from './Table';
+import React, { useMemo } from "react";
+import PropTypes from "prop-types";
+import Table from "./Table";
 
 const StatisticsTable = ({ data = [] }) => {
   const columns = useMemo(() => {
     const arrayLength = new Date().getFullYear() - 2013;
     const yearHeaders = [...Array(arrayLength).keys()].map((value) => ({
       Header: `${value + 2014}`,
-      accessor: `${value + 2014}`
+      accessor: `${value + 2014}`,
     }));
 
     return [
       {
-        Header: 'Language',
-        accessor: 'language'
+        Header: "Language",
+        accessor: "language",
       },
       ...yearHeaders,
       {
-        Header: 'Total',
-        accessor: 'total'
-      }
+        Header: "Total",
+        accessor: "total",
+      },
     ];
   }, []);
 
@@ -35,7 +35,10 @@ const StatisticsTable = ({ data = [] }) => {
       .map((value) => {
         const yearData = {
           language: value.name,
-          total: value.lines.reduce((total, yearLines) => total + yearLines ?? 0, 0)
+          total: value.lines.reduce(
+            (total, yearLines) => total + yearLines ?? 0,
+            0,
+          ),
         };
 
         yearArray.forEach((year, index) => {
@@ -47,7 +50,7 @@ const StatisticsTable = ({ data = [] }) => {
       .sort((a, b) => b.total - a.total)
       .map((value) => ({
         ...value,
-        total: value.total.toLocaleString()
+        total: value.total.toLocaleString(),
       }));
   }, [data]);
 
@@ -55,7 +58,7 @@ const StatisticsTable = ({ data = [] }) => {
 };
 
 StatisticsTable.propTypes = {
-  data: PropTypes.array
+  data: PropTypes.array,
 };
 
 export default StatisticsTable;

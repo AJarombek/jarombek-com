@@ -4,14 +4,14 @@
  * @since 4/8/2023
  */
 
-import express from 'express';
-import moment from 'moment';
-import { v4 as uuid } from 'uuid';
-import base64 from 'base64-url';
+import express from "express";
+import moment from "moment";
+import { v4 as uuid } from "uuid";
+import base64 from "base64-url";
 
-import emails from '../fn/emails';
-import SubscribersDao from '../dao/subscribersDao';
-import Subscriber from '../model/subscriber';
+import emails from "../fn/emails";
+import SubscribersDao from "../dao/subscribersDao";
+import Subscriber from "../model/subscriber";
 
 /**
  * Create the REST API for subscribers
@@ -48,7 +48,7 @@ const routes = () => {
  * @param router - the express router for the subscribers API
  */
 const baseRoute = (router) => {
-  router.route('/').get(getAll).post(create);
+  router.route("/").get(getAll).post(create);
 };
 
 /**
@@ -56,9 +56,9 @@ const baseRoute = (router) => {
  * @param router - the express router for the subscribers API
  */
 const filterEmailRoute = (router) => {
-  router.use('/filter/:email', filterEmailMiddleware);
+  router.use("/filter/:email", filterEmailMiddleware);
 
-  router.route('/filter/:email').get(get).delete(deleteOne);
+  router.route("/filter/:email").get(get).delete(deleteOne);
 };
 
 /**
@@ -66,7 +66,7 @@ const filterEmailRoute = (router) => {
  * @param router - the express router for the subscribers API
  */
 const verifyCodeRoute = (router) => {
-  router.route('/verify/:code').patch(verifyCode);
+  router.route("/verify/:code").patch(verifyCode);
 };
 
 /**
@@ -74,7 +74,7 @@ const verifyCodeRoute = (router) => {
  * @param router - the express router for the subscribers API
  */
 const unsubCodeRoute = (router) => {
-  router.route('/unsub/:code').patch(unsubCode);
+  router.route("/unsub/:code").patch(unsubCode);
 };
 
 /**
@@ -89,10 +89,10 @@ const getAll = (req, res) => {
     },
     (reason) => {
       res.status(400).json({
-        error: 'Failed to Retrieve all subscribers',
-        message: reason
+        error: "Failed to Retrieve all subscribers",
+        message: reason,
       });
-    }
+    },
   );
 };
 
@@ -108,7 +108,12 @@ const create = (req, res) => {
   const rawSubscriber = new Subscriber(req.body);
   console.info(`Creating Subscriber: ${rawSubscriber}`);
 
-  if (rawSubscriber !== undefined && rawSubscriber.email && rawSubscriber.first && rawSubscriber.last) {
+  if (
+    rawSubscriber !== undefined &&
+    rawSubscriber.email &&
+    rawSubscriber.first &&
+    rawSubscriber.last
+  ) {
     const verify_code = base64.encode(uuid());
     const unsub_code = base64.encode(uuid());
     const created = moment().format();
@@ -118,10 +123,12 @@ const create = (req, res) => {
       subscribed: true,
       created,
       verify_code,
-      unsub_code
+      unsub_code,
     };
 
-    console.info(`Subscriber object passed to DynamoDB ${JSON.stringify(subscriber)}`);
+    console.info(
+      `Subscriber object passed to DynamoDB ${JSON.stringify(subscriber)}`,
+    );
 
     // Insert the new Subscriber
     SubscribersDao.insert(subscriber).then(
@@ -134,12 +141,16 @@ const create = (req, res) => {
       (reason) => {
         res.status(400).json({
           error: `Subscriber Creation Failed: ${reason}`,
-          message: reason
+          message: reason,
         });
-      }
+      },
     );
   } else {
-    res.status(500).json({ error: 'Subscriber must have an email, first name, and last name' });
+    res
+      .status(500)
+      .json({
+        error: "Subscriber must have an email, first name, and last name",
+      });
   }
 };
 
@@ -159,10 +170,10 @@ const filterEmailMiddleware = (req, res, next) => {
     },
     (reason) => {
       res.status(404).json({
-        error: 'No subscriber found with given email',
-        message: reason
+        error: "No subscriber found with given email",
+        message: reason,
       });
-    }
+    },
   );
 };
 
@@ -188,10 +199,10 @@ const deleteOne = (req, res) => {
     },
     (reason) => {
       res.status(400).json({
-        error: 'Failed to remove subscriber',
-        message: reason
+        error: "Failed to remove subscriber",
+        message: reason,
       });
-    }
+    },
   );
 };
 
@@ -208,10 +219,10 @@ const verifyCode = (req, res) => {
     },
     (reason) => {
       res.status(400).json({
-        error: 'Failed to Verify subscriber',
-        message: reason
+        error: "Failed to Verify subscriber",
+        message: reason,
       });
-    }
+    },
   );
 };
 
@@ -228,10 +239,10 @@ const unsubCode = (req, res) => {
     },
     (reason) => {
       res.status(400).json({
-        error: 'Failed to Unsubscribe subscriber',
-        message: reason
+        error: "Failed to Unsubscribe subscriber",
+        message: reason,
       });
-    }
+    },
   );
 };
 

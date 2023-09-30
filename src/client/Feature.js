@@ -4,26 +4,33 @@
  * @since 8/29/2018
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import React from "react";
+import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 
-import './Feature.scss';
+import "./Feature.scss";
 
-const Feature = ({ title, content, backgroundPicture, backgroundColor, orientation, link }) => (
+const Feature = ({
+  title,
+  content,
+  backgroundPicture,
+  backgroundColor,
+  orientation,
+  link,
+}) => (
   <div
     className={`jarbek-feature jarbek-feature-orientation-${orientation}
             ${
               backgroundPicture
                 ? `jarbek-feature-background-picture
                 jarbek-feature-background-picture-${backgroundPicture}`
-                : ''
+                : ""
             }
             ${
               backgroundColor
                 ? `jarbek-feature-with-picture
                 jarbek-feature-background-color-${backgroundColor}`
-                : ''
+                : ""
             }`}
   >
     <div>
@@ -48,12 +55,12 @@ Feature.propTypes = {
   backgroundPicture: PropTypes.string,
   backgroundColor: PropTypes.string,
   orientation: PropTypes.string,
-  link: PropTypes.string
+  link: PropTypes.string,
 };
 
 Feature.defaultProps = {
-  orientation: 'left',
-  link: '/'
+  orientation: "left",
+  link: "/",
 };
 
 export default Feature;

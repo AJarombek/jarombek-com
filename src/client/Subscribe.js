@@ -4,26 +4,29 @@
  * @since 6/1/2018
  */
 
-import React from 'react';
-import Button from './Button';
-import SubmitStatus from './status/SubmitStatus';
-import Loading from './Loading';
-import PropTypes from 'prop-types';
+import React from "react";
+import Button from "./Button";
+import SubmitStatus from "./status/SubmitStatus";
+import Loading from "./Loading";
+import PropTypes from "prop-types";
 
 class Subscribe extends React.Component {
   constructor(props) {
     super(props);
 
-    this.baseUrl = process.env.NODE_ENV === 'production' ? 'https://jarombek.com' : 'http://localhost:8080';
+    this.baseUrl =
+      process.env.NODE_ENV === "production"
+        ? "https://jarombek.com"
+        : "http://localhost:8080";
     this.state = { enabled: true };
   }
 
   static propTypes = {
-    exit: PropTypes.func
+    exit: PropTypes.func,
   };
 
   static defaultProps = {
-    exit: (f) => f
+    exit: (f) => f,
   };
 
   // Regular Expression Patterns
@@ -50,7 +53,7 @@ class Subscribe extends React.Component {
   static validateEmail(email) {
     return {
       email,
-      emailValid: !!email.match(Subscribe.EMAIL_REGEX)
+      emailValid: !!email.match(Subscribe.EMAIL_REGEX),
     };
   }
 
@@ -75,7 +78,7 @@ class Subscribe extends React.Component {
   static validateFirstName(firstName) {
     return {
       firstName,
-      firstNameValid: firstName.trim().length > 0
+      firstNameValid: firstName.trim().length > 0,
     };
   }
 
@@ -100,7 +103,7 @@ class Subscribe extends React.Component {
   static validateLastName(lastName) {
     return {
       lastName,
-      lastNameValid: lastName.trim().length > 0
+      lastNameValid: lastName.trim().length > 0,
     };
   }
 
@@ -113,7 +116,14 @@ class Subscribe extends React.Component {
     // The status of the form is that it has just been submitted
     this.setState({ submitStatus: SubmitStatus.SUBMIT });
 
-    const { emailValid, email, firstNameValid, firstName, lastNameValid, lastName } = this.state;
+    const {
+      emailValid,
+      email,
+      firstNameValid,
+      firstName,
+      lastNameValid,
+      lastName,
+    } = this.state;
 
     if (emailValid && firstNameValid && lastNameValid) {
       // The status of the form is that the form inputs are valid and an API call can be made
@@ -135,7 +145,7 @@ class Subscribe extends React.Component {
         });
     } else {
       this.setState({
-        submitStatus: SubmitStatus.SUBMIT_INVALID
+        submitStatus: SubmitStatus.SUBMIT_INVALID,
       });
     }
   }
@@ -150,13 +160,13 @@ class Subscribe extends React.Component {
    */
   static async createSubscriber(email, firstName, lastName, baseUrl) {
     const response = await fetch(`${baseUrl}/subscriber`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email,
         first: firstName,
-        last: lastName
-      })
+        last: lastName,
+      }),
     });
 
     await response.json();
@@ -175,7 +185,11 @@ class Subscribe extends React.Component {
       <>
         <div className="jarbek-input jarbek-input-email">
           <input
-            className={submitStatus === SubmitStatus.SUBMIT_INVALID && !emailValid ? 'jarbek-input-warning' : ''}
+            className={
+              submitStatus === SubmitStatus.SUBMIT_INVALID && !emailValid
+                ? "jarbek-input-warning"
+                : ""
+            }
             type="email"
             name="email"
             autoComplete="username"
@@ -187,9 +201,13 @@ class Subscribe extends React.Component {
           {email ? (
             <div className="jarbek-input-comment-active">
               {emailValid ? (
-                <p className="jarbek-input-valid">&#x2714; Valid Email Entered</p>
+                <p className="jarbek-input-valid">
+                  &#x2714; Valid Email Entered
+                </p>
               ) : (
-                <p className="jarbek-input-invalid">&#x2718; Invalid Email Entered</p>
+                <p className="jarbek-input-invalid">
+                  &#x2718; Invalid Email Entered
+                </p>
               )}
             </div>
           ) : (
@@ -212,7 +230,11 @@ class Subscribe extends React.Component {
       <>
         <div className="jarbek-input jarbek-input-first">
           <input
-            className={submitStatus === SubmitStatus.SUBMIT_INVALID && !firstNameValid ? 'jarbek-input-warning' : ''}
+            className={
+              submitStatus === SubmitStatus.SUBMIT_INVALID && !firstNameValid
+                ? "jarbek-input-warning"
+                : ""
+            }
             type="text"
             name="first"
             placeholder="First Name"
@@ -225,7 +247,9 @@ class Subscribe extends React.Component {
               <div> </div>
             ) : (
               <div className="jarbek-input-comment-active">
-                <p className="jarbek-input-invalid">&#x2718; Invalid First Name Entered</p>
+                <p className="jarbek-input-invalid">
+                  &#x2718; Invalid First Name Entered
+                </p>
               </div>
             )
           ) : (
@@ -248,7 +272,11 @@ class Subscribe extends React.Component {
       <>
         <div className="jarbek-input jarbek-input-last">
           <input
-            className={submitStatus === SubmitStatus.SUBMIT_INVALID && !lastNameValid ? 'jarbek-input-warning' : ''}
+            className={
+              submitStatus === SubmitStatus.SUBMIT_INVALID && !lastNameValid
+                ? "jarbek-input-warning"
+                : ""
+            }
             type="text"
             name="last"
             placeholder="Last Name"
@@ -261,7 +289,9 @@ class Subscribe extends React.Component {
               <div> </div>
             ) : (
               <div className="jarbek-input-comment-active">
-                <p className="jarbek-input-invalid">&#x2718; Invalid Last Name Entered</p>
+                <p className="jarbek-input-invalid">
+                  &#x2718; Invalid Last Name Entered
+                </p>
               </div>
             )
           ) : (
@@ -284,10 +314,16 @@ class Subscribe extends React.Component {
         {this.renderEmailInput()}
         {this.renderFirstNameInput()}
         {this.renderLastNameInput()}
-        {submitStatus === SubmitStatus.SUBMIT || submitStatus === SubmitStatus.SUBMIT_VALID ? (
+        {submitStatus === SubmitStatus.SUBMIT ||
+        submitStatus === SubmitStatus.SUBMIT_VALID ? (
           <Loading className="jarbek-input-submit" />
         ) : (
-          <Button className="jarbek-input-submit" size="long" activeColor="primary" onClick={() => this.onSubmit()}>
+          <Button
+            className="jarbek-input-submit"
+            size="long"
+            activeColor="primary"
+            onClick={() => this.onSubmit()}
+          >
             SUBSCRIBE
           </Button>
         )}
@@ -306,17 +342,26 @@ class Subscribe extends React.Component {
       <div className="jarbek-subscribe-form">
         {submitStatus === SubmitStatus.SUBMIT_SUCCESS ? (
           <p className="jarbek-input-completed">
-            Thank you for subscribing! An email was sent confirming your monthly subscription. For additional
-            information, contact me at andrew@jarombek.com.
+            Thank you for subscribing! An email was sent confirming your monthly
+            subscription. For additional information, contact me at
+            andrew@jarombek.com.
           </p>
         ) : submitStatus === SubmitStatus.SUBMIT_NO_CHANGE ? (
-          <p className="jarbek-input-completed">This email address is already subscribed!</p>
+          <p className="jarbek-input-completed">
+            This email address is already subscribed!
+          </p>
         ) : (
           <p className="jarbek-input-completed">
-            Something went wrong! Please try again, or contact andrew@jarombek.com if the issue persists.
+            Something went wrong! Please try again, or contact
+            andrew@jarombek.com if the issue persists.
           </p>
         )}
-        <Button className="jarbek-input-submit" size="long" activeColor="primary" onClick={() => this.props.exit()}>
+        <Button
+          className="jarbek-input-submit"
+          size="long"
+          activeColor="primary"
+          onClick={() => this.props.exit()}
+        >
           CONTINUE
         </Button>
       </div>
@@ -350,14 +395,18 @@ class Subscribe extends React.Component {
     const { enabled } = this.state;
     return (
       <div className="jarbek-subscribe">
-        <p className="jarbek-subscribe-title">Sign Up for Monthly Notifications</p>
+        <p className="jarbek-subscribe-title">
+          Sign Up for Monthly Notifications
+        </p>
         <div className="jarbek-divider">
           <div> </div>
         </div>
         {enabled ? (
           this.renderSubscriptionForm()
         ) : (
-          <div className="jarbek-subscribe-coming-soon">Subscription Emails Coming Soon</div>
+          <div className="jarbek-subscribe-coming-soon">
+            Subscription Emails Coming Soon
+          </div>
         )}
       </div>
     );

@@ -4,8 +4,8 @@
  * @since 10/15/2018
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 
 const UpdateInfo = ({ date, children }) => (
   <div>
@@ -13,7 +13,10 @@ const UpdateInfo = ({ date, children }) => (
       <p className="jarbek-update-info-date">{date}</p>
       <div className="jarbek-update-info-body">
         <figure className="jarbek-update-info-picture-container">
-          <img className="jarbek-update-info-picture" src={require('./assets/flag.svg')} />
+          <img
+            className="jarbek-update-info-picture"
+            src={require("./assets/flag.svg")}
+          />
         </figure>
         <p className="jarbek-update-info-contents">{children}</p>
       </div>
@@ -23,7 +26,7 @@ const UpdateInfo = ({ date, children }) => (
 
 UpdateInfo.propTypes = {
   date: PropTypes.string.isRequired,
-  children: PropTypes.any
+  children: PropTypes.any,
 };
 
 export default UpdateInfo;

@@ -4,20 +4,30 @@
  * @since 4/8/2018
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
-import moment from 'moment';
-import TagList from './TagList';
-import { v4 as uuid } from 'uuid';
+import React from "react";
+import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
+import moment from "moment";
+import TagList from "./TagList";
+import { v4 as uuid } from "uuid";
 
-const BlogPost = ({ name, title, type, date, tags = [], content, sources = [] }) => {
+const BlogPost = ({
+  name,
+  title,
+  type,
+  date,
+  tags = [],
+  content,
+  sources = [],
+}) => {
   let count = 0;
   return (
     <div className="jarombek-blog-post">
       <div className="jarombek-blog-headers">
         <p className="jarombek-blog-type">{type.toUpperCase()}</p>
-        <p className="jarombek-blog-date">{moment(date).format('MMMM Do, YYYY')}</p>
+        <p className="jarombek-blog-date">
+          {moment(date).format("MMMM Do, YYYY")}
+        </p>
       </div>
       <Link className="jarombek-blog-title" to={`/blog/${name}`}>
         <p className="jarombek-blog-title-content">{title}</p>
@@ -46,7 +56,7 @@ BlogPost.propTypes = {
   type: PropTypes.string.isRequired,
   content: PropTypes.array.isRequired,
   tags: PropTypes.array,
-  sources: PropTypes.array
+  sources: PropTypes.array,
 };
 
 export default BlogPost;

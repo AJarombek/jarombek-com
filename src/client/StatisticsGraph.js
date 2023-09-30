@@ -4,37 +4,57 @@
  * @since 9/14/2019
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import moment from 'moment';
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import LineChartLabel from './LineChartLabel';
+import React from "react";
+import PropTypes from "prop-types";
+import moment from "moment";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import LineChartLabel from "./LineChartLabel";
 
 const StatisticsGraph = ({
   data = [],
   chartData = [],
   lastUpdated,
-  scale = 'auto',
+  scale = "auto",
   start,
   end,
   title,
   legend = true,
   filterLabels = true,
-  boldLabels = false
+  boldLabels = false,
 }) => {
   return (
     <div id="jarbek-statistics-graph">
       <h4>{title}</h4>
       <h6>(By Andrew Jarombek)</h6>
       {lastUpdated && (
-        <p className="jarbek-statistics-graph-updated">Last Updated: {moment(lastUpdated).format('MMM Do, YYYY')}</p>
+        <p className="jarbek-statistics-graph-updated">
+          Last Updated: {moment(lastUpdated).format("MMM Do, YYYY")}
+        </p>
       )}
       <div>
         <ResponsiveContainer height={500} width="98%">
-          <LineChart width="100%" height="100%" data={chartData} margin={{ top: 15, right: 30, left: 30, bottom: 5 }}>
+          <LineChart
+            width="100%"
+            height="100%"
+            data={chartData}
+            margin={{ top: 15, right: 30, left: 30, bottom: 5 }}
+          >
             <CartesianGrid strokeDasgarray="3 3" />
             <XAxis dataKey="year" />
-            <YAxis domain={[start, end]} scale={scale} allowDataOverflow={false} />
+            <YAxis
+              domain={[start, end]}
+              scale={scale}
+              allowDataOverflow={false}
+            />
             <Tooltip
               itemSorter={(item) => 0 - item.value}
               formatter={(value, name) => [value.toLocaleString(), name]}
@@ -47,9 +67,15 @@ const StatisticsGraph = ({
                   key={language.name}
                   type="monotone"
                   dataKey={language.name}
-                  stroke={language.color ?? '#CCC'}
+                  stroke={language.color ?? "#CCC"}
                   strokeWidth={3}
-                  label={<LineChartLabel language={language.name} filtered={filterLabels} bold={boldLabels} />}
+                  label={
+                    <LineChartLabel
+                      language={language.name}
+                      filtered={filterLabels}
+                      bold={boldLabels}
+                    />
+                  }
                 />
               ))}
             </>
@@ -70,7 +96,7 @@ StatisticsGraph.propTypes = {
   title: PropTypes.string.isRequired,
   legend: PropTypes.bool,
   filterLabels: PropTypes.bool,
-  boldLabels: PropTypes.bool
+  boldLabels: PropTypes.bool,
 };
 
 export default StatisticsGraph;
