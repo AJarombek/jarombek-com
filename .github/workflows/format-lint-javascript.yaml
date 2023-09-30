@@ -20,9 +20,11 @@ jobs:
 
     steps:
       - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Checkout Branch
         run: |
           git config --global --add safe.directory $(realpath .)
-          git fetch --all
           git checkout $GITHUB_REF
 
       - name: Initialize Yarn
