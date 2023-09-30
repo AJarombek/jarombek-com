@@ -1,4 +1,4 @@
-name: Format Check and Lint
+name: Format and Lint
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  format_lint:
     runs-on: ubuntu-latest
     container: node:18.16.1
 
@@ -28,5 +28,13 @@ jobs:
       - name: Lint JavaScript Code
         run: yarn lint
 
-      - name: Check JavaScript Code Formatting
-        run: yarn prettier:check
+      - name: Format JavaScript Code
+        run: yarn prettier:write
+
+      - name: Commit and Push Formatting Changes
+        run: |
+          git config user.email "andrew@jarombek.com"
+          git config user.name "Andrew Jarombek"
+          git add .
+          git commit -m "Format Code with Prettier"
+          git push
