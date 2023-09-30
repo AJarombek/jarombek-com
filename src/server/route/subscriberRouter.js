@@ -146,11 +146,9 @@ const create = (req, res) => {
       },
     );
   } else {
-    res
-      .status(500)
-      .json({
-        error: "Subscriber must have an email, first name, and last name",
-      });
+    res.status(500).json({
+      error: "Subscriber must have an email, first name, and last name",
+    });
   }
 };
 
