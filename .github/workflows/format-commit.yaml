@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  format_lint:
+  format_commit:
     runs-on: ubuntu-latest
     container: node:18.16.1
 
@@ -24,6 +24,7 @@ jobs:
 
       - name: Commit and Push Formatting Changes
         run: |
+          git config --global --add safe.directory $(realpath .)
           git config user.email "andrew@jarombek.com"
           git config user.name "Andrew Jarombek"
           git add .
