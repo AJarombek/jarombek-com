@@ -34,7 +34,14 @@ jobs:
       - name: Commit and Push Formatting Changes
         run: |
           git config --global --add safe.directory $(realpath .)
-          git checkout $GITHUB_REF
+          commit_hash=$(git rev-parse HEAD)
+          echo "Current commit hash: $commit_hash"
+  
+          current_branch=$(git branch --contains $commit_hash)
+          echo "Current branch: $commit_hash"
+          
+          git checkout $current_branch
+  
           git config user.email "andrew@jarombek.com"
           git config user.name "Andrew Jarombek"
           git add .
