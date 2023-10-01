@@ -29,4 +29,4 @@ jobs:
           git config user.name "Andrew Jarombek"
           git add .
           git commit -m "Format Code with Prettier"
-          git push
+          git push || true
