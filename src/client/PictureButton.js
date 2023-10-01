@@ -4,29 +4,21 @@
  * @since 5/4/2018
  */
 
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
-const PictureButton = ({
-  activeColor,
-  passiveColor,
-  size,
-  picture,
-  children,
-  className,
-  onClick,
-}) => {
+const PictureButton = ({ activeColor, passiveColor, size, picture, children, className, onClick }) => {
   return (
     <div className={className}>
       <button
         className={`jarbek-button active-color-${activeColor} passive-color-${passiveColor} jarbek-button-${size}`}
         onClick={onClick}
       >
-        <div className={"jarbek-picture-button"}>
-          <div className={"jarbek-pb-picture"}>
+        <div className={'jarbek-picture-button'}>
+          <div className={'jarbek-pb-picture'}>
             <img src={require(`${picture}`)} />
           </div>
-          <div className={"jarbek-pb-text"}>{children}</div>
+          <div className={'jarbek-pb-text'}>{children}</div>
         </div>
       </button>
     </div>
@@ -44,8 +36,8 @@ PictureButton.propTypes = {
 };
 
 PictureButton.defaultProps = {
-  color: "default",
-  size: "large",
+  color: 'default',
+  size: 'large',
 };
 
 export default PictureButton;

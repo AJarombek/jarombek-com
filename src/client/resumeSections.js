@@ -4,16 +4,16 @@
  * @since 9/9/2018
  */
 
-import JSXConverter from "./JSXConverter";
+import JSXConverter from './JSXConverter';
 
 const content2013 = [
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `My time at St. Lawrence University began in the fall of 2013.  When I 
                     first arrived, I wasn't sure what I wanted 
@@ -30,12 +30,12 @@ const content2013 = [
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `After CS101 I decided to continue 
                     taking computer science classes.  I took one computer science class per 
@@ -51,12 +51,12 @@ const content2013 = [
 
 const content2016 = [
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `During my Junior spring I decided to take my computer science research 
                     more seriously.  I researched different software development concepts 
@@ -66,12 +66,12 @@ const content2016 = [
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `I attribute a lot of my working habits to my time running Cross Country 
                     and Track & Field in college.  Being a three season athlete who ran 70+ miles 
@@ -81,12 +81,12 @@ const content2016 = [
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `The summer before my Senior year I began my software development career 
                     with an internship at Gartner in Stamford, Connecticut.  I worked on two 
@@ -97,12 +97,12 @@ const content2016 = [
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `After my internship I was dedicated to working on software 
                     development projects.  I created a website for my Cross Country and 
@@ -111,45 +111,45 @@ const content2016 = [
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://www.saintsxctf.com/",
+          href: 'https://www.saintsxctf.com/',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "SaintsXCTF.com",
+            value: 'SaintsXCTF.com',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value: " in December.  SaintsXCTF follows the ",
+        value: ' in December.  SaintsXCTF follows the ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://github.com/AJarombek/saints-xctf",
+          href: 'https://github.com/AJarombek/saints-xctf',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "LAMP stack",
+            value: 'LAMP stack',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value: " and was the first website I built from scratch.",
+        value: ' and was the first website I built from scratch.',
         children: null,
       },
     ],
@@ -158,113 +158,111 @@ const content2016 = [
 
 const content2017 = [
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value:
-          "In my final semester at St. Lawrence University I added more features to ",
+        value: 'In my final semester at St. Lawrence University I added more features to ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://www.saintsxctf.com/",
+          href: 'https://www.saintsxctf.com/',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "SaintsXCTF.com",
+            value: 'SaintsXCTF.com',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value: " and created an associated ",
+        value: ' and created an associated ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://goo.gl/RZocwU",
+          href: 'https://goo.gl/RZocwU',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "Android app",
+            value: 'Android app',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value: " written in ",
+        value: ' written in ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "hhttps://github.com/AJarombek/saints-xctf-android",
+          href: 'hhttps://github.com/AJarombek/saints-xctf-android',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "Java",
+            value: 'Java',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value:
-          ".  In the fall I completed the SaintsXCTF ecosystem by building an ",
+        value: '.  In the fall I completed the SaintsXCTF ecosystem by building an ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://goo.gl/3rGmqJ",
+          href: 'https://goo.gl/3rGmqJ',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "iOS app",
+            value: 'iOS app',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value: " in ",
+        value: ' in ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://github.com/AJarombek/saints-xctf-ios",
+          href: 'https://github.com/AJarombek/saints-xctf-ios',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "Swift.",
+            value: 'Swift.',
             children: null,
           },
         ],
@@ -272,12 +270,12 @@ const content2017 = [
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `After graduating I worked full time at Gartner.  I participated 
                     in a rotational program where I worked for a different team every six months, 
@@ -290,12 +288,12 @@ const content2017 = [
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `During the last few months of the year I began preparation work for my 
                     personal website.  I learned advanced JavaScript features and began writing 
@@ -308,12 +306,12 @@ const content2017 = [
 
 const content2018 = [
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `In 2018 I spent time with two different teams at Gartner.  On the first  
                      team I developed features for a Java application that passed messages with 
@@ -324,12 +322,12 @@ const content2018 = [
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `In my free time I continued my personal website preparation.  I learned 
                     Angular, React, Webpack, Sass, and how to build MEAN and MERN stack 
@@ -340,33 +338,33 @@ const content2018 = [
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value: "In the summer I released my personal website ",
+        value: 'In the summer I released my personal website ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://github.com/AJarombek/jarombek-com",
+          href: 'https://github.com/AJarombek/jarombek-com',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "jarombek.com",
+            value: 'jarombek.com',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: ` which follows the MERN stack.  My personal website also uses AWS Lambda 
                     functions, AWS API Gateway, a Node.js command line application, and Terraform.`,
@@ -378,12 +376,12 @@ const content2018 = [
 
 const content2019 = [
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `In 2019 I also worked for two different teams at Gartner.  On the first 
                     team I wrote Continuous Integration Jenkins jobs and transitioned the teams  
@@ -395,22 +393,22 @@ const content2019 = [
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://www.gartner.com/reviews/home",
+          href: 'https://www.gartner.com/reviews/home',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "PeerInsights",
+            value: 'PeerInsights',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `, a public facing website that 
                     provides peer reviews on technology products.  It uses Oracle, Elasticsearch, 
@@ -420,77 +418,75 @@ const content2019 = [
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value:
-          "In my free time I improved the infrastructure of my first website ",
+        value: 'In my free time I improved the infrastructure of my first website ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://www.saintsxctf.com/",
+          href: 'https://www.saintsxctf.com/',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "SaintsXCTF.com",
+            value: 'SaintsXCTF.com',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value:
-          ".  I moved it onto AWS and wrote the entire infrastructure as code with ",
+        value: '.  I moved it onto AWS and wrote the entire infrastructure as code with ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://github.com/AJarombek/saints-xctf-infrastructure",
+          href: 'https://github.com/AJarombek/saints-xctf-infrastructure',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "Terraform",
+            value: 'Terraform',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value: ".  I also wrote Terraform IaC for my personal website ",
+        value: '.  I also wrote Terraform IaC for my personal website ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://github.com/AJarombek/jarombek-com-infrastructure",
+          href: 'https://github.com/AJarombek/jarombek-com-infrastructure',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "jarombek.com",
+            value: 'jarombek.com',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: ` and changed the website infrastructure from a virtual machine to 
                     containers.  I also focused on creating unit tests in Python for all my 
@@ -498,56 +494,56 @@ const content2019 = [
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://github.com/AJarombek/global-aws-infrastructure",
+          href: 'https://github.com/AJarombek/global-aws-infrastructure',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "Jenkins server",
+            value: 'Jenkins server',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value: " for ",
+        value: ' for ',
         children: null,
       },
       {
-        el: "a",
+        el: 'a',
         attributes: {
-          href: "https://github.com/AJarombek/global-jenkins-jobs",
+          href: 'https://github.com/AJarombek/global-jenkins-jobs',
         },
         value: null,
         children: [
           {
-            el: "#text",
+            el: '#text',
             attributes: null,
-            value: "automating tasks",
+            value: 'automating tasks',
             children: null,
           },
         ],
       },
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
-        value: ".",
+        value: '.',
         children: null,
       },
     ],
   },
   {
-    el: "p",
+    el: 'p',
     attributes: null,
     value: null,
     children: [
       {
-        el: "#text",
+        el: '#text',
         attributes: null,
         value: `Currently I'm developing more features for my personal website, working 
                     on version II of my SaintsXCTF website, and trying to write one software 
@@ -561,66 +557,49 @@ const content2019 = [
 
 const resumeSections = [
   {
-    title: "Beginning at St. Lawrence University",
+    title: 'Beginning at St. Lawrence University',
     content: JSXConverter.createContentJSX(content2013),
-    languages: ["Java", "Python", "SQL", "C", "Assembly"],
-    technologies: ["PostgreSQL"],
+    languages: ['Java', 'Python', 'SQL', 'C', 'Assembly'],
+    technologies: ['PostgreSQL'],
     year: 2013,
   },
   {
-    title: "First Software Development Experiences",
+    title: 'First Software Development Experiences',
     content: JSXConverter.createContentJSX(content2016),
-    languages: ["Java", "PHP", "JavaScript", "SQL", "CSS", "HTML"],
-    technologies: ["Spring", "Android", "JQuery", "MySQL"],
+    languages: ['Java', 'PHP', 'JavaScript', 'SQL', 'CSS', 'HTML'],
+    technologies: ['Spring', 'Android', 'JQuery', 'MySQL'],
     year: 2016,
   },
   {
-    title: "Starting my Professional Career",
+    title: 'Starting my Professional Career',
     content: JSXConverter.createContentJSX(content2017),
-    languages: ["Java", "Swift", "JavaScript", "PHP", "CSS", "HTML"],
-    technologies: [
-      "Android",
-      "iOS",
-      "AngularJS",
-      "Spring",
-      "JQuery",
-      "MongoDB",
-      "MySQL",
-      "Oracle",
-    ],
+    languages: ['Java', 'Swift', 'JavaScript', 'PHP', 'CSS', 'HTML'],
+    technologies: ['Android', 'iOS', 'AngularJS', 'Spring', 'JQuery', 'MongoDB', 'MySQL', 'Oracle'],
     year: 2017,
   },
   {
-    title: "Building a Software Ecosystem",
+    title: 'Building a Software Ecosystem',
     content: JSXConverter.createContentJSX(content2018),
-    languages: [
-      "JavaScript",
-      "Java",
-      "TypeScript",
-      "Groovy",
-      "Sass",
-      "Haskell",
-      "HTML",
-    ],
+    languages: ['JavaScript', 'Java', 'TypeScript', 'Groovy', 'Sass', 'Haskell', 'HTML'],
     technologies: [
-      "React",
-      "Angular",
-      "Webpack",
-      "MongoDB",
-      "RabbitMQ",
-      "Oracle",
-      "MySQL",
-      "Jenkins",
-      "Terraform",
-      "AWS",
+      'React',
+      'Angular',
+      'Webpack',
+      'MongoDB',
+      'RabbitMQ',
+      'Oracle',
+      'MySQL',
+      'Jenkins',
+      'Terraform',
+      'AWS',
     ],
     year: 2018,
   },
   {
-    title: "Moving my Software Ecosystem onto the Cloud",
+    title: 'Moving my Software Ecosystem onto the Cloud',
     content: JSXConverter.createContentJSX(content2019),
-    languages: ["Python", "JavaScript", "Java", "Sass", "HCL", "C#", "HTML"],
-    technologies: ["React", "Jenkins", "Terraform", "CloudFormation"],
+    languages: ['Python', 'JavaScript', 'Java', 'Sass', 'HCL', 'C#', 'HTML'],
+    technologies: ['React', 'Jenkins', 'Terraform', 'CloudFormation'],
     year: 2019,
   },
 ];

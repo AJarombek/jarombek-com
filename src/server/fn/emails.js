@@ -4,7 +4,7 @@
  * @since 6/14/2018
  */
 
-import fetch from "isomorphic-fetch";
+import fetch from 'isomorphic-fetch';
 
 /**
  * Send a welcome email after a user subscribes
@@ -14,8 +14,8 @@ import fetch from "isomorphic-fetch";
  */
 exports.sendWelcomeEmail = function sendWelcomeEmail(to, verify, unsub) {
   fetch(`https://fn.jarombek.com/v1/welcome-email/${to}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       verify,
       unsub,

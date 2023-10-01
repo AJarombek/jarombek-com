@@ -4,13 +4,13 @@
  * @since 9/14/2019
  */
 
-import React, { useState, useEffect, useMemo } from "react";
-import WebsiteTemplate from "./WebsiteTemplate";
-import StatisticsGraph from "./StatisticsGraph";
-import StatisticsTable from "./StatisticsTable";
-import BaseURL from "./BaseURL";
-import StatisticsRankGraph from "./StatisticsRankGraph";
-import StatisticsRankTable from "./StatisticsRankTable";
+import React, { useState, useEffect, useMemo } from 'react';
+import WebsiteTemplate from './WebsiteTemplate';
+import StatisticsGraph from './StatisticsGraph';
+import StatisticsTable from './StatisticsTable';
+import BaseURL from './BaseURL';
+import StatisticsRankGraph from './StatisticsRankGraph';
+import StatisticsRankTable from './StatisticsRankTable';
 
 const Statistics = () => {
   const [stats, setStats] = useState([]);
@@ -56,13 +56,7 @@ const Statistics = () => {
 
   const topFiveData = useMemo(() => {
     const arrayLength = new Date().getFullYear() - 2013;
-    const languages = new Set([
-      "JavaScript",
-      "Python",
-      "Java",
-      "TypeScript",
-      "HTML",
-    ]);
+    const languages = new Set(['JavaScript', 'Python', 'Java', 'TypeScript', 'HTML']);
     return [...Array(arrayLength).keys()].map((value, index) => {
       const yearData = {
         year: value + 2014,

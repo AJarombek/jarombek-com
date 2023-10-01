@@ -4,8 +4,8 @@
  * @since 6/23/2021
  */
 
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
 const Note = ({ children }) => (
   <div className="jarbek-note">

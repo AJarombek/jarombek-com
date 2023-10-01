@@ -4,8 +4,8 @@
  * @since 9/16/2019
  */
 
-import express from "express";
-import StatisticsDao from "../dao/statisticsDao";
+import express from 'express';
+import StatisticsDao from '../dao/statisticsDao';
 
 /**
  * Create the REST API for language statistics.
@@ -37,7 +37,7 @@ const routes = () => {
  * @param router - the express router for the stats API
  */
 const baseRoute = (router) => {
-  router.route("/").get(getAll);
+  router.route('/').get(getAll);
 };
 
 /**
@@ -45,7 +45,7 @@ const baseRoute = (router) => {
  * @param router - the express router for the stats API
  */
 const metaRoute = (router) => {
-  router.route("/meta").get(getMeta);
+  router.route('/meta').get(getMeta);
 };
 
 /**
@@ -53,9 +53,9 @@ const metaRoute = (router) => {
  * @param router - the express router for the stats API
  */
 const languageRoute = (router) => {
-  router.use("/:language", languageMiddleware);
+  router.use('/:language', languageMiddleware);
 
-  router.route("/:language").get(getOne);
+  router.route('/:language').get(getOne);
 };
 
 /**
@@ -70,7 +70,7 @@ const getAll = (req, res) => {
     },
     (reason) => {
       res.status(400).json({
-        error: "Failed to Retrieve all language statistics",
+        error: 'Failed to Retrieve all language statistics',
         message: reason,
       });
     },
@@ -122,7 +122,7 @@ const getMeta = (req, res) => {
     },
     (reason) => {
       res.status(400).json({
-        error: "Failed to Retrieve Language Statistics Metadata",
+        error: 'Failed to Retrieve Language Statistics Metadata',
         message: reason,
       });
     },

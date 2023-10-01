@@ -4,24 +4,24 @@
  * @since 3/19/2018
  */
 
-import React from "react";
-import { render } from "react-dom";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import "@babel/polyfill";
-import { createGlobalStyle } from "styled-components";
+import React from 'react';
+import { render } from 'react-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import '@babel/polyfill';
+import { createGlobalStyle } from 'styled-components';
 
-import Home from "./Home";
-import Blog from "./Blog";
-import Verify from "./Verify";
-import Unsub from "./Unsub";
-import gs from "./globalStyles";
-import BlogList from "./BlogList";
-import Resume from "./Resume";
-import Statistics from "./Statistics";
+import Home from './Home';
+import Blog from './Blog';
+import Verify from './Verify';
+import Unsub from './Unsub';
+import gs from './globalStyles';
+import BlogList from './BlogList';
+import Resume from './Resume';
+import Statistics from './Statistics';
 
-let globalStyles = "";
+let globalStyles = '';
 
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV === 'development') {
   globalStyles = gs.dev;
 } else {
   globalStyles = gs.prod;
@@ -51,6 +51,6 @@ const RoutedApp = () => {
   );
 };
 
-render(<RoutedApp />, document.getElementById("react-container"));
+render(<RoutedApp />, document.getElementById('react-container'));
 
 export default RoutedApp;

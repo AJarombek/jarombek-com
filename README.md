@@ -83,6 +83,7 @@ docker push ajarombek/jarombek-com:1.3.0
 | `.dockerignore`         | Directories and files for Docker to ignore when building an image.     |
 | `.eslintrc.js`          | Configuration for ESLint.                                              |
 | `.prettierignore`       | File patterns for the Prettier code formatter to ignore.               |
+| `.prettierrc`           | Prettier code formatter configuration.                                 |
 | `aws.dockerfile`        | Dockerfile for an image that containerizes the application.            |
 | `cypress.json`          | Configuration for Cypress e2e tests.                                   |
 | `jest.client-config.js` | Jest unit testing configuration for the client side code.              |

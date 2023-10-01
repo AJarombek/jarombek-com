@@ -4,19 +4,10 @@
  * @since 4/3/2018
  */
 
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
-const Button = ({
-  passiveColor,
-  activeColor,
-  borderColor,
-  size,
-  font,
-  children,
-  className,
-  onClick,
-}) => {
+const Button = ({ passiveColor, activeColor, borderColor, size, font, children, className, onClick }) => {
   // By default, the border color is the same as the active color
   if (!borderColor) {
     borderColor = activeColor;
@@ -48,10 +39,10 @@ Button.propTypes = {
 };
 
 Button.defaultProps = {
-  activeColor: "default",
-  passiveColor: "default",
-  size: "large",
-  font: "sylexiad",
+  activeColor: 'default',
+  passiveColor: 'default',
+  size: 'large',
+  font: 'sylexiad',
   onClick: (f) => f,
 };
 

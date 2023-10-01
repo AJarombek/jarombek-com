@@ -4,9 +4,9 @@
  * @since 9/14/2019
  */
 
-import React, { useMemo } from "react";
-import PropTypes from "prop-types";
-import Table from "./Table";
+import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
+import Table from './Table';
 
 const StatisticsTable = ({ data = [] }) => {
   const columns = useMemo(() => {
@@ -18,13 +18,13 @@ const StatisticsTable = ({ data = [] }) => {
 
     return [
       {
-        Header: "Language",
-        accessor: "language",
+        Header: 'Language',
+        accessor: 'language',
       },
       ...yearHeaders,
       {
-        Header: "Total",
-        accessor: "total",
+        Header: 'Total',
+        accessor: 'total',
       },
     ];
   }, []);
@@ -35,10 +35,7 @@ const StatisticsTable = ({ data = [] }) => {
       .map((value) => {
         const yearData = {
           language: value.name,
-          total: value.lines.reduce(
-            (total, yearLines) => total + yearLines ?? 0,
-            0,
-          ),
+          total: value.lines.reduce((total, yearLines) => total + yearLines ?? 0, 0),
         };
 
         yearArray.forEach((year, index) => {

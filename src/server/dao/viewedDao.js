@@ -4,9 +4,9 @@
  * @since 8/2/2018
  */
 
-import Post from "../model/post";
-import Viewed from "../model/viewed";
-import Audit from "../model/audit";
+import Post from '../model/post';
+import Viewed from '../model/viewed';
+import Audit from '../model/audit';
 
 class ViewedDao {
   /**
@@ -36,7 +36,7 @@ class ViewedDao {
 
     // If the viewed document already exists, update it.  Otherwise create it
     if (viewed) {
-      console.info("Already Viewed");
+      console.info('Already Viewed');
 
       const updatedViewed = { ...viewed.toObject(), views: updatedPost.views };
       console.info(`Updated Viewed ${JSON.stringify(updatedViewed)}`);
@@ -45,12 +45,12 @@ class ViewedDao {
 
       newViewed = await Viewed.findOne({ name: viewed.name }).exec();
     } else {
-      console.info("Never Viewed, Creating New Viewed Document");
+      console.info('Never Viewed, Creating New Viewed Document');
 
       const newViewedObject = new Viewed({
         name: updatedPost.name,
         date: updatedPost.date,
-        type: "post",
+        type: 'post',
         views: updatedPost.views,
       });
 
@@ -60,9 +60,9 @@ class ViewedDao {
     // Add a document to the audit collection saying that someone viewed the post
     const audit = new Audit({
       item_id: updatedPost._id,
-      type: "post",
+      type: 'post',
       message: `Post was Viewed with Name: ${updatedPost.title}`,
-      source: "Jarombek.com NodeJS/Express API",
+      source: 'Jarombek.com NodeJS/Express API',
     });
 
     await Audit.create(audit);

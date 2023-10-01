@@ -4,9 +4,9 @@
  * @since 8/22/2018
  */
 
-import React from "react";
-import PropTypes from "prop-types";
-import Button from "./Button";
+import React from 'react';
+import PropTypes from 'prop-types';
+import Button from './Button';
 
 const SearchBar = ({ onChangeSearch, onKeyPressSearch, onSearch, value }) => {
   return (
@@ -19,13 +19,7 @@ const SearchBar = ({ onChangeSearch, onKeyPressSearch, onSearch, value }) => {
         onKeyUp={onKeyPressSearch}
         onChange={onChangeSearch}
       />
-      <Button
-        activeColor="primary"
-        passiveColor="primary"
-        borderColor="primary"
-        size="box-large"
-        onClick={onSearch}
-      >
+      <Button activeColor="primary" passiveColor="primary" borderColor="primary" size="box-large" onClick={onSearch}>
         GO
       </Button>
     </div>
@@ -43,7 +37,7 @@ SearchBar.defaultProps = {
   onChangeSearch: (f) => f,
   onKeyPressSearch: (f) => f,
   onSearch: (f) => f,
-  defaultValue: "",
+  defaultValue: '',
 };
 
 export default SearchBar;

@@ -4,9 +4,9 @@
  * @since 8/29/2018
  */
 
-import React from "react";
-import PropTypes from "prop-types";
-import Feature from "./Feature";
+import React from 'react';
+import PropTypes from 'prop-types';
+import Feature from './Feature';
 
 const FeatureList = ({ id, featureList = [] }) => (
   <div className="jarombek-feature-list" id={id}>

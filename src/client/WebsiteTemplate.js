@@ -4,9 +4,9 @@
  * @since 4/8/2018
  */
 
-import React from "react";
-import WebsiteNav from "./WebsiteNav";
-import PropTypes from "prop-types";
+import React from 'react';
+import WebsiteNav from './WebsiteNav';
+import PropTypes from 'prop-types';
 
 const WebsiteTemplate = ({ children, hideSubscribe }) => {
   return (

@@ -1,4 +1,4 @@
-import dynamoose from "dynamoose";
+import dynamoose from 'dynamoose';
 
 /**
  * Schema for the Subscribers object in DynamoDB
@@ -54,4 +54,4 @@ const SubscriberSchema = new Schema({
   },
 });
 
-export default dynamoose.model("Subscribers", SubscriberSchema);
+export default dynamoose.model('Subscribers', SubscriberSchema);

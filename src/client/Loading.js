@@ -4,8 +4,8 @@
  * @since 5/20/2018
  */
 
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
 const Loading = ({ className }) => (
   <div className={`jarbek-loading ${className}`}>

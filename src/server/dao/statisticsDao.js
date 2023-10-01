@@ -4,8 +4,8 @@
  * @since 9/16/2019
  */
 
-import Statistics from "../model/statistics";
-import StatisticsMeta from "../model/statisticsMeta";
+import Statistics from '../model/statistics';
+import StatisticsMeta from '../model/statisticsMeta';
 
 class StatisticsDao {
   /**

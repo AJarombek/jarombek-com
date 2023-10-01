@@ -4,9 +4,9 @@
  * @since 9/26/2021
  */
 
-import React, { useMemo } from "react";
-import PropTypes from "prop-types";
-import Table from "./Table";
+import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
+import Table from './Table';
 
 const StatisticsRankTable = ({ data = [] }) => {
   const columns = useMemo(() => {
@@ -18,13 +18,13 @@ const StatisticsRankTable = ({ data = [] }) => {
 
     return [
       {
-        Header: "Language",
-        accessor: "language",
+        Header: 'Language',
+        accessor: 'language',
       },
       ...yearHeaders,
       {
-        Header: "Average Rank",
-        accessor: "averageRank",
+        Header: 'Average Rank',
+        accessor: 'averageRank',
       },
     ];
   }, []);
@@ -37,10 +37,7 @@ const StatisticsRankTable = ({ data = [] }) => {
           language: value.name,
           averageRank: (
             value.rank.reduce((total, rank) => total + rank ?? 0, 0) /
-            value.rank.reduce(
-              (total, rank) => total + (rank != null ? 1 : 0),
-              0,
-            )
+            value.rank.reduce((total, rank) => total + (rank != null ? 1 : 0), 0)
           ).toFixed(1),
         };
 

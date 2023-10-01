@@ -4,23 +4,20 @@
  * @since 6/16/2018
  */
 
-import React from "react";
-import PropTypes from "prop-types";
-import VerifyStatus from "./status/UserStatus";
-import { Link } from "react-router-dom";
+import React from 'react';
+import PropTypes from 'prop-types';
+import VerifyStatus from './status/UserStatus';
+import { Link } from 'react-router-dom';
 
-import WebsiteTemplate from "./WebsiteTemplate";
-import Loading from "./Loading";
-import TitleImage from "./TitleImage";
+import WebsiteTemplate from './WebsiteTemplate';
+import Loading from './Loading';
+import TitleImage from './TitleImage';
 
 class Verify extends React.Component {
   constructor(props) {
     super(props);
 
-    this.baseUrl =
-      process.env.NODE_ENV === "production"
-        ? "https://jarombek.com"
-        : "http://localhost:8080";
+    this.baseUrl = process.env.NODE_ENV === 'production' ? 'https://jarombek.com' : 'http://localhost:8080';
 
     this.state = {};
   }
@@ -69,8 +66,8 @@ class Verify extends React.Component {
    */
   static async verifySubscriber(code, baseUrl) {
     const response = await fetch(`${baseUrl}/api/subscriber/verify/${code}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     });
 
@@ -86,22 +83,14 @@ class Verify extends React.Component {
           <div className="jarombek-verify">
             <div>
               {status === VerifyStatus.NO_CODE ? (
-                <p className="jarombek-verify-content jarombek-verify-error">
-                  &#x2718; No Verification Code!
-                </p>
+                <p className="jarombek-verify-content jarombek-verify-error">&#x2718; No Verification Code!</p>
               ) : status === VerifyStatus.VERIFY_FAILURE ? (
                 <div className="jarombek-verify-content jarombek-verify-error">
-                  <p className="jarombek-verify-title">
-                    &#x2718; Verification Failure!
-                  </p>
-                  <p className="jarombek-verify-thin-text">
-                    The verification code is invalid or was already used.
-                  </p>
+                  <p className="jarombek-verify-title">&#x2718; Verification Failure!</p>
+                  <p className="jarombek-verify-thin-text">The verification code is invalid or was already used.</p>
                 </div>
               ) : status === VerifyStatus.VERIFY_SUCCESS ? (
-                <p className="jarombek-verify-content jarombek-verify-success">
-                  &#x2714; Account Verified!
-                </p>
+                <p className="jarombek-verify-content jarombek-verify-success">&#x2714; Account Verified!</p>
               ) : (
                 <Loading className="jarombek-verify-content" />
               )}
