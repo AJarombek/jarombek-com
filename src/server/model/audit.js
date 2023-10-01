@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 /**
  * Schema for the Audit object in MongoDB
@@ -19,11 +19,11 @@ const AuditSchema = new Schema(
     type: {
       type: String,
       required: true,
-      enum: ["post", "subscriber"],
+      enum: ['post', 'subscriber'],
     },
     message: {
       type: String,
-      default: "No Attached Message for Event",
+      default: 'No Attached Message for Event',
     },
     source: String,
   },
@@ -33,4 +33,4 @@ const AuditSchema = new Schema(
 AuditSchema.index({ time: 1 });
 AuditSchema.index({ item_id: 1 });
 
-export default mongoose.model("Audit", AuditSchema, "audit");
+export default mongoose.model('Audit', AuditSchema, 'audit');

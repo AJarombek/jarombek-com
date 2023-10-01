@@ -37,9 +37,9 @@ module.exports = {
         "react-hooks"
     ],
     rules: {
-        "comma-dangle": ["error", "never"],
+        "comma-dangle": ["off"],
         "max-len": ["error", {"code" : 120}],
-        "quotes": ["error", "single", { "avoidEscape": true }],
+        "quotes": ["error", "single"],
         "react/prop-types": ["off"],
         "react/no-unescaped-entities": ["off"],
         "react-hooks/rules-of-hooks": "error",
@@ -51,7 +51,7 @@ module.exports = {
         "prettier/prettier": ["error", {
             "singleQuote": true,
             "printWidth": 120,
-            "trailingComma": "none",
+            "semi": true,
         }]
     },
     ignorePatterns: [

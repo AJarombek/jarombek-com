@@ -1,15 +1,15 @@
-import React from "react";
-import Definition from "./Definition";
-import ComparisonTableEntry from "./ComparisonTableEntry";
-import CodeSnippet from "./CodeSnippet";
-import ComparisonTable from "./ComparisonTable";
-import { v4 as uuid } from "uuid";
-import SectionTitle from "./SectionTitle";
-import MathNotation from "./MathNotation";
-import UpdateInfo from "./UpdateInfo";
-import SubTitle from "./SubTitle";
-import Note from "./Note";
-import InlineImage from "./InlineImage";
+import React from 'react';
+import Definition from './Definition';
+import ComparisonTableEntry from './ComparisonTableEntry';
+import CodeSnippet from './CodeSnippet';
+import ComparisonTable from './ComparisonTable';
+import { v4 as uuid } from 'uuid';
+import SectionTitle from './SectionTitle';
+import MathNotation from './MathNotation';
+import UpdateInfo from './UpdateInfo';
+import SubTitle from './SubTitle';
+import Note from './Note';
+import InlineImage from './InlineImage';
 
 /**
  * Class to convert blog posts from JSON to JSX
@@ -47,16 +47,7 @@ class JSXConverter {
    * @returns {{name: *, title: *, date: *, type: *, tags: *, content: *, sources: *}}
    * - JavaScript object representing a post
    */
-  static createPostJSX({
-    name,
-    title,
-    date,
-    type,
-    tags,
-    content,
-    preview,
-    sources,
-  }) {
+  static createPostJSX({ name, title, date, type, tags, content, preview, sources }) {
     return {
       name,
       title,
@@ -83,7 +74,7 @@ class JSXConverter {
         const value = e.value;
 
         // The #text element simply represents any plain text in the HTML
-        if (Tag === "#text") {
+        if (Tag === '#text') {
           return value;
         }
 
@@ -92,7 +83,7 @@ class JSXConverter {
         Tag = JSXConverter.convertStringToComponent(Tag);
 
         // If the tag is img there is no closing tag and we have to treat it differently.
-        if (Tag === "img") {
+        if (Tag === 'img') {
           const { src, ...others } = attributes;
           return <Tag key={uuid()} src={src} {...others} />;
         }
@@ -100,7 +91,7 @@ class JSXConverter {
         return (
           <Tag key={uuid()} {...attributes}>
             {value}
-            {children ? JSXConverter.createContentJSX(children) : ""}
+            {children ? JSXConverter.createContentJSX(children) : ''}
           </Tag>
         );
       });
@@ -116,25 +107,25 @@ class JSXConverter {
    * @return {*} - either a string tag or a React Component reference
    */
   static convertStringToComponent(tag) {
-    if (tag === "codesnippet") {
+    if (tag === 'codesnippet') {
       return CodeSnippet;
-    } else if (tag === "definition") {
+    } else if (tag === 'definition') {
       return Definition;
-    } else if (tag === "comparisontable") {
+    } else if (tag === 'comparisontable') {
       return ComparisonTable;
-    } else if (tag === "comparisontableentry") {
+    } else if (tag === 'comparisontableentry') {
       return ComparisonTableEntry;
-    } else if (tag === "sectiontitle") {
+    } else if (tag === 'sectiontitle') {
       return SectionTitle;
-    } else if (tag === "subtitle") {
+    } else if (tag === 'subtitle') {
       return SubTitle;
-    } else if (tag === "mathnotation") {
+    } else if (tag === 'mathnotation') {
       return MathNotation;
-    } else if (tag === "note") {
+    } else if (tag === 'note') {
       return Note;
-    } else if (tag === "updateinfo") {
+    } else if (tag === 'updateinfo') {
       return UpdateInfo;
-    } else if (tag === "inlineimage") {
+    } else if (tag === 'inlineimage') {
       return InlineImage;
     } else {
       return tag;

@@ -4,9 +4,9 @@
  * @since 6/22/2021
  */
 
-import React from "react";
-import PropTypes from "prop-types";
-import SectionTitle from "./SectionTitle";
+import React from 'react';
+import PropTypes from 'prop-types';
+import SectionTitle from './SectionTitle';
 
 const SubTitle = ({ title, isCode, children }) => {
   return (

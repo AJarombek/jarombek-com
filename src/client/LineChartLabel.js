@@ -4,23 +4,15 @@
  * @since 9/19/2021
  */
 
-import React from "react";
-import PropTypes from "prop-types";
-import classNames from "classnames";
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
-const LineChartLabel = ({
-  x,
-  y,
-  value,
-  language,
-  filtered = true,
-  bold = false,
-  fontSize = 11,
-}) => {
+const LineChartLabel = ({ x, y, value, language, filtered = true, bold = false, fontSize = 11 }) => {
   return !filtered || value > 10000 ? (
     <text
       id="jarombek-line-chart-label"
-      className={classNames(bold ? "jarombek-line-chart-label-bold" : null)}
+      className={classNames(bold ? 'jarombek-line-chart-label-bold' : null)}
       x={x}
       y={y}
       dy={-6}

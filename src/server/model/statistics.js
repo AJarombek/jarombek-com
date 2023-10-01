@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 /**
  * Schema for the Statistics object in MongoDB
@@ -33,4 +33,4 @@ const StatisticsSchema = new Schema({
 
 StatisticsSchema.index({ name: 1 });
 
-export default mongoose.model("Statistics", StatisticsSchema, "statistics");
+export default mongoose.model('Statistics', StatisticsSchema, 'statistics');

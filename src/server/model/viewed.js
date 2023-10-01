@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 /**
  * Schema for the Viewed object in MongoDB
@@ -21,7 +21,7 @@ const ViewedSchema = new Schema({
   type: {
     type: String,
     required: true,
-    enum: ["post"],
+    enum: ['post'],
   },
   views: {
     type: Number,
@@ -31,4 +31,4 @@ const ViewedSchema = new Schema({
 
 ViewedSchema.index({ date: 1 });
 
-export default mongoose.model("Viewed", ViewedSchema, "viewed");
+export default mongoose.model('Viewed', ViewedSchema, 'viewed');

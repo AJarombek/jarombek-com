@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 /**
  * Schema for the Post Content object in MongoDB
@@ -33,19 +33,15 @@ PostContentSchema.index({ date: 1 });
 
 PostContentSchema.index(
   {
-    contentString: "text",
+    contentString: 'text',
   },
   {
-    name: "post-content-text-index",
-    default_language: "none",
+    name: 'post-content-text-index',
+    default_language: 'none',
     weights: {
       contentString: 5,
     },
   },
 );
 
-export default mongoose.model(
-  "PostContent",
-  PostContentSchema,
-  "posts_content",
-);
+export default mongoose.model('PostContent', PostContentSchema, 'posts_content');

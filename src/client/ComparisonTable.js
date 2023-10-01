@@ -4,8 +4,8 @@
  * @since 7/11/2018
  */
 
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
 const ComparisonTable = ({ title, children, primaryColor, secondaryColor }) => (
   <div className="jarombek-comparison-table">
@@ -30,8 +30,8 @@ ComparisonTable.propTypes = {
 };
 
 ComparisonTable.defaultProps = {
-  primaryColor: "default",
-  secondaryColor: "default",
+  primaryColor: 'default',
+  secondaryColor: 'default',
 };
 
 export default ComparisonTable;

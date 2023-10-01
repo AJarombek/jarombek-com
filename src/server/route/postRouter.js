@@ -4,8 +4,8 @@
  * @since 4/19/2018
  */
 
-import express from "express";
-import PostDao from "../dao/postDao";
+import express from 'express';
+import PostDao from '../dao/postDao';
 
 /**
  * Create the REST API for posts
@@ -42,7 +42,7 @@ const routes = () => {
  * @param router - the express router for the posts API
  */
 const contentRoute = (router) => {
-  router.route("/content").get(getAll);
+  router.route('/content').get(getAll);
 };
 
 /**
@@ -51,9 +51,9 @@ const contentRoute = (router) => {
  * @param router - the express router for the posts API
  */
 const contentNameRoute = (router) => {
-  router.use("/content/:name", contentNameMiddleware);
+  router.use('/content/:name', contentNameMiddleware);
 
-  router.route("/content/:name").get(getOne);
+  router.route('/content/:name').get(getOne);
 };
 
 /**
@@ -61,7 +61,7 @@ const contentNameRoute = (router) => {
  * @param router - the express router for the posts API
  */
 const previewRoute = (router) => {
-  router.route("/preview").get(getAllPreviews);
+  router.route('/preview').get(getAllPreviews);
 };
 
 /**
@@ -70,9 +70,9 @@ const previewRoute = (router) => {
  * @param router - the express router for the posts API
  */
 const previewNameRoute = (router) => {
-  router.use("/preview/:name", previewNameMiddleware);
+  router.use('/preview/:name', previewNameMiddleware);
 
-  router.route("/preview/:name").get(getOne);
+  router.route('/preview/:name').get(getOne);
 };
 
 /**
@@ -82,7 +82,7 @@ const previewNameRoute = (router) => {
  * @param res - HTTP response body
  */
 const getAll = (req, res) => {
-  console.info("Get All Content");
+  console.info('Get All Content');
 
   // This API allows for two parameters:
   // [page] - the pagination of the MongoDB post collection
@@ -91,30 +91,30 @@ const getAll = (req, res) => {
 
   page = +page || 1;
   limit = +limit || 12;
-  query = query || "";
+  query = query || '';
 
   PostDao.getPaginatedPosts(page, limit, query).then(
     (posts) => {
-      const cacheLookup = query || "_";
+      const cacheLookup = query || '_';
 
       // Generate API endpoints to put in the HTTP Link header
       const { first, prev, next, last } = PostDao.generatePaginatedPostsLinks(
         page,
         limit,
-        "/api/post/content",
+        '/api/post/content',
         cacheLookup,
       );
 
       // In the headers specify the API endpoints for related documents
       // + the total document count
-      res.set("Link", `${first}${prev}${next}${last}`);
-      res.set("X-Total-Count", PostDao.postCountCache[cacheLookup]);
+      res.set('Link', `${first}${prev}${next}${last}`);
+      res.set('X-Total-Count', PostDao.postCountCache[cacheLookup]);
 
       res.json(posts);
     },
     (reason) => {
       res.status(400).json({
-        error: "Failed to Retrieve Page of Posts",
+        error: 'Failed to Retrieve Page of Posts',
         message: reason,
       });
     },
@@ -132,26 +132,26 @@ const getAllPreviews = (req, res) => {
 
   page = +page || 1;
   limit = +limit || 12;
-  query = query || "";
+  query = query || '';
 
   PostDao.getPaginatedPostPreviews(page, limit, query).then(
     (posts) => {
-      const cacheLookup = query || "_";
+      const cacheLookup = query || '_';
 
       const { first, prev, next, last } = PostDao.generatePaginatedPostsLinks(
         page,
         limit,
-        "/api/post/preview",
+        '/api/post/preview',
         cacheLookup,
       );
 
-      res.set("Link", `${first}${prev}${next}${last}`);
-      res.set("X-Total-Count", PostDao.postCountCache[cacheLookup]);
+      res.set('Link', `${first}${prev}${next}${last}`);
+      res.set('X-Total-Count', PostDao.postCountCache[cacheLookup]);
       res.json(posts);
     },
     (reason) => {
       res.status(400).json({
-        error: "Failed to Retrieve Page of Post Previews",
+        error: 'Failed to Retrieve Page of Post Previews',
         message: reason,
       });
     },
