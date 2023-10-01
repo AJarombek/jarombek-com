@@ -28,5 +28,11 @@ jobs:
           git config user.email "andrew@jarombek.com"
           git config user.name "Andrew Jarombek"
           git add .
-          git commit -m "Format Code with Prettier"
-          git push || true
+          
+          if [[ -n $(git status -s) ]]; then
+            git commit -m "Format Code with Prettier"
+            git push
+            echo "Changes committed and pushed to the remote repository."
+          else
+            echo "No local changes to commit and push."
+          fi
