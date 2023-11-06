@@ -172,6 +172,7 @@ const clientConfig = merge([
             }
         }
     },
+    parts.generateSourceMaps({ type: 'source-map' }),
     parts.loadFonts(),
     parts.loadImages()
 ]);
@@ -184,7 +185,6 @@ const clientDevConfig = merge([
         mode: "development",
         performance: {hints: false}
     },
-    parts.generateSourceMaps({ type: 'source-map' }),
     parts.devServer({
         host: process.env.HOST,
         port: process.env.PORT
@@ -203,7 +203,6 @@ const clientProdConfig = merge([
     {
         mode: "production"
     },
-    parts.generateSourceMaps({ type: 'source-map' }),
     parts.extractCSS({
         useSass: ["css-loader", "sass-loader"],
         useCss: ["css-loader"],
