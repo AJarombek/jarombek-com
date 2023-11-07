@@ -73,6 +73,11 @@ $blog-list-large: $width-small-desktop + 1200;
 .jarombek-blog-list-search > div {
   background-color: white;
   box-shadow: 0 1px 3px rgba(170, 170, 170, 0.5);
+
+  @media (prefers-color-scheme: dark) {
+    background-color: $color-dark-secondary;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
 }
 
 .jarombek-posts-grid {
