@@ -21,6 +21,10 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
   @include transition(box-shadow, 0 1px 4px darken(rgba(48, 227, 225, 0.8), 10%));
   @include transition(border, 1px solid darken(rgba(48, 227, 225, 0.8), 10%));
   border-radius: 2px;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: $color-dark-secondary;
+  }
 }
 
 @supports (grid-area: auto) {
@@ -118,6 +122,10 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
     -ms-grid-column-align: center;
 
     text-align: center;
+
+    @media (prefers-color-scheme: dark) {
+      color: $color-dark-default;
+    }
 
     @media screen and (max-width: $width-mobile-small) {
       font-size: 12px;
@@ -238,6 +246,11 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
   font-size: 28px;
   text-align: center;
 
+  @media (prefers-color-scheme: dark) {
+    color: $color-default;
+    @include transition(color, white);
+  }
+
   @media screen and (max-width: $width-mobile-small) {
     font-size: 24px;
   }
@@ -279,6 +292,10 @@ $blog-preview-grid-mobile-small: 1fr 28fr 1fr;
   content: "";
   bottom: 0;
   left: 0;
+
+  @media (prefers-color-scheme: dark) {
+    background-image: linear-gradient(to bottom, rgba(42,42,42, 0), rgba(42,42,42, 1) 90%);
+  }
 }
 
 .jarombek-blog-preview-content p {

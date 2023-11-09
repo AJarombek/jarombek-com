@@ -37,6 +37,10 @@ $blog-post-padding-mobile: 2;
   $w-desktop-s: calc(100% - (#{$p-desktop-s} * 2));
   $w-mobile: calc(100% - (#{$p-mobile} * 2));
 
+  @media (prefers-color-scheme: dark) {
+    background-color: $color-dark-background;
+  }
+
   @supports (grid-area: auto) {
     display: grid;
 

@@ -45,6 +45,10 @@ $search-bar-input-border-color: #ccc;
 
   input {
     width: $search-bar-input-width-large;
+
+    @media (prefers-color-scheme: dark) {
+      color: white;
+    }
   }
 
   button {
