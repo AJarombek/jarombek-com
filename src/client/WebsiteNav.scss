@@ -19,6 +19,11 @@
   background-color: white;
   z-index: 2;
 
+  @media (prefers-color-scheme: dark) {
+    background-color: $color-dark-secondary;
+    box-shadow: 0 1px 5px #000;
+  }
+
   @media screen and (max-width: $width-mobile-small) {
     height: 55px;
   }
@@ -86,6 +91,11 @@
     font-size: 18px;
     @include transition("color", #000, $speed: ease-in-out);
 
+    @media (prefers-color-scheme: dark) {
+      color: $color-dark-default;
+      @include transition("color", #fff, $speed: ease-in-out);
+    }
+
     // Make the blog link invisible on mobile screens
     @media screen and (max-width: $width-mobile) {
       visibility: hidden;
@@ -126,6 +136,13 @@
     img {
       height: 45px;
 
+      @media (prefers-color-scheme: dark) {
+        // Change the image color to white when the user prefers a dark color scheme
+        // https://angel-rs.github.io/css-color-filter-generator/
+        filter: brightness(0) saturate(100%) invert(100%) sepia(1%) saturate(2%)
+          hue-rotate(256deg) brightness(113%) contrast(101%);
+      }
+
       @supports not (grid-area: auto) {
         display: block;
         margin: 0 auto;
@@ -137,6 +154,11 @@
     color: #333;
     font-size: 32px;
     @include transition("color", #000, $speed: ease-in-out);
+
+    @media (prefers-color-scheme: dark) {
+      color: $color-dark-default;
+      @include transition("color", #fff, $speed: ease-in-out);
+    }
 
     // Move the website title from the middle to the left on mobile screens
     @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {

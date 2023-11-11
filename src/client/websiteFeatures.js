@@ -8,8 +8,8 @@ const websiteFeatures = [
   {
     title: 'Resume'.toUpperCase(),
     content: {
-      text: `Take an interactive tour of my software development career, starting as a 
-                student at St. Lawrence University.`,
+      text: `Explore an interactive tour of my career in software engineering, 
+        beginning with my time as a student at St. Lawrence University.`,
       picture: null,
     },
     orientation: 'left',
@@ -20,8 +20,7 @@ const websiteFeatures = [
   {
     title: 'Statistics'.toUpperCase(),
     content: {
-      text: `Analyze which programming languages and frameworks I use the most with 
-                dynamic charts.`,
+      text: 'Examine the programming languages and frameworks I utilize most through dynamic charts.',
       picture: 'https://asset.jarombek.com/logos/tech_logos.svg',
     },
     orientation: 'right',
@@ -32,8 +31,8 @@ const websiteFeatures = [
   {
     title: 'Articles'.toUpperCase(),
     content: {
-      text: `Read software development articles I've written and follow my progress as a 
-                programmer.`,
+      // eslint-disable-next-line quotes
+      text: "Browse articles on software engineering that I've authored and track my journey as a programmer.",
       picture: null,
     },
     orientation: 'left',

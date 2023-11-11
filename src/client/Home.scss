@@ -10,6 +10,10 @@
 
 body {
   background-color: white;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: $color-dark-background;
+  }
 }
 
 .jarbek-home {
@@ -118,6 +122,10 @@ body {
   background-color: white;
   height: 280px;
 
+  @media (prefers-color-scheme: dark) {
+    background-color: $color-dark-secondary;
+  }
+
   @media screen and (max-width: $width-mobile-small) {
     height: 180px;
   }
@@ -130,6 +138,10 @@ body {
   background-color: lighten($color-primary, 10%);
   height: 180px;
 
+  @media (prefers-color-scheme: dark) {
+    background-color: darken($color-primary, 60%);
+  }
+
   & > .jarbek-home-occupation-text {
     display: flex;
     flex-direction: column;
@@ -139,6 +151,10 @@ body {
     p {
       @include sylexiad;
       font-size: 24px;
+
+      @media (prefers-color-scheme: dark) {
+        color: $color-dark-default;
+      }
 
       &.jarbek-home-occupation-title {
         display: flex;
@@ -197,6 +213,10 @@ body {
 
   height: 100%;
 
+  @media (prefers-color-scheme: dark) {
+    color: $color-dark-default;
+  }
+
   @media screen and (max-width: $width-mobile-small) {
     font-size: 28px;
   }
@@ -250,4 +270,13 @@ body {
 
 .footer-icon img {
   height: 60px;
+}
+
+.footer-icon-home img {
+  @media (prefers-color-scheme: dark) {
+    // Change the image color to white when the user prefers a dark color scheme
+    // https://angel-rs.github.io/css-color-filter-generator/
+    filter: brightness(0) saturate(100%) invert(100%) sepia(1%) saturate(2%)
+    hue-rotate(256deg) brightness(113%) contrast(101%) !important;
+  }
 }

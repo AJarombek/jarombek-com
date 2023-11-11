@@ -6,8 +6,20 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import classnames from 'classnames';
 
-const Button = ({ passiveColor, activeColor, borderColor, size, font, children, className, onClick }) => {
+const Button = ({
+  passiveColor,
+  activeColor,
+  passiveDarkColor,
+  activeDarkColor,
+  borderColor,
+  size,
+  font,
+  children,
+  className,
+  onClick,
+}) => {
   // By default, the border color is the same as the active color
   if (!borderColor) {
     borderColor = activeColor;
@@ -16,9 +28,16 @@ const Button = ({ passiveColor, activeColor, borderColor, size, font, children, 
   return (
     <div className={className}>
       <button
-        className={`jarbek-button passive-color-${passiveColor}
-                                active-color-${activeColor} border-color-${borderColor}
-                                jarbek-button-${size} jarbek-button-font-${font}`}
+        className={classnames(
+          'jarbek-button',
+          `passive-color-${passiveColor}`,
+          `passive-dark-color-${passiveDarkColor}`,
+          `active-color-${activeColor}`,
+          `active-dark-color-${activeDarkColor}`,
+          `border-color-${borderColor}`,
+          `jarbek-button-${size}`,
+          `jarbek-button-font-${font}`,
+        )}
         onClick={onClick}
       >
         {children}
@@ -41,6 +60,8 @@ Button.propTypes = {
 Button.defaultProps = {
   activeColor: 'default',
   passiveColor: 'default',
+  activeDarkColor: 'default',
+  passiveDarkColor: 'default',
   size: 'large',
   font: 'sylexiad',
   onClick: (f) => f,

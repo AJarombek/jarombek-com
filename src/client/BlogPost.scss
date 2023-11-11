@@ -37,6 +37,11 @@ $blog-post-padding-mobile: 2;
   $w-desktop-s: calc(100% - (#{$p-desktop-s} * 2));
   $w-mobile: calc(100% - (#{$p-mobile} * 2));
 
+  @media (prefers-color-scheme: dark) {
+    background-color: $color-dark-background;
+    box-shadow: none;
+  }
+
   @supports (grid-area: auto) {
     display: grid;
 
@@ -213,6 +218,11 @@ $blog-post-padding-mobile: 2;
 
   @include transition(color, #111);
 
+  @media (prefers-color-scheme: dark) {
+    color: $color-dark-default;
+    @include transition(color, white);
+  }
+
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {
     font-size: 36px;
   }
@@ -321,6 +331,10 @@ $blog-post-padding-mobile: 2;
 
   a {
     @extend .link-style;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    color: $color-dark-default;
   }
 
   @media screen and (max-width: $width-mobile) and (min-width: $width-mobile-small + 1) {

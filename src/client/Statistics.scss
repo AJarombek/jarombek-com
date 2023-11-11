@@ -17,3 +17,17 @@
     padding-top: 80px;
   }
 }
+
+#jarbek-statistics .recharts-wrapper {
+  tspan {
+    @media (prefers-color-scheme: dark) {
+      fill: #aaa;
+    }
+  }
+
+  line {
+    @media (prefers-color-scheme: dark) {
+      stroke: #444;
+    }
+  }
+}

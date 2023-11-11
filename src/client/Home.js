@@ -7,6 +7,7 @@
 import React from 'react';
 import { hot } from 'react-hot-loader';
 import { Link } from 'react-router-dom';
+import classnames from 'classnames';
 
 import Button from './Button';
 import TitleImage from './TitleImage';
@@ -26,7 +27,7 @@ class Home extends React.Component {
             <div className="jarbek-home-title-container">
               <h1 className="jarbek-home-title">Andrew Jarombek</h1>
             </div>
-            <p className="jarbek-home-sub-title">Software Development Website</p>
+            <p className="jarbek-home-sub-title">Software Engineering Website</p>
             <Link to="/blog" className="jarbek-home-blog-button">
               <Button activeColor="primary" passiveColor="primary">
                 BLOG
@@ -57,7 +58,7 @@ class Home extends React.Component {
         </div>
         <FeatureList id="features" featureList={websiteFeatures} />
         <TitleImage
-          className="footer-icon"
+          className={classnames('footer-icon', 'footer-icon-home')}
           src="./assets/github.png"
           title="GITHUB"
           link="https://github.com/AJarombek"

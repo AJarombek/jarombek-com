@@ -90,9 +90,29 @@
   }
 }
 
+@mixin jarbek-button-dark-styles($color-style, $color, $text-color, $text-hover-color) {
+  .jarbek-button.#{$color-style} {
+    @media (prefers-color-scheme: dark) {
+      color: $text-color;
+    }
+
+    &:hover {
+      @media (prefers-color-scheme: dark) {
+        background: $color;
+        box-shadow: 0 1px 5px #333;
+        color: $text-hover-color;
+      }
+    }
+  }
+}
+
 @include jarbek-button-styles("active-color-default", $color-default);
 @include jarbek-button-styles("active-color-primary", darken($color-primary, 20%));
 @include jarbek-button-styles("active-color-secondary", darken($color-secondary, 20%));
+
+@include jarbek-button-dark-styles("active-dark-color-default", transparent, white, white);
+@include jarbek-button-dark-styles("active-dark-color-primary", darken($color-primary, 20%), white, black);
+@include jarbek-button-dark-styles("active-dark-color-secondary", darken($color-secondary, 20%), white, black);
 
 .passive-color-default {
   background: transparent;
@@ -104,6 +124,12 @@
 
 .passive-color-primary {
   background: darken($color-primary, 20%);
+}
+
+.passive-dark-color-default {
+  @media (prefers-color-scheme: dark) {
+    background: transparent;
+  }
 }
 
 .border-color-default {

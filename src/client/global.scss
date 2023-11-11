@@ -4,8 +4,20 @@
  * @since 3/22/2018
  */
 
+@import "./styles/variables";
+
+:root {
+  @media (prefers-color-scheme: dark) {
+    background: $color-dark-background;
+  }
+}
+
 .jarombek-background {
-  background-image: url("assets/blizzard.png") !important;
+  background-image: url("assets/blizzard.png");
+
+  @media (prefers-color-scheme: dark) {
+    background: $color-dark-background;
+  }
 }
 
 @supports (grid-area: auto) {}

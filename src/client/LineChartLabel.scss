@@ -5,9 +5,14 @@
  */
 
 @import "styles/mixins/sylexiads";
+@import "styles/variables";
 
 #jarombek-line-chart-label {
   &.jarombek-line-chart-label-bold {
     @include sylexiad-bold;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    fill: $color-dark-default;
   }
 }
