@@ -5,6 +5,7 @@
  */
 
 @import "./styles/mixins/dyslexie";
+@import "./styles/variables";
 
 .jarbek-figure img {
   filter: opacity(40%);
@@ -19,6 +20,10 @@
   margin-top: 8px;
   opacity: 0;
   transition: all .4s ease;
+
+  @media (prefers-color-scheme: dark) {
+    color: $color-dark-default;
+  }
 }
 
 .jarbek-figure {

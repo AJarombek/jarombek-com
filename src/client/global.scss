@@ -6,6 +6,12 @@
 
 @import "./styles/variables";
 
+:root {
+  @media (prefers-color-scheme: dark) {
+    background: $color-dark-background;
+  }
+}
+
 .jarombek-background {
   background-image: url("assets/blizzard.png");
 

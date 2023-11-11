@@ -10,11 +10,17 @@
 $header-color: #e4e4e4;
 $primary-table-color: #e2eaea;
 $secondary-table-color: #edf9fb;
+$primary-table-dark-color: adjust-color($color-primary, $alpha: -0.8);
+$secondary-table-dark-color: adjust-color($color-secondary, $alpha: -0.8);
 
 .jarombek-comparison-table {}
 
 .jarombek-ct-header-color-default {
   background-color: $header-color;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: $color-dark-secondary;
+  }
 }
 
 .jarombek-ct-title {
@@ -40,8 +46,16 @@ $secondary-table-color: #edf9fb;
 
 .jarombek-ct-primary-color-default > .jarombek-comparison-table-entry:nth-child(even) {
   background-color: $primary-table-color;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: $primary-table-dark-color;
+  }
 }
 
 .jarombek-ct-secondary-color-default > .jarombek-comparison-table-entry:nth-child(odd) {
   background-color: $secondary-table-color;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: $secondary-table-dark-color;
+  }
 }
