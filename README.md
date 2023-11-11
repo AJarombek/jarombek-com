@@ -66,8 +66,8 @@ docker image build -t jarombek-com:latest -f aws.dockerfile .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.3.0
-docker push ajarombek/jarombek-com:1.3.0
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.4.0
+docker push ajarombek/jarombek-com:1.4.0
 ```
 
 ### Files
@@ -94,6 +94,13 @@ docker push ajarombek/jarombek-com:1.3.0
 | `yarn.lock`             | Where Yarn stores the versions of each dependency.                     |
 
 ### Version History
+
+**[V.1.4.0](https://github.com/AJarombek/jarombek-com/tree/v1.4.0) - Dark Mode**
+
+> Release Date: September 30th, 2023
+
+* Dark Mode for the website based on the user's system preferences
+* Change text on the home page
 
 **[V.1.3.1](https://github.com/AJarombek/jarombek-com/tree/v1.3.1) - GitHub Actions**
 

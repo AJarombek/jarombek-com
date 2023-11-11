@@ -206,6 +206,10 @@ $tech-height: 50px;
   text-align: center;
   font-size: 42px;
 
+  @media (prefers-color-scheme: dark) {
+    color: $color-dark-default;
+  }
+
   @media screen and (max-width: $width-large-desktop) and (min-width: $width-mobile + 1) {
     font-size: 32px;
   }
@@ -240,6 +244,13 @@ $tech-height: 50px;
 .jarbek-resume-prev img {
   transform: rotate(90deg);
 
+  @media (prefers-color-scheme: dark) {
+    // Change the image color to white when the user prefers a dark color scheme
+    // https://angel-rs.github.io/css-color-filter-generator/
+    filter: brightness(0) saturate(100%) invert(100%) sepia(1%) saturate(2%)
+    hue-rotate(256deg) brightness(113%) contrast(101%) !important;
+  }
+
   @media screen and (min-width: $width-large-desktop) {
     height: 60px;
   }
@@ -256,6 +267,10 @@ $tech-height: 50px;
 .jarbek-resume-content {
   overflow-y: hidden;
   overflow-x: hidden;
+
+  @media (prefers-color-scheme: dark) {
+    color: $color-dark-default;
+  }
 }
 
 @supports (grid-area: auto) {
@@ -282,6 +297,12 @@ $tech-height: 50px;
     content: "";
     left: 0;
 
+    @media (prefers-color-scheme: dark) {
+      background-image: linear-gradient(
+        to top, adjust-color($color-dark-background, $alpha: -1), $color-dark-background 90%
+      );
+    }
+
     @media screen and (max-width: $width-mobile) {
       display: none;
     }
@@ -296,6 +317,12 @@ $tech-height: 50px;
     content: "";
     bottom: 75px;
     left: 0;
+
+    @media (prefers-color-scheme: dark) {
+      background-image: linear-gradient(
+        to bottom, adjust-color($color-dark-background, $alpha: -1), $color-dark-background 90%
+      );
+    }
 
     @media screen and (max-width: $width-mobile) {
       display: none;
@@ -426,6 +453,13 @@ $tech-height: 50px;
 .jarbek-resume-next img {
   transform: rotate(-90deg);
 
+  @media (prefers-color-scheme: dark) {
+    // Change the image color to white when the user prefers a dark color scheme
+    // https://angel-rs.github.io/css-color-filter-generator/
+    filter: brightness(0) saturate(100%) invert(100%) sepia(1%) saturate(2%)
+    hue-rotate(256deg) brightness(113%) contrast(101%) !important;
+  }
+
   @media screen and (min-width: $width-large-desktop) {
     height: 60px;
   }
@@ -445,6 +479,10 @@ $tech-height: 50px;
   overflow: hidden;
   -webkit-overflow-scrolling: touch;
   font-size: 22px;
+
+  @media (prefers-color-scheme: dark) {
+    color: $color-dark-default;
+  }
 
   @media screen and (max-width: $width-large-desktop) and (min-width: $width-small-desktop + 1) {
     font-size: 18px;

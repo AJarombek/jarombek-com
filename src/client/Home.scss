@@ -270,7 +270,9 @@ body {
 
 .footer-icon img {
   height: 60px;
+}
 
+.footer-icon-home img {
   @media (prefers-color-scheme: dark) {
     // Change the image color to white when the user prefers a dark color scheme
     // https://angel-rs.github.io/css-color-filter-generator/

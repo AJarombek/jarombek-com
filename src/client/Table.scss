@@ -37,15 +37,29 @@
 
       &:nth-child(odd) {
         background-color: #f3f3f3;
+
+        @media (prefers-color-scheme: dark) {
+          background-color: #333;
+          color: $color-dark-default;
+        }
       }
 
       &:nth-child(even) {
         background-color: #fff;
+
+        @media (prefers-color-scheme: dark) {
+          background-color: #444;
+          color: $color-dark-default;
+        }
       }
 
       td:first-child {
         @include sylexiad-bold;
         color: #777;
+
+        @media (prefers-color-scheme: dark) {
+          color: #aaa;
+        }
       }
 
       td:last-child {
@@ -57,6 +71,10 @@
       tr {
         &:last-child {
           border-bottom: 2px solid darken($color-secondary, 30%);
+
+          @media (prefers-color-scheme: dark) {
+            border-bottom: 2px solid darken($color-secondary, 10%);
+          }
         }
       }
     }
@@ -87,6 +105,10 @@
       @include sylexiad-bold;
       background-color: darken($color-secondary, 35%);
       color: white;
+
+      @media (prefers-color-scheme: dark) {
+        background-color: darken($color-secondary, 60%);
+      }
 
       &:first-child {
         border-radius: 5px 0 0 0;
