@@ -26,7 +26,7 @@ class Home extends React.Component {
             <div className="jarbek-home-title-container">
               <h1 className="jarbek-home-title">Andrew Jarombek</h1>
             </div>
-            <p className="jarbek-home-sub-title">Software Development Website</p>
+            <p className="jarbek-home-sub-title">Software Engineering Website</p>
             <Link to="/blog" className="jarbek-home-blog-button">
               <Button activeColor="primary" passiveColor="primary">
                 BLOG
