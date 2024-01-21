@@ -32,6 +32,22 @@ infrastructure as code.
 
 ### Commands
 
+**Make commands**
+
+```bash
+# Install NVM & Proper Node.js Version
+make prereqs
+
+# Install Dependencies
+make install
+
+# Run the UI/API Locally
+make run-ui
+
+# Run the Database Locally
+make run-database
+```
+
 **Start the Development Server Locally**
 
 ```bash
@@ -52,7 +68,7 @@ yarn server:deploy
 
 **Run Cypress E2E Tests Locally**
 
-As a prerequisite for running end to end tests, make sure the server is running.
+As a prerequisite for running end-to-end tests, make sure the server is running.
 
 ```bash
 nvm use v20.11.0
@@ -98,6 +114,8 @@ docker push ajarombek/jarombek-com:1.4.0
 | `cypress.json`          | Configuration for Cypress e2e tests.                                   |
 | `jest.client-config.js` | Jest unit testing configuration for the client side code.              |
 | `jest.server-config.js` | Jest unit testing configuration for the server side code.              |
+| `LICENSE.md`            | MIT License for the repository.                                        |
+| `Makefile`              | Make commands for the application.                                     |
 | `package.json`          | Entry point for the npm application.  Contains dependency definitions. |
 | `webpack.config.js`     | Main webpack configuration file.                                       |
 | `webpack.parts.js`      | Smaller webpack parts to combine with the main configuration.          |

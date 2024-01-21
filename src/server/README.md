@@ -5,10 +5,11 @@ React.js rendering.
 
 ### Files
 
-| Filename             | Description                                                                |
-|----------------------|----------------------------------------------------------------------------|
-| `dao/`               | MongoDB data access functions.                                             |
-| `fn/`                | Invokes AWS Lambda functions.                                              |
-| `model/`             | MongoDB object models using Mongoose.                                      |
-| `route/`             | Server API Routes invoked by the front-end.                                |
-| `server.js`          | Entrypoint for the server along with server-side rendering config.         |
+| Filename    | Description                                                        |
+|-------------|--------------------------------------------------------------------|
+| `dao`       | MongoDB data access functions.                                     |
+| `fn`        | Invokes AWS Lambda functions.                                      |
+| `model`     | MongoDB object models using Mongoose.                              |
+| `public`    | Public files for the web application.                              |
+| `route`     | Server API Routes invoked by the front-end.                        |
+| `server.js` | Entrypoint for the server along with server-side rendering config. |
