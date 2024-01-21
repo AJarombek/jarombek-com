@@ -35,7 +35,7 @@ infrastructure as code.
 **Start the Development Server Locally**
 
 ```bash
-nvm use v18.16.1
+nvm use v20.11.0
 
 # Install Dependencies
 yarn
@@ -55,8 +55,18 @@ yarn server:deploy
 As a prerequisite for running end to end tests, make sure the server is running.
 
 ```bash
-nvm use v18.16.1
+nvm use v20.11.0
 yarn cy:open
+```
+
+**Run GitHub Actions Locally**
+
+```bash
+# Install the act CLI
+brew install act
+
+# Run a specific GitHub Actions workflow
+act -W '.github/workflows/e2e-tests.yaml'
 ```
 
 **Push images to DockerHub**

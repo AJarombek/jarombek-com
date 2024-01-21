@@ -129,7 +129,7 @@ const sendHtmlPage = async ({ html }) => {
         </script>
     </head>
     <body>
-        <div id="react-container">${html}</div>
+        <div id="root">${html}</div>
         <script src="/client/vendor.js"></script>
         <script src="/client/bundle.js"></script>
     </body>

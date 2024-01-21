@@ -9,7 +9,7 @@ const HtmlWebPackPlugin = require("html-webpack-plugin");
 const { merge } = require("webpack-merge");
 const webpack = require("webpack");
 const NodemonPlugin = require("nodemon-webpack-plugin");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
 
 const parts = require("./webpack.parts");
@@ -64,15 +64,18 @@ const serverConfig = merge([
                     }
                 },
                 {
-                    test: /\.md|html$/,
+                    test: /\.md|html|txt|xml$/,
                     loader: "ignore-loader"
                 }
             ]
         },
         plugins: [
-            new CopyWebpackPlugin([
-                { from: path.join(__dirname, '/src/server/sitemap.xml'), to: 'sitemap.xml' }
-            ]),
+            new CopyPlugin({
+                patterns: [
+                    { from: path.join(__dirname, './src/server/public/robots.txt'), to: 'public/robots.txt' },
+                    { from: path.join(__dirname, './src/server/public/sitemap.xml'), to: 'public/sitemap.xml' }
+                ]
+            }),
             new webpack.DefinePlugin({
                 'process.env.NODE_ENV': ENV
             })
@@ -142,7 +145,7 @@ const clientConfig = merge([
                     }
                 },
                 {
-                    test: /\.md$/,
+                    test: /\.md|txt|xml$/,
                     loader: "ignore-loader"
                 }
             ]

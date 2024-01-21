@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Sitemap for Google to index webpages
+  Author: Andrew Jarombek
+  Date: 5/24/2018
+-->
+
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://jarombek.com/</loc>
+        <lastmod>2024-01-20T00:00:00+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>1.00</priority>
+    </url>
+    <url>
+        <loc>https://jarombek.com/blog</loc>
+        <lastmod>2024-01-20T00:00:00+00:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://jarombek.com/resume</loc>
+        <lastmod>2024-01-20T00:00:00+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.60</priority>
+    </url>
+    <url>
+        <loc>https://jarombek.com/stats</loc>
+        <lastmod>2024-01-20T00:00:00+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.60</priority>
+    </url>
+</urlset>
