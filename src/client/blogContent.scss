@@ -175,6 +175,10 @@ $inline-gray: rgba(204, 204, 204, 0.25);
       font-size: 20px;
       padding: 10px 0;
 
+      @media (prefers-color-scheme: dark) {
+        color: $color-dark-default;
+      }
+
       code.jarombek-inline-code {
         font-size: 16px;
         padding: 3px;

@@ -12,7 +12,7 @@ describe('Home E2E Tests', () => {
   it('loads the home page as expected', () => {
     cy.get('.jarbek-home-title').contains('Andrew Jarombek').should('exist');
 
-    cy.get('.jarbek-home-sub-title').contains('Software Development Hub').should('exist');
+    cy.get('.jarbek-home-sub-title').contains('Software Engineering Website').should('exist');
   });
 
   it('move navigate to the blog page', () => {

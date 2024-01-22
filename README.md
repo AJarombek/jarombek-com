@@ -32,10 +32,26 @@ infrastructure as code.
 
 ### Commands
 
+**Make commands**
+
+```bash
+# Install NVM & Proper Node.js Version
+make prereqs
+
+# Install Dependencies
+make install
+
+# Run the UI/API Locally
+make run-ui
+
+# Run the Database Locally
+make run-database
+```
+
 **Start the Development Server Locally**
 
 ```bash
-nvm use v18.16.1
+nvm use v20.11.0
 
 # Install Dependencies
 yarn
@@ -52,11 +68,21 @@ yarn server:deploy
 
 **Run Cypress E2E Tests Locally**
 
-As a prerequisite for running end to end tests, make sure the server is running.
+As a prerequisite for running end-to-end tests, make sure the server is running.
 
 ```bash
-nvm use v18.16.1
+nvm use v20.11.0
 yarn cy:open
+```
+
+**Run GitHub Actions Locally**
+
+```bash
+# Install the act CLI
+brew install act
+
+# Run a specific GitHub Actions workflow
+act -W '.github/workflows/e2e-tests.yaml'
 ```
 
 **Push images to DockerHub**
@@ -85,9 +111,11 @@ docker push ajarombek/jarombek-com:1.4.0
 | `.prettierignore`       | File patterns for the Prettier code formatter to ignore.               |
 | `.prettierrc`           | Prettier code formatter configuration.                                 |
 | `aws.dockerfile`        | Dockerfile for an image that containerizes the application.            |
-| `cypress.json`          | Configuration for Cypress e2e tests.                                   |
+| `cypress.config.js`     | Configuration for Cypress e2e tests.                                   |
 | `jest.client-config.js` | Jest unit testing configuration for the client side code.              |
 | `jest.server-config.js` | Jest unit testing configuration for the server side code.              |
+| `LICENSE.md`            | MIT License for the repository.                                        |
+| `Makefile`              | Make commands for the application.                                     |
 | `package.json`          | Entry point for the npm application.  Contains dependency definitions. |
 | `webpack.config.js`     | Main webpack configuration file.                                       |
 | `webpack.parts.js`      | Smaller webpack parts to combine with the main configuration.          |
@@ -95,20 +123,29 @@ docker push ajarombek/jarombek-com:1.4.0
 
 ### Version History
 
-**[V.1.4.0](https://github.com/AJarombek/jarombek-com/tree/v1.4.0) - Dark Mode**
+**[v1.4.1](https://github.com/AJarombek/jarombek-com/tree/v1.4.1) - Cypress Test Fixes**
+
+> Release Date: January 21st, 2024
+
+* Fix Cypress tests to work locally and in GitHub Actions
+* Makefile commands for convenience
+* Node.js 18 -> 20.11.0
+* Fix for Dark Mode styles missing for blog post list items
+
+**[v1.4.0](https://github.com/AJarombek/jarombek-com/tree/v1.4.0) - Dark Mode**
 
 > Release Date: September 30th, 2023
 
 * Dark Mode for the website based on the user's system preferences
 * Change text on the home page
 
-**[V.1.3.1](https://github.com/AJarombek/jarombek-com/tree/v1.3.1) - GitHub Actions**
+**[v1.3.1](https://github.com/AJarombek/jarombek-com/tree/v1.3.1) - GitHub Actions**
 
 > Release Date: September 30th, 2023
 
 * Create initial GitHub Actions for formatting and linting JavaScript
 
-**[V.1.3.0](https://github.com/AJarombek/jarombek-com/tree/v1.3.0) - Webpack 5 and React 18 Release**
+**[v1.3.0](https://github.com/AJarombek/jarombek-com/tree/v1.3.0) - Webpack 5 and React 18 Release**
 
 > Release Date: September 20th, 2023
 
@@ -116,36 +153,36 @@ docker push ajarombek/jarombek-com:1.4.0
 * Convert React class components to functional components
 * Update and simplify Webpack configuration
 
-**V.1.1.19 - Google Analytics**
+**v1.1.19 - Google Analytics**
 
 > Release Date: September 7th, 2021
 
 Adding Google Analytics to the website to determine monthly page views.  Currently, the only activity tracking 
 available about the website is for Google Search clicks.
 
-**V.1.1.5 - Non-CSS Grid Browser Support**
+**v1.1.5 - Non-CSS Grid Browser Support**
 
 > Release Date: November 3rd, 2018
 
-**V.1.1.1 - Resume Page**
+**v1.1.1 - Resume Page**
 
 > Release Date: September 16th, 2018
 
-**V.1.1.0 - Home Page 2.0**
+**v1.1.0 - Home Page 2.0**
 
 > Release Date: September 5th, 2018
 
 This update restyled the home page into three components with pictures - resume, articles, and statistics.
 
-**V.1.0.7 - Articles Text Search**
+**v1.0.7 - Articles Text Search**
 
 > Release Date: August 19th, 2018
 
-**V.1.0.5 - Paginated Articles Page**
+**v1.0.5 - Paginated Articles Page**
 
 > Release Date: August 11th, 2018
 
-**[V.1.0.0](https://github.com/AJarombek/jarombek-com/tree/v1.0.0) - MVP Release**
+**[v1.0.0](https://github.com/AJarombek/jarombek-com/tree/v1.0.0) - MVP Release**
 
 > Release Date: May 10th, 2018
 

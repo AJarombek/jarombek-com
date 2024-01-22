@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import '@babel/polyfill';
 import { createGlobalStyle } from 'styled-components';
@@ -51,6 +51,7 @@ const RoutedApp = () => {
   );
 };
 
-render(<RoutedApp />, document.getElementById('react-container'));
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<RoutedApp />);
 
 export default RoutedApp;
