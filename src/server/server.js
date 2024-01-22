@@ -31,14 +31,25 @@ import subscriberRoute from './route/subscriberRouter';
 import statisticsRoute from './route/statisticsRouter';
 import PostDao from './dao/postDao';
 
-const mongoEndpoint =
-  process.env.NODE_ENV === 'local' ? 'mongodb://127.0.0.1/jarombekcom' : 'mongodb://jarombek-com-database/jarombekcom';
+const mongoEndpoint = (() => {
+  if (process.env.MONGO_IP) {
+    return `${process.env.MONGO_IP}/jarombekcom`;
+  }
+
+  return process.env.NODE_ENV === 'local'
+    ? 'mongodb://127.0.0.1/jarombekcom'
+    : 'mongodb://jarombek-com-database/jarombekcom';
+})();
 
 const mongoConnectWithRetry = () => {
+  console.info(`Attempting to connect to MongoDB at ${mongoEndpoint}`);
+
   mongoose.connect(mongoEndpoint, (err) => {
     if (err) {
-      console.error('Failed to connect to MongoDB. Retrying in 5 seconds...');
+      console.info(`Failed to connect to MongoDB at ${mongoEndpoint}. Retrying in 5 seconds...`);
       setTimeout(mongoConnectWithRetry, 5000);
+    } else {
+      console.info(`Connected to MongoDB at ${mongoEndpoint}`);
     }
   });
 };
@@ -213,7 +224,7 @@ app.use(respond);
 const port = process.env.port || 8080;
 
 const server = app.listen(port, () => {
-  console.info(`Jarombek.com running on port ${port}`);
+  console.info(`jarombek.com running on port ${port}`);
   console.info(__dirname);
 });
 

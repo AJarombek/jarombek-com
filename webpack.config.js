@@ -23,6 +23,7 @@ const PATHS = {
 };
 
 console.log(`BUILD ENV = ${process.env.BUILD_ENV}`);
+console.log(`MONGO IP = ${process.env.MONGO_IP}`);
 
 let ENV;
 switch (process.env.BUILD_ENV) {
@@ -77,7 +78,8 @@ const serverConfig = merge([
                 ]
             }),
             new webpack.DefinePlugin({
-                'process.env.NODE_ENV': ENV
+                'process.env.NODE_ENV': ENV,
+                'process.env.MONGO_IP': JSON.stringify(process.env.MONGO_IP)
             })
         ]
     },
@@ -157,7 +159,8 @@ const clientConfig = merge([
                 favicon: "./src/client/assets/favicon.ico"
             }),
             new webpack.DefinePlugin({
-                'process.env.NODE_ENV': ENV
+                'process.env.NODE_ENV': ENV,
+                'process.env.MONGO_IP': JSON.stringify(process.env.MONGO_IP)
             }),
             new ESLintPlugin({
                 failOnError: false
