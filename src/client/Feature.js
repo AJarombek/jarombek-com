@@ -10,6 +10,16 @@ import { Link } from 'react-router-dom';
 
 import './Feature.scss';
 
+/**
+ * @param {string} title
+ * @param {{text: string, picture: string}} content
+ * @param {string} backgroundPicture
+ * @param {string} backgroundColor
+ * @param {string} orientation
+ * @param {string} link
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Feature = ({ title, content, backgroundPicture, backgroundColor, orientation, link }) => (
   <div
     className={`jarbek-feature jarbek-feature-orientation-${orientation}
@@ -34,7 +44,7 @@ const Feature = ({ title, content, backgroundPicture, backgroundColor, orientati
       <div className="jarbek-feature-content-picture">
         {content.picture ? (
           <figure>
-            <img src={`${content.picture}`} />
+            <img src={`${content.picture}`} alt />
           </figure>
         ) : null}
       </div>

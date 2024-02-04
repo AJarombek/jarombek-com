@@ -31,6 +31,11 @@ const BlogList = () => {
     return query === '_' ? '/blog?page=' : `/blog?${queryUrl}page=`;
   }, [query]);
 
+  /**
+   * @param {string} pageNumber
+   * @param {string} queryString
+   * @return {Promise<void>}
+   */
   const fetchPosts = async (pageNumber, queryString) => {
     const { posts: postsList, last: lastLink } = await BlogDelegator.fetchPosts(
       BaseURL.get(),
@@ -58,7 +63,8 @@ const BlogList = () => {
   /**
    * When a key is typed into the text search bar.  If the enter button is pressed and the
    * search bar isn't empty, execute the text search.
-   * @param e - the React event that occurred (which corresponds to a DOM event)
+   * @param {React.KeyboardEvent} e - the React event that occurred (which corresponds to a DOM event)
+   * @return {void}
    */
   const onKeyUpSearchBar = (e) => {
     if (e.keyCode === 13 && searchQuery) {
@@ -70,7 +76,8 @@ const BlogList = () => {
    * When the value in the text search bar changes, add it to the state under the property
    * 'potentialQuery'.  This is a query that has yet to be executed, but can be once the enter
    * key is pressed or the execution button is pressed.
-   * @param e - the React event that occurred (which corresponds to a DOM event)
+   * @param {React.ChangeEvent} e - the React event that occurred (which corresponds to a DOM event)
+   * @return {void}
    */
   const onChangeSearchBar = (e) => {
     setSearchQuery(e.target.value.trim());
@@ -79,6 +86,7 @@ const BlogList = () => {
   /**
    * When clicking the button to execute a text search, check if any value was entered.
    * If so, perform the text search, otherwise do nothing.
+   * @return {void}
    */
   const onClickSearch = () => {
     if (searchQuery) {

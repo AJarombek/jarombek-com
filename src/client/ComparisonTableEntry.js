@@ -7,6 +7,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {JSX.Element} children
+ * @return {JSX.Element}
+ * @constructor
+ */
 const ComparisonTableEntry = ({ children }) => (
   <div className="jarombek-comparison-table-entry">
     <div className="jarombek-ct-entry-content">{children}</div>

@@ -11,6 +11,16 @@ import moment from 'moment';
 import TagList from './TagList';
 import Button from './Button';
 
+/**
+ * @param {string} name
+ * @param {string} title
+ * @param {string} type
+ * @param {string | object} date
+ * @param {string[]} tags
+ * @param {any} preview
+ * @return {JSX.Element}
+ * @constructor
+ */
 const BlogPreview = ({ name, title, type, date, tags = [], preview }) => {
   const extraTagCount = tags.length > 3 ? tags.length - 2 : 0;
 

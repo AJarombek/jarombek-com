@@ -7,6 +7,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {string} className
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Loading = ({ className }) => (
   <div className={`jarbek-loading ${className}`}>
     <div className="jarbek-loading-circle jarbek-first-loading-circle"> </div>

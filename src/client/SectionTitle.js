@@ -7,6 +7,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {string} title
+ * @param {string} iscode
+ * @param {JSX.Element} children
+ * @return {JSX.Element}
+ * @constructor
+ */
 const SectionTitle = ({ title, iscode, children }) => {
   const sectionId = title.replace(/\s/g, '-').toLowerCase();
 

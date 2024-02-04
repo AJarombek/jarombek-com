@@ -8,6 +8,20 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 
+/**
+ * @param {string} passiveColor
+ * @param {string} activeColor
+ * @param {string} passiveDarkColor
+ * @param {string} activeDarkColor
+ * @param {string} borderColor
+ * @param {string} size
+ * @param {string} font
+ * @param {JSX.Element} children
+ * @param {string} className
+ * @param {function} onClick
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Button = ({
   passiveColor,
   activeColor,

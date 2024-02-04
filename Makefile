@@ -40,3 +40,9 @@ run-database:
 	&& docker container rm jarombek-com-database || true \
 	&& docker image build -t jarombek-com-database:latest ../jarombek-com-database \
     && docker container run -d --name jarombek-com-database -p 27017:27017 jarombek-com-database:latest
+
+lint:
+	yarn lint
+
+format:
+	yarn prettier:write

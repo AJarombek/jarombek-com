@@ -8,6 +8,12 @@ import React from 'react';
 import WebsiteNav from './WebsiteNav';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {JSX.Element} children
+ * @param {boolean} hideSubscribe
+ * @return {JSX.Element}
+ * @constructor
+ */
 const WebsiteTemplate = ({ children, hideSubscribe }) => {
   return (
     <div className="jarombek-template">

@@ -8,6 +8,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Button from './Button';
 
+/**
+ * @param {function} onChangeSearch
+ * @param {function} onKeyPressSearch
+ * @param {function} onSearch
+ * @param {string} value
+ * @return {JSX.Element}
+ * @constructor
+ */
 const SearchBar = ({ onChangeSearch, onKeyPressSearch, onSearch, value }) => {
   return (
     <div className="jarbek-search-bar">

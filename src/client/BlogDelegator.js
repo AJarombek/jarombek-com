@@ -11,8 +11,8 @@ import JSXConverter from './JSXConverter';
 class BlogDelegator {
   /**
    * Fetch multiple posts from the API
-   * @param baseUrl - the base of the url dependent on the environment
-   * @param url - the url of the API call to make
+   * @param {string} baseUrl - the base of the url dependent on the environment
+   * @param {string} url - the url of the API call to make
    * @return {Promise<{posts: *[], prev, next}>} - Once resolved, will return an
    * object with the posts, previous page of posts, next page of posts, and a list
    * of the fetched posts names
@@ -34,8 +34,8 @@ class BlogDelegator {
 
   /**
    * Fetch a single post from the API
-   * @param baseUrl - the base of the url dependent on the environment
-   * @param name - the name of the post in MongoDB
+   * @param {string} baseUrl - the base of the url dependent on the environment
+   * @param {string} name - the name of the post in MongoDB
    * @return {Promise<{post: {}, loaded: *}>} - Once resolved, will return an object with the post
    * and the fetched post name
    */
@@ -50,7 +50,7 @@ class BlogDelegator {
 
   /**
    * Parse the Link HTTP response header
-   * @param links - string representation of the Link header
+   * @param {string} links - string representation of the Link header
    * @returns {{}} - an object with all the links
    */
   static parseLinks(links) {
@@ -59,15 +59,13 @@ class BlogDelegator {
     const regex = /<([a-z0-9/?&="]+)>; rel="(\w+)"/;
 
     const matches = links.match(globalRegex);
-
-    const linksObject = BlogDelegator.generateLinks(matches, regex);
-    return linksObject;
+    return BlogDelegator.generateLinks(matches, regex);
   }
 
   /**
    * Generate an object containing all the links from the HTTP header
-   * @param list - a list of all the links
-   * @param regex - the regular expression that will match the Link header
+   * @param {string[]} list - a list of all the links
+   * @param {RegExp} regex - the regular expression that will match the Link header
    * @returns {{}} - an object of all the links where the rel is the property name and the
    * contents of the angle brackets is the property value
    */
@@ -96,8 +94,9 @@ class BlogDelegator {
 
   /**
    * Take a list of viewed posts and increment the view count on the server
-   * @param names - a list of post names that were viewed
-   * @param baseUrl - the base of the url dependent on the environment
+   * @param {string[]} names - a list of post names that were viewed
+   * @param {string} baseUrl - the base of the url dependent on the environment
+   * @return {void}
    */
   static viewedPosts(names, baseUrl) {
     names.forEach((name) => this.viewedPost(name, baseUrl));
@@ -107,6 +106,7 @@ class BlogDelegator {
    * Take a post name and increment the count for the corresponding post on the server
    * @param name - a post name that was viewed
    * @param baseUrl - the base of the url dependent on the environment
+   * @return {void}
    */
   static viewedPost(name, baseUrl) {
     fetch(`${baseUrl}/api/viewed/post/${name}`, { method: 'PUT' });

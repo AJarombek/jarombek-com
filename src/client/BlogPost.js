@@ -11,6 +11,17 @@ import moment from 'moment';
 import TagList from './TagList';
 import { v4 as uuid } from 'uuid';
 
+/**
+ * @param {string} name
+ * @param {string} title
+ * @param {string} type
+ * @param {string} date
+ * @param {string[]} tags
+ * @param {any} content
+ * @param {{startName: string, link: string, linkName: string, endName: string}[]} sources
+ * @return {JSX.Element}
+ * @constructor
+ */
 const BlogPost = ({ name, title, type, date, tags = [], content, sources = [] }) => {
   let count = 0;
   return (

@@ -7,7 +7,7 @@
 /**
  * Take an integer and convert it to its proper roman numeral.  Currently the function will only
  * return the proper roman numeral for integers < 400
- * @param int - an integer to convert to a roman numeral
+ * @param {number} int - an integer to convert to a roman numeral
  * @return {string} a roman numeral string
  */
 export function toRomanNumeral(int) {

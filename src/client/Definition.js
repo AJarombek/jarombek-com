@@ -7,6 +7,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {string} word
+ * @param {JSX.Element} children
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Definition = ({ word, children }) => {
   const wordId = word.replace(/\s/g, '-').toLowerCase();
 

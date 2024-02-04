@@ -9,6 +9,13 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { toRomanNumeral } from './romanNumerals';
 
+/**
+ * @param {number} current
+ * @param {number} last
+ * @param {string} link
+ * @return {JSX.Element}
+ * @constructor
+ */
 const PaginationBar = ({ current, last, link }) => {
   const previous = useMemo(() => current - 1, [current]);
   const next = useMemo(() => current + 1, [current]);

@@ -12,6 +12,10 @@ import BaseURL from './BaseURL';
 import StatisticsRankGraph from './StatisticsRankGraph';
 import StatisticsRankTable from './StatisticsRankTable';
 
+/**
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Statistics = () => {
   const [stats, setStats] = useState([]);
   const [statsMeta, setStatsMeta] = useState({});

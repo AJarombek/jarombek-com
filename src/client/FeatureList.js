@@ -8,6 +8,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Feature from './Feature';
 
+/**
+ * @param {string} id
+ * @param {{title: string}[]} featureList
+ * @return {JSX.Element}
+ * @constructor
+ */
 const FeatureList = ({ id, featureList = [] }) => (
   <div className="jarombek-feature-list" id={id}>
     {featureList.length === 0 ? (

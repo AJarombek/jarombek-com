@@ -7,6 +7,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {string} activeColor
+ * @param {string} passiveColor
+ * @param {string} size
+ * @param {string} picture
+ * @param {JSX.Element} children
+ * @param {string} className
+ * @param {function} onClick
+ * @return {JSX.Element}
+ * @constructor
+ */
 const PictureButton = ({ activeColor, passiveColor, size, picture, children, className, onClick }) => {
   return (
     <div className={className}>

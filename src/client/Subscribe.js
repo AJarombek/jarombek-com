@@ -34,7 +34,8 @@ class Subscribe extends React.Component {
    * field matches the valid email regex, the state property {emailValid} of the component is
    * set to true.  Otherwise, it is set to false.  The state is also updated with the new
    * email value.
-   * @param e - the React event that occurred (which corresponds to a DOM event)
+   * @param {React.ChangeEvent} e - the React event that occurred (which corresponds to a DOM event)
+   * @return {void}
    */
   onChangeEmail(e) {
     const email = e.target.value;
@@ -43,8 +44,8 @@ class Subscribe extends React.Component {
 
   /**
    * Validate an email address based on the email regex
-   * @param email - the email address that needs validating
-   * @return {{email: *, emailValid}} - an object literal with the email address in one
+   * @param {string} email - the email address that needs validating
+   * @return {{email: string, emailValid: boolean}} - an object literal with the email address in one
    * property and whether the email is valid in another
    */
   static validateEmail(email) {
@@ -59,7 +60,8 @@ class Subscribe extends React.Component {
    * input matches the name regex, the state property {firstNameValid} of the component
    * is set to true.  Otherwise, it is set to false.  The state is also updated with the new
    * first name value.
-   * @param e - the React event that occurred (which corresponds to a DOM event)
+   * @param {React.ChangeEvent} e - the React event that occurred (which corresponds to a DOM event)
+   * @return {void}
    */
   onChangeFirstName(e) {
     const firstName = e.target.value;
@@ -69,7 +71,7 @@ class Subscribe extends React.Component {
   /**
    * Validate a first name based on the name regex
    * @param firstName {string} - the name that needs validating
-   * @return {{firstName: *, firstNameValid}} - an object literal with the first name in one
+   * @return {{firstName: string, firstNameValid: boolean}} - an object literal with the first name in one
    * property and whether the first name is valid in another
    */
   static validateFirstName(firstName) {
@@ -84,7 +86,8 @@ class Subscribe extends React.Component {
    * input matches the name regex, the state property {lastNameValid} of the component
    * is set to true.  Otherwise, it is set to false.  The state is also updated with the new
    * last name value.
-   * @param e - the React event that occurred (which corresponds to a DOM event)
+   * @param {React.ChangeEvent} e - the React event that occurred (which corresponds to a DOM event)
+   * @return {void}
    */
   onChangeLastName(e) {
     const lastName = e.target.value;
@@ -93,8 +96,8 @@ class Subscribe extends React.Component {
 
   /**
    * Validate a last name based on the name regex
-   * @param lastName {string} - the name that needs validating
-   * @return {{lastName: *, lastNameValid}} - an object literal with the last name in one
+   * @param {string} lastName - the name that needs validating
+   * @return {{lastName: string, lastNameValid: boolean}} - an object literal with the last name in one
    * property and whether the last name is valid in another
    */
   static validateLastName(lastName) {
@@ -107,7 +110,8 @@ class Subscribe extends React.Component {
   /**
    * Actions to perform when the form is submitted.  If all the fields in the form
    * are valid, an API call is made to create a new user.  Depending on the status of the
-   * form submission, the {submitStatus} state is changed accordingly
+   * form submission, the {submitStatus} state is changed accordingly.
+   * @return void
    */
   onSubmit() {
     // The status of the form is that it has just been submitted
@@ -142,10 +146,10 @@ class Subscribe extends React.Component {
 
   /**
    * Call the API to create a new user.
-   * @param email - the users email
-   * @param firstName - the users first name
-   * @param lastName - the users last name
-   * @param baseUrl - the base of the url dependent on the environment
+   * @param {string} email - the users email
+   * @param {string} firstName - the users first name
+   * @param {string} lastName - the users last name
+   * @param {string} baseUrl - the base of the url dependent on the environment
    * @return {Promise<number>} - a promise containing the HTTP response status code once resolved
    */
   static async createSubscriber(email, firstName, lastName, baseUrl) {
@@ -166,7 +170,7 @@ class Subscribe extends React.Component {
   /**
    * Render the email input field for a user subscribing.  Show validations if the
    * input text is invalid.
-   * @return {*} React Elements.
+   * @return {JSX.Element} React Elements.
    */
   renderEmailInput() {
     const { submitStatus, emailValid, email } = this.state;
@@ -203,7 +207,7 @@ class Subscribe extends React.Component {
   /**
    * Render the first name input field for a user subscribing.  Show validations if the
    * first name contains invalid characters.
-   * @return {*} React Elements.
+   * @return {JSX.Element} React Elements.
    */
   renderFirstNameInput() {
     const { submitStatus, firstNameValid, firstName } = this.state;
@@ -239,7 +243,7 @@ class Subscribe extends React.Component {
   /**
    * Render the last name input field for a user subscribing.  Show validations if the
    * last name contains invalid characters.
-   * @return {*} React Elements.
+   * @return {JSX.Element} React Elements.
    */
   renderLastNameInput() {
     const { submitStatus, lastNameValid, lastName } = this.state;
@@ -274,7 +278,7 @@ class Subscribe extends React.Component {
 
   /**
    * Render React elements which create a subscription input form.
-   * @return {*} React Elements.
+   * @return {JSX.Element} React Elements.
    */
   renderSubscribing() {
     const { submitStatus } = this.state;
@@ -297,7 +301,7 @@ class Subscribe extends React.Component {
 
   /**
    * Render messages that are displayed if the user submitted their subscription request.
-   * @return {*} React Elements.
+   * @return {JSX.Element} React Elements.
    */
   renderSubmitted() {
     const { submitStatus } = this.state;
@@ -325,7 +329,7 @@ class Subscribe extends React.Component {
 
   /**
    * Render the Subscription form or a message describing the status of the users subscription.
-   * @return {*} React Elements.
+   * @return {JSX.Element} React Elements.
    */
   renderSubscriptionForm() {
     const { submitStatus } = this.state;
@@ -344,7 +348,7 @@ class Subscribe extends React.Component {
   /**
    * Render the Subscription component containing input fields, validation for input text,
    * and a submit button.
-   * @return {*} React Elements.
+   * @return {JSX.Element} React Elements.
    */
   render() {
     const { enabled } = this.state;

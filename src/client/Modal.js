@@ -10,6 +10,13 @@ import PropTypes from 'prop-types';
 // Empty function in case the onClick event is undefined
 const eventDefault = { stopPropagation: (f) => f };
 
+/**
+ * @param {boolean} backdrop
+ * @param {JSX.Element} children
+ * @param {function} clickBackground
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Modal = ({ backdrop, children, clickBackground }) => {
   return (
     <div

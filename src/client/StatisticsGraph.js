@@ -10,6 +10,20 @@ import moment from 'moment';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import LineChartLabel from './LineChartLabel';
 
+/**
+ * @param {{name: string, color: string}[]} data
+ * @param {any[]} chartData
+ * @param {string} lastUpdated
+ * @param {string} scale
+ * @param {number} start
+ * @param {number} end
+ * @param {string} title
+ * @param {boolean} legend
+ * @param {boolean} filterLabels
+ * @param {boolean} boldLabels
+ * @return {JSX.Element}
+ * @constructor
+ */
 const StatisticsGraph = ({
   data = [],
   chartData = [],

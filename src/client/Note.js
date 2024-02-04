@@ -7,6 +7,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {JSX.Element} children
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Note = ({ children }) => (
   <div className="jarbek-note">
     <p className="jarbek-note-icon">&#x73;</p>
