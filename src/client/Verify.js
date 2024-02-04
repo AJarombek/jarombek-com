@@ -60,8 +60,8 @@ class Verify extends React.Component {
   /**
    * Make a call to the API for user verification.  Return the status code from the
    * HTTP response
-   * @param code - the verification code which will verify a user
-   * @param baseUrl - the base of the url dependent on the environment
+   * @param {string} code - the verification code which will verify a user
+   * @param {string} baseUrl - the base of the url dependent on the environment
    * @return {Promise<number>}
    */
   static async verifySubscriber(code, baseUrl) {

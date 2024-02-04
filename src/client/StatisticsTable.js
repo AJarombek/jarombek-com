@@ -8,6 +8,11 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import Table from './Table';
 
+/**
+ * @param {{name: string, lines: number[]}[]} data
+ * @return {JSX.Element}
+ * @constructor
+ */
 const StatisticsTable = ({ data = [] }) => {
   const columns = useMemo(() => {
     const arrayLength = new Date().getFullYear() - 2013;

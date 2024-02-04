@@ -7,6 +7,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {string} name
+ * @param {string} picture
+ * @param {string} color
+ * @param {boolean} showPicture
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Tag = ({ name, picture, color, showPicture }) => {
   const size = showPicture ? 'large' : 'small';
   return (

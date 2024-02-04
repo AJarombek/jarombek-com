@@ -8,6 +8,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number} value
+ * @param {string} language
+ * @param {boolean} filtered
+ * @param {boolean} bold
+ * @param {number} fontSize
+ * @return {JSX.Element|null}
+ * @constructor
+ */
 const LineChartLabel = ({ x, y, value, language, filtered = true, bold = false, fontSize = 11 }) => {
   return !filtered || value > 10000 ? (
     <text

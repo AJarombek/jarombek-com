@@ -7,6 +7,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ *
+ * @param {string} date
+ * @param {JSX.Element} children
+ * @return {JSX.Element}
+ * @constructor
+ */
 const UpdateInfo = ({ date, children }) => (
   <div>
     <div className="jarbek-update-info">

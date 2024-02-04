@@ -8,6 +8,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import SectionTitle from './SectionTitle';
 
+/**
+ * @param {string} title
+ * @param {string} isCode
+ * @param {JSX.Element} children
+ * @return {JSX.Element}
+ * @constructor
+ */
 const SubTitle = ({ title, isCode, children }) => {
   return (
     <div className="jarbek-sub-title">

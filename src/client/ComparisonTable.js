@@ -7,6 +7,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {string} title
+ * @param {JSX.Element} children
+ * @param {string} primaryColor
+ * @param {string} secondaryColor
+ * @return {JSX.Element}
+ * @constructor
+ */
 const ComparisonTable = ({ title, children, primaryColor, secondaryColor }) => (
   <div className="jarombek-comparison-table">
     <div className={`jarombek-ct-header-color-${primaryColor}`}>

@@ -9,6 +9,11 @@ import PropTypes from 'prop-types';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import LineChartLabel from './LineChartLabel';
 
+/**
+ * @param {{name: string, color: string, rank: number[]}[]} data
+ * @return {JSX.Element}
+ * @constructor
+ */
 const StatisticsRankGraph = ({ data = [] }) => {
   const chartData = useMemo(() => {
     const arrayLength = new Date().getFullYear() - 2013;

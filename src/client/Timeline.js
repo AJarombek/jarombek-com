@@ -7,6 +7,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {number} points
+ * @param {number} position
+ * @param {string[]} labels
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Timeline = ({ points, position, labels }) => {
   return (
     <div className="jarbek-timeline">

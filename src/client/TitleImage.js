@@ -7,6 +7,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {string} src
+ * @param {string} title
+ * @param {string} className
+ * @param {string} link
+ * @return {JSX.Element}
+ * @constructor
+ */
 const TitleImage = ({ src, title, className, link }) => (
   <div className={className}>
     <figure className="jarbek-figure">

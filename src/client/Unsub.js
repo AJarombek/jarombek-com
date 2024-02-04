@@ -60,8 +60,8 @@ class Unsub extends React.Component {
   /**
    * Make a call to the API to remove a users subscription.  Return the status code
    * from the HTTP response
-   * @param code - the un-subscription code which will unsubscribe a user
-   * @param baseUrl - the base of the url dependent on the environment
+   * @param {string} code - the un-subscription code which will unsubscribe a user
+   * @param {string} baseUrl - the base of the url dependent on the environment
    * @return {Promise<number>}
    */
   static async unsubscribe(code, baseUrl) {

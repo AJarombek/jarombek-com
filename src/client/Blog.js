@@ -33,7 +33,8 @@ const Blog = () => {
 
   /**
    * Fetch a single post from the API and set it to the state
-   * @param name - the name of the post in MongoDB
+   * @param {string} name - the name of the post in MongoDB
+   * @return {Promise<void>}
    */
   const fetchPost = async (name) => {
     const baseUrl = BaseURL.get();

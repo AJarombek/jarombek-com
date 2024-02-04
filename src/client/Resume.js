@@ -12,6 +12,10 @@ import TitleImage from './TitleImage';
 import Timeline from './Timeline';
 import resumeSections from './resumeSections';
 
+/**
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Resume = () => {
   const [searchParams] = useSearchParams();
 

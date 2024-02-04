@@ -8,6 +8,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @param {string} filename
+ * @param {string} paddingtop
+ * @param {string} paddingbottom
+ * @param {string} maxwidth
+ * @return {JSX.Element}
+ * @constructor
+ */
 const InlineImage = ({ filename, paddingtop = 'false', paddingbottom = 'false', maxwidth = '100%' }) => {
   const src = `https://asset.jarombek.com/posts/${filename}`;
 

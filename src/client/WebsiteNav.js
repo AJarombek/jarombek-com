@@ -11,6 +11,11 @@ import Modal from './Modal';
 import Subscribe from './Subscribe';
 import PropTypes from 'prop-types';
 
+/**
+ * @param {boolean} hideSubscribe
+ * @return {JSX.Element}
+ * @constructor
+ */
 const WebsiteNav = ({ hideSubscribe }) => {
   const [subscribing, setSubscribing] = useState(false);
 

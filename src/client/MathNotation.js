@@ -9,6 +9,11 @@ import PropTypes from 'prop-types';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
+/**
+ * @param {string} tex
+ * @return {JSX.Element}
+ * @constructor
+ */
 const MathNotation = ({ tex }) => {
   return (
     <div className="jarbek-math-notation">

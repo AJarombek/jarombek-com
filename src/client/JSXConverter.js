@@ -18,11 +18,13 @@ import InlineImage from './InlineImage';
  */
 class JSXConverter {
   /**
-   * Transform a list of posts from JSON to an object where the content property is JSX
-   * so it can be displayed in the DOM
-   * @param posts - a list of posts in JSON
-   * @returns null if the posts is falsey, an array of posts in with the content
-   * property in JSX form if posts is truthy
+   * Transform a list of posts from JSON to an object where the content property is JSX that can be displayed in
+   * the DOM.
+   * @param {{name: string, title: string, date: string, type: string, tags: Object[], content: *,
+   * sources: Object[]}[]} posts - a list of posts in JSON.
+   * @returns {{name: string, title: string, date: string, type: string, tags: Object[], content: *,
+   * sources: Object[]}[] | null} null if the posts is falsy, an array of posts in with the content property in JSX
+   * form if posts is truthy.
    */
   static createPostsJSX(posts) {
     if (posts) {
@@ -35,16 +37,15 @@ class JSXConverter {
   /**
    * Creates a JavaScript object for a post where the content property has been
    * transformed from JSON to JSX
-   * @param name - the name of the post (this is what is displayed in the URL)
-   * @param title - the title of the post
-   * @param date - the date the post was created
-   * @param type - the type of post [Blog, Discovery]
-   * @param tags - the tags for the post, these are the different technologies discussed
-   * @param content - JSON representation of the content of the post.
-   * This will be transformed to JSX
-   * @param preview - a preview snippet of a posts content.
-   * @param sources - the sources of information for the post
-   * @returns {{name: *, title: *, date: *, type: *, tags: *, content: *, sources: *}}
+   * @param {string} name - the name of the post (this is what is displayed in the URL)
+   * @param {string} title - the title of the post
+   * @param {string} date - the date the post was created
+   * @param {string} type - the type of post [Blog, Discovery]
+   * @param {Object[]} tags - the tags for the post, these are the different technologies discussed
+   * @param {*} content - JSON representation of the content of the post.  This will be transformed to JSX.
+   * @param {*} preview - a preview snippet of a posts content.
+   * @param {Object[]} sources - the sources of information for the post
+   * @returns {{name: string, title: string, date: string, type: string, tags: Object[], content: *, sources: Object[]}}
    * - JavaScript object representing a post
    */
   static createPostJSX({ name, title, date, type, tags, content, preview, sources }) {
@@ -62,8 +63,8 @@ class JSXConverter {
 
   /**
    * Transform a JSON representation of HTML into JSX
-   * @param content - the JSON representation of HTML
-   * @returns null if content is falsey, JSX if content is truthy
+   * @param {*} content - the JSON representation of HTML
+   * @returns {JSX.Element | null} null if content is falsey, JSX if content is truthy
    */
   static createContentJSX(content) {
     if (content) {
@@ -103,7 +104,7 @@ class JSXConverter {
   /**
    * If the string representing an HTML element tag is a React Component element, return
    * the React Component reference.  Otherwise simply return the argument string.
-   * @param tag - a string representing an HTML element tag
+   * @param {string} tag - a string representing an HTML element tag
    * @return {*} - either a string tag or a React Component reference
    */
   static convertStringToComponent(tag) {

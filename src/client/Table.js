@@ -8,6 +8,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useTable } from 'react-table';
 
+/**
+ * @param {any[]} data
+ * @param {any[]} columns
+ * @return {JSX.Element}
+ * @constructor
+ */
 const Table = ({ data = [], columns = [] }) => {
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable({
     columns,
