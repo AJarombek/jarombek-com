@@ -20,15 +20,13 @@ JSON is stored in my MongoDB document database and converted to JSX in this proj
 discussed in my blog posts.
 - [html-tokenizer](https://github.com/AJarombek/html-tokenizer): converts HTML to JSON for storage in 
 a document database of choice (in my case MongoDB).
+- [aws-lambda-emails](https://github.com/AJarombek/aws-lambda-emails): AWS lambda functions that
+send subscription emails to people who subscribe to my website.
 
 ### Private Repositories
 
 - [jarombek-com-database](https://github.com/AJarombek/jarombek-com-database): Contains blog post data 
 stored in MongoDB along with some automated scripts.
-- [jarombek-com-emails](https://github.com/AJarombek/jarombek-com-emails): AWS lambda functions that
-send subscription emails to people who subscribe to my website.
-- [jarombek-com-aws](https://github.com/AJarombek/jarombek-com-aws): legacy AWS configuration prior to
-infrastructure as code.
 
 ### Commands
 
@@ -88,12 +86,12 @@ act -W '.github/workflows/e2e-tests.yaml'
 **Push images to DockerHub**
 
 ```bash
-docker image build -t jarombek-com:latest -f aws.dockerfile .
+docker image build -t jarombek-com:latest .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.4.0
-docker push ajarombek/jarombek-com:1.4.0
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.4.2
+docker push ajarombek/jarombek-com:1.4.2
 ```
 
 ### Files
@@ -110,8 +108,8 @@ docker push ajarombek/jarombek-com:1.4.0
 | `.eslintrc.js`          | Configuration for ESLint.                                              |
 | `.prettierignore`       | File patterns for the Prettier code formatter to ignore.               |
 | `.prettierrc`           | Prettier code formatter configuration.                                 |
-| `aws.dockerfile`        | Dockerfile for an image that containerizes the application.            |
 | `cypress.config.js`     | Configuration for Cypress e2e tests.                                   |
+| `Dockerfile`            | Dockerfile for an image that containerizes the application.            |
 | `jest.client-config.js` | Jest unit testing configuration for the client side code.              |
 | `jest.server-config.js` | Jest unit testing configuration for the server side code.              |
 | `LICENSE.md`            | MIT License for the repository.                                        |
@@ -122,6 +120,12 @@ docker push ajarombek/jarombek-com:1.4.0
 | `yarn.lock`             | Where Yarn stores the versions of each dependency.                     |
 
 ### Version History
+
+**[v1.4.2](https://github.com/AJarombek/jarombek-com/tree/v1.4.2) - AJ Poll Button**
+
+> Release Date: March 2nd, 2024
+
+* Add "Poll" button to the home page, navigating to the AJ Top 25 Poll website
 
 **[v1.4.1](https://github.com/AJarombek/jarombek-com/tree/v1.4.1) - Cypress Test Fixes**
 

@@ -16,7 +16,7 @@ RUN yarn client:build
 FROM node:20.11.0 AS app
 
 LABEL maintainer="andrew@jarombek.com" \
-      version="1.4.1" \
+      version="1.4.2" \
       description="Dockerfile for Andrew Jarombek's Personal Website & Software Development Blog"
 
 # We only need the bundle created by Webpack to run the application

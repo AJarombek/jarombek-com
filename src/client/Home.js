@@ -28,11 +28,18 @@ class Home extends React.Component {
               <h1 className="jarbek-home-title">Andrew Jarombek</h1>
             </div>
             <p className="jarbek-home-sub-title">Software Engineering Website</p>
-            <Link to="/blog" className="jarbek-home-blog-button">
-              <Button activeColor="primary" passiveColor="primary">
-                BLOG
-              </Button>
-            </Link>
+            <div className="jarbek-home-buttons">
+              <Link to="/blog" className="jarbek-home-blog-button">
+                <Button activeColor="primary" passiveColor="primary">
+                  BLOG
+                </Button>
+              </Link>
+              <Link to="https://poll.jarombek.io/" target="_blank" className="jarbek-home-polls-button">
+                <Button activeColor="secondary" passiveColor="secondary">
+                  POLLS
+                </Button>
+              </Link>
+            </div>
             <div className="jarbek-home-arrow">
               <TitleImage src="./assets/down.png" title="" link="#features" />
             </div>

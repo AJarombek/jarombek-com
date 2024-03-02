@@ -61,8 +61,8 @@ const Button = ({
 };
 
 Button.propTypes = {
-  activeColor: PropTypes.string,
-  passiveColor: PropTypes.string,
+  activeColor: PropTypes.oneOf(['default', 'primary', 'secondary']),
+  passiveColor: PropTypes.oneOf(['default', 'primary', 'secondary']),
   borderColor: PropTypes.string,
   size: PropTypes.string,
   font: PropTypes.string,
