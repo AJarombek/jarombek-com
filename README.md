@@ -20,15 +20,13 @@ JSON is stored in my MongoDB document database and converted to JSX in this proj
 discussed in my blog posts.
 - [html-tokenizer](https://github.com/AJarombek/html-tokenizer): converts HTML to JSON for storage in 
 a document database of choice (in my case MongoDB).
+- [aws-lambda-emails](https://github.com/AJarombek/aws-lambda-emails): AWS lambda functions that
+send subscription emails to people who subscribe to my website.
 
 ### Private Repositories
 
 - [jarombek-com-database](https://github.com/AJarombek/jarombek-com-database): Contains blog post data 
 stored in MongoDB along with some automated scripts.
-- [jarombek-com-emails](https://github.com/AJarombek/jarombek-com-emails): AWS lambda functions that
-send subscription emails to people who subscribe to my website.
-- [jarombek-com-aws](https://github.com/AJarombek/jarombek-com-aws): legacy AWS configuration prior to
-infrastructure as code.
 
 ### Commands
 

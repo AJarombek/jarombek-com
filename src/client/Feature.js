@@ -44,7 +44,7 @@ const Feature = ({ title, content, backgroundPicture, backgroundColor, orientati
       <div className="jarbek-feature-content-picture">
         {content.picture ? (
           <figure>
-            <img src={`${content.picture}`} alt />
+            <img src={`${content.picture}`} alt="" />
           </figure>
         ) : null}
       </div>

@@ -92,14 +92,40 @@ body {
   }
 }
 
-.jarbek-home-blog-button {
+.jarbek-home-buttons {
   margin-top: 180px;
-  text-decoration: none;
-  display: inline-block;
-  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   @media screen and (max-width: $width-mobile-small) {
     margin-top: 100px;
+    flex-direction: column;
+  }
+}
+
+.jarbek-home-blog-button {
+  margin-right: 25px;
+
+  @media screen and (max-width: $width-mobile) {
+    margin-right: 15px;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+}
+
+.jarbek-home-polls-button {
+  margin-left: 25px;
+
+  @media screen and (max-width: $width-mobile) {
+    margin-left: 15px;
+  }
+
+  @media screen and (max-width: $width-mobile-small) {
+    margin: 0;
   }
 }
 
