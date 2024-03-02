@@ -86,12 +86,12 @@ act -W '.github/workflows/e2e-tests.yaml'
 **Push images to DockerHub**
 
 ```bash
-docker image build -t jarombek-com:latest -f aws.dockerfile .
+docker image build -t jarombek-com:latest .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.4.0
-docker push ajarombek/jarombek-com:1.4.0
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.4.2
+docker push ajarombek/jarombek-com:1.4.2
 ```
 
 ### Files
@@ -108,8 +108,8 @@ docker push ajarombek/jarombek-com:1.4.0
 | `.eslintrc.js`          | Configuration for ESLint.                                              |
 | `.prettierignore`       | File patterns for the Prettier code formatter to ignore.               |
 | `.prettierrc`           | Prettier code formatter configuration.                                 |
-| `aws.dockerfile`        | Dockerfile for an image that containerizes the application.            |
 | `cypress.config.js`     | Configuration for Cypress e2e tests.                                   |
+| `Dockerfile`            | Dockerfile for an image that containerizes the application.            |
 | `jest.client-config.js` | Jest unit testing configuration for the client side code.              |
 | `jest.server-config.js` | Jest unit testing configuration for the server side code.              |
 | `LICENSE.md`            | MIT License for the repository.                                        |
@@ -120,6 +120,12 @@ docker push ajarombek/jarombek-com:1.4.0
 | `yarn.lock`             | Where Yarn stores the versions of each dependency.                     |
 
 ### Version History
+
+**[v1.4.2](https://github.com/AJarombek/jarombek-com/tree/v1.4.2) - AJ Poll Button**
+
+> Release Date: March 2nd, 2024
+
+* Add "Poll" button to the home page, navigating to the AJ Top 25 Poll website
 
 **[v1.4.1](https://github.com/AJarombek/jarombek-com/tree/v1.4.1) - Cypress Test Fixes**
 
