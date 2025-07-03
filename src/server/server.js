@@ -18,16 +18,12 @@ import cors from 'cors';
 
 import Blog from '../client/Blog';
 import Home from '../client/Home';
-import Unsub from '../client/Unsub';
-import Verify from '../client/Verify';
 import BlogList from '../client/BlogList';
 import Resume from '../client/Resume';
 import Statistics from '../client/Statistics';
 import gs from '../client/globalStyles';
 
 import postRoute from './route/postRouter';
-import viewedRoute from './route/viewedRouter';
-import subscriberRoute from './route/subscriberRouter';
 import statisticsRoute from './route/statisticsRouter';
 import PostDao from './dao/postDao';
 
@@ -58,8 +54,6 @@ mongoConnectWithRetry();
 
 // API CRUD routes for a MongoDB collection
 const postRouter = postRoute();
-const viewedRouter = viewedRoute();
-const subscriberRouter = subscriberRoute();
 const statisticsRouter = statisticsRoute();
 
 global.React = React;
@@ -92,8 +86,6 @@ const renderComponentsToHTML = async (url) => {
           <Route path="/blog" element={<BlogList />} />
           <Route path="/resume" element={<Resume />} />
           <Route path="/stats" element={<Statistics />} />
-          <Route path="/verify/:code" element={<Verify />} />
-          <Route path="/unsub/:code" element={<Unsub />} />
           <Route element={<Home />} />
         </Routes>
       </StaticRouter>,
@@ -212,8 +204,6 @@ app.use(
 app.use(bodyParser.json({ limit: '50mb' }));
 
 app.use('/api/post', postRouter);
-app.use('/api/viewed', viewedRouter);
-app.use('/api/subscriber', subscriberRouter);
 app.use('/api/stats', statisticsRouter);
 
 app.use(express.static(path.join(__dirname, '..')));

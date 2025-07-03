@@ -12,8 +12,6 @@ import { createGlobalStyle } from 'styled-components';
 
 import Home from './Home';
 import Blog from './Blog';
-import Verify from './Verify';
-import Unsub from './Unsub';
 import gs from './globalStyles';
 import BlogList from './BlogList';
 import Resume from './Resume';
@@ -42,8 +40,6 @@ const RoutedApp = () => {
           <Route path="/blog" element={<BlogList />} />
           <Route path="/resume" element={<Resume />} />
           <Route path="/stats" element={<Statistics />} />
-          <Route path="/verify/:code" element={<Verify />} />
-          <Route path="/unsub/:code" element={<Unsub />} />
           <Route element={<Home />} />
         </Routes>
       </Router>

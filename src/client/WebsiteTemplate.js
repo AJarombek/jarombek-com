@@ -10,14 +10,13 @@ import PropTypes from 'prop-types';
 
 /**
  * @param {JSX.Element} children
- * @param {boolean} hideSubscribe
  * @return {JSX.Element}
  * @constructor
  */
-const WebsiteTemplate = ({ children, hideSubscribe }) => {
+const WebsiteTemplate = ({ children }) => {
   return (
     <div className="jarombek-template">
-      <WebsiteNav hideSubscribe={hideSubscribe} />
+      <WebsiteNav />
       {children}
     </div>
   );
@@ -25,11 +24,6 @@ const WebsiteTemplate = ({ children, hideSubscribe }) => {
 
 WebsiteTemplate.propTypes = {
   children: PropTypes.any,
-  hideSubscribe: PropTypes.bool,
-};
-
-WebsiteTemplate.defaultProps = {
-  hideSubscribe: false,
 };
 
 export default WebsiteTemplate;

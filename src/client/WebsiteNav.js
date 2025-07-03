@@ -4,21 +4,15 @@
  * @since 4/8/2018
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import Button from './Button';
-import Modal from './Modal';
-import Subscribe from './Subscribe';
 import PropTypes from 'prop-types';
 
 /**
- * @param {boolean} hideSubscribe
  * @return {JSX.Element}
  * @constructor
  */
-const WebsiteNav = ({ hideSubscribe }) => {
-  const [subscribing, setSubscribing] = useState(false);
-
+const WebsiteNav = () => {
   return (
     <nav className="jarombek-nav">
       <NavLink to="/" className="jarombek-nav-left">
@@ -29,30 +23,8 @@ const WebsiteNav = ({ hideSubscribe }) => {
       <NavLink to="/" className="jarombek-nav-middle">
         Andrew Jarombek
       </NavLink>
-      {!hideSubscribe ? (
-        <div className="jarombek-nav-right" onClick={() => setSubscribing(true)}>
-          <Button className="subscribe-button" activeColor="primary" size="medium">
-            SUBSCRIBE
-          </Button>
-        </div>
-      ) : (
-        <div className="jarombek-nav-right"> </div>
-      )}
-      {subscribing ? (
-        <Modal clickBackground={() => setSubscribing(false)}>
-          <Subscribe exit={() => setSubscribing(false)} />
-        </Modal>
-      ) : null}
     </nav>
   );
-};
-
-WebsiteNav.propTypes = {
-  hideSubscribe: PropTypes.bool,
-};
-
-WebsiteNav.defaultProps = {
-  hideSubscribe: false,
 };
 
 export default WebsiteNav;

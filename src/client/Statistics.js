@@ -75,7 +75,7 @@ const Statistics = () => {
   }, [stats]);
 
   return (
-    <WebsiteTemplate subscribeAction={() => {}}>
+    <WebsiteTemplate>
       <div id="jarbek-statistics">
         <StatisticsGraph
           data={stats}

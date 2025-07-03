@@ -90,8 +90,8 @@ docker image build -t jarombek-com:latest .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.4.2
-docker push ajarombek/jarombek-com:1.4.2
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.4.3
+docker push ajarombek/jarombek-com:1.4.3
 ```
 
 ### Files
@@ -120,6 +120,12 @@ docker push ajarombek/jarombek-com:1.4.2
 | `yarn.lock`             | Where Yarn stores the versions of each dependency.                     |
 
 ### Version History
+
+**[v1.4.3](https://github.com/AJarombek/jarombek-com/tree/v1.4.3) - Subscription & Auditing Cleanup**
+
+> Release Date: July 3rd, 2025
+
+* Cleaned up subscription and auditing code
 
 **[v1.4.2](https://github.com/AJarombek/jarombek-com/tree/v1.4.2) - AJ Poll Button**
 
