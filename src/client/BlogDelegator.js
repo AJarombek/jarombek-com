@@ -91,26 +91,6 @@ class BlogDelegator {
       };
     }
   }
-
-  /**
-   * Take a list of viewed posts and increment the view count on the server
-   * @param {string[]} names - a list of post names that were viewed
-   * @param {string} baseUrl - the base of the url dependent on the environment
-   * @return {void}
-   */
-  static viewedPosts(names, baseUrl) {
-    names.forEach((name) => this.viewedPost(name, baseUrl));
-  }
-
-  /**
-   * Take a post name and increment the count for the corresponding post on the server
-   * @param name - a post name that was viewed
-   * @param baseUrl - the base of the url dependent on the environment
-   * @return {void}
-   */
-  static viewedPost(name, baseUrl) {
-    fetch(`${baseUrl}/api/viewed/post/${name}`, { method: 'PUT' });
-  }
 }
 
 export default BlogDelegator;

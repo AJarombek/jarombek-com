@@ -11,10 +11,8 @@ import 'isomorphic-fetch';
 
 import WebsiteTemplate from './WebsiteTemplate';
 import BlogPost from './BlogPost';
-import Modal from './Modal';
 import Loading from './Loading';
 import TitleImage from './TitleImage';
-import Subscribe from './Subscribe';
 import BlogDelegator from './BlogDelegator';
 import BaseURL from './BaseURL';
 
@@ -22,7 +20,6 @@ const Blog = () => {
   const { name: postName } = useParams();
 
   const [post, setPost] = useState(null);
-  const [subscribing, setSubscribing] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -46,7 +43,7 @@ const Blog = () => {
   };
 
   return (
-    <WebsiteTemplate subscribeAction={() => setSubscribing(true)}>
+    <WebsiteTemplate>
       <div className="jarombek-background">
         <div className="jarombek-blog">
           {post ? (
@@ -61,11 +58,6 @@ const Blog = () => {
           </Link>
         </div>
       </div>
-      {subscribing ? (
-        <Modal clickBackground={() => setSubscribing(false)}>
-          <Subscribe exit={() => setSubscribing(false)} />
-        </Modal>
-      ) : null}
     </WebsiteTemplate>
   );
 };

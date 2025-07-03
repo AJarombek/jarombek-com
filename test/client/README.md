@@ -12,4 +12,3 @@ Unit tests for all components in the React.js front-end viewed by clients.
 | `Blog.test.js`        | Unit tests for the Blog component.                                         |
 | `CodeSnippet.test.js` | Unit tests for the CodeSnippet component.                                  |
 | `Modal.test.js`       | Unit tests for the Modal component.                                        |
-| `Subscribe.test.js`   | Unit tests for the Subscribe component.                                    |
