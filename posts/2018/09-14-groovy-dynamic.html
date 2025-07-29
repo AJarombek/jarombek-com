@@ -1,0 +1,232 @@
+<div>
+<p>
+In the past, I always associated dynamic programming languages to those with dynamic typing.
+In my discovery post on <a href="https://jarombek.com/blog/jul-15-2018-groovy-optional-typing">
+Groovy's type system</a> I learned that dynamic typing and dynamic programming are two
+completely different concepts.  Dynamic typing specifies a language that enforces types at
+runtime.  Dynamic programming languages allow attributes of a program to change at runtime
+that are typically kept static.  This post is my introduction to the features of a dynamic
+programming language and their use cases in Groovy applications.
+</p>
+<SectionTitle title="Groovy as a Dynamic Language">Groovy as a Dynamic Language</SectionTitle>
+<p>
+Groovy builds upon Java which is statically typed and does not have dynamic language
+features.  While Groovy does use Java's type system, it enforces types at runtime only, making
+Groovy dynamically typed.  Groovy also has dynamic language capabilities that Java does not.
+</p>
+<ComparisonTable title="Dynamic Vs. Static Programming Language">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Dynamic Programming Language
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Dynamic languages enable certain attributes of a program to be changed at runtime.  In an object
+oriented language, these attributes include class fields and methods<sup>1</sup>.  For example, new
+fields can be added to the <code className="jarombek-inline-code">String</code> class at runtime or an
+existing methods behavior can be altered at runtime.  These manipulations don't effect the original
+class definition and can be applied per instance or across all instances<sup>2</sup>.
+</p>
+<p>
+Another powerful feature of a dynamic programming language is dynamic method dispatch<sup>3</sup>.
+This allows methods that don't exist to be invoked.  As a developer you can implement
+certain logic that will occur when a method is invoked but not found.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Static Programming Language
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Static languages disallow certain attributes of a program from changing at runtime that dynamic
+languages are flexible with.  In the object oriented paradigm, a classes fields and methods are
+static and their definitions can't be changed at runtime (they are
+finalized at compile time).  For example, the number of methods and fields on
+<code className="jarombek-inline-code">String</code> can't change once a program compiles.  If a
+method is invoked that does not exist, the program will not even compile.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+One of the challenges Groovy faced was allowing dynamic features for code that is compiled to Java
+byte code.  Java class definitions are immutable once compiled to byte code, so Groovy had to implement a layer
+of indirection to get dynamic language features to work<sup>4</sup>.  This layer of indirection
+occurs between the method or field lookup and the method invocation/field access.
+</p>
+<p>
+Groovy calls the layer of indirection the Meta Object Protocol (MOP).  One piece of the MOP is
+funneling method invocations and field accesses through the <code className="jarombek-inline-code">
+MetaClass</code> object.  <code className="jarombek-inline-code">MetaClass</code> holds all relevant
+information about a class, including the methods and fields in the class definition.
+</p>
+<CodeSnippet language="Groovy">
+MetaClass mc = List.metaClass
+
+// The number of methods in the List object
+assert mc.methods.size() == 9
+
+// The number of fields in the List object
+assert mc.properties.size() == 1
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">MetaClass</code> object is used to invoke methods on the
+object it describes.  If you are familiar with Java, the technique will remind you of
+<a href="https://jarombek.com/blog/jul-1-2018-java-reflection">Java's Reflection API</a>.
+</p>
+<CodeSnippet language="Groovy">
+assert mc.invokeMethod([1,2,3], "toListString", new Object[0]) == "[1, 2, 3]"
+assert mc.invokeMethod([1,2,3], "get", [2]) == 3
+</CodeSnippet>
+<p>
+Whenever you invoke a method on a Groovy object, behind the scenes
+<code className="jarombek-inline-code">invokeMethod()</code> is called on the Groovy object's
+<code className="jarombek-inline-code">MetaClass</code>.
+</p>
+<p>
+Another piece of the MOP is handling calls for methods that don't exist.  Groovy has special
+hook methods for the MOP to invoke whenever a non-existent method is called.  As
+developers we can overwrite hook methods and add our own logic!
+</p>
+<p>
+The hook method that the MOP uses when a method is missing is <code className="jarombek-inline-code">
+methodMissing()</code>.  Similarly, the hook method for missing properties is
+<code className="jarombek-inline-code">propertyMissing()</code>.
+</p>
+<p>
+<code className="jarombek-inline-code">methodMissing()</code> and <code className="jarombek-inline-code">
+propertyMissing()</code> are implemented in a class definition.  Below is a sample class
+representing my programming language use in the past few weeks.  <code className="jarombek-inline-code">
+LanguageUse</code> uses both <code className="jarombek-inline-code">methodMissing()</code> and
+<code className="jarombek-inline-code">propertyMissing()</code>.
+</p>
+<CodeSnippet language="Groovy">
+class LanguageUse {
+
+  static def lastMonth = [
+    "javascript": 1656,
+    "html": 658,
+    "groovy": 484,
+    "sass": 387,
+    "hcl": 366,
+    "haskell": 138,
+    "bash": 90,
+    "java": 30,
+    "swift": 30,
+    "velocity": 29,
+    "json": 8
+  ]
+
+  /**
+  * If the method call does not match any on the LanguageUse class, this method is invoked.  In that case,
+  * check to see if the method name (minus the 'get' prefix) matches a key in the {@code lastMonth} map.  If so,
+  * return the value corresponding to the key.
+  * @param name - the name of the invoked method
+  * @param args - arguments passed to the invoked method
+  * @return A value in the {@code lastMonth} map matching the method name (minus the 'get' prefix)
+  */
+  def methodMissing(String name, Object args) {
+    def language = name - "get"
+    return lastMonth[language.toLowerCase()]
+  }
+
+  /**
+  * If a property accessed on an instance of {@code LanguageUse} does not exist, this method is invoked.
+  * In that case, look for a key in the {@code lastMonth} map that matches the property name.
+  * @param name - the name of the property accessed
+  * @return A value in the {@code lastMonth} map matching the property name
+  */
+  def propertyMissing(String name) {
+    return lastMonth[name]
+  }
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">LanguageUse</code> uses <code className="jarombek-inline-code">
+methodMissing()</code> and <code className="jarombek-inline-code">propertyMissing()</code> to access
+values from the <code className="jarombek-inline-code">lastMonth</code> map.  Now I can make method
+calls and access fields without any corresponding method or field definitions!
+</p>
+<CodeSnippet language="Groovy">
+def languageUse = new LanguageUse()
+
+// Call methods that go through the MOP and methodMissing()
+assert languageUse.getJavaScript() == 1656
+assert languageUse.getGroovy() == 484
+assert languageUse.getJava() == 30
+
+// Access properties that go through the MOP and propertyMissing()
+assert languageUse.javascript == 1656
+assert languageUse.groovy == 484
+assert languageUse.java == 30
+</CodeSnippet>
+<p>
+MOP hook methods enable APIs in a dynamic programming language to be extremely flexible.  Even if
+the encapsulated <code className="jarombek-inline-code">lastMonth</code> map mutates, the new
+key-&gt;value entries are still accessible through the dynamic  <code className="jarombek-inline-code">
+methodMissing()</code> and <code className="jarombek-inline-code">propertyMissing()</code> methods!
+</p>
+<SectionTitle title="Dynamic Programming in a Real-World Application?">Dynamic Programming in a Real-World Application?</SectionTitle>
+<p>
+The hook methods just shown have a lot of potential in a production application.  In <strong>
+Groovy In Action</strong> I saw another great use of dynamic programming that could help improve
+one of my existing applications.  I have a web, iOS, and Android application called
+<a href="https://github.com/AJarombek?utf8=%E2%9C%93&tab=repositories&q=Saints-XCTF&type=&language=">
+SaintsXCTF</a> which my college cross country and track & field teams use for exercise logging.
+Groovy In Action presents sample code that extends the <code className="jarombek-inline-code">Number
+</code> metaclass, adding additional functionality to convert between different metrics<sup>5</sup>.
+I decided to build upon this sample code in a way that would fit the needs of SaintsXCTF.  The
+following code dynamically adds new methods to the <code className="jarombek-inline-code">Number</code>
+class that assists conversions between miles, kilometers, and meters.
+</p>
+<CodeSnippet language="Groovy">
+Number.metaClass {
+  getMiles = { delegate }
+  getKilometers = { delegate / 1.60934.miles }
+  getMeters = { delegate / 1000.kilometers }
+
+  getToMiles = { delegate }
+  getToKilometers = { delegate * 1.60934.toMiles }
+  getToMeters = { delegate * 1000.toKilometers }
+}
+
+// Distance I ran yesterday
+def run = 10.6.miles
+assert run.toKilometers.round(2) == 17.06
+assert run.toMeters.round(2) == 17059.00
+
+// My favorite track event
+def run5k = 5.kilometers
+assert run5k.toMiles.round(2) == 3.11
+assert run5k.toMeters.round(2) == 5000
+</CodeSnippet>
+<p>
+This code creates six getter methods, each of which correspond to a field on
+<code className="jarombek-inline-code">Number</code>.  Each method defines what happens when its
+corresponding field is accessed.
+</p>
+<p>
+If you read my post on <a  href="https://jarombek.com/blog/aug-16-2018-groovy-closures">
+Groovy closures</a> you will remember that each closure has a <code className="jarombek-inline-code">
+delegate</code> property.  <code className="jarombek-inline-code">delegate</code> determines how outer
+scope variables are resolved in a closure.  By default, <code className="jarombek-inline-code">
+delegate</code> is set to the owner of a closure, which is the closures lexical scope.  In the code
+above, <code className="jarombek-inline-code">delegate</code> will resolve to the instance of
+<code className="jarombek-inline-code">Number</code>.  Therefore, accessing the field
+<code className="jarombek-inline-code">5.kilometers</code> results in the calculation
+<code className="jarombek-inline-code">5 / 1.60934.miles</code>.
+</p>
+<p>
+Manipulating classes in a languages standard library to accommodate an application is the greatest power of
+dynamic programming languages.  It removes restrictions that language developers set for the core APIs!
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+While I still haven't used any dynamic programming language techniques in any of my production
+applications, my research for this post has opened my eyes to their potential.  You can find all the
+code for this discovery post on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/
+master/2018/09-Sep/9-14-groovy-dynamic">GitHub</a>.
+</p>
+</div>

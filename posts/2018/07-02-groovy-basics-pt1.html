@@ -1,0 +1,345 @@
+<div>
+<p>
+Starting this summer I'll be picking a programming language to look at in-depth every season.  The
+language may be one I want more knowledge on or it may be a completely
+new language I've never explored.  For this summer, the language of choice is Groovy.  Groovy is
+a programming language run on the JVM that can be used alongside Java code<sup>1</sup>.  It supports
+static and dynamic typing, along with a host of features in hopes to shorten the verbose Java
+syntax.  Groovy is used in a number of different projects such as Grails, Gradle, and Jenkins.
+</p>
+<p>
+One of the main reasons I want to look at Groovy is my work on a
+project involving Jenkins at work.  I also always had an interest in the language as an
+alternative to Java.  This post looks at some basic features of Groovy that
+caught my eye after an hour or two of exploring.  This post and <a href="https://jarombek.com/blog/jul-4-2018-groovy-basics-pt2">Part II</a> serve as my
+first impressions of Groovy.  After these two posts I'll dig deeper into Groovy
+features and use it in Jenkins programs.  Now its time to start exploring!
+</p>
+<SectionTitle title="Some Groovy Code">Some Groovy Code</SectionTitle>
+<p>
+The first thing you will notice about Groovy is its shortened syntax and dynamic
+typing.  No semicolons are needed after statements, and in some cases parenthesis around method
+invocations can be omitted.  The following code displays both dynamic typing and methods being
+called without parenthesis:
+</p>
+<CodeSnippet language="Groovy">
+def hello = "Hello"
+
+// Groovy allows you to omit parenthesis for method calls if it has at least one argument
+println hello
+
+// Dynamic typing at work - hello is now a list
+hello = ["Hello", "World"]
+
+// String templating in Groovy
+println "${hello[0]} ${hello[1]}"
+</CodeSnippet>
+<CodeSnippet>
+Hello
+Hello World
+</CodeSnippet>
+<p>
+No parenthesis are needed for the <code className="jarombek-inline-code">println()</code>
+method invocation.  Also the variable <code className="jarombek-inline-code">hello</code> was defined
+with the keyword <code className="jarombek-inline-code">def</code>.  In Groovy
+<code className="jarombek-inline-code">def</code> is simply a Java
+<code className="jarombek-inline-code">Object</code>, so anything that is an object can also be defined
+with <code className="jarombek-inline-code">def</code><sup>2</sup>.
+</p>
+<p>
+In the third line <code className="jarombek-inline-code">hello</code> is redefined as a list.  Notice
+how concise the syntax is for creating a list in Groovy (although Java 9 did make list
+creation much shorter with the static factory method <code className="jarombek-inline-code">
+List.of()</code>).  The last line shows off a language feature I miss a lot when coding in Java.
+Groovy supports string templating and even allows for simpler syntax than the line shown here (you
+can omit the outer curly braces in most cases).
+</p>
+<p>
+Now that <code className="jarombek-inline-code">hello</code> is an instance of
+<code className="jarombek-inline-code">List</code>, I'll demonstrate some cool operations Groovy adds
+for list manipulation.  One of the most interesting is the spread-dot operator (<code className="jarombek-inline-code">*.</code>).
+</p>
+<CodeSnippet language="Groovy">
+def helloLengths = hello*.length()
+
+println helloLengths
+</CodeSnippet>
+<CodeSnippet>
+[5, 5]
+</CodeSnippet>
+<p>
+The spread dot operator performs an operation on every element of a list, creating a brand new list
+in the process<sup>3</sup>.  The code above creates a new list where each element is the length of
+the corresponding element from the old list.  With this operator keeping data structures immutable
+is extremely easy!  I am really excited to use this operator in my own code.
+</p>
+<p>
+Groovy also supplies an easy way to iterate over collections with the <code className="jarombek-inline-code">each()</code> method.
+</p>
+<CodeSnippet language="Groovy">
+def list = [1, 2, 3, 4, 5]
+
+list.each {
+  println it * it
+}
+</CodeSnippet>
+<CodeSnippet>
+1
+4
+9
+16
+25
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">each()</code> method takes one argument which at first
+glance looks kinda funky.  The argument passed to <code className="jarombek-inline-code">each()</code>
+is called a closure.  <a href="https://jarombek.com/blog/aug-16-2018-groovy-closures">Closures in Groovy</a>
+are not to be confused with <a href="https://jarombek.com/
+blog/nov-9-2017-js-closure-modules">closures in JavaScript</a> or similar languages.  Groovy's
+closures are similar to those in <a href="https://jarombek.com/blog/nov-14-2017-sorting-lists">
+Swift</a>.  A closure in Groovy is an anonymous block of code that can take in arguments and return
+a value<sup>4</sup>.  The syntax of Groovy closures may have you believe they are simply lambda
+functions from Java.  While the object type of a Java lambda expression is an object that implements a
+functional interface, in Groovy closures are an object of type <code className="jarombek-inline-code">
+Closure</code><sup>5, 6</sup>.  This allows Groovy closures, like Java lambda functions and Swift
+closures, to be passed as arguments to methods.  The syntax for closures is <code
+  className="jarombek-inline-code">{ [ params -> ] statements}</code>, where the parameters can be
+explicitly or implicitly declared (an implicit parameter resolves to the <code
+  className="jarombek-inline-code">it</code> variable)<sup>7</sup>.  This is where the
+<code className="jarombek-inline-code">it</code> variable in the closure passed to <code
+  className="jarombek-inline-code">each()</code> comes from.
+</p>
+<p>
+Closures can also be bound to a variable.  In the following example, a closure is assigned 
+to a variable of type <code className="jarombek-inline-code">Closure</code>:
+</p>
+<CodeSnippet language="Groovy">
+Closure squared = { println it * it }
+
+// These parenthesis can be omitted
+list.each(squared)
+</CodeSnippet>
+<CodeSnippet>
+1
+4
+9
+16
+25
+</CodeSnippet>
+<p>
+This awesome <code className="jarombek-inline-code">each()</code> method can even be called on a data
+structure declaration!
+</p>
+<CodeSnippet language="Groovy">
+["Joe", "Tom", "Ben"].each { name ->
+  // Brackets are not mandatory with string templating
+  println "A Great Friend: $name"
+}
+</CodeSnippet>
+<CodeSnippet>
+A Great Friend: Joe
+A Great Friend: Tom
+A Great Friend: Ben
+</CodeSnippet>
+<p>
+Groovy exposes a <code className="jarombek-inline-code">collect()</code> method for collections which
+transforms each entry in the collection and produces a new list with the transformed values<sup>8</sup>.
+The transformation is passed to <code className="jarombek-inline-code">collect()</code>
+in the form of a closure.  Like the spread-dot operator, the <code className="jarombek-inline-code">
+collect()</code> method does not mutate the original collection, enabling immutable data structures.
+</p>
+<CodeSnippet language="Groovy">
+def squaredList = list.collect { item -> item * item }
+println squaredList
+</CodeSnippet>
+<CodeSnippet>
+[1, 4, 9, 16, 25]
+</CodeSnippet>
+<p>
+Groovy even has a really nice shorthand operator for appending an item to a collection (<code
+  className="jarombek-inline-code">&lt;&lt;</code>).
+</p>
+<CodeSnippet language="Groovy">
+// Long version and Groovy shorthand for appending to a data structure
+squaredList.add(36)
+squaredList << 49
+squaredList << 64
+println squaredList
+</CodeSnippet>
+<CodeSnippet>
+[1, 4, 9, 16, 25, 36, 49, 64]
+</CodeSnippet>
+<p>
+Along with string templating, I really miss the ability to create multi-line strings in Java.
+Groovy is nice enough to give us that ability.  You can still use all the Java
+<code className="jarombek-inline-code">String</code> methods as well - such as
+<code className="jarombek-inline-code">trim()</code>
+</p>
+<CodeSnippet language="Groovy">
+def paragraph = '''
+Hello everyone, this is my first in depth look at the
+Groovy programming language.  I have written a little
+bit of Groovy in the past but never a significant amount.
+'''
+
+println paragraph.trim()
+</CodeSnippet>
+<CodeSnippet>
+Hello everyone, this is my first in depth look at the
+Groovy programming language.  I have written a little
+bit of Groovy in the past but never a significant amount.
+</CodeSnippet>
+<p>
+I already showed off how awesome the short <code className="jarombek-inline-code">List</code> syntax is
+in Groovy.  The syntax for the <code className="jarombek-inline-code">Map</code> data structure is
+equally short and sweet!
+</p>
+<CodeSnippet language="Groovy">
+def map = [
+  first: "Andrew",
+  last: "Jarombek",
+  age: 23,
+  country: "United States",
+  state: "Connecticut",
+  job: "Software Developer"
+]
+
+// Groovy maps are actually just a Java LinkedHashMap
+LinkedHashMap otherMap = [
+  first: "Joe",
+  last: "Smith"
+]
+
+// Easily append to a map as well
+otherMap << [age:22, country: "United States"]
+
+println otherMap
+
+// Print out each entry in the map
+map.each { entry ->
+  println entry
+}
+
+// Accessing elements in a map is easy, and can be done in many different ways
+def state = 'state'
+println "${map['first']} ${map['last']} is ${map.age} years old and lives in ${map[state]}"
+</CodeSnippet>
+<CodeSnippet>
+[first:Joe, last:Smith, age:22, country:United States]
+
+first=Andrew
+last=Jarombek
+age=23
+country=United States
+state=Connecticut
+job=Software Developer
+
+Andrew Jarombek is 23 years old and lives in Connecticut
+</CodeSnippet>
+<p>
+The following code shows off Groovy's concise <code className="jarombek-inline-code">for</code> loops.  Groovy
+also allows for number ranges both in loops and during data structure creation<sup>9</sup>.
+</p>
+<CodeSnippet language="Groovy">
+def newList = []
+
+// Looping through ten times
+for (i in 0..9) {
+  newList.add i + 1
+}
+
+// Loop through each item in the list
+for (item in newList) {
+  println item * 10
+}
+
+// You can also make an array easily
+def array = (1..10).toArray()
+println array
+
+// Another easy loop is the times loop
+5.times { i ->
+  println "Iteration of the loop: $i"
+}
+</CodeSnippet>
+<CodeSnippet>
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+Iteration of the loop: 0
+Iteration of the loop: 1
+Iteration of the loop: 2
+Iteration of the loop: 3
+Iteration of the loop: 4
+</CodeSnippet>
+<p>
+Groovy introduces the spaceship operator, declared with the
+<code className="jarombek-inline-code">&lt;=&gt;</code> syntax.  Spaceship operators are shorthand for
+Java's <code className="jarombek-inline-code">CompareTo()</code> method of the
+<code className="jarombek-inline-code">Comparable</code> interface<sup>10</sup>.  I discussed the
+<code className="jarombek-inline-code">Comparable</code> interface briefly in my discussion of building
+a <a href="https://jarombek.com/blog/may-20-2018-java-generics-api">Java API with Generics</a>.
+Basically comparison is used to define a logical ordering of objects, so the spaceship operator
+compares objects based on an ordering written in the class definition.  Even better the spaceship
+operator performs these comparisons in a null-safe manner.
+</p>
+<CodeSnippet language="Groovy">
+// The spaceship operator will return 1 when the first value is larger
+println 6 <=> 5
+
+// Now it returns -1 when it is the other way around
+println 6 <=> 10
+
+// And it returns 0 if they are equal
+println 1 <=> 1
+
+// It is also null safe
+println "Hello" <=> null
+</CodeSnippet>
+<CodeSnippet>
+1
+-1
+0
+1
+</CodeSnippet>
+<p>
+The final really cool operator I want to discuss in Groovy is the elvis operator, which is
+declared with the <code className="jarombek-inline-code">?:</code> syntax.  Elvis operators are
+shorthand for a full ternary operator which checks if a value is truthy in the condition block
+<sup>11</sup>.  If its truthy, that value is returned - otherwise a default value is returned.
+Basically you can use the elvis operator as a check if a variable is false and assign it a default
+value if that is the case.
+</p>
+<CodeSnippet language="Groovy">
+def name = "Andrew"
+def result = name ?: "No Name was supplied!"
+println result
+
+// We can then use the elvis operator in a closure
+def nameNotNull = { n -> n ?: "No Name was supplied!" }
+println nameNotNull("Andrew")
+println nameNotNull(null)
+</CodeSnippet>
+<CodeSnippet>
+Andrew
+
+Andrew
+No Name was supplied!
+</CodeSnippet>
+<p>
+These cool Groovy features are just the tip of the iceberg for my exploration of the language.  My
+next post on Groovy basics will look at features surrounding the languages object oriented paradigm.
+You can find all the code from this discovery and more up on <a href="https://github.com/AJarombek/
+jarombek-com-sources/blob/master/2018/07-jul/7-2-groovy-basics-pt1/Test.groovy">GitHub</a>.
+</p>
+</div>

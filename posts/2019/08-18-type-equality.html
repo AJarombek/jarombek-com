@@ -1,0 +1,1258 @@
+<div>
+<p>
+In this article I'm revisiting the concept of type equality.  Type equality is a topic that software engineers 
+learn early on in their careers.  Similar to any other profession, it's beneficial to go
+back to the basics for practice.  Professional basketball players practice layups before each game.
+Professional programmers should work at the basics as well.  I spent this past week re-learning type
+equality in 13 different languages.  In the process I've reaffirmed my knowledge and gained new insights.  The rest
+of this article discusses my findings.
+</p>
+<SectionTitle title="The Different Forms of Type Equality">The Different Forms of Type Equality</SectionTitle>
+<p>
+Each programming language has its own intricacies in regards to analysing types for equality.
+<a href="https://jarombek.com/blog/jul-15-2018-groovy-optional-typing#type">Types</a> are the blueprints
+for values in programming languages.  Types define the characteristics of a value and differentiates a
+value from other types<sup>1</sup>.  Equality is a test to see if two values are equal.  There are two
+main forms of equality - reference equality and value equality.
+</p>
+<ComparisonTable title="Forms of Equality">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Reference Equality
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Tests for reference equality check to see if two variables, primitives, or objects refer to the
+same space in memory.  When two variables are referentially equal, altering the value of one impacts the other
+since they refer to the same bytes in memory.  For example, <code className="jarombek-inline-code">
+var a = "value"</code> and <code className="jarombek-inline-code">var b = a</code> results in two variables
+  that point to the same memory location in many languages.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Value Equality
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Tests for value equality check to see if two variables, primitives, or objects are logically the same.
+For example, two integers containing the value <code className="jarombek-inline-code">2</code> are deemed
+ equal in value, since <code className="jarombek-inline-code">2 = 2</code>.  Another example is
+two objects <code className="jarombek-inline-code">a</code> and <code className="jarombek-inline-code">b</code>
+where the properties in <code className="jarombek-inline-code">a</code> have the same values assigned to
+them as the properties in <code className="jarombek-inline-code">b</code>.  These two objects would
+pass a value equality check.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+In many languages value equality is dependent on the two values conforming to the same type.  However,
+some languages lift this restriction in certain circumstances.
+</p>
+<p>
+Languages that allow values of different types to be equal are generally considered loosely typed.  Languages
+where it's impossible or very rare for values of different types to be equal are generally considered
+strongly typed.  Loosely typed and strongly typed languages should not be confused for
+<a href="https://jarombek.com/blog/jul-15-2018-groovy-optional-typing#dynamic-&-static-typing">dynamically
+and statically typed languages</a>.
+</p>
+<ComparisonTable title="Type Rules">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Loosely Typed
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A language that is loosely typed (weakly typed) is one where type rules are not as strict.  In a
+loosely typed language types can often be converted to other types implicitly.  This is known as
+implicit type coercion, since a type can be coerced to another type.  For example, in PHP
+<code className="jarombek-inline-code">2 == '2'</code> returns <code className="jarombek-inline-code">true</code>
+because the string <code className="jarombek-inline-code">'2'</code> is implicitly converted to a number
+before the type equality check is made.  Languages such as JavaScript, PHP, and PowerShell are
+generally considered loosely typed languages.  However, there is no clear boundary between a loosely
+typed language and a strongly typed language.  It's mostly up to personal interpretation which category
+the language belongs in.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Strongly Typed
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A language that is strongly typed has very strict type rules.  In order for a type to be converted
+to another type, an explicit conversion mechanism must be visible in the code.  For example, Java is
+a strongly typed language where explicit casts are used to convert from one type to another, such as
+<code className="jarombek-inline-code">double two = 2.0</code> and <code className="jarombek-inline-code">
+int twoInt = (int) two;</code>.  However, there are still a few cases in Java where implicit type
+coercion occurs, such as converting an <code className="jarombek-inline-code">int</code> to a
+<code className="jarombek-inline-code">double</code> or boxing and un-boxing primitives.  Languages such
+as C, Java, and Python are generally considered strongly typed.  Just like loosely typed languages,
+there is no explicit rule for whether or not a language is strongly typed.  It's mostly up to personal
+interpretation of the language.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+Now let's explore equality in the programming languages I use.  Look out for the different ways each
+language handles reference and value equality.  In terms of value equality, watch out for loosely typed
+languages that enable type coercion.  I'll start with my main three languages - Java, JavaScript,
+and Python.  Then I'll run through the remaining ten languages in alphabetical order.
+</p>
+<SectionTitle title="Java">Java</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=java&page=1">Java</a> has two different categories of types -
+primitives and objects.  Primitive types are checked for value equality with the <code className="jarombek-inline-code">==</code>
+operator.  Object types are checked for reference equality with the <code className="jarombek-inline-code">==</code>
+operator and value equality with the <code className="jarombek-inline-code">equals()</code> method found
+in the <code className="jarombek-inline-code">Object</code> class.
+</p>
+<p>
+The <code className="jarombek-inline-code">==</code> operator tests the values in two variables memory locations
+for equality.  Primitive types hold their values directly in their assigned memory space.  Therefore,
+<code className="jarombek-inline-code">==</code> tests for value equality with primitives.
+</p>
+<CodeSnippet language="Java">
+int five = 5;
+int six = 6;
+assert five != six;
+
+int fiveAgain = 5;
+assert five == fiveAgain;
+</CodeSnippet>
+<p>
+There is no way to test reference equality with primitives.  Primitives also can't use the <code className="jarombek-inline-code">
+equals()</code> method since they aren't objects and can't have methods.
+</p>
+<p>
+The following code demonstrates how <code className="jarombek-inline-code">String</code> objects are tested for equality.  String literals are unique because
+ Java caches them in the same memory location if they have equal values.  As you will soon see, many other
+languages use this optimization for strings as well.
+</p>
+<CodeSnippet language="Java">
+String day = "Saturday the 27th";
+String dayAgain = "Saturday the 27th";
+String dayAgainAgain = new String("Saturday the 27th");
+
+// This is a unique case.  Java caches string literals (not created with a constructor) so
+// that they reference the same underlying object in memory.
+assert day == dayAgain;
+
+// When Strings are created with a constructor (like dayAgainAgain), they are not cached and reference
+// a new underlying object.
+assert day != dayAgainAgain;
+
+// equals() performs value comparison as expected.
+assert day.equals(dayAgain);
+assert day.equals(dayAgainAgain);
+</CodeSnippet>
+<p>
+However, for most objects <code className="jarombek-inline-code">==</code> tests for reference equality and
+<code className="jarombek-inline-code">equals()</code> tests for value equality.  I created a custom
+<code className="jarombek-inline-code">Yarn</code> class to demonstrate how object equality works.  For value
+equality to work properly, <code className="jarombek-inline-code">Yarn</code> overrides the
+<code className="jarombek-inline-code">equals()</code> method from <code className="jarombek-inline-code">Object</code>.
+</p>
+<CodeSnippet language="Java">
+public class Yarn {
+
+  private String fiber;
+  private String color;
+  private int yards;
+
+  /**
+   * Private constructor for a new ball of yarn.  Can only be invoked by the static factory method.
+   * @param fiber The fiber that the yarn is made of.
+   * @param color The visual color of the yarn.
+   * @param yards The length of the yarn in yards.
+   */
+  private Yarn(String fiber, String color, int yards) {
+    this.fiber = fiber;
+    this.color = color;
+    this.yards = yards;
+  }
+
+  /**
+   * Static factory method for constructing a new ball of yarn.  Requires that a value be assigned for each
+   * instance variable, although it does accept null values.
+   * @return A new Yarn object.
+   */
+  static Yarn create(String fiber, String color, int yards) {
+    return new Yarn(fiber, color, yards);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this)
+      return true;
+    if (!(obj instanceof Yarn))
+      return false;
+    var otherYarn = (Yarn) obj;
+    return Objects.equals(fiber, otherYarn.fiber)
+      && Objects.equals(color, otherYarn.color)
+      && yards == otherYarn.yards;
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+var yarn1 = Yarn.create("Polyester", "Pitter Patter", 210);
+var yarn2 = yarn1;
+var yarn3 = Yarn.create("Polyester", "Pitter Patter", 210);
+var yarn4 = Yarn.create("Unknown", "Vanilla", 70);
+
+assert yarn1 == yarn2;
+assert yarn1.equals(yarn2);
+
+assert yarn2 != yarn3;
+assert yarn2.equals(yarn3);
+
+assert yarn3 != yarn4;
+assert !yarn3.equals(yarn4);
+</CodeSnippet>
+<p>
+Variables <code className="jarombek-inline-code">yarn1</code> and <code className="jarombek-inline-code">yarn2</code>
+are the only <code className="jarombek-inline-code">Yarn</code> instances that pass reference and value equality tests.
+</p>
+<p>
+While Java is generally a strongly typed language, there are a few occasions where type coercion occurs with
+the <code className="jarombek-inline-code">==</code> operator.  This is usually due to boxing and un-boxing
+primitives along with comparing numeric primitives<sup>2</sup>.  Here are a few examples:
+</p>
+<CodeSnippet language="Java">
+double two = 2.0;
+int twoInt = (int) two;
+
+// This comparison is successful even though two is of type 'double' and twoInt is of type 'int'.
+assert two == twoInt;
+
+// This comparison is successful because Integer is coerced (un-boxed) to primitive type int.  new Integer() is now deprecated.
+assert 2 == new Integer(2);
+
+Integer twoInteger = 2;
+assert twoInt == twoInteger;
+
+// In most cases, comparing two values of different types fails at compile time.
+// assert 2 == "2";
+</CodeSnippet>
+<SectionTitle title="JavaScript">JavaScript</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=javascript&page=1">JavaScript</a> has two operators that perform
+equality checks - <code className="jarombek-inline-code">==</code> and <code className="jarombek-inline-code">===</code>.
+When working with primitive types, both operators test value equality.  When working with object types, both
+operators test reference equality.
+</p>
+<p>
+There isn't much debate that JavaScript is a loosely typed programming language.  When working with primitives,
+<code className="jarombek-inline-code">==</code> enables implicit type coercion during the comparison.  On the
+other hand, <code className="jarombek-inline-code">===</code> prohibits implicit type coercion.  For example,
+when comparing a string and a number using <code className="jarombek-inline-code">==</code>, the string is
+converted to a numeric type before the comparison occurs.
+</p>
+<CodeSnippet language="JavaScript">
+assert(2 == "2");
+assert("2" == 2);
+
+// This is the same as:
+assert(2 === Number("2"));
+
+// If a number is compared to a string using !==, no type coercion occurs.
+assert(2 !== "2");
+assert("2" !== 2);
+</CodeSnippet>
+<p>
+Because JavaScript contains a lot of implicit type coercion, many developers argue that you shouldn't use
+<code className="jarombek-inline-code">==</code> on primitives.  Here are some examples of the confusing
+consequences of implicit type coercion:
+</p>
+<CodeSnippet language="JavaScript">
+
+// This first converts 'true' to its number equivalent, which is 1.  Then it converts "0" to a
+// number.  Then it compares 1 === 0, which is false.
+assert(true != "0");
+
+// This first converts 'false' to its number equivalent, which is 0.  Then it converts "0" to a
+// number.  Then it compares 0 === 0, which is true.
+assert(false == "0");
+
+// 'true' converts to 1, "1" converts to 1.  The expression 1 === 1 is true.
+assert(true == "1");
+
+// 'true' converts to 1, "2" converts to 2.  The expression 1 === 2 is false.
+assert(true != "2");
+
+// Since null and undefined are both falsey, comparing them with == returns true.
+assert(undefined == null);
+assert(null == undefined);
+
+// But with === they return false.
+assert(undefined !== null);
+assert(null !== undefined);
+
+// However, null and undefined are not equal to any other types, even if their values are falsey
+assert(null != "");
+assert(null !== "");
+assert(null != 0);
+assert(null !== 0);
+assert(null != false);
+assert(null !== false);
+
+// When an object type is compared to a primitive type with ==, the object
+// is first coerced into a primitive value.
+
+// An array is a type of object.
+assert([10] == 10);
+assert([10] == "10");
+assert([10] !== "10");
+
+// A function is also a type of object.
+assert(() => "hello" == "hello");
+assert(() => "100" == "100");
+assert(() => "100" == 100);
+assert(() => "100" !== 100);
+
+// Objects containing a property with a certain value aren't coerced into that value.
+assert({value: 1} != 1);
+
+// However, objects created by passing a primitive value into an object constructor
+// are coerced to that value.
+assert(new Object(1) == 1);
+assert(new Object(1) !== 1);
+
+// You can monkey-patch prototype functions to create strange equality behavior.
+const twentyTwo = new Number(22);
+
+assert(23 != 24);
+assert(twentyTwo != 23); // 22 != 23 as expected
+
+Number.prototype.valueOf = () => {
+  return 23;
+};
+
+assert(23 != 24);
+assert(twentyTwo == 23); // 22 == 23 unexpectedly due to valueOf() monkey patch.
+</CodeSnippet>
+<p>
+When testing object types for equality, the <code className="jarombek-inline-code">==</code> and
+<code className="jarombek-inline-code">===</code> operators are much more predictable.  They both test
+objects for reference equality.
+</p>
+<CodeSnippet language="JavaScript">
+assert({} != {});
+assert({} !== {});
+
+// Remember that arrays and functions are also objects in JavaScript.
+assert([] != []);
+assert([] !== []);
+assert((() => {}) != (() => {}));
+assert((() => {}) !== (() => {}));
+
+const emptyObj1 = {};
+
+// emptyObj2 references the same object in memory as emptyObj1.
+const emptyObj2 = emptyObj1;
+
+// emptyObj3 creates a new object with emptyObj1 as its prototype.
+const emptyObj3 = Object.create(emptyObj1);
+
+// emptyObj4 uses emptyObj1 as a base object and copies the empty object into the base object.
+const emptyObj4 = Object.assign(emptyObj1, {});
+
+assert(emptyObj1 == emptyObj2);
+assert(emptyObj1 === emptyObj2);
+
+assert(emptyObj1 != emptyObj3);
+assert(emptyObj1 !== emptyObj3);
+
+assert(emptyObj1 == emptyObj4);
+assert(emptyObj1 === emptyObj4);
+</CodeSnippet>
+<p>
+If we want to test objects for value equality, a custom function must be created.  The following function
+tests objects for value equality one level deep<sup>3</sup>.
+</p>
+<CodeSnippet language="JavaScript">
+/**
+ * Test for value equality on two objects.  NOTE: nested objects are tested for reference equality.
+ * @param a the first object to compare for equality.
+ * @param b the second object to compare for equality.
+ * @return {boolean} {@code true} if the objects (un-nested) property values are equal,
+ * {@code false} otherwise.
+ */
+const equals = (a, b) => {
+  const aProps = Object.getOwnPropertyNames(a);
+  const bProps = Object.getOwnPropertyNames(b);
+
+  if (aProps.length !== bProps.length) {
+    return false;
+  }
+
+  for (let i = 0; i < aProps.length; i++) {
+    const propName = aProps[i];
+    if (a[propName] !== b[propName]) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+// Prove that equals() tests for value equality on object properties.
+assert(equals({}, {}));
+assert(equals({first: 'andy', last: 'jarombek'}, {last: 'jarombek', first: 'andy'}));
+
+// This still won't work for nested objects.
+assert(
+  !equals(
+    {type: 'walk', stats: {minutes: 76, seconds: 40}},
+    {type: 'walk', stats: {minutes: 76, seconds: 40}}
+  )
+);
+</CodeSnippet>
+<p>
+The following function tests arrays (which are also objects in JavaScript) for value equality<sup>4</sup>.
+</p>
+<CodeSnippet language="JavaScript">
+/**
+ * Test for value equality on two arrays.  NOTE: object values in the array are tested for
+ * reference equality.
+ * @param array1 The first array to test for equality.
+ * @param array2 The second array to test for equality.
+ * @return {boolean} {@code true} if the arrays (un-nested) values are equal,
+ * {@code false} otherwise.
+ */
+const arrayEquals = (array1, array2) => {
+  if (array1.length !== array2.length) return false;
+
+  for (let i = 0; i < array1.length; i++) {
+    if (array1[i] !== array2[i]) return false;
+  }
+
+  return true;
+};
+
+// Prove that arrayEquals() tests for value equality on array items.
+assert(arrayEquals([], []));
+assert(arrayEquals([1, "2", true], [1, "2", true]));
+
+// ...however it still tests for reference equality when array items are objects.
+assert(!arrayEquals([{}], [{}]));
+</CodeSnippet>
+<SectionTitle title="Python">Python</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=python&page=1">Python</a> has two ways to test for equality - the
+<code className="jarombek-inline-code">==</code> operator and the <code className="jarombek-inline-code">is</code>
+statement.  Value equality is tested with <code className="jarombek-inline-code">==</code> and reference equality
+is tested with <code className="jarombek-inline-code">is</code>.  Python equality is easier to reason about
+because all types are objects.  Python is also strongly typed, so there is no implicit type coercion when
+testing equality.
+</p>
+<CodeSnippet language="Python">
+# Value equality is tested with the == operator.
+assert 1 == 1
+assert "andy" == "andy"
+
+# Python's == operator doesn't coerce types.
+assert "1" != 1
+</CodeSnippet>
+<p>
+Similar to Java, Python caches string literals in the same memory location, causing the results of
+<code className="jarombek-inline-code">==</code> and <code className="jarombek-inline-code">is</code> is be the same.
+</p>
+<CodeSnippet language="Python">
+# Both these strings pass value and reference equality tests.
+first = "Andy"
+firstAgain = "Andy"
+
+# Both these strings pass value and reference equality tests.
+forever = "rock Forever 21 but just turned thirty"
+foreverAgain = str("rock Forever 21 but just turned thirty")
+
+# These strings pass value equality tests but not reference equality tests.
+desc = "Andrew Jarombek is a big fan of cats 🐱"
+descAgain = "Andrew Jarombek is a big fan of cats " + "🐱"
+
+assert first == firstAgain
+assert forever == foreverAgain
+assert desc == descAgain
+
+# Reference equality is tested with the 'is' keyword.
+# Similar to Java, Python caches strings in certain implementations.  Be careful, two strings that pass the value
+# equality test may not pass the reference equality test.
+assert first is firstAgain
+assert forever is foreverAgain
+assert desc is not descAgain
+
+# Every Python type is an object. Each object in Python is assigned a unique identifier.  You can think this unique
+# identifier as the memory location of the object.
+assert id(first) == id(firstAgain)
+assert id(forever) == id(foreverAgain)
+assert id(desc) != id(descAgain)
+</CodeSnippet>
+<p>
+I created a custom <code className="jarombek-inline-code">Yarn</code> class to demonstrate the normal behavior
+of <code className="jarombek-inline-code">==</code> and <code className="jarombek-inline-code">is</code>.
+Python provides a built in <code className="jarombek-inline-code">__eq__</code> method that classes can override.
+This method impacts the behavior of the <code className="jarombek-inline-code">==</code> operator for testing
+value equality.
+</p>
+<CodeSnippet language="Python">
+class Yarn:
+  """
+  Class representing a ball of yarn for knitting.
+  """
+
+  def __init__(self, fiber: str, color: str, yards: int):
+    """
+    Construct a new yarn object.  Yarn is a plain Python object with three properties, all of which should be
+    assigned values upon construction.
+    :param fiber: The fiber that the yarn is made of.
+    :param color: The visual color of the yarn.
+    :param yards: The length of the yarn in yards.
+    """
+    self.fiber = fiber
+    self.color = color
+    self.yards = yards
+
+  def __eq__(self, other):
+    """
+    Implement the built in __eq__ function to test for value equality between two Yarn objects.  Return
+    NotImplemented if a Yarn object is compared to a different object.  By default __neq__ negates the result of
+    __eq__, so I don't need to explicitly implement it.
+    :param other: An object to compare to this Yarn object.
+    :return: true if the two balls of yarn are equal, false otherwise.  NotImplemented if the second object isn't
+    an instance of Yarn.
+    """
+    if isinstance(other, Yarn):
+      return self.fiber == other.fiber and self.color == other.color and self.yards == other.yards
+    else:
+      return NotImplemented
+
+
+# Create balls of yarn to test for equality.
+yarn1 = Yarn(fiber='Polyester', color='Pitter Patter', yards=210)
+yarn2 = yarn1
+yarn3 = Yarn(fiber='Polyester', color='Pitter Patter', yards=210)
+yarn4 = Yarn(fiber='Polyester', color='Vanilla', yards=70)
+
+# Perform the equality tests
+assert yarn1 == yarn2
+assert yarn1 is yarn2
+assert id(yarn1) == id(yarn2)
+
+assert yarn2 == yarn3
+assert yarn2 is not yarn3
+assert id(yarn2) != id(yarn3)
+
+assert yarn3 != yarn4
+assert yarn3 is not yarn4
+assert id(yarn3) != id(yarn4)
+</CodeSnippet>
+<SectionTitle title="Bash">Bash</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=bash&page=1">Bash</a> is an outlier in the sense that it's an
+<a href="https://jarombek.com/blog/feb-22-2019-bash-scripting#bash-file-basics">untyped language</a>.
+All variables in bash are plain text that can be interpreted differently depending on the context.
+Bash provides a couple operators for determining equality of plain text.  All these operators test value
+equality.  There is no way that I know of to test reference equality.
+</p>
+<p>
+The <code className="jarombek-inline-code">=</code> and <code className="jarombek-inline-code">==</code> operators
+test for plain text equality.  The <code className="jarombek-inline-code">-eq</code> operator tests for integer equality.
+</p>
+<CodeSnippet language="Bash">
+
+# In Bash everything is plain text except in certain contexts.  Both == and = test for text equality.
+# = is defined in the POSIX spec while == is Bash specific.
+[ "andy" = "andy" ] # true
+
+# = and == are synonyms
+[ "jarombek" == "jarombek" ] # true
+
+# -eq tests for equality between numbers
+[ 2 -eq 2 ] # true
+
+# This would throw an exception - integer expression expected.
+# [ "andy" -eq "andy" ] # true
+
+# Both == and = work for integers, but -eq doesn't work for strings
+[ 2 != 3 ] # true
+
+# The double parentheses construct $(( )) is used to perform arithmetic.
+# These four comparisons throw errors.
+# ((24 -eq 24))
+# ((24 = 24))
+# (("andy" -eq "andy"))
+# (("andy" = "andy"))
+
+((24 == 24)) # true
+
+# Using strings with double parentheses compile but aren't evaluated properly.
+# This is determined to be true, although it should be false.
+(("Greenwich,CT" != "greenwich,connecticut")) # true
+
+# ... Unless if the strings are convertible to integers.
+(("10" == "10" && "5" != "6")) # true
+</CodeSnippet>
+<p>
+You can also easily test arrays for value equality in Bash:
+</p>
+<CodeSnippet language="Bash">
+todays_workouts=("run" "walk" "kayak")
+tomorrows_workouts=("run" "walk")
+mondays_workouts=("run" "walk" "kayak")
+
+# array[@] and array[*] both retrieve all the items in the array.
+day1=${todays_workouts[@]}
+day2=${tomorrows_workouts[@]}
+day3=${mondays_workouts[*]}
+
+# [[ conditions ]] has some extended features over [ conditions ], including the use of two
+# conditions separated by an && operator.
+[[ "${day1}" != "${day2}" && "${day1}" == "${day3}" ]] # true
+</CodeSnippet>
+<SectionTitle title="C">C</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=c&page=1">C</a> has a single <code className="jarombek-inline-code">==</code>
+operator for testing type equality.  <code className="jarombek-inline-code">==</code> can be used to test integer,
+floating point, and pointer types for equality.  Integer and floating point equality operations test for
+value equality.  Pointer equality operations test for reference equality.  C is strongly typed, so no type
+coercion occurs during these equality tests.
+</p>
+<p>
+One of the small differences between the <code className="jarombek-inline-code">==</code> operator in C and
+other languages is that in C it returns a number instead of a boolean value.  <code className="jarombek-inline-code">==</code>
+returns <code className="jarombek-inline-code">1</code> when the two items are equal and <code className="jarombek-inline-code">0</code>
+when they aren't.
+</p>
+<CodeSnippet language="C">
+int two = 2;
+int twoAgain = 2;
+
+int twosAreEqual = two == twoAgain;
+
+assert(two == twoAgain);
+assert(twosAreEqual == 1);
+</CodeSnippet>
+<p>
+As I mentioned, comparing two pointers with the <code className="jarombek-inline-code">==</code> operator tests
+for reference equality.  Similar to other languages, C caches string literals so they point to the same
+memory location.  This is proven in the following code:
+</p>
+<CodeSnippet language="C">
+char* name = "Andy";
+char* nameAgain = "Andy";
+char* lastName = "Jarombek";
+
+assert(name == nameAgain);
+assert(name != lastName);
+</CodeSnippet>
+<p>
+Strings in C can be represented as character pointers (<code className="jarombek-inline-code">char*</code>) or character
+arrays.  Since character arrays always claim a new slice of memory, reference equality will fail when comparing
+them to a character pointer.
+</p>
+<CodeSnippet language="C">
+char nameArray[] = "Andy";
+
+assert(name != nameArray);
+assert(nameAgain != nameArray);
+assert(nameArray != lastName);
+</CodeSnippet>
+<p>
+C is an imperative programming language and doesn't support classes or objects.  The basic construct it does
+support is structs.  Unfortunately the <code className="jarombek-inline-code">==</code> operator doesn't work
+with structs.  If you try using it a compile time error will occur.  To test struts for value equality,
+each item in the struct must be checked for equality individually.  There is also a <code className="jarombek-inline-code">memcmp()</code>
+function available to test structs for value equality, however it isn't always reliable<sup>5,6</sup>.  To test
+structs for reference equality, you just need to compare the pointers to the structs.
+</p>
+<CodeSnippet language="C">
+typedef struct Yarn {
+  char* fiber;
+  char* color;
+  int yards;
+} Yarn;
+
+/**
+ * Determine if two Yarn structs have equal values.
+ * @param y1 The first Yarn struct to compare.
+ * @param y2 The second Yarn struct to compare.
+ * @return 1 if the two Yarn structs are equal, 0 otherwise.
+ */
+int yarnEqual(Yarn* y1, Yarn* y2) {
+  return y1->fiber == y2->fiber
+    && y1->color == y2->color
+    && y1->yards == y2->yards;
+}
+
+int main() {
+  Yarn yarn1 = {"Polyester", "Pitter Patter", 210};
+  Yarn* yarn2 = &yarn1;
+  Yarn yarn3 = {"Polyester", "Pitter Patter", 210};
+  Yarn yarn4 = {"Polyester", "Vanilla", 70};
+
+  // The == and != operators can't be used on structs.
+  // assert(yarn1 == yarn2);
+
+  // To compare them for value equality, each field in the struct must be compared explicitly.
+  assert(yarnEqual(&yarn1, yarn2));
+  assert(yarnEqual(yarn2, &yarn3));
+  assert(!yarnEqual(&yarn3, &yarn4));
+
+  // To compare them for reference equality, convert the structs to pointers and then use ==.
+  // NOTE: yarn2 is already a pointer type.
+  assert(&yarn1 == yarn2);
+  assert(yarn2 != &yarn3);
+  assert(&yarn3 != &yarn4);
+
+  // It's also said that while memcmp() often works when comparing structs for value equality,
+  // it should not be trusted.  memcmp() returns 0 if all the bytes of memory
+  // for the structs are equal, another number otherwise.
+  int yarn1EqualsYarn2 = memcmp(&yarn1, yarn2, sizeof(Yarn)) == 0;
+  int yarn2EqualsYarn3 = memcmp(yarn2, &yarn3, sizeof(Yarn)) == 0;
+  int yarn3EqualsYarn4 = memcmp(&yarn3, &yarn4, sizeof(Yarn)) == 0;
+
+  assert(yarn1EqualsYarn2);
+  assert(yarn2EqualsYarn3);
+  assert(!yarn3EqualsYarn4);
+}
+</CodeSnippet>
+<SectionTitle title="C++">C++</SectionTitle>
+<p>
+Similar to C, <a href="https://jarombek.com/blog?query=c++&page=1">C++</a> has a single <code className="jarombek-inline-code">==</code>
+operator for testing type equality.  However, C++ is an object-oriented language that allows for operator
+overloading.  Because of this, all structs and classes can use the <code className="jarombek-inline-code">==</code>
+operator with their own custom logic for value equality.  Pointer types are still used for reference equality
+just like C.
+</p>
+<CodeSnippet language="C++">
+typedef struct Yarn {
+  string fiber;
+  string color;
+  int yards;
+
+  /**
+   * Overload the == operator to test value equality between two Yarn structs.
+   * @param other Another Yarn struct to test equality with.
+   * @return true if the two Yarn structs have equal values, false otherwise.
+   */
+  bool operator == (Yarn& other) {
+    return fiber == other.fiber
+      && color == other.color
+      && yards == other.yards;
+  }
+
+  /**
+   * Overload the != operator to test value inequality between two Yarn structs.
+   * @param other Another Yarn struct to test equality with.
+   * @return true if the two Yarn structs DON'T have equal values, false otherwise.
+   */
+  bool operator != (Yarn& other) {
+    return !(*this == other);
+  }
+
+} Yarn;
+
+int main() {
+  // Similar to C, there is no == operator for structs by default.  Unlike C, in C++ the == operator can be
+  // overloaded to work with two structs of the same type.
+  Yarn yarn1 = {"Polyester", "Pitter Patter", 210};
+  Yarn& yarn2 = yarn1;
+  Yarn yarn3 = {"Polyester", "Pitter Patter", 210};
+  Yarn yarn4 = {"Polyester", "Vanilla", 70};
+
+  // Use == and != to test the structs for value equality.
+  assert(yarn1 == yarn2);
+  assert(yarn2 == yarn3);
+  assert(yarn3 != yarn4);
+
+  // Use == and != on the pointers of the structs to test for reference equality.
+  assert(&yarn1 == &yarn2);
+  assert(&yarn2 != &yarn3);
+  assert(&yarn3 != &yarn4);
+}
+</CodeSnippet>
+<p>
+You can see an example of equality between objects in C++ on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2019/08-Aug/08-18-type-equality/cpp">GitHub</a>.
+</p>
+<p>
+Also the <code className="jarombek-inline-code">==</code> operator in C++ returns a boolean type instead of
+an integer type as it does in C.
+</p>
+<CodeSnippet language="C++">
+int two = 2;
+int twoAgain = 2;
+
+// 'auto' can be replaced with 'bool'
+auto twosAreEqual = two == twoAgain;
+
+assert(two == twoAgain);
+cout << typeid(twosAreEqual).name() << endl; // 'b' for boolean
+</CodeSnippet>
+<SectionTitle title="C#">C#</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=c#&page=1">C#</a> provides an <code className="jarombek-inline-code">==</code>
+operator, an <code className="jarombek-inline-code">Equals()</code> method, and a <code className="jarombek-inline-code">
+ReferenceEquals()</code> method for testing equality.  When working with primitives, <code className="jarombek-inline-code">==</code>
+and <code className="jarombek-inline-code">Equals()</code> test for value equality.  C# is strongly typed so
+there is no type coercion when testing for equality.
+</p>
+<p>
+C# is often compared to Java due to similarities in their structure.  However, there are some
+differences when it comes to equality.  While Java primitives can't use the <code className="jarombek-inline-code">
+equals()</code> method, C# primitives can.  This is because primitives in C# are aliases for structs.
+</p>
+<CodeSnippet language="C#">
+int one = 1;
+int two = 2;
+Assert(one != two);
+Assert(!one.Equals(two));
+</CodeSnippet>
+<p>
+When working with custom structs or classes, <code className="jarombek-inline-code">Equals()</code> tests for
+value equality and <code className="jarombek-inline-code">ReferenceEquals()</code> tests for reference equality.
+The <code className="jarombek-inline-code">==</code> operator is a trickier situation in C#.  Unlike Java, C#
+permits operator overloading.  This means a class designer can decide if they want to overload
+<code className="jarombek-inline-code">==</code> or not.  Depending on this decision, <code className="jarombek-inline-code">==</code>
+may test for value equality or reference equality.
+</p>
+<p>
+For example, the built in <code className="jarombek-inline-code">Uri</code> class overloads the <code className="jarombek-inline-code">==</code>
+operator so that it tests for value equality.  I also created a custom <code className="jarombek-inline-code">Yarn</code>
+class which doesn't overload <code className="jarombek-inline-code">==</code> so that it maintains reference equality.
+The consequences can be seen below:
+</p>
+<CodeSnippet language="C#">
+Uri jarombekCom = new Uri("https://jarombek.com");
+Uri jarombekCom2 = new Uri("https://jarombek.com");
+
+// If this was reference equality, it would return false.
+Assert(jarombekCom == jarombekCom2);
+
+Yarn pinkYarn = new Yarn(210, Yarn.YarnWeight.SuperBulky);
+Yarn multiColorYarn = new Yarn(70, Yarn.YarnWeight.Bulky);
+Yarn anotherPinkYarn = new Yarn(210, Yarn.YarnWeight.SuperBulky);
+
+Assert(pinkYarn.Equals(anotherPinkYarn));
+Assert(pinkYarn != anotherPinkYarn); // == still maintains reference equality
+Assert(!pinkYarn.Equals(multiColorYarn));
+</CodeSnippet>
+<p>
+Luckily you can still use the <code className="jarombek-inline-code">ReferenceEquals()</code> method in case
+the <code className="jarombek-inline-code">==</code> operator is overloaded.  If you want to see more examples
+of equality in C#, check out my <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/
+08-Aug/08-18-type-equality/csharp/equality">GitHub</a> page.
+</p>
+<SectionTitle title="Groovy">Groovy</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=groovy&page=1">Groovy</a> takes Java's type equality system and
+makes some major changes to it.  Groovy uses <code className="jarombek-inline-code">==</code> to test for value
+equality for all values.  This is different than Java which uses <code className="jarombek-inline-code">==</code>
+for reference equality with value types.  You can still use <code className="jarombek-inline-code">Object.equals()</code>
+in Groovy, however it will provide the same result as <code className="jarombek-inline-code">==</code>.  Because
+both <code className="jarombek-inline-code">==</code> and <code className="jarombek-inline-code">Object.equals()</code>
+are used for value equality, Groovy introduced a new method <code className="jarombek-inline-code">Object.is()</code>
+to test for reference equality.
+</p>
+<CodeSnippet language="Groovy">
+/**
+ * Class representing a ball of yarn.  Through its AST annotations, Yarn has a constructor to pass in properties
+ * through and functional equals() and hashCode() methods.
+ */
+@TupleConstructor
+@EqualsAndHashCode
+class Yarn {
+  String fiber
+  String color
+  int yards
+}
+
+def firstYarnRoll = ["Polyester", "Pitter Patter", 70] as Yarn
+def secondYarnRoll = ["Polyester", "Pitter Patter", 70] as Yarn
+
+// Groovy uses == to check for value equality, unlike Java which uses equals().  In Java,
+// only primitives use == to test value equality.
+assert firstYarnRoll == secondYarnRoll
+
+// You can still use equals() and get the same result as ==.
+assert firstYarnRoll.equals(secondYarnRoll)
+
+// Since == tests value equality, Groovy needed another way to test reference equality.  The GDK added an is() method
+// to the class Object to fulfill this purpose.
+assert !firstYarnRoll.is(secondYarnRoll)
+</CodeSnippet>
+<p>
+Like Java, Groovy is a strongly typed language.  However, there is some type coercion that occurs
+when comparing numeric values.
+</p>
+<CodeSnippet language="Groovy">
+// == coerces different numeric types before comparing
+assert 2.0f == 2.0
+assert 2.0 == 2
+assert 2l == 2
+assert 1G == 1
+
+// ... but it doesn't coerce other types before comparing
+assert "2.0" != 2.0
+</CodeSnippet>
+<p>
+If you want to see how to alter Groovy's value equality mechanism, check out the full code on <a href="https://github.com/
+AJarombek/jarombek-com-sources/tree/master/2019/08-Aug/08-18-type-equality/groovy">GitHub</a>.
+</p>
+<SectionTitle title="Haskell">Haskell</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=haskell&page=1">Haskell</a> is a functional programming language that
+behaves much differently than the other languages I'm looking at today.  It doesn't have reference equality
+by default, mostly for performance reasons<sup>7</sup>.  However, you can implement value equality by making
+a type an instance of the <code className="jarombek-inline-code">Eq</code> type class.
+</p>
+<CodeSnippet language="Haskell">
+
+-- The type class 'Eq' defines two functions - (==) and (/=).  (/=) has a default definition in the type class, so
+-- instances don't need to override it.  Haskell provides a shortcut for making a type an instance of the Eq type class
+-- with the 'deriving' keyword.  deriving also works for Ord, Show and Read.
+data Yarn = Yarn String String Int
+              deriving Eq
+
+-- My custom WrappingPaper type doesn't use the 'deriving Eq' shortcut, instead explicitly making WrappingPaper
+-- an instance of Eq.
+data WrappingPaper = WrappingPaper String String
+
+instance Eq WrappingPaper where
+  WrappingPaper brand1 pattern1 == WrappingPaper brand2 pattern2 = brand1 == brand2 && pattern1 == pattern2
+</CodeSnippet>
+<p>
+Once <code className="jarombek-inline-code">Eq</code> is implemented, the <code className="jarombek-inline-code">==</code>
+and <code className="jarombek-inline-code">/=</code> operators can be used.  Note that Haskell is strongly typed,
+so no type coercion occurs.
+</p>
+<CodeSnippet language="Haskell">
+main :: IO ()
+main = do
+  -- The following equality checks all print 'True'
+  print $ 2 == 2
+  print $ 2.2 /= 2.0
+  print $ "andy" == "andy"
+  print $ Just 4 /= Nothing
+  print $ Just [1,2] == Just [1,2]
+  print $ ["deer", "chipmunk", "squirrel"] == ["deer", "chipmunk", "squirrel"]
+
+  -- Testing the custom Yarn type which is an instance of the Eq type class.
+  let yarn1 = Yarn "Polyester" "Pitter Patter" 70
+  let yarn2 = Yarn "Polyester" "Pitter Patter" 70
+  let yarn3 = Yarn "Polyester" "Vanilla" 220
+  print $ yarn1 == yarn2
+  print $ yarn1 /= yarn3
+</CodeSnippet>
+<SectionTitle title="PHP">PHP</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=php&page=1">PHP</a> behaves similarly to JavaScript when it comes
+to type equality.  PHP is a loosely typed language that provides two operators for testing equality between
+types.  <code className="jarombek-inline-code">==</code> tests value equality with coercion for primitive types
+and tests value equality without coercion for objects.  <code className="jarombek-inline-code">===</code> tests
+value equality without coercion for primitive types and tests reference equality for objects.  Here are some
+examples of primitive type equality checks:
+</p>
+<CodeSnippet language="PHP">
+assert(2 == '2');
+assert("2" == 2);
+assert(2 == 2);
+assert(true == "1");
+assert(false == "0");
+
+// Just like JavaScript, implicit type coercion can cause strange behavior
+assert("00" == "0000");
+assert(null == array());
+
+// However, you could say it's not "as" loosely typed as JavaScript.  In JavaScript, [10] == 10 returns true.
+assert([10] != 10);
+
+// Just like JavaScript, === disallows type coercion.
+assert(2 === 2);
+assert(2 !== "2");
+</CodeSnippet>
+<p>
+Now here is a custom class I created for testing value and reference equality with objects.
+</p>
+<CodeSnippet language="PHP">
+class Yarn
+{
+  private $fiber;
+  private $color;
+  private $yards;
+
+  /**
+   * Yarn constructor that accepts all necessary fields.
+   * @param $fiber - The fiber that the yarn is made of.
+   * @param $color - The visual color of the yarn.
+   * @param $yards - The length of the yarn in yards.
+   */
+  public function __construct($fiber, $color, $yards)
+  {
+    $this->fiber = $fiber;
+    $this->color = $color;
+    $this->yards = $yards;
+  }
+}
+
+// When testing equality of objects, == tests for value equality and === tests for reference equality.  These operators
+// work without any explicit definitions and without operator overloading.
+$yarn1 = new Yarn("Polyester", "Pitter Patter", 210);
+$yarn2 = $yarn1;
+$yarn3 = new Yarn("Polyester", "Pitter Patter", 210);
+$yarn4 = new Yarn("Polyester", "Vanilla", 70);
+
+assert($yarn1 == $yarn2);
+assert($yarn1 === $yarn2);
+
+assert($yarn2 == $yarn3);
+assert($yarn2 !== $yarn3);
+
+assert($yarn3 != $yarn4);
+assert($yarn3 !== $yarn4);
+</CodeSnippet>
+<SectionTitle title="PowerShell">PowerShell</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=powershell&page=1">PowerShell</a> is a loosely typed scripting
+language.  It has a native operator <code className="jarombek-inline-code">-eq</code> for testing value equality.
+One of the cool things about PowerShell is that is has full access to the .NET Framework, including the
+<code className="jarombek-inline-code">[System.Object]::Equals()</code> and <code className="jarombek-inline-code">
+[System.Object]::ReferenceEquals()</code> functions I explored earlier in C#.
+</p>
+<p>
+When testing primitive values for value equality, the <code className="jarombek-inline-code">-eq</code> operator
+(and opposite <code className="jarombek-inline-code">-ne</code> operator) work as expected for a loosely typed language:
+</p>
+<CodeSnippet language="PowerShell">
+[int] $two = 2;
+[int] $twoAgain = 2;
+
+Test-Assertion($two -eq $twoAgain)
+Test-Assertion($two -eq "2")
+
+Test-Assertion($two -ne 3)
+Test-Assertion($two -ne "3")
+</CodeSnippet>
+<p>
+When working with objects in PowerShell, the <code className="jarombek-inline-code">-eq</code> operator and
+<code className="jarombek-inline-code">[System.Object]::Equals()</code> function are used to test value equality.
+The <code className="jarombek-inline-code">[System.Object]::ReferenceEquals()</code> function is used to
+test reference equality.
+</p>
+<CodeSnippet language="PowerShell">
+class Yarn {
+  <#
+  .SYNOPSIS
+  Class representing a ball of yarn for knitting.
+  #>
+
+  [string] $fiber;
+  [string] $color;
+  [int] $yards;
+
+  Yarn ([string] $fiber, [string] $color, [int] $yards) {
+    <#
+    .SYNOPSIS
+    Construct a new instance of Yarn with values for all the fields.
+    #>
+    $this.fiber = $fiber;
+    $this.color = $color;
+    $this.yards = $yards;
+  }
+
+  [bool] Equals([System.Object] $other) {
+    <#
+    .SYNOPSIS
+    Determine if the value of two Yarn objects are equal.
+    #>
+    [bool] $fibersEqual = $this.fiber -eq $other.fiber
+    [bool] $colorsEqual = $this.color -eq $other.color
+    [bool] $yardsEqual = $this.yards -eq $other.yards
+    return $fibersEqual -and $colorsEqual -and $yardsEqual;
+  }
+}
+
+# Create instances of the custom Yarn class for comparison.
+$yarn1 = [Yarn]::new("Polyester", "Pitter Patter", 210);
+$yarn2 = $yarn1;
+$yarn3 = [Yarn]::new("Polyester", "Pitter Patter", 210);
+$yarn4 = [Yarn]::new("Polyester", "Vanilla", 70);
+
+# Test the Yarn objects for reference and value equality.
+Test-Assertion([System.Object]::Equals($yarn1, $yarn2))
+Test-Assertion($yarn1 -eq $yarn2)
+Test-Assertion([System.Object]::ReferenceEquals($yarn1, $yarn2))
+
+Test-Assertion([System.Object]::Equals($yarn2, $yarn3))
+Test-Assertion($yarn2 -eq $yarn3)
+Test-Assertion(-not [System.Object]::ReferenceEquals($yarn2, $yarn3))
+
+Test-Assertion(-not [System.Object]::Equals($yarn3, $yarn4))
+Test-Assertion($yarn3 -ne $yarn4)
+Test-Assertion(-not [System.Object]::ReferenceEquals($yarn3, $yarn4))
+</CodeSnippet>
+<SectionTitle title="Swift">Swift</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=swift&page=1">Swift</a> provides two operators to test equality.
+For value types and structs, the <code className="jarombek-inline-code">==</code> operator tests for value equality.
+There is no way to test for reference equality on value types or structs.  For objects, the <code className="jarombek-inline-code">==</code>
+operator tests for value equality and the <code className="jarombek-inline-code">===</code> operator tests
+for reference equality.
+</p>
+<p>
+The following examples demonstrate how to test equality amongst value types.
+</p>
+<CodeSnippet language="Swift">
+let name: String = "Andy"
+let nameAgain: String = "Andy"
+
+assert(name == nameAgain)
+
+// The value types in Swift are String, Int, Float, Double, Array, and Dictionary.
+let animals: [String:String] = ["Dotty":"Horse", "Lily":"Bear"]
+let animalsAgain: [String:String] = ["Dotty":"Horse", "Lily":"Bear"]
+
+assert(animals == animalsAgain)
+
+// Value equality also works with the Objective-C String equivalent in Swift
+let lastName: NSString = "Jarombek"
+let lastNameAgain: NSString = "Jarombek"
+
+assert(lastName == lastNameAgain)
+
+// You can't perform reference equality on value types in Swift.  Reference equality is tested
+// with the === operator.  The following examples will not compile with this note attached:
+// expected an argument list of type '(AnyObject?, AnyObject?)'
+
+// var valueTypesReferencesEqual: Bool = name === nameAgain
+// var valueTypesReferencesEqual: Bool = animals === animalsAgain
+</CodeSnippet>
+<p>
+The next piece of code creates a custom struct and a custom class.  Both demonstrate how the
+<code className="jarombek-inline-code">==</code> and <code className="jarombek-inline-code">===</code> operators work.
+</p>
+<CodeSnippet language="Swift">
+struct Yarn: Equatable {
+  let fiber: String
+  let color: String
+  let yards: Int
+
+  /**
+  Function from the equatable protocol to overload the == operator when comparing yarn objects.
+  - parameters:
+  - lhs: the first ball of yarn to test for equality.
+  - rhs: the second ball of yarn to test for equality.
+  - returns: true if the properties in both the yarn structs are equal, false otherwise.
+  */
+  static func ==(lhs: Yarn, rhs: Yarn) -> Bool {
+    return (lhs.fiber == rhs.fiber) && (lhs.color == rhs.color) && (lhs.yards == rhs.yards)
+  }
+}
+
+let firstYarnBall: Yarn = Yarn(fiber: "Polyester", color: "Pitter Patter", yards: 210)
+let secondYarnBall: Yarn = firstYarnBall
+let thirdYarnBall: Yarn = Yarn(fiber: "Polyester", color: "Pitter Patter", yards: 210)
+let fourthYarnBall: Yarn = Yarn(fiber: "Polyester", color: "Vanilla", yards: 70)
+
+// Since Yarn is a struct and not a class, reference equality doesn't work.  Remember that the
+// arguments to ==(lhs, rhs) must be of type AnyObject?
+// assert(firstYarnBall === secondYarnBall)
+
+assert(firstYarnBall == secondYarnBall)
+assert(secondYarnBall == thirdYarnBall)
+assert(thirdYarnBall != fourthYarnBall)
+
+class WrappingPaper: Equatable {
+  let brand: String
+  let pattern: String
+
+  init(brand: String, pattern: String) {
+    self.brand = brand
+    self.pattern = pattern
+  }
+
+  /**
+  Function from the equatable protocol to overload the == operator when comparing wrapping gift objects.
+  - parameters:
+  - lhs: the first wrapping paper object to test for equality.
+  - rhs: the second wrapping paper object to test for equality.
+  - returns: true if the properties in both the wrapping paper objects are equal, false otherwise.
+  */
+  static func ==(lhs: WrappingPaper, rhs: WrappingPaper) -> Bool {
+    return (lhs.brand == rhs.brand) && (lhs.pattern == rhs.pattern)
+  }
+}
+
+let firstWrappingPaper: WrappingPaper = WrappingPaper(brand: "Hallmark", pattern: "Disney Princess")
+let secondWrappingPaper: WrappingPaper = firstWrappingPaper
+let thirdWrappingPaper: WrappingPaper = WrappingPaper(brand: "Hallmark", pattern: "Disney Princess")
+let fourthWrappingPaper: WrappingPaper = WrappingPaper(brand: "Unknown", pattern: "None")
+
+// Since WrappingPaper is a class, objects of type WrappingPaper can use the reference equality operator ===.
+// This is because both objects are of type AnyObject?
+assert(firstWrappingPaper === secondWrappingPaper)
+assert(secondWrappingPaper !== thirdWrappingPaper)
+assert(thirdWrappingPaper !== fourthWrappingPaper)
+
+// Since WrappingPaper implements the Equatable protocol, it can also use value equality.
+assert(firstWrappingPaper == secondWrappingPaper)
+assert(secondWrappingPaper == thirdWrappingPaper)
+assert(thirdWrappingPaper != fourthWrappingPaper)
+</CodeSnippet>
+<SectionTitle title="TypeScript">TypeScript</SectionTitle>
+<p>
+<a href="https://jarombek.com/blog?query=typescript&page=1">TypeScript</a> takes JavaScripts type equality
+system and adds restrictions to it.  The reason for this is to try and protect JavaScript programmers from
+making mistakes with type coercion.  You could say that TypeScript is more strongly typed than JavaScript.
+</p>
+<p>
+If you try using the <code className="jarombek-inline-code">==</code> operator on two different types, TypeScript
+will throw a compile time error:
+</p>
+<CodeSnippet language="TypeScript">
+
+// This code is valid in JavaScript but won't compile in TypeScript.  TypeScript doesn't allow for
+// values of guaranteed different types to be compared with == or ===.
+// TS2365: Operator == cant be applied to types '2' and "2".
+assert(2 == "2");
+assert(2 !== "2");
+</CodeSnippet>
+<p>
+You can however trick TypeScript into thinking the two values are of comparable types by using the
+<code className="jarombek-inline-code">any</code> or <code className="jarombek-inline-code">Object</code> types:
+</p>
+<CodeSnippet language="TypeScript">
+
+// Since TypeScript compiles to JavaScript, we can trick TypeScript about the compile-time types of
+// mismatching types.  This allows for == and === to compile for unequal types.
+
+// == works the same in TypeScript as in JavaScript if the compile time type of a string or number
+// being compared is 'any' or 'Object'.
+const age: number = 24;
+const ageStr: any = "24";
+const ageObj: Object = "24";
+
+// This assertion compiles and succeeds thanks to JavaScript type coercion.
+assert(age == ageStr);
+
+assert(age !== ageStr);
+assert(age == ageObj);
+</CodeSnippet>
+<p>
+Besides for this additional type safety, equality in TypeScript is the same as JavaScript.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+I had a lot of fun switching between languages and re-exploring type equality.  You can find the source code
+for this article on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/08-Aug/
+08-18-type-equality">GitHub</a>.
+</p>
+</div>

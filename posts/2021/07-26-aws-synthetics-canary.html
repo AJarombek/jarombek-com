@@ -1,0 +1,459 @@
+<div>
+<p>
+AWS CloudWatch Synthetic Monitoring is a platform that enables the creation of functions that monitor applications or
+APIs.  These functions are known as canary functions, and they use AWS Lambda for their infrastructure.  Canary
+functions are written in JavaScript or Python.  They utilize Puppeteer (JavaScript) and Selenium (Python) for
+browser test automation.
+</p>
+<p>
+I started looking into Synthetic Monitoring as a way to test my SaintsXCTF application running in production.  I had
+an issue where the website unexpectedly stopped working, and there was no automated process in place to alert me.
+ With Synthetic Monitoring, I created canary functions to test critical paths of the website, such as signing in a user.
+ If canary functions fail, I get an email alerting me of the issue.
+</p>
+<p>
+Synthetic Monitoring is a relatively new AWS service, so documentation is a bit lighter when compared to other
+services.  Specifically, documentation for building canary functions with Terraform is incomplete with very few code
+ samples.  In this article, I give an overview of my Synthetic Monitoring AWS infrastructure and show how it's configured
+with Terraform.  I also give a brief walk through of my canary function source code.  All the code mentioned in this
+article is available on <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/
+synthetic-monitoring">GitHub</a>.
+</p>
+<SectionTitle title="Canary Function Infrastructure">Canary Function Infrastructure</SectionTitle>
+<p>
+My Synthetic Monitoring infrastructure consists of canary functions, an S3 bucket holding canary function results and
+images, and CloudWatch events to notify me via email when a canary function fails.  This infrastructure is shown in the
+diagram below.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-26-21-synthetics-canary-architecture.png"/>
+</figure>
+<p>
+Notice that my infrastructure consists of three canary functions, two written in JavaScript and one written in Python.
+All this infrastructure is built with Terraform, separated into three modules.  The first module is for canary
+functions and CloudWatch events, the second module is for an S3 bucket holding canary function results, and the third
+ module contains an IAM role and policy assumed by the canary function.
+</p>
+<SubTitle title="Canary Functions and CloudWatch Events">Canary Functions and CloudWatch Events</SubTitle>
+<p>
+The following Terraform code creates one of my canary functions.  This canary function tests the sign in functionality
+on my website.  It also sets up a CloudWatch event for sending alerts when the function fails.
+</p>
+<CodeSnippet language="HCL">
+data "aws_s3_bucket" "saints-xctf-canaries" {
+  bucket = "saints-xctf-canaries"
+}
+
+data "aws_iam_role" "canary-role" {
+  name = "canary-role"
+}
+
+data "aws_sns_topic" "alert-email" {
+  name = "alert-email-topic"
+}
+
+resource "aws_synthetics_canary" "saints-xctf-sign-in" {
+  name = "sxctf-sign-in"
+  artifact_s3_location = "s3://${data.aws_s3_bucket.saints-xctf-canaries.id}/"
+  execution_role_arn = data.aws_iam_role.canary-role.arn
+  runtime_version = "syn-nodejs-puppeteer-3.1"
+  handler = "signIn.handler"
+  zip_file = "${path.module}/SaintsXCTFSignIn.zip"
+  start_canary = true
+
+  success_retention_period = 2
+  failure_retention_period = 14
+
+  schedule {
+    expression = "rate(1 hour)"
+    duration_in_seconds = 0
+  }
+
+  run_config {
+    timeout_in_seconds = 300
+    memory_in_mb = 960
+    active_tracing = false
+  }
+
+  tags = {
+    Name = "sxctf-sign-in"
+    Environment = local.environment
+    Application = "saints-xctf"
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "saints-xctf-sign-in-canary-event-rule" {
+  name = "saints-xctf-sign-in-canary-rule"
+  event_pattern = jsonencode({
+    source = ["aws.synthetics"]
+    detail = {
+      "canary-name": [aws_synthetics_canary.saints-xctf-sign-in.name],
+      "test-run-status": ["FAILED"]
+    }
+  })
+}
+
+resource "aws_cloudwatch_event_target" "saints-xctf-sign-in-canary-event-target" {
+  target_id = "SaintsXCTFSignInCanaryTarget"
+  arn = data.aws_sns_topic.alert-email.arn
+  rule = aws_cloudwatch_event_rule.saints-xctf-sign-in-canary-event-rule.name
+}
+</CodeSnippet>
+<p>
+This canary function is started upon creation and is scheduled to run hourly.  It uses the
+<code className="jarombek-inline-code">syn-nodejs-puppeteer-3.1</code> runtime, which is the latest JavaScript runtime
+available to canary functions at the time of this article's writing.  The source code for the canary functions exists
+in a <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/synthetic-monitoring/modules/canaries/func">
+separate folder in my repository</a>, and is bundled into a zip file before the Terraform script is executed.
+</p>
+<p>
+The canary function Terraform module code is available in a
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/synthetic-monitoring/modules/canaries/main.tf">
+main.tf</a> file on GitHub.
+</p>
+<SubTitle title="S3 Bucket">S3 Bucket</SubTitle>
+<p>
+The results of the canary function are uploaded to an S3 bucket, which is specified in the
+<code className="jarombek-inline-code">artifact_s3_location</code> argument on the
+<code className="jarombek-inline-code">aws_synthetics_canary</code> resource. This S3 bucket is created with the
+following configuration:
+</p>
+<CodeSnippet language="HCL">
+data "aws_caller_identity" "current" {}
+
+resource "aws_s3_bucket" "saints-xctf-canaries" {
+  bucket = "saints-xctf-canaries"
+  acl = "private"
+
+  versioning {
+    enabled = true
+  }
+
+  lifecycle_rule {
+    enabled = true
+
+    noncurrent_version_expiration {
+      days = 60
+    }
+  }
+
+  tags = {
+    Name = "saints-xctf-canaries"
+    Application = "saints-xctf"
+    Environment = "all"
+  }
+}
+
+resource "aws_s3_bucket_policy" "saints-xctf-canaries-policy" {
+  bucket = aws_s3_bucket.saints-xctf-canaries.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Id = "SaintsXCTFCanariesPolicy"
+    Statement = [
+      {
+        Sid = "Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = data.aws_caller_identity.current.account_id
+        }
+        Action = ["s3:*"]
+        Resource = ["${aws_s3_bucket.saints-xctf-canaries.arn}/*"]
+      }
+    ]
+  })
+}
+</CodeSnippet>
+<p>
+The S3 bucket Terraform module code is available in a <a href="https://github.com/AJarombek/saints-xctf-infrastructure/
+blob/master/synthetic-monitoring/modules/s3/main.tf">main.tf</a> file on GitHub.
+</p>
+<SubTitle title="IAM Role and Policy">IAM Role and Policy</SubTitle>
+<p>
+Canary functions are given an IAM role, which is specified in the
+<code className="jarombek-inline-code">execution_role_arn</code> argument on the
+<code className="jarombek-inline-code">aws_synthetics_canary</code> resource.  The following code creates this IAM role
+and its corresponding policy.
+</p>
+<CodeSnippet language="HCL">
+data "aws_secretsmanager_secret" "saints-xctf-andy-password" {
+  name = "saints-xctf-andy-password"
+}
+
+data "aws_iam_policy_document" "canary-assume-role-policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect = "Allow"
+
+    principals {
+      identifiers = ["lambda.amazonaws.com"]
+      type = "Service"
+    }
+  }
+}
+
+resource "aws_iam_role" "canary-role" {
+  name = "canary-role"
+  path = "/saints-xctf-com/"
+  assume_role_policy = data.aws_iam_policy_document.canary-assume-role-policy.json
+  description = "IAM role for AWS Synthetic Monitoring Canaries"
+}
+
+data "aws_iam_policy_document" "canary-policy" {
+  statement {
+    sid = "CanaryGeneric"
+    effect = "Allow"
+    actions = [
+      "s3:PutObject",
+      "s3:GetBucketLocation",
+      "s3:ListAllMyBuckets",
+      "cloudwatch:PutMetricData",
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid = "CanarySecretsManager"
+    effect = "Allow"
+    actions = ["secretsmanager:GetSecretValue"]
+    resources = [data.aws_secretsmanager_secret.saints-xctf-andy-password.arn]
+  }
+}
+
+resource "aws_iam_policy" "canary-policy" {
+  name = "canary-policy"
+  path = "/saints-xctf-com/"
+  policy = data.aws_iam_policy_document.canary-policy.json
+  description = "IAM role for AWS Synthetic Monitoring Canaries"
+}
+
+resource "aws_iam_role_policy_attachment" "canary-policy-attachment" {
+  role = aws_iam_role.canary-role.name
+  policy_arn = aws_iam_policy.canary-policy.arn
+}
+</CodeSnippet>
+<p>
+There are certain permissions that canary functions must have in their IAM roles<sup>1</sup>.  These permissions are specified in
+the <code className="jarombek-inline-code">CanaryGeneric</code> statement of the policy.  My canary functions also
+require additional permissions, specifically for AWS Secrets Manager. These permissions are specified in the
+<code className="jarombek-inline-code">CanarySecretsManager</code> statement of the policy.
+</p>
+<p>
+The IAM Terraform module code is available in a
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/synthetic-monitoring/modules/iam/main.tf">main.tf</a>
+file on GitHub.
+</p>
+<SubTitle title="Resulting Infrastructure">Resulting Infrastructure</SubTitle>
+<p>
+After all this infrastructure is created, the canary functions and their execution results are viewable in the AWS console.
+ Individual functions can also be viewed and their execution results can be thoroughly analyzed.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-26-21-aws-canaries.png"/>
+</figure>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-26-21-aws-sign-in-canary.png"/>
+</figure>
+<SectionTitle title="Canary Function Source Code">Canary Function Source Code</SectionTitle>
+<p>
+The source code for canary functions is written in JavaScript or Python.  I used both languages, simply for the
+sake of trying all available options.  The runtime environments for both languages are configured with browser test
+libraries.  JavaScript functions use Puppeteer while Python functions use Selenium.
+</p>
+<p>
+First, I will walkthrough one of my functions utilizing JavaScript and Puppeteer, followed by a walkthrough of a
+ function utilizing Python and Selenium.
+</p>
+<SubTitle title="JavaScript and Puppeteer Functions">JavaScript and Puppeteer Functions</SubTitle>
+<p>
+One of my JavaScript canary functions performs a test to see whether a user can sign in to my website.  The source code is shown below,
+and exists in a <a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/synthetic-monitoring/
+modules/canaries/func/sign-in/nodejs/node_modules/signIn.js">signIn.js</a> file.
+</p>
+<CodeSnippet language="JavaScript">
+const synthetics = require('Synthetics');
+const log = require('SyntheticsLogger');
+const AWS = require('aws-sdk');
+
+const secretsManager = new AWS.SecretsManager();
+
+const synConfig = synthetics.getConfiguration();
+
+synConfig.setConfig({
+    screenshotOnStepStart: true,
+    screenshotOnStepSuccess: false,
+    screenshotOnStepFailure: true
+});
+
+const getCredentials = async () => {
+    const params = {
+        SecretId: 'saints-xctf-andy-password'
+    }
+
+    const secret = await secretsManager.getSecretValue(params).promise();
+    const { password } = JSON.parse(secret.SecretString);
+    return password;
+}
+
+const signInUser = async () => {
+    log.info('Starting saints-xctf-sign-in canary.');
+    const page = await synthetics.getPage();
+    const response = await page.goto('https://saintsxctf.com/signin', {waitUntil: 'domcontentloaded', timeout: 30000});
+
+    if (!response) {
+        await synthetics.takeScreenshot('failed', 'load');
+        throw 'Failed to load SaintsXCTF, the website might be down.'
+    }
+
+    await synthetics.executeStep('enter_credentials', async () => {
+        const password = await getCredentials();
+        await page.type('.sxctf-image-input input[name="username"]', 'andy');
+        await page.type('.sxctf-image-input input[name="password"]', password);
+    });
+
+    await synthetics.executeStep('sign_in', async () => {
+        await page.waitForSelector('.sxctf-sign-in-body .aj-contained-button > button');
+        await page.click('.sxctf-sign-in-body .aj-contained-button > button');
+    });
+
+    await synthetics.executeStep('profile_page_click', async () => {
+        await page.waitForSelector('#dashboardSidePanel > .accordion:nth-child(1) > div');
+        await page.click('#dashboardSidePanel > .accordion:nth-child(1) > div');
+    });
+
+    await synthetics.executeStep('profile_page_view', async () => {
+        await page.waitForSelector('.pictureTitleContainer');
+    });
+}
+
+exports.handler = async () => {
+    return await signInUser();
+}
+</CodeSnippet>
+<p>
+This function uses the <code className="jarombek-inline-code">synthetics</code> library, which is imported with
+<code className="jarombek-inline-code">const synthetics = require('Synthetics')</code>. The synthetics library is a
+wrapper around Puppeteer, so reading the <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/
+CloudWatch_Synthetics_Canaries_WritingCanary_Nodejs.html">AWS Synthetics documentation</a> along with the
+<a href="https://pptr.dev/#?product=Puppeteer&version=v10.1.0&show=outline">Puppeteer documentation</a> is enough to
+hit the ground running. Synthetics also has a bunch of
+<a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Synthetics_Canaries_Library_Nodejs.html">
+custom functions</a>, such as the <code className="jarombek-inline-code">executeStep()</code> function used in my code.
+<code className="jarombek-inline-code">executeStep()</code> runs Puppeteer commands and takes screenshots of the
+website, which are eventually uploaded to the canary function's S3 bucket.
+</p>
+<p>
+The canary function starts by navigating to the sign in page.  This is performed by the
+<code className="jarombek-inline-code">page.goto('https://saintsxctf.com/signin')</code> command.  Then, in the four
+ <code className="jarombek-inline-code">executeStep()</code> functions, it types in credentials to a sign in form
+(<code className="jarombek-inline-code">'enter_credentials'</code>), clicks the sign in button
+(<code className="jarombek-inline-code">'sign_in'</code>), clicks on the profile page button once signed in
+(<code className="jarombek-inline-code">'profile_page_click'</code>), and checks to see if an element appears
+ in the profile page (<code className="jarombek-inline-code">'profile_page_view'</code>).
+</p>
+<p>
+This code also shows how canary functions can use the AWS SDK, in this case to grab user credentials from
+Secrets Manager.  Secrets Manager helps avoid the bad practice of hard coding credentials into the canary function source code.
+</p>
+<SubTitle title="Python and Selenium Functions">Python and Selenium Functions</SubTitle>
+<p>
+Another runtime option for canary functions is Python and the Selenium library.  My Python canary function tests
+whether a "forgot password" email can be sent from my website.  The source code is shown below, and exists in a
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/synthetic-monitoring/modules/canaries
+/func/forgot-password/python/forgot_password.py">forgot_password.py</a> file.
+</p>
+<CodeSnippet language="Python">
+from aws_synthetics.selenium import synthetics_webdriver as webdriver
+from aws_synthetics.common import synthetics_logger as logger
+from selenium.webdriver.chrome.webdriver import WebDriver as ChromeWebDriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+
+def forgot_password():
+    # 1) Navigate to the SaintsXCTF website homepage.
+    browser: ChromeWebDriver = webdriver.Chrome()
+    browser.get('https://saintsxctf.com/')
+
+    logger.info('Loaded SaintsXCTF')
+    browser.save_screenshot('home_page.png')
+
+    # 2) Click on the 'Sign In' button.
+    button_condition = EC.element_to_be_clickable((By.CSS_SELECTOR, '.signInButton'))
+    WebDriverWait(browser, 5).until(button_condition, message='Sign In Button Never Loaded').click()
+
+    url_sign_in_condition = EC.url_to_be('https://saintsxctf.com/signin')
+    WebDriverWait(browser, 5).until(url_sign_in_condition, message='Failed to Navigate to the Sign In Page')
+
+    browser.save_screenshot('sign_in_page.png')
+
+    # 3) Click on the 'Forgot Password' link.
+    forgot_password_link_condition = EC.element_to_be_clickable((By.LINK_TEXT, 'Forgot Password?'))
+    WebDriverWait(browser, 5).until(forgot_password_link_condition, message='Forgot Password Link Never Loaded').click()
+
+    url_forgot_password_condition = EC.url_to_be('https://saintsxctf.com/forgotpassword')
+    WebDriverWait(browser, 5).until(
+        url_forgot_password_condition,
+        message='Failed to Navigate to the Forgot Password Page'
+    )
+
+    browser.save_screenshot('forgot_password_page.png')
+
+    # 4) Type an email address into the 'Forgot Password' input field.
+    forgot_password_input = browser.find_element_by_css_selector('.sxctf-image-input input')
+    forgot_password_input.clear()
+    forgot_password_input.send_keys('andrew@jarombek.com')
+
+    browser.save_screenshot('forgot_password_email_typed.png')
+
+    # 5) Click on the 'Send' button.
+    forgot_password_button_condition = EC.element_to_be_clickable(
+        (By.CSS_SELECTOR, '.form-buttons > .aj-contained-button > button')
+    )
+
+    WebDriverWait(browser, 5) \
+        .until(forgot_password_button_condition, message='Forgot Password Button Not Clickable') \
+        .click()
+
+    # 6) Confirm that the 'Forgot Password' email was sent.
+    success_text_condition = EC.text_to_be_present_in_element(
+        (By.CSS_SELECTOR, '.sxctf-forgot-password-body h5'),
+        'An email was sent to your email address with a forgot password code.'
+    )
+
+    browser.save_screenshot('forgot_password_sending.png')
+
+    WebDriverWait(browser, 15).until(success_text_condition, message='Forgot Password Not Successfully Sent')
+
+    browser.save_screenshot('forgot_password_sent.png')
+
+
+def handler(event, context):
+    return forgot_password()
+</CodeSnippet>
+<p>
+Python canary code uses a <code className="jarombek-inline-code">aws_synthetics</code> library, which is a wrapper
+around Selenium.  Reading the <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/
+CloudWatch_Synthetics_Canaries_WritingCanary_Python.html">AWS Synthetics documentation</a> along with the
+<a href="https://selenium-python.readthedocs.io/getting-started.html">Selenium documentation</a> is enough to
+hit the ground running with <code className="jarombek-inline-code">aws_synthetics</code>.
+<code className="jarombek-inline-code">aws_synthetics</code> also has a bunch of
+<a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Synthetics_Canaries_Library_Python.html">
+custom functions and classes</a>, such as the <code className="jarombek-inline-code">synthetics_logger</code> class
+used in my code.
+</p>
+<p>
+The steps taken by the canary function are listed in the Python code.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Synthetic Monitoring canary functions are a nice addition to AWS that allow users to easily create and schedule browser
+test code for applications.  In my case, canary functions assist in sending me notifications if critical parts of my
+website stop working.  Although documentation is still a bit rough around the edges, I believe canary functions are a
+worthwhile option for end to end testing applications running in production environments.  All the source code for this
+article is available on <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/synthetic-monitoring">GitHub</a>.
+</p>
+</div>

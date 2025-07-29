@@ -1,0 +1,127 @@
+<div>
+<p>
+When you run code in JavaScript there is a global object created in the global scope.  What
+this object is depends on the environment JavaScript is running in.  If you run JavaScript
+code in your web browser the global object is <code className="jarombek-inline-code">window</code>,
+which represents the browser window.  Window exposes an API for interaction with the Document
+Object Model (DOM), click listeners, and other information about the browser window<sup>1</sup>.
+</p>
+<p>
+In the past I have used the <code className="jarombek-inline-code">window</code> object to check the
+current URL and previous page visited by the user (to create a 'back' button).  However, the most common
+use of <code className="jarombek-inline-code">window</code> is to manipulate the DOM and set
+click listeners (I used frameworks such as JQuery to perform these tasks in the past).
+</p>
+<p>
+Before we look at some uses for the window object, it is important to note that when code is run
+in the global scope <code className="jarombek-inline-code">this</code>
+contains the <code className="jarombek-inline-code">window</code> object.
+</p>
+<CodeSnippet language="JavaScript">
+console.info(this); // window object
+
+console.info(window); // window object
+</CodeSnippet>
+<p>
+Because of this fact we can use <code className="jarombek-inline-code">this</code> in the global scope
+(and any <a href="https://github.com/AJarombek/jarombek-com-submittions/blob/master/Discoveries/
+2017/11-Nov/11-11-JS-This/View/js-this.html">other scopes</a> where the assigned value of
+<code className="jarombek-inline-code">this</code> is <code className="jarombek-inline-code">window</code>)
+to refer to window.  One function that the <code className="jarombek-inline-code">window</code> API
+exposes is <code className="jarombek-inline-code">prompt()</code>, which displays a field
+for the user to enter a value.  In the global scope you can call
+<code className="jarombek-inline-code">prompt()</code> with <code className="jarombek-inline-code">this</code>.
+</p>
+<CodeSnippet language="JavaScript">
+this.prompt("What is your name?");
+</CodeSnippet>
+<figure>
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/11-13-17-prompt.png">
+</figure>
+<p>
+Another <code className="jarombek-inline-code">window</code> function is
+<code className="jarombek-inline-code">open()</code> which creates and returns a new window.  The following code uses
+<code className="jarombek-inline-code">open()</code> along with the window objects
+<code className="jarombek-inline-code">document.write()</code> function to write a new element to the DOM.
+</p>
+<CodeSnippet language="JavaScript">
+var newWindow = window.open();
+newWindow.document.write("&lt;p&gt;Hello&lt;/p&gt;");
+</CodeSnippet>
+<p>
+In this code I opened a new window and assigned the newly created
+<code className="jarombek-inline-code">window</code> object to <code className="jarombek-inline-code">newWindow</code>.
+The <code className="jarombek-inline-code">document</code> object in
+<code className="jarombek-inline-code">document.write()</code> is the API revealed for the DOM.
+The document API can traverse and manipulate the DOM to create dynamic web pages.
+</p>
+<p>
+Finally I utilized the <code className="jarombek-inline-code">window</code> object's event listeners.
+I created a function that is called when a user clicks on the new window.  Once clicked, the new window closes.
+</p>
+<CodeSnippet language="JavaScript">
+newWindow.onclick = function click() {
+    newWindow.close();
+};
+</CodeSnippet>
+<p>
+The problem with this approach is only one click listener can be assigned to the window at a time<sup>2</sup>.
+If I wanted to create more, I could utilize the <code className="jarombek-inline-code">addEventListener()</code>
+function on the target object (in this case the window)<sup>3</sup>.
+</p>
+<p>
+The <code className="jarombek-inline-code">window</code> object and DOM API have many features.  I think understanding
+both of them can help a programmer to build better web pages (even if you aren't contacting them directly.  In
+newer code, you are likely using a higher level framework such as JQuery, AngularJS, or ReactJS instead).
+</p>
+<SectionTitle title="Global Object in Nodejs">Global Object in Node.js</SectionTitle>
+<p>
+So what about code running in Node.js?  In Node there is also a global object called
+<code className="jarombek-inline-code">global</code>.  I haven't found anything too useful
+in this global object (although my knowledge of Node is limited), but it does expose information on the
+environment Node is running in.
+</p>
+<CodeSnippet language="JavaScript">
+// The following results are from my PC
+global.process.arch; // x64
+global.process.platform; // win32
+global.process.env.OS; // Windows_NT
+global.process.env.PROCESSOR_ARCHITECTURE; // AMD64
+global.process.env.USERNAME; // Andy
+global.process.pid; // 15088
+</CodeSnippet>
+<p>
+One final note on the global object in Node.  You may expect the assigned value of
+<code className="jarombek-inline-code">this</code> to be <code className="jarombek-inline-code">global</code> in the
+global scope (just like <code className="jarombek-inline-code">window</code> in the browser).  Let's try it out:
+</p>
+<CodeSnippet language="JavaScript">
+console.info(this); // { }
+</CodeSnippet>
+<p>
+If you run this code, the returned value is actually the empty object <code className="jarombek-inline-code">{ }</code>
+.  Why is this?  It turns out upon debugging the file, this code is executed like so:
+</p>
+<CodeSnippet language="JavaScript">
+(function (exports, require, module, __filename, __dirname) {
+    console.info(this);
+});
+</CodeSnippet>
+<p>
+In this code <code className="jarombek-inline-code">this</code> is assigned to the module itself, which
+is empty.  As I mentioned my Node.js experience is limited, but I'll be
+<a href="https://jarombek.com/blog/dec-30-2017-nodejs-mongodb-api-prototype">fixing that soon</a>!
+</p>
+<p>
+If you want to look at everything on the <code className="jarombek-inline-code">global</code> object, you
+can do so while debugging.  You can debug Node.js by running the following command and
+navigating to the link given:
+</p>
+<CodeSnippet language="Bash">
+node --inspect --debug-brk test.js
+</CodeSnippet>
+<p>
+All the code from this discovery can be found on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2017/11-Nov/11-13-JS-Global-Object">GitHub</a>.
+</p>
+</div>

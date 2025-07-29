@@ -1,0 +1,385 @@
+<div>
+<p>
+Traditionally when building a mobile app or website, the application is split into a few different
+layers.  The necessary layers commonly comprise a front-end, backend, and database.  In recent
+years, the backend is often a <a href="https://jarombek.com/blog/aug-5-2018-graphql-pt1">REST API</a>
+that makes requests to a database.  The front-end communicates with the REST API through HTTP
+requests.
+</p>
+<p>
+To set up a REST API, a server is needed to host backend code.  Using a backend server means app
+developers have to spend time managing infrastructure.  As I mentioned in my post on
+<a href="https://jarombek.com/blog/sep-3-2018-terraform">Terraform</a>, when cloud computing came
+along new techniques for handling infrastructure were introduced.  With AWS Lambda, we have a
+new technique for handling code and infrastructure in our backend.  AWS Lambda introduces containerized
+functions and serverless computing.
+</p>
+<SectionTitle title="The Serverless Model">The Serverless Model</SectionTitle>
+<p>
+In a serverless model, each API endpoint corresponds to a containerized function<sup>1,2</sup>.
+While each container does run on a server, AWS abstracts the server infrastructure away, letting
+developers focus solely on the function definition.  Developers only pay Amazon for the memory usage
+of a function.  If a function never executes, you never have to pay.
+</p>
+<p>
+AWS Lambda is a service for defining functions that fit the serverless model.  APIs are defined with
+another AWS service called API Gateway.  API Gateway gives AWS Lambda functions a
+REST API endpoint mapping.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-7-18-serverless.png"/>
+</figure>
+<p>
+With a serverless model, you don’t have to maintain an entire backend server.
+</p>
+<SectionTitle title="Building an AWS Lambda Function">Building an AWS Lambda Function</SectionTitle>
+<p>
+AWS Lambda functions are just like any other programming language function - they take in arguments
+and return a value.  They are specified as synchronous or asynchronous.  A number of different
+runtimes are supported for lambda functions - such as Node.js, Java, and Python.
+</p>
+<p>
+I created a lambda function in JavaScript on the Node.js runtime.  The function takes an integer
+argument and returns a roman numeral equivalent.  The following code sets up the function:
+</p>
+<CodeSnippet language="JavaScript">
+exports.handler = (event, context, callback) => {
+
+  const romanNumeral = toRomanNumeral(event.integer);
+
+  callback(null, romanNumeral);
+};
+</CodeSnippet>
+<p>
+The function definition takes three arguments and is given the name
+<code className="jarombek-inline-code">handler</code>.  <code className="jarombek-inline-code">callback
+</code> is a callback function used to return data back to whoever invoked the lambda function.  The
+first argument passed to <code className="jarombek-inline-code">callback</code> is an error status.  If this
+argument is <code className="jarombek-inline-code">null</code>, the lambda function
+returned successfully.  The second argument contains any data the lambda function should return.
+My function always returns back the roman numeral.
+</p>
+<p>
+The argument <code className="jarombek-inline-code">context</code> contains runtime information about
+the lambda function.
+</p>
+<p>
+<code className="jarombek-inline-code">event</code> provides information about the lambda function
+request.  Inside <code className="jarombek-inline-code">event</code> exists data passed by whoever
+invoked the function.  In the code above I access the <code className="jarombek-inline-code">integer
+</code> property on <code className="jarombek-inline-code">event</code>.
+<code className="jarombek-inline-code">integer</code> contains a number that is passed to
+<code className="jarombek-inline-code">toRomanNumeral()</code>.
+</p>
+<CodeSnippet language="JavaScript">
+const toRomanNumeral = (int) => {
+  const romanNumerals = [
+    {number: 1000, letter: 'M'},
+    {number: 900, letter: 'CM'},
+    {number: 500, letter: 'D'},
+    {number: 400, letter: 'CD'},
+    {number: 100, letter: 'C'},
+    {number: 90, letter: 'XC'},
+    {number: 50, letter: 'L'},
+    {number: 40, letter: 'XL'},
+    {number: 10, letter: 'X'},
+    {number: 9, letter: 'IX'},
+    {number: 5, letter: 'V'},
+    {number: 4, letter: 'IV'},
+    {number: 1, letter: 'I'}
+  ];
+
+  let convertedNumber = "";
+  for (const i in romanNumerals) {
+    while (int >= romanNumerals[i].number) {
+      convertedNumber += romanNumerals[i].letter;
+      int -= romanNumerals[i].number;
+    }
+  }
+
+  return convertedNumber;
+};
+</CodeSnippet>
+<SectionTitle title="Deploying an AWS Lambda Function">Deploying an AWS Lambda Function</SectionTitle>
+<p>
+One way to set up a lambda function is to go into the AWS Console UI and follow the steps on
+the graphical display.  If you read my previous post on <a href="https://jarombek.com/blog/
+sep-3-2018-terraform">Infrastructure as Code</a> you know that there is a better option - Terraform!
+Terraform provisions cloud infrastructure with a script and CLI.  In my previous post I used
+Terraform to configure infrastructure for a web server, however it also works with AWS Lambda
+and API Gateway.
+</p>
+<p>
+Terraform isn’t the main topic of this post, so I will quickly breeze through this section.  All
+the code is fully inline documented and is available on <a href="https://github.com/AJarombek/
+devops-prototypes/blob/master/terraform/awslambda/lambda.tf">GitHub</a>.  Terraform has great
+documentation for <a href="https://www.terraform.io/docs/providers/aws/r/lambda_function.html">
+AWS Lambda</a> and <a href="https://www.terraform.io/docs/providers/aws/r/api_gateway_rest_api.html">
+API Gateway</a>.
+</p>
+<p>
+The first resources to create in Terraform relate to the lambda function and granting invocation
+permissions to API Gateway.  Remember each lambda function is mapped to an API Gateway endpoint.
+</p>
+<CodeSnippet language="HCL">
+provider "aws" {
+  region = "us-east-1"
+}
+
+# A data source containing the lambda function
+data "archive_file" "lambda" {
+  source_file = "toRomanNumeral.js"
+  type = "zip"
+  output_path = "toRomanNumeral.zip"
+}
+
+resource "aws_lambda_function" "to-roman-numberal-js" {
+  # The local file to use as the lambda function.  A popular alternative is to keep the lambda function
+  # source code in an S3 bucket.
+  filename = "toRomanNumeral.zip"
+
+  # A unique name to give the lambda function.
+  function_name = "ToRomanNumberalJs"
+
+  # The entrypoint to the lambda function in the source code.  The format is &lt;file-name&gt;.&lt;property-name&gt;
+  handler = "toRomanNumeral.handler"
+
+  # IAM (Identity and Access Management) policy for the lambda function.
+  role = "${aws_iam_role.lambda-role.arn}"
+
+  # Use Node.js for this lambda function.
+  runtime = "nodejs8.10"
+
+  # The source code hash is used by Terraform to detect whether the source code of the lambda function
+  # has changed.  If it changed, Terraform will re-upload the lambda function.
+  source_code_hash = "${base64sha256(file("${data.archive_file.lambda.output_path}"))}"
+}
+
+# Set permissions on the lambda function, allowing API Gateway to invoke the function
+resource "aws_lambda_permission" "allow_api_gateway" {
+  # The action this permission allows is to invoke the function
+  action = "lambda:InvokeFunction"
+
+  # The name of the lambda function to attach this permission to
+  function_name = "${aws_lambda_function.to-roman-numberal-js.arn}"
+
+  # An optional identifier for the permission statement
+  statement_id = "AllowExecutionFromApiGateway"
+
+  # The item that is getting this lambda permission
+  principal = "apigateway.amazonaws.com"
+
+  # /*/*/* sets this permission for all stages, methods, and resource paths in API Gateway to the lambda
+  # function. - https://bit.ly/2NbT5V5
+  source_arn = "${aws_api_gateway_rest_api.roman-numeral-api.execution_arn}/*/*/*"
+}
+
+# Create an IAM role for the lambda function
+resource "aws_iam_role" "lambda-role" {
+  name = "iam-lambda-role"
+  assume_role_policy = "${file("lambdaRole.json")}"
+}
+</CodeSnippet>
+<p>
+With AWS Lambda set up, I created an API Gateway REST API.  I defined nested API Gateway resources
+so that the REST API forms the path <code className="jarombek-inline-code">/roman-numeral/{integer}
+</code>.  <code className="jarombek-inline-code">{integer}</code> is replaced with whatever number a user
+of the API wants converted to a roman numeral.
+</p>
+<CodeSnippet language="HCL">
+# Declare a new API Gateway REST API
+resource "aws_api_gateway_rest_api" "roman-numeral-api" {
+  # The name of the REST API
+  name = "RomanNumeralAPI"
+
+  # An optional description of the REST API
+  description = "A Prototype REST API for Converting Integers to Roman Numerals"
+}
+
+# Create an API Gateway resource, which is a certain path inside the REST API
+resource "aws_api_gateway_resource" "roman-numeral-api-resource" {
+  # The id of the associated REST API and parent API resource are required
+  rest_api_id = "${aws_api_gateway_rest_api.roman-numeral-api.id}"
+  parent_id = "${aws_api_gateway_rest_api.roman-numeral-api.root_resource_id}"
+
+  # The last segment of the URL path for this API resource
+  path_part = "roman-numeral"
+}
+
+resource "aws_api_gateway_resource" "integer-api-resource" {
+  rest_api_id = "${aws_api_gateway_rest_api.roman-numeral-api.id}"
+  parent_id = "${aws_api_gateway_resource.roman-numeral-api-resource.id}"
+
+  path_part = "{integer}"
+}
+
+# Provide an HTTP method to a API Gateway resource (REST endpoint)
+resource "aws_api_gateway_method" "integer-to-roman-numeral-method" {
+  # The ID of the REST API and the resource at which the API is invoked
+  rest_api_id = "${aws_api_gateway_rest_api.roman-numeral-api.id}"
+  resource_id = "${aws_api_gateway_resource.integer-api-resource.id}"
+
+  # The verb of the HTTP request
+  http_method = "GET"
+
+  # Whether any authentication is needed to call this endpoint
+  authorization = "NONE"
+}
+</CodeSnippet>
+<p>
+Now that both API Gateway and AWS Lambda exist, they are easily integrated together.  The API
+Gateway URL is returned as an output to easily invoke the finished product of the Terraform script.
+</p>
+<CodeSnippet language="HCL">
+# Integrate API Gateway REST API with a Lambda function
+resource "aws_api_gateway_integration" "lambda-api-integration" {
+  # The ID of the REST API and the endpoint at which to integrate a Lambda function
+  rest_api_id = "${aws_api_gateway_rest_api.roman-numeral-api.id}"
+  resource_id = "${aws_api_gateway_resource.integer-api-resource.id}"
+
+  # The HTTP method to integrate with the Lambda function
+  http_method = "${aws_api_gateway_method.integer-to-roman-numeral-method.http_method}"
+
+  # AWS is used for Lambda proxy integration when you want to use a Velocity template
+  type = "AWS"
+
+  # The URI at which the API is invoked
+  uri = "${aws_lambda_function.to-roman-numberal-js.invoke_arn}"
+
+  # Lambda functions can only be invoked via HTTP POST - https://amzn.to/2owMYNh
+  integration_http_method = "POST"
+
+  # Configure the Velocity request template for the application/json MIME type
+  request_templates {
+    "application/json" = "${file("request.vm")}"
+  }
+}
+
+# Create an HTTP method response for the aws lambda integration
+resource "aws_api_gateway_method_response" "lambda-api-method-response" {
+  rest_api_id = "${aws_api_gateway_rest_api.roman-numeral-api.id}"
+  resource_id = "${aws_api_gateway_resource.integer-api-resource.id}"
+  http_method = "${aws_api_gateway_method.integer-to-roman-numeral-method.http_method}"
+  status_code = "200"
+}
+
+# Configure the API Gateway and Lambda functions response
+resource "aws_api_gateway_integration_response" "lambda-api-integration-response" {
+  rest_api_id = "${aws_api_gateway_rest_api.roman-numeral-api.id}"
+  resource_id = "${aws_api_gateway_resource.integer-api-resource.id}"
+  http_method = "${aws_api_gateway_method.integer-to-roman-numeral-method.http_method}"
+
+  status_code = "${aws_api_gateway_method_response.lambda-api-method-response.status_code}"
+
+  # Configure the Velocity response template for the application/json MIME type
+  response_templates {
+    "application/json" = "${file("response.vm")}"
+  }
+
+  # Remove race condition where the integration response is built before the lambda integration
+  depends_on = [
+    "aws_api_gateway_integration.lambda-api-integration"
+  ]
+}
+
+# Create a new API Gateway deployment
+resource "aws_api_gateway_deployment" "roman-numeral-api-dev-deployment" {
+  rest_api_id = "${aws_api_gateway_rest_api.roman-numeral-api.id}"
+
+  # development stage
+  stage_name = "dev"
+
+  # Remove race conditions - deployment should always occur after lambda integration
+  depends_on = [
+    "aws_api_gateway_integration.lambda-api-integration",
+    "aws_api_gateway_integration_response.lambda-api-integration-response"
+  ]
+}
+
+# URL to invoke the API
+output "url" {
+  value = "${aws_api_gateway_deployment.roman-numeral-api-dev-deployment.invoke_url}"
+}
+</CodeSnippet>
+<p>
+Take note of the <code className="jarombek-inline-code">request_templates</code> and
+<code className="jarombek-inline-code">response_templates</code> configuration under
+<code className="jarombek-inline-code">aws_api_gateway_integration</code> and
+<code className="jarombek-inline-code">aws_api_gateway_integration_response</code> respectively.  For
+ HTTP requests and responses to API Gateway, templates are used to determine what is passed to
+AWS Lambda functions and returned back to the API invoker.
+</p>
+<p>
+Both <code className="jarombek-inline-code">request_templates</code> and
+<code className="jarombek-inline-code">response_templates</code> for API Gateway use the Velocity
+Template Language (which is managed by Apache, the same company that leads development of
+<a href="https://jarombek.com/blog/jul-2-2018-groovy-basics-pt1">Groovy</a>).
+</p>
+<p>
+First let’s take a look at the HTTP request template.  If you aren't familiar with Velocity
+templating, don’t worry about the syntax - the logic is very simple.
+</p>
+<CodeSnippet language="Velocity">
+#set($integer = $input.params('integer'))
+
+{
+  #if($integer != "")
+    "integer": "$integer"
+  #end
+}
+</CodeSnippet>
+<p>
+The first line takes the <code className="jarombek-inline-code">{integer}</code> parameter from the
+URL <code className="jarombek-inline-code">/roman-numeral/{integer}</code> and assigns it to the
+variable <code className="jarombek-inline-code">$integer</code>.  The rest of the Velocity template
+creates a JSON object to pass to the AWS Lambda function.  If <code className="jarombek-inline-code">
+$integer</code> contains a value, its used as a JSON property.  Otherwise, an empty JSON object
+<code className="jarombek-inline-code">{}</code> is passed to the lambda function.
+</p>
+<p>
+The HTTP response template is also simple.  It takes whatever value is returned from the lambda
+function (represented as <code className="jarombek-inline-code">$input.path('$')</code>) and assigns
+it to the variable <code className="jarombek-inline-code">$response</code>.  If the response exists,
+it is returned with the JSON.  Otherwise, the JSON property <code className="jarombek-inline-code">error
+</code> is used to return an error message.
+</p>
+<CodeSnippet language="Velocity">
+#set($response = $input.path('$'))
+
+{
+  #if($response != "")
+    "romanNumeral": "$response"
+  #else
+    "error": "failed converting to roman numeral"
+  #end
+}
+</CodeSnippet>
+<SectionTitle title="Testing API Gateway">Testing API Gateway</SectionTitle>
+<p>
+With Terraform all configured, I ran <code className="jarombek-inline-code">terraform apply</code> and
+tested out the REST API which invokes my AWS Lambda function.
+</p>
+<CodeSnippet language="Bash">
+curl https://xyhzuzr8z2.execute-api.us-east-1.amazonaws.com/dev/roman-numeral/8
+# {"romanNumeral": "VIII"}
+
+curl https://xyhzuzr8z2.execute-api.us-east-1.amazonaws.com/dev/roman-numeral/28
+# {"romanNumeral": "XXVIII"}
+
+curl https://xyhzuzr8z2.execute-api.us-east-1.amazonaws.com/dev/roman-numeral/2013
+# {"romanNumeral": "MMXIII"}
+
+curl https://xyhzuzr8z2.execute-api.us-east-1.amazonaws.com/dev/roman-numeral/ye
+# {"error": "failed converting to roman numeral"}
+</CodeSnippet>
+<p>
+Although I only created one lambda function and REST endpoint, you can imagine a
+scaled up serverless backend with more lambda functions.
+</p>
+<p>
+This is only the beginning of my development with serverless architecture.  I am actively using AWS
+Lambda and API Gateway to handle the subscription feature for this website, and it has worked great
+so far.  You can view the full code from this discovery post on <a  href="https://github.com/
+AJarombek/devops-prototypes/tree/master/terraform/awslambda">GitHub</a>.
+</p>
+</div>

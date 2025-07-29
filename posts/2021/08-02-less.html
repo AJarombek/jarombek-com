@@ -1,0 +1,129 @@
+<div>
+<p>
+When it comes to CSS preprocessors (stylesheet languages that add features on top of CSS and transpile to CSS), in the
+past I've often used Sass.  When I first started learning about CSS preprocessors, the two main choices were Sass and
+Less.  The reason I decided to learn Sass instead of Less was due to its greater popularity and me trying to follow
+industry trends.  At the time, Bootstrap had just released version 4, which switched its stylesheet language from Less
+to Sass<sup>1</sup>.  In my mind, it didn't make sense for me to learn a preprocessor language that was being left in the dust.
+</p>
+<p>
+Over time, I increasingly wished to learn the difference between Sass and Less.  It was hard for me to tell if there
+were differences in the functionality of Sass or Less, or if Sass was picked as the favorite due to syntactical
+preferences and third-party library support.  Last year I wrote two front-end application prototypes,
+<a href="https://github.com/AJarombek/graphql-react-prototype">graphql-react-prototype</a> and
+<a href="https://github.com/AJarombek/apollo-client-server-prototype">apollo-client-server-prototype</a>.  Instead of
+using a stylesheet technology I already knew such as Sass or JSS, I decided to learn Less and use it as the stylesheet
+language for these prototypes.
+</p>
+<p>
+Although I hoped to find interesting differences between the functionality of Less and Sass, in reality I found that
+both languages are very similar.  While I'm sure engineers who work with both technologies extensively can find subtle
+differences between the two, from a high level they provide the same capabilities on top of CSS.  Similar to Sass, Less
+has variables, mixins, conditionals, and loops.  The main difference between the two is the syntax.
+</p>
+<p>
+In some cases, Sass has superior syntax.  As an example, <code className="jarombek-inline-code">for</code>
+ <a href="https://sass-lang.com/documentation/at-rules/control/for">loops in Sass</a> have better syntax than
+<code className="jarombek-inline-code">for</code> <a href="https://sass-lang.com/documentation/at-rules/control/for">
+loops in Less</a>, with Sass having a built-in <code className="jarombek-inline-code">@for</code> rule and Less
+requiring you to use a mixin<sup>2,3</sup>.  In other cases, syntactical preferences are more subjective.  For example,
+a variable with the name <code className="jarombek-inline-code">myVariable</code> is written as
+<code className="jarombek-inline-code">$myVariable</code> in Sass and <code className="jarombek-inline-code">@myVariable</code>
+in Less.  Neither is superior, it just comes down to personal taste.
+</p>
+<p>
+So why did Sass gain more traction in the software engineering world than Less?  Since both languages have similar
+functionality, to some extent I believe it is because most engineers prefer the syntax of Sass<sup>4</sup>.  I also
+think third-party Sass libraries and frameworks, such as <a href="http://compass-style.org/">Compass</a>, swayed
+engineers who enjoyed their out-of-the-box functionality.  In my opinion, Sass does have slightly cleaner syntax, so
+I am more inclined to use it instead of Less in my projects.
+</p>
+<Note type="info">
+Currently, my favorite approach for authoring stylesheets is JSS, a "CSS in JavaScript" library.  You can read about it
+in my <a href="https://jarombek.com/blog/jun-29-2021-jss">JSS</a> and
+<a href="https://jarombek.com/blog/jun-30-2021-react-jss">JSS in React</a> articles.
+</Note>
+<SectionTitle title="Improving Stylesheet Code With Less">Improving Stylesheet Code With Less</SectionTitle>
+<p>
+Let's look at a few Less code samples from the prototype applications I've written.  First, much like Sass, Less
+supports nested CSS rules.  Here is an example from one of my <a href="https://github.com/AJarombek/
+graphql-react-prototype/blob/master/src/components/items/RepositoryCount.less">React component stylesheets</a>.
+</p>
+<CodeSnippet language="Less">
+@import "../../vars";
+
+.repository-count {
+  grid-area: repoCount;
+  height: 125px;
+
+  h3, h2 {
+    text-align: center;
+  }
+
+  h3 {
+    font-size: 14px;
+  }
+
+  h2 {
+    font-size: 42px;
+    .hoverPurple()
+  }
+
+  .error {
+    height: 100%;
+  }
+}
+</CodeSnippet>
+<p>
+Notice how <code className="jarombek-inline-code">h3</code>, <code className="jarombek-inline-code">h2</code>, and
+<code className="jarombek-inline-code">.error</code> are nested inside <code className="jarombek-inline-code">
+.repository-count</code>.  This code snippet also shows how Less supports stylesheet imports.
+<code className="jarombek-inline-code">@import "../../vars"</code> imports a <strong>var.less</strong> file, making all
+its variables and mixins available to the CSS rules.  The <a href="https://github.com/AJarombek/
+graphql-react-prototype/blob/master/src/vars.less">vars.less</a> file has the following content:
+</p>
+<CodeSnippet language="Less">
+@darkTheme: #454443;
+@darkerTheme: darken(@darkTheme, 10%);
+@defaultFontColor: #e9eaed;
+@contrastPurple: #8a4cff;
+
+.hoverPurple() {
+  color: lighten(@contrastPurple, 20%);
+  transition: color ease 0.4s;
+
+  &:hover {
+    color: @contrastPurple;
+  }
+}
+</CodeSnippet>
+<p>
+The first four lines define four variables, each representing a color.  These variables are used in CSS declarations
+elsewhere in the stylesheet code.  For example, the <code className="jarombek-inline-code">@defaultFontColor</code>
+variable is assigned to a <code className="jarombek-inline-code">color</code> property with the
+<code className="jarombek-inline-code">color: @defaultFontColor;</code> declaration.  The second color variable,
+<code className="jarombek-inline-code">@darkerTheme: darken(@darkTheme, 10%)</code>, showcases one of the functions
+provided by Less called <code className="jarombek-inline-code">darken()</code>.  Similar to Sass, Less provides
+<a href="https://lesscss.org/functions/">built-in functions</a> which make it easier to write styles<sup>5</sup>.  While
+CSS has some <a href="https://www.w3schools.com/cssref/css_functions.asp">built-in functions</a>, Sass and Less greatly
+improve the function offering<sup>6</sup>.
+</p>
+<p>
+<strong>vars.less</strong> also defines a mixin named <code className="jarombek-inline-code">.hoverPurple</code>.  Mixins
+are a group of CSS declarations and nested CSS selectors which are "mixed in" with other CSS rules.  For example,
+<code className="jarombek-inline-code">.hoverPurple</code> is "mixed in" with the
+<code className="jarombek-inline-code">h2</code> CSS selector in the first code sample shown in this article.
+</p>
+<p>
+Less has more features than those shown in this article.  However, in my experience, variables, nested CSS rules,
+functions, and mixins are the ones most commonly used.  Less has pretty good documentation online, so you can learn more
+on their <a href="https://lesscss.org/features/#features-overview-feature">website</a>.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+As far as CSS preprocessors are concerned, Less is a formidable option.  Although I prefer the syntax of Sass, Less has
+nearly identical features, and configuring it with an application is easy.  All the Less code I've written exists in my
+<a href="https://github.com/AJarombek/graphql-react-prototype">graphql-react-prototype</a> and
+<a href="https://github.com/AJarombek/apollo-client-server-prototype">apollo-client-server-prototype</a> repositories.
+</p>
+</div>

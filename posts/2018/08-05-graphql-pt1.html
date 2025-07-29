@@ -1,0 +1,142 @@
+<div>
+<p>
+Over the last year or so I've heard whispers about a technology called GraphQL.  GraphQL is
+marketed as an alternative for the REST API which so many of our applications use these days
+(all my websites/mobile apps use different REST APIs).  I decided that I'd heard enough about
+GraphQL and it was time to try it out and form my own opinions.
+</p>
+<p>
+I created a <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/
+08-Aug/8-5-graphql">prototype GraphQL API</a> in JavaScript.  There was a bit more development work
+ for the GraphQL prototype then I anticipated, so I am splitting up my GraphQL research across
+two separate discovery posts.  The post you are reading now serves as an introduction to the GraphQL
+ecosystem and compares it to the humble REST API.  The follow up post will look at my work
+developing a GraphQL prototype.
+</p>
+<SectionTitle title="What Made the REST API Great?">What Made the REST API Great?</SectionTitle>
+<p>
+GraphQL was created to fix certain flaws of the REST API.  However, there is no denying the
+greatness of the REST API in software development.  Almost all production applications use or expose
+a REST API these days as a way to transfer resources across different services.
+</p>
+<Definition word="REST API">
+<p>
+The REST API definition can easily be broken down into its two components, REST (representational
+state transfer) and API (application programming interface).
+</p>
+<p>
+An API is an exposed set of methods or processes that can be communicated with from an outside
+application.  For example, in object oriented programming a class has public methods that other
+outside objects can call to perform some logic.  These exposed public methods make up the classes
+API.
+</p>
+<p>
+REST is an architectural style that usually uses HTTP (Hypertext Transfer Protocol) as its
+underlying data transfer mechanism<sup>1</sup>.  The REST architecture is used to define APIs with
+the use of endpoints (URIs).    This means that a REST API will expose a bunch of URIs that outside
+applications can call over HTTP.  For example, a RESTful URI called
+<strong>http://api.cats.com/bengal</strong> may return data on bengal cats.
+</p>
+<p>
+Most REST APIs are simply CRUD applications, which expose create, read, update, and delete
+operations through different HTTP verbs<sup>2</sup>.  The HTTP verbs for CRUD are
+<code className="jarombek-inline-code">GET</code>, <code className="jarombek-inline-code">POST</code>,
+<code className="jarombek-inline-code">PUT</code>, and <code className="jarombek-inline-code">DELETE</code>
+respectively.  A HTTP <code className="jarombek-inline-code">GET</code> request is made every time you
+type a URL into a web browser.
+</p>
+</Definition>
+<p>
+The great thing about REST APIs is their simplicity.  Even people without technical knowledge of
+software can easily understand how they work.  In the internet age nearly everyone uses HTTP on a
+daily basis, making REST APIs an easy learning curve.
+</p>
+<p>
+REST APIs are also very simple and predictable thanks to the HTTP protocols stateless nature.  This
+allows for many of the HTTP verbs to be idempotent.
+</p>
+<Definition word="Idempotent">
+An operation is idempotent when it can be called multiple times and always return the same result as
+the initial invocation<sup>3</sup>.  An idempotent operation also should not change the state of the
+application beyond the initial call.  Idempotence enables predictable results.  For example, an HTTP
+<code className="jarombek-inline-code">GET</code> call is idempotent as the returned value is always the
+same and no data in the application will change because of the request.
+</Definition>
+<SectionTitle title="What GraphQL Tries to Solve">What GraphQL Tries to Solve</SectionTitle>
+<p>
+While REST APIs are a great software architecture and work extremely well in most applications, they
+do have some drawbacks as an application expands.  The list of HTTP endpoints in a REST API can
+quickly get very large and the URLs can get extremely long.  Lots of documentation is needed to
+cover all the endpoints.  Often an application that consumes a REST API will have to make multiple
+endpoint calls to get all the data it needs.
+</p>
+<p>
+There is also an issue with the <code className="jarombek-inline-code">GET</code> HTTP method as a means
+of querying data.  While many HTTP verbs allow for a request body to send an application necessary
+data, <code className="jarombek-inline-code">GET</code> does not allow a request body.  All your
+querying information needs to be in the URL itself, which can quickly get out of control.  A hack
+around for this problem is to use an HTTP <code className="jarombek-inline-code">POST</code> request for
+querying instead of <code className="jarombek-inline-code">GET</code> - allowing the placement of query
+information in the request body.  Unfortunately this hack breaks the simplicity and elegance of
+the CRUD model.
+</p>
+<p>
+GraphQL is a query language for your API.  In GraphQL you define a schema for your API to follow
+along with all the data types it handles<sup>4</sup>.  Then in the programming language of your
+choice you create functions to help GraphQL return the proper data for each query.
+</p>
+<p>
+The big draw of GraphQL comes from the APIs client perspective.  In order to query or manipulate
+data in an API, the client simply sends GraphQL the structure of the data it wants and the rest is
+handled by the API application.  Querying GraphQL is a single call, while querying a REST API
+may require multiple calls to get the same data.
+</p>
+<SectionTitle title="GraphQL and REST Comparison">GraphQL and REST Comparison</SectionTitle>
+<p>
+I think the differences between GraphQL and REST are better explained with an example.  Let's take
+a website that handles running logs for cross country runners.  The application has two layers - the
+front end code that defines the user interface and the back end code consisting of an API and a
+database.  We have two choices for the backend API - REST and GraphQL.
+</p>
+<p>
+As an example, let's say a user navigated to a runners profile page.  On this page we want to
+display the runners name, their weekly mileage, and their last three runs.
+</p>
+<p>
+First up is the REST API.  Depending on how the API was set up, all this data may come from
+multiple different endpoints:
+</p>
+<figure>
+  <img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-5-18-restapi.png"/>
+</figure>
+<p>
+While building the application, setup with the REST API was a breeze and extremely easy for all
+the developers and business folks alike.  However, note some of the drawbacks here.  First off
+the data was retrieved in three HTTP calls instead of one.  Network calls are often the slowest part
+of an application, so reducing them is often a solid action plan.  Also these endpoints gave back
+some excess information that the client doesn't need in its current state.  The frontend profile
+page doesn't need to know the runners mileage last week and only requires three runs instead of the
+provided five.  The structure of the data received back from the endpoint is static.
+</p>
+<p>
+Next up is GraphQL:
+</p>
+<figure>
+  <img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-5-18-graphql.png"/>
+</figure>
+<p>
+Note that while querying GraphQL the client explicitly tells the backend API what data it wants,
+and GraphQL returns nothing more.  This makes GraphQL extremely flexible compared to REST.  Also,
+only one API call was made, reducing the time spent on network calls.  Setting up GraphQL for the
+application was more complex and the non-technical folks don't exactly understand how it works, but
+the end result is quite elegant.
+</p>
+<SectionTitle title="Wrapping Up (For Now)">Wrapping Up (For Now)</SectionTitle>
+<p>
+No GraphQL code has been shown yet, but hopefully you have a better understanding of the
+benefits and drawbacks of GraphQL.  The next post in the series will look at the GraphQL
+language and how to set up a GraphQL API in JavaScript.  If you want a head start, the code for the
+GraphQL API is on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/
+08-Aug/8-5-graphql">GitHub</a>.
+</p>
+</div>

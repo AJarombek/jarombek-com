@@ -1,0 +1,167 @@
+<div>
+<p>
+While reading a book on <a href="https://jarombek.com/blog?query=c#&page=1">C#</a>, I came across a
+section about garbage collection.  I always knew that programming languages such as Java performed garbage
+ collection, but I never researched how garbage collectors (GCs) worked.  The book mentioned that
+C# uses a tracing GC with generations and marking.  These were foreign concepts to me, so I decided
+to conduct additional research on the topic.  This article gives a high-level overview of garbage
+collectors and the APIs available to interact with them in <a href="https://jarombek.com/blog?query=java&page=1">Java</a>
+and C#.
+</p>
+<SectionTitle title="Overview">Overview</SectionTitle>
+<Definition word="Garbage Collector">
+<p>
+A Garbage Collector (GC) is a task that deletes occupied memory allocated by a program<sup>1</sup>.  GCs
+look for memory that is no longer referenced anywhere in the program.  When found, data occupying this
+memory space is deleted and the region is reclaimed for future use.
+</p>
+<p>
+Since GCs are run implicitly as a program executes, garbage collection is a form of automatic memory
+management.  The opposite of automatic memory management is manual memory management, where memory is
+allocated and deallocated by the programmer.  Many modern programming languages use garbage collection,
+including Java, <a href="https://jarombek.com/blog?query=python&page=1">Python</a>, and C#.  Some older
+ programming languages use manual memory management instead, with <a href="https://jarombek.com/blog?query=c&page=1">C</a> as a notable example.
+</p>
+</Definition>
+<p>
+While GCs are commonly associated with object oriented programming languages, the first GC appeared
+in Lisp, a functional programming language.  Other functional programming languages such as
+<a href="https://jarombek.com/blog?query=haskell&page=1">Haskell</a> utilize garbage collection.
+</p>
+<p>
+There are two main approaches for garbage collection - reference counting and tracing.
+</p>
+<ComparisonTable title="Garbage Collection Approaches">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Reference Counting
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Reference counting in the context of garbage collection is when each object or data maintains a counter.
+This counter represents the number of other objects or pieces of data that maintain a reference to it.
+For example, for objects <code className="jarombek-inline-code">A</code>, <code className="jarombek-inline-code">
+B</code>, and <code className="jarombek-inline-code">C</code> if object <code className="jarombek-inline-code">
+B</code> contains a reference to <code className="jarombek-inline-code">A</code> and object
+<code className="jarombek-inline-code">C</code> contains a reference to <code className="jarombek-inline-code">
+A</code>, the reference count of <code className="jarombek-inline-code">A</code> is two.
+</p>
+<p>
+When a GC uses reference counting, it removes objects that have a reference count of zero<sup>2</sup>.
+Since these objects are no longer accessible anywhere in the code, they are safely deleted.  In
+practice, reference counting has a number of drawbacks which make it a naive approach to garbage
+collection<sup>3</sup>.  There is a significant speed and memory overhead to maintaining a reference
+counter for each object on the heap.  Also, reference counters run into issues when dealing with cycles.
+If an object exists that references itself, it will never be deleted by the garbage collector.  Because
+of these shortcomings, tracing is usually used in modern GCs.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Tracing
+</h5>
+<div className="jarombek-cte-body">
+<p>
+When a GC uses tracing, it defines root objects or data and checks their reference chains.  If an
+object is referrable directly or indirectly from a root object, the GC keeps it alive<sup>4</sup>.  If
+an object doesn't appear anywhere on the reference chain, it is deleted.  This process is referred to
+as 'tracing the reference chain<sup>5</sup>.'
+</p>
+<p>
+For example, for objects <code className="jarombek-inline-code">A</code>, <code className="jarombek-inline-code">
+B</code>, and <code className="jarombek-inline-code">C</code> if root object
+<code className="jarombek-inline-code">A</code> contains a reference to <code className="jarombek-inline-code">
+B</code> and object <code className="jarombek-inline-code">B</code> contains a reference to
+<code className="jarombek-inline-code">C</code>, then the reference chain is traced as
+<code className="jarombek-inline-code">A -> B -> C</code>.  In this scenario, all three objects are kept
+alive.  Languages such as C# and Java use tracing garbage collectors.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<SectionTitle title="Garbage Collection Steps">Garbage Collection Steps</SectionTitle>
+<p>
+Both Java and C# utilize mark and compact garbage collectors<sup>6,7</sup>.  Marking is when each object
+or piece of data that will be removed by the GC is marked for deletion.  This occurs right before the
+GC deletes objects.  Compacting occurs after objects marked for deletion are removed from memory.
+Compacting moves all remaining objects to the first open memory addresses reserved for objects (the heap).  This
+helps prevent memory fragmentation, which is when small pockets of unused memory exist in-between used
+memory segments.  This memory often goes to waste if newly created objects can't fit in the space.
+</p>
+<p>
+The GCs used by Java and C# are also generational.  Generational garbage collectors stem from the observation
+that most objects are either short lived or persistently maintained<sup>8</sup>.  Implementations of
+generational garbage collection vary, however the basic concepts are constant.  Newer objects are members
+of newer generations, while older objects are members of older generations.  Newer generations are marked
+and compacted on every garbage collection run, while older generations are only marked and compacted
+ occasionally.  This is an optimization technique, since garbage collection algorithms have a time and
+space complexity that is detrimental towards application performance.  This is especially true for garbage
+collection cycles that are "Stop the World" events, where the normal program execution is halted to
+run the garbage collector<sup>9</sup>.  Some GCs also have special generations or memory space for large
+objects which are expensive to garbage collect<sup>10</sup>.
+</p>
+<p>
+To summarize, when a garbage collection cycle begins the GC marks objects for deletion using reference
+counting or tracing.  Marking occurs for newer generations on every garbage collection cycle and for
+older generations on a less regular basis.  After marking is completed, the marked objects are deleted
+from memory.  Finally, the memory allocated for objects (the heap) is compressed.
+</p>
+<SectionTitle title="Garbage Collection APIs">Garbage Collection APIs</SectionTitle>
+<p>
+Programming languages often provide APIs to configure and interact with the garbage collector.  These can
+be either CLI arguments or modules developers can import into their code.  Java provides multiple CLI
+options for configuring the GC, including which garbage collection approach to use<sup>11</sup>.  For
+example, developers can choose between the older CMS garbage collector and newer <a href="https://www.oracle.com/
+technetwork/tutorials/tutorials-1876574.html">G1 GC</a>.
+</p>
+<p>
+From an API perspective, Java only exposes a single method that ties into the garbage collector.
+</p>
+<CodeSnippet language="Java">
+System.gc();
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">gc()</code> sends a recommendation to the JVM to run a garbage
+collection cycle<sup>12</sup>.  It's important to note that this is just a recommendation, there is a
+chance that the GC will not run after invoking <code className="jarombek-inline-code">gc()</code>.
+</p>
+<p>
+C# exposes a much more robust API for the garbage collector.  Some of the available methods and properties
+are shown below.
+</p>
+<CodeSnippet language="C#">
+// The C# garbage collector has three heap divisions - gen0, gen1, and gen2.  Newly allocated objects are
+// in gen0.  Objects which survived a single garbage collection are in gen1.  All other objects are in gen2.
+Assert(GC.MaxGeneration == 2);
+
+// You can force the CLR to run a garbage collection cycle by calling Collect().
+GC.Collect();
+
+// You can specify which generation is collected by passing an argument to Collect().
+GC.Collect(0);
+GC.Collect(1);
+GC.Collect(2);
+
+// Finalizers delay garbage collection of objects.  You can force these objects to be collected by calling
+// Collect() after WaitForPendingFinalizers().
+GC.WaitForPendingFinalizers();
+GC.Collect();
+
+// GC uses a separate heap for large objects.  The large heap's memory isn't compacted on
+// garbage collection by default ...
+Assert(GCSettings.LargeObjectHeapCompactionMode == GCLargeObjectHeapCompactionMode.Default);
+
+// However it can be enabled.  NOTE:  Moving large objects in memory is a slow operation.
+GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+
+// For diagnosis purposes, we can check how much memory is used by the C# process
+Console.WriteLine(GC.GetTotalMemory(true));
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+This article only scratches the surface of garbage collectors and the APIs they expose in programming
+languages.  I now understand a bit more about what happens when garbage collection cycles occur in my programs.
+I'm excited to continue learning more and maybe one day implement a garbage collector of my own!
+</p>
+</div>

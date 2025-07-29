@@ -1,0 +1,269 @@
+<div>
+<p>
+This is part II of my Oracle advanced query discovery.  You can check out
+<a href="https://jarombek.com/blog/mar-18-2018-oracle-adv-pt1">part I</a> as well!  The two clauses
+I'm analyzing in this discovery are <code className="jarombek-inline-code">MODEL</code> and
+<code className="jarombek-inline-code">PIVOT</code>.  The table I'm running queries against is
+<code className="jarombek-inline-code">code_written</code>,
+which stores how many lines of code I wrote in each language over the years.
+The data is real too!
+</p>
+<p>
+The <code className="jarombek-inline-code">MODEL</code> clause allows you to access columns in
+a multidimensional array.  The calculations performed on
+this array are similar to those seen in a spreadsheet application<sup>1</sup>.
+The reason Oracle included the <code className="jarombek-inline-code">MODEL</code> clause is
+users often copied SQL query results and pasted them into spreadsheets, manipulating
+the data from there.  With <code className="jarombek-inline-code">MODEL</code>, similar manipulations are performed in native SQL.
+</p>
+<p>
+The following query is a basic example of the <code className="jarombek-inline-code">MODEL</code>
+clause.  I don't think my lines written statistics are an accurate representation of time spent
+in each language.  For example, Java is a very verbose language.
+Meanwhile, Python has very concise syntax and I often make complex programs
+in very little code.  I used the <code className="jarombek-inline-code">MODEL</code> clause
+to adjust the lines written for Java and Python based on their verbosity.
+</p>
+<CodeSnippet language="SQL">
+SELECT year, language, lines_written
+  FROM code_written
+MODEL
+PARTITION BY (year)
+DIMENSION BY (language)
+MEASURES (lines lines_written) (
+    lines_written['Java'] = ROUND(lines_written['Java'] * 0.8),
+    lines_written['Python'] = ROUND(lines_written['Python'] * 1.25)
+)
+ORDER BY lines_written DESC NULLS LAST;
+</CodeSnippet>
+<span className="code-span">
+YEAR  LANGUAGE      LINES_WRITTEN
+----- ------------- ---------------
+2017  Swift         10726
+2016  Java          10370
+2017  Java          9690
+2017  JavaScript    6663
+2017  XML           5815
+2016  PHP           5433
+2017  PHP           3670
+....  ...           ....
+</span>
+<p>
+In the results, Swift is now listed as the language with the most lines written in 2017.
+</p>
+<p>
+Besides for the <code className="jarombek-inline-code">MODEL</code> clause, the three other important
+clauses in this query are <code className="jarombek-inline-code">PARTITION BY</code>,
+<code className="jarombek-inline-code">DIMENSION BY</code>, and <code className="jarombek-inline-code">MEASURES</code>.
+<code className="jarombek-inline-code">PARTITION BY</code> defines groupings in a result set.
+<code className="jarombek-inline-code">MODEL</code> performs operations on each of these
+groupings<sup>2</sup>.  In my query I partition by year, so rules defined later are applied to each year.
+</p>
+<p>
+<code className="jarombek-inline-code">DIMENSION BY</code> identifies each cell in the partition.
+Each cell makes up one element in a multidimensional array.  In the query above,
+I dimension by language so each cell is a language.  I selected a cell
+with the strings <code className="jarombek-inline-code">'Java'</code> and
+<code className="jarombek-inline-code">'Python'</code>.  The array created from the partition in the query above only has
+one dimension, but that doesn't have to be the case.
+</p>
+<p>
+<code className="jarombek-inline-code">MEASURES</code> defines what type is located in each cell along with
+the name of the array<sup>3</sup>.  In the previous query, I
+declared that each cell contains a <code className="jarombek-inline-code">lines</code> element and the
+array is named <code className="jarombek-inline-code">lines_written</code>.
+</p>
+<p>
+Another cool thing about the <code className="jarombek-inline-code">MODEL</code> clause is
+its possible to loop through the array of cells with a <code className="jarombek-inline-code">FOR</code>
+loop<sup>4</sup>.  You can get the current value within the <code className="jarombek-inline-code">FOR</code>
+loop with <code className="jarombek-inline-code">CURRENTV()</code>.  The
+following queries get the monthly line totals for each language.  Although the queries all return the same
+result, you can follow the comments to see how each optimizes the previous query.
+</p>
+<CodeSnippet language="SQL">
+SELECT year, language, total_lines
+FROM code_written
+MODEL
+PARTITION BY (language)
+DIMENSION BY (year)
+MEASURES (lines total_lines) (
+    total_lines[FOR year FROM 2014 TO 2018 INCREMENT 1] =
+      CASE WHEN total_lines[CURRENTV()] IS PRESENT THEN
+          ROUND(total_lines[CURRENTV()] / 12, 0)
+      ELSE
+          0
+      END
+)
+ORDER BY total_lines DESC;
+
+-- You can shorten the above code by using PRESENTNNV() instead of a case statement
+-- This function takes a column and if it existed prior to the MODEL clause and isn't
+-- null, the second argument is returned.  Otherwise, the third argument is returned
+SELECT year, language, total_lines
+  FROM code_written
+MODEL
+PARTITION BY (language)
+DIMENSION BY (year)
+  MEASURES (lines total_lines) (
+    total_lines[FOR year FROM 2014 TO 2018 INCREMENT 1] =
+      PRESENTNNV(total_lines[CURRENTV()], ROUND(total_lines[CURRENTV()] / 12, 0), 0)
+  )
+ORDER BY total_lines DESC;
+
+-- You can shorten the query even further by using the IGNORE NAV clause with th MODEL.
+-- This specifies that any null values should return a default value.  For numbers that
+-- default is 0, which is the behavior we wanted
+SELECT year, language, total_lines
+  FROM code_written
+MODEL IGNORE NAV
+PARTITION BY (language)
+DIMENSION BY (year)
+  MEASURES (lines total_lines) (
+    total_lines[FOR year FROM 2014 TO 2018 INCREMENT 1] =
+        ROUND(total_lines[CURRENTV()] / 12, 0)
+  )
+ORDER BY total_lines DESC;
+
+-- By default when using the MODEL clause if a row doesn't exist for an array entry, a
+-- new row is created.  We can change that behavior so that no new row is created by using
+-- the RULES UPDATE clause.  Now no new rows are created that were not in the base table
+SELECT year, language, total_lines
+  FROM code_written
+MODEL
+PARTITION BY (language)
+DIMENSION BY (year)
+  MEASURES (lines total_lines)
+  RULES UPDATE (
+    total_lines[FOR year FROM 2014 TO 2018 INCREMENT 1] =
+        ROUND(total_lines[CURRENTV()] / 12, 0)
+  )
+ORDER BY total_lines DESC;
+</CodeSnippet>
+<span className="code-span">
+YEAR  LANGUAGE      TOTAL_LINES
+----- ------------- --------------
+2016  Java          1080
+2017  Java          1009
+2017  Swift         894
+2017  JavaScript    555
+2017  XML           485
+2016  PHP           453
+....  ...           ...
+</span>
+<p>
+Now onto probably the coolest thing I've seen in Oracle so far: the
+<code className="jarombek-inline-code">PIVOT</code> clause!  <code className="jarombek-inline-code">PIVOT</code> is used to rotate
+rows into columns!  An aggregate function must be used with the
+<code className="jarombek-inline-code">PIVOT</code> clause.  The following query rotates the
+<code className="jarombek-inline-code">year</code> row into multiple columns:
+</p>
+<CodeSnippet language="SQL">
+SELECT * FROM (
+  SELECT
+    year,
+    language,
+    lines
+  FROM code_written
+)
+PIVOT (
+    SUM(lines) FOR year IN (2014, 2015, 2016, 2017, 2018)
+);
+</CodeSnippet>
+<span className="code-span">
+LANGUAGE       2014   2015   2016   2017   2018
+-------------- ------ ------ ------ ------ ------
+JavaScript                   2008   6663   1120
+XML                   42     2646   5815   0
+PHP                          5433   3670   0
+Sass                                163    443
+TypeScript                          133    1850
+PL/SQL                       203    844    121
+SQL                          942    812    585
+C                     630    379    271    0
+Java           4282   1585   12962  12113  979
+Python                931    1122   1288   242
+HTML                         1413   1969   397
+CSS                          1233   1654   34
+JSON                  32     820    1019   112
+Swift                               10726  103
+</span>
+<p>
+Now that is awesome!  This is the exact layout I'd use for this data in an Excel
+spreadsheet.  I can improve this query by displaying the total
+number of lines for each language using the <code className="jarombek-inline-code">GROUP BY ROLLUP</code>
+clause and <code className="jarombek-inline-code">GROUPING()</code>.
+</p>
+<CodeSnippet language="SQL">
+CREATE TABLE code_written_pivot AS
+SELECT * FROM (
+    SELECT
+      CASE GROUPING(year)
+      WHEN 1
+        THEN 'Total'
+      ELSE TO_CHAR(year)
+      END AS year,
+    language,
+    SUM(lines) AS lines
+    FROM code_written
+    GROUP BY ROLLUP (language, year)
+)
+PIVOT (
+    SUM(lines)
+FOR year IN (2014, 2015, 2016, 2017, 2018, 'Total' AS Total)
+)
+ORDER BY "2018" DESC NULLS LAST;
+</CodeSnippet>
+<span className="code-span">
+LANGUAGE       2014   2015   2016   2017   2018   TOTAL
+-------------- ------ ------ ------ ------ ------ ------
+TypeScript                          133    1850   1983
+JavaScript                   2008   6663   1120   9791
+Java           4282   1585   12962  12113  979    31921
+SQL                          942    812    585    2339
+Sass                                163    443    606
+HTML                         1413   1969   397    3779
+Python                931    1122   1288   242    3583
+PL/SQL                       203    844    121    1168
+JSON                  32     820    1019   112    1983
+Swift                               10726  103    10829
+CSS                          1233   1654   34     2921
+C                     630    379    271    0      1280
+XML                   42     2646   5815   0      8503
+PHP                          5433   3670   0      9103
+                                                  89789
+</span>
+<p>
+Notice that I created a table from the result of this query.  I did this to demonstrate the
+<code className="jarombek-inline-code">UNPIVOT</code> query, which performs
+the opposite operation of <code className="jarombek-inline-code">PIVOT</code>:
+</p>
+<CodeSnippet language="SQL">
+SELECT * FROM code_written_pivot
+UNPIVOT (
+    lines FOR year IN (Total, "2018", "2017", "2016", "2015", "2014")
+);
+</CodeSnippet>
+<span className="code-span">
+LANGUAGE       YEAR            LINES
+-------------- ----- ---------------
+TypeScript     TOTAL            1983
+TypeScript     2018             1850
+TypeScript     2017              133
+JavaScript     TOTAL            9791
+JavaScript     2018             1120
+JavaScript     2017             6663
+JavaScript     2016             2008
+Java           TOTAL           31921
+Java           2018              979
+Java           2017            12113
+Java           2016            12962
+Java           2015             1585
+Java           2014             4282
+</span>
+<p>
+My next Oracle discovery will be on PL/SQL!  I'm sure I will come back to these
+discoveries when I use similar SQL queries in the future!  All the code is up on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/03-Mar/3-19-Oracle-Adv-II">GitHub</a>.
+</p>
+</div>

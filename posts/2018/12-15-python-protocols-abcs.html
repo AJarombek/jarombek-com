@@ -1,0 +1,376 @@
+<div>
+<p>
+Python provides many different techniques for declaring interfaces.  Some are informal such as
+protocols, while some are strict such as ABCs.  The lack of an <code className="jarombek-inline-code">
+interface</code> keyword makes learning all the different techniques a bit more difficult.  This
+discovery post explores different options for creating interfaces in Python.
+</p>
+<SectionTitle title="Protocols & Duck Typing">Protocols & Duck Typing</SectionTitle>
+<Definition word="Protocol">
+In Python a protocol is an informal interface.  Protocols are either known as an accepted truth or defined in
+documentation and not strictly in code<sup>1</sup>.  For example, any class that implements the
+<code className="jarombek-inline-code">__container__()</code> special method is said to follow the "container
+protocol."  While this is an accepted truth, there is no syntax in the Python language that declares
+a class as following a protocol.  Python classes can also implement multiple protocols.
+</Definition>
+<p>
+<a href="https://jarombek.com/blog/jul-15-2018-groovy-optional-typing#duck-typing">Duck typing</a> is
+used to determine if a class follows a protocol.  Duck typing is when you assume an object follows a
+certain protocol based on the existence of certain methods or properties.
+</p>
+<CodeSnippet language="Python">
+# TrailMap.py
+
+class TrailMap:
+
+  def __init__(self, trails):
+    """
+    Construct a new TrailMap object which contains a list of all the trails in a park
+    :param trails: a list of trails, which should be represented as a tuple formatted
+    as: (trail_name, distance)
+    """
+    self.__trails = trails
+
+  @property
+  def trails(self):
+    return self.__trails
+
+  def __len__(self):
+    """
+    Special method to get the length of the object
+    :return: the length of the internal __trails list
+    """
+    return len(self.__trails)
+
+  def __getitem__(self, item):
+    """
+    Special method to get an item at a position in the object.  Since TrailMap implements
+    both __len__ and __getitem__, it follows the Sequence protocol.
+    :param item: A position to search for an item
+    :return: A trail in the trail map
+    """
+    cls = type(self)
+    if isinstance(item, slice):
+      return cls(self.__trails[item])
+    elif isinstance(item, numbers.Integral):
+      return self.__trails[item]
+    else:
+      error_message = '{.__name__} indices must be integers'
+      raise TypeError(error_message.format(cls))
+
+
+if __name__ == '__main__':
+  mrp_trails = [('Main Road', 1.3), ('Swamp Trail', 2.2), ('Laurel Trail', 1.8)]
+  mrp_trail_map = TrailMap(mrp_trails)
+
+  # Since TrailMap implements the Sequence protocol, slicing now works.
+  # As expected, len() and index accesses work as well
+  assert len(mrp_trail_map) is 3
+  assert mrp_trail_map[0] == ('Main Road', 1.3)
+
+  last_two_trails = mrp_trail_map[1:]
+  first_and_last_trails = mrp_trail_map[0::2]
+
+  assert last_two_trails.trails == [('Swamp Trail', 2.2), ('Laurel Trail', 1.8)]
+  assert first_and_last_trails.trails == [('Main Road', 1.3), ('Laurel Trail', 1.8)]
+
+  # If no __iter__() special method exists, Python falls back to __getitem__()
+  for trail in mrp_trail_map:
+    assert type(trail) is tuple
+</CodeSnippet>
+<p>
+In my <a href="https://jarombek.com/blog/dec-14-2018-python-class-features">previous discovery</a> I
+mentioned how Python 3.5 added type hints to help enforce types in IDEs.  Type hints can also exist
+in separate files with the <strong>.pyi</strong> extension.  I created one of these files for the
+<code className="jarombek-inline-code">TrailMap</code> class.  Its named <strong>TrailMap.pyi</strong>.
+</p>
+<CodeSnippet language="Python">
+# TrailMap.pyi
+
+class TrailMap:
+
+  # TrailMap constructor
+  def __init__(self, trails: list(tuple)) -> None:
+  self.__trails = trails
+
+  # Property getter method
+  def trails(self) -> tuple: ...
+
+  # Python special methods which implement the Sequence protocol
+  def __len__(self) -> int: ...
+  def __getitem__(self, item) -> TrailMap: ...
+</CodeSnippet>
+<p>
+Take note that none of these methods contain bodies.  They simply declare the type hints for the
+<code className="jarombek-inline-code">TrailMap</code> class in <strong>TrailMap.py</strong>.
+</p>
+<SectionTitle title="ABCs">ABCs</SectionTitle>
+<p>
+Abstract Base Classes (ABCs) are formal interfaces in Python.  ABCs can contain abstract and
+concrete methods.  In general its recommended for a class to inherit from an ABC instead of a concrete class<sup>2</sup>.
+ABCs in Python are comparable to abstract classes in Java, although Python ABCs support multiple
+inheritance while Java abstract classes do not.
+</p>
+<p>
+It's recommended to only subclass ABCs defined in the Python standard library<sup>3</sup>.  Using
+the existing Python ABCs follows the practice of using existing language features instead of creating
+your own.  For example, to find the length of an object you should simply invoke the built-in
+<code className="jarombek-inline-code">len()</code> function instead of a custom implementation.
+</p>
+<p>
+With this recommendation out of the way, I did create a custom ABC just to demonstrate how it works.
+My custom class <code className="jarombek-inline-code">Exercise</code> only needs to subclass
+<code className="jarombek-inline-code">abc.ABC</code> in order to become an ABC.
+</p>
+<CodeSnippet language="Python">
+import abc
+
+
+class Exercise(abc.ABC):
+  ...
+</CodeSnippet>
+<p>
+Inside an ABC, abstract methods are declared with the <code className="jarombek-inline-code">
+@abc.abstractmethod</code> decorator.  The <code className="jarombek-inline-code">Exercise</code> ABC
+declares three abstract methods: <code className="jarombek-inline-code">miles()</code> for the miles
+exercised, <code className="jarombek-inline-code">time</code> for the length of the exercise, and
+<code className="jarombek-inline-code">date</code> for when the exercise occurred.  Abstract method bodies
+are implemented in classes that extend the ABC.
+</p>
+<CodeSnippet language="Python">
+# Exercise.py
+  
+@property
+@abc.abstractmethod
+def miles(self) -> numbers.Real:
+  """
+  Get the distance of the exercise in miles
+  """
+
+@property
+@abc.abstractmethod
+def time(self) -> tuple:
+  """
+  Get the length of the exercise in minutes and seconds
+  """
+
+@property
+@abc.abstractmethod
+def date(self) -> date:
+  """
+  Get the date that the exercise occurred
+  """
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">Exercise</code> also contains one concrete method which calculates
+the mile pace of the exercise.
+</p>
+<CodeSnippet language="Python">
+# Exercise.py
+  
+def pace(self) -> tuple:
+  """
+  Calculate the pace of the exercise in minutes and seconds
+  """
+  minutes, seconds = self.time
+  total_seconds = (minutes * 60) + seconds
+  seconds_per_mile = total_seconds / self.miles
+  return seconds_per_mile / 60, seconds_per_mile % 60
+</CodeSnippet>
+<p>
+I ran some assertion statements to confirm that <code className="jarombek-inline-code">Exercise</code> is
+a subclass of <code className="jarombek-inline-code">abc.ABC</code> and that <code className="jarombek-inline-code">
+abc.ABC</code> is the second class in the method resolution order of <code className="jarombek-inline-code">
+Exercise</code>.
+</p>
+<CodeSnippet language="Python">
+assert Exercise.__mro__ == (Exercise, abc.ABC, object)
+assert issubclass(Exercise, abc.ABC)
+</CodeSnippet>
+<p>
+Subclassing an ABC is easy.  All you have to do is extend the ABC and implement all the abstract methods.
+The following <code className="jarombek-inline-code">Run</code> concrete class extends the
+<code className="jarombek-inline-code">Exercise</code> ABC.
+</p>
+<CodeSnippet language="Python">
+import numbers
+from datetime import date
+from Exercise import Exercise
+
+
+class Run(Exercise):
+
+  def __init__(self, miles: numbers.Real, time: tuple, run_date: date, surface: str) -> None:
+    """
+    Initialize a new Run object, which directly subclasses the Exercise ABC
+    :param miles: the number of miles run
+    :param time: the time taken to complete the run.  Should be of the form (minutes, seconds)
+    :param run_date: the day that the run took place
+    """
+    self.__miles = miles
+    self.__time = time
+    self.__date = run_date
+    self.__surface = surface
+
+  @property
+  def miles(self) -> numbers.Real:
+    return self.__miles
+
+  @property
+  def time(self) -> tuple:
+    return self.__time
+
+  @property
+  def date(self) -> date:
+    return self.__date
+
+  @property
+  def surface(self) -> str:
+    """
+    Get the surface that the run occurred on
+    :return: a string describing the running surface
+    """
+    return self.__surface
+
+  def __str__(self) -> str:
+    """
+    Create a string representation of the run
+    :return: a string
+    """
+    return '(Ran {} miles in {}:{} on {} on {})'.format(self.miles, self.time[0], self.time[1],
+                                                        self.date, self.surface)
+</CodeSnippet>
+<p>
+Looking at the metadata of <code className="jarombek-inline-code">Run</code> confirms that it's a subclass
+of <code className="jarombek-inline-code">Exercise</code> and its object instances are instances of
+<code className="jarombek-inline-code">Exercise</code>.
+</p>
+<CodeSnippet language="Python">
+assert Run.__mro__ == (Run, Exercise, abc.ABC, object)
+
+run = Run(1.14, (10, 12), date(2018, 11, 27), 'Sand')
+assert str(run) == '(Ran 1.14 miles in 10:12 on 2018-11-27 on Sand)'
+
+assert isinstance(run, Exercise)
+assert issubclass(Run, Exercise)
+</CodeSnippet>
+<p>
+Directly subclassing an ABC like I did with <code className="jarombek-inline-code">Run</code> is only
+one of the subclassing options that Python offers.  Python also allows for classes to be registered
+as virtual subclasses of an ABC<sup>4</sup>.  Virtual subclasses don't need to implement the methods
+of the parent class.  Instead, Python trusts that the subclass maintains an is-a relationship
+with the parent class.  The following <code className="jarombek-inline-code">Elliptical</code> class is
+a virtual subclass of <code className="jarombek-inline-code">Exercise</code>.
+</p>
+<CodeSnippet language="Python">
+@Exercise.register
+class Elliptical:
+
+  def __init__(self, time: tuple) -> None:
+    self.__time = time
+
+  @property
+  def time(self):
+    return self.__time
+</CodeSnippet>
+<p>
+Virtual subclasses are registered with the ABCs <code className="jarombek-inline-code">register()</code>
+class method.  <code className="jarombek-inline-code">register()</code> is commonly used as a decorator
+on the subclass.  The above example used the <code className="jarombek-inline-code">@Exercise.register</code>
+decorator on the <code className="jarombek-inline-code">Elliptical</code> class.
+</p>
+<p>
+It's important to note that <code className="jarombek-inline-code">Elliptical</code> does not implement the
+<code className="jarombek-inline-code">date()</code> and <code className="jarombek-inline-code">miles()</code>
+abstract methods in the <code className="jarombek-inline-code">Exercise</code> ABC.  Despite this discrepancy,
+<code className="jarombek-inline-code">Elliptical</code> is still a subclass of <code className="jarombek-inline-code">
+Exercise</code> and instances of <code className="jarombek-inline-code">Elliptical</code> are still instances
+of <code className="jarombek-inline-code">Exercise</code>.
+</p>
+<CodeSnippet language="Python">
+elliptical = Elliptical((60, 0))
+
+assert isinstance(elliptical, Exercise)
+assert issubclass(Elliptical, Exercise)
+</CodeSnippet>
+<p>
+Virtual subclasses give ABCs more flexibility.  This flexibility further differentiates the strict
+abstract classes of Java from ABCs in Python.
+</p>
+<p>
+While more flexible than abstract classes in Java, ABCs in Python are still stricter than protocols
+ utilizing duck typing.  However, Python does allow for ABCs to use duck typing when determining
+subclasses as well.  ABCs implement duck typing with the special method <code className="jarombek-inline-code">
+__subclasshook__()</code>.  This method helps a class determine if another class is a subclass.  Behind
+the scenes, <code className="jarombek-inline-code">__subclasshook__()</code> is called when
+<code className="jarombek-inline-code">isinstance()</code> is invoked with an object or
+<code className="jarombek-inline-code">issubclass()</code> is invoked with a class.
+</p>
+<p>
+I added <code className="jarombek-inline-code">__subclasshook__()</code> to the <code className="jarombek-inline-code">
+Exercise</code> ABC.  <code className="jarombek-inline-code">__subclasshook__()</code> in
+<code className="jarombek-inline-code">Exercise</code> declares that if a method <code className="jarombek-inline-code">
+is_exercise()</code> exists anywhere in a class or its parent hierarchy, it's considered a subclass
+of <code className="jarombek-inline-code">Exercise</code>.
+</p>
+<CodeSnippet language="Python">
+# Exercise.py
+
+@classmethod
+def __subclasshook__(cls, c):
+  """
+  Help determine if a class is a subclass.  Use duck typing to make any class with an
+  'is_exercise' method a subclass of Exercise
+  :param c: The class to check if it is a subclass
+  :return: True if the class is a subclass of Exercise, otherwise NotImplemented
+  """
+  if cls is Exercise:
+    if any("is_exercise" in b.__dict__ for b in c.__mro__):
+      return True
+  return NotImplemented
+</CodeSnippet>
+<p>
+I then created a <code className="jarombek-inline-code">Ski</code> class with an <code className="jarombek-inline-code">
+is_exercise()</code> method.  With the help of <code className="jarombek-inline-code">__subclasshook__()
+</code> and duck typing, <code className="jarombek-inline-code">Ski</code> is considered a subclass of
+<code className="jarombek-inline-code">Exercise</code>.
+</p>
+<CodeSnippet language="Python">
+class Ski:
+
+def __init__(self, time: tuple) -> None:
+  self.__time = time
+
+@property
+def time(self) -> tuple:
+  return self.__time
+
+def is_exercise(self) -> bool:
+  """
+  Determine whether the skiing was an exercise or not.  With this method, 'Ski' is considered an 'Exercise'
+  through duck typing.
+  :return: True if the ski is an exercise, False otherwise
+  """
+  minutes, seconds = self.time
+  return minutes + seconds > 0
+
+
+if __name__ == '__main__':
+  nordic_ski = Ski((30, 0))
+
+  # Instances and Subclasses of Exercise via __subclasshook__()
+  assert isinstance(nordic_ski, Exercise)
+  assert issubclass(Ski, Exercise)
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Python provides very flexible ways to utilize inheritance in object oriented design.  Outside of
+concrete classes, ABCs are the most strict use of inheritance.  However, developers can make them
+less strict with the use of virtual subclassing and duck typing with <code className="jarombek-inline-code">
+__subclasshook__()</code>.  If you want an extremely informal inheritance design, protocols can be
+used for classes following common patterns.
+</p>
+<p>
+The code for this discovery post is up on <a href="https://bit.ly/2PBRipv">GitHub</a>.
+</p>
+</div>

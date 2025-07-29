@@ -1,0 +1,371 @@
+<div>
+<p>
+<a href="https://jarombek.com/blog?query=s3&page=1">Amazon S3</a> (Simple Storage Service) is an AWS service
+for storing objects.  Since objects are files, S3 can be viewed as a filesystem accessible over HTTP.  I often
+ use S3 for storing images, fonts, and other assets for my applications.  Some examples include my
+<a href="https://github.com/AJarombek/jarombek-com-infrastructure/tree/master/jarombek-com-assets">
+jarombek.com assets</a> and my <a href="https://github.com/AJarombek/global-aws-infrastructure/tree/
+master/s3">global shared assets</a>.
+</p>
+<p>
+Since Amazon S3 stores files and acts as a filesystem, it can also be used to host static websites.
+</p>
+<ComparisonTable title="Static vs. Dynamic Websites">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Static Website
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A static website displays the content found in its static assets (files containing HTML, CSS, JS, etc.).
+When a user navigates to a static website, the files stored on the web server are returned to the web
+browser without modification.  There is no server-side logic impacting what content the web browser
+receives.  In general, whatever exists in the front-end source code is what gets displayed on the webpage.
+</p>
+<p>
+Thanks to cloud storage systems like Amazon S3, static websites can be an easy and inexpensive option for
+hosting a website.  One downside of static websites is that any logic which makes a site dynamic must be
+performed on the client-side, not the server-side<sup>1</sup>.  Database and API requests can still be
+made, but they must be performed by the front-end and not delegated to a back-end server.  This can help
+reduce complexity at the cost of less flexibility.  Static websites providing dynamic logic with
+front-end JavaScript code are sometimes called client-side dynamic websites<sup>2</sup>.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Dynamic Website
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Dynamic websites serve content based on a back-end web application.  This application returns assets to
+the web browser which are dependent on the context of the request.  This means different users who
+request the same URL from their web browser may receive different files (HTML, CSS, JS, etc.) from
+the web server for rendering.  For example, a signed in user might receive HTML for their profile page
+while a new user might receive HTML for the applications home page.  Asset delivery is determined by
+the back-end code, which might be Node.js/Express, Java Spring, or another server-side web framework.
+</p>
+<p>
+Dynamic websites are hosted on a web server, which nowadays often live on the cloud in a VM or
+container architecture.  This is often more costly and takes more effort to maintain (especially
+in the case of a VM) than a static website's cloud storage system.  However, this
+increased complexity also provides applications more flexibility.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+In a <a href="https://jarombek.com/blog/jan-31-2020-react-16-3">previous article</a> I wrote about new
+features introduced in React 16.3.  To demonstrate the new features, I created a <a href="https://
+react16-3.demo.jarombek.com/">demo React application</a>.  Since the demo only contained client-side
+code (JavaScript, CSS, HTML, PNGs) I decided it was a perfect candidate to be hosted
+on Amazon S3.  For the remainder of this article I'll discuss the process of hosting my demo application
+on Amazon S3 along with the challenges I faced.
+</p>
+<SectionTitle title="Building the Infrastructure with Terraform">Building the Infrastructure with Terraform</SectionTitle>
+<p>
+I built the AWS infrastructure necessary to host my static website with <a href="https://jarombek.com/
+blog?query=terraform&page=1">Terraform</a>.  Terraform is a multi-cloud Infrastructure as Code (IaC) tool
+used to automate cloud infrastructure deployments.  This article assumes you know how to use Terraform
+and work with AWS.  If you need an introduction to Terraform, check out my first <a href="https://
+jarombek.com/blog/sep-3-2018-terraform">Terraform</a> article.
+</p>
+<p>
+The infrastructure I built with Terraform is shown in the diagram below.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/2-15-20-infrastructure.png"/>
+</figure>
+<p>
+When a client (usually a web browser) accesses content, it goes through a CloudFront distribution to an
+S3 bucket.  The S3 bucket finds the resource matching the user's request, and passes it back through
+CloudFront and finally to the client.
+</p>
+<p>
+In my infrastructure, the S3 bucket (<code className="jarombek-inline-code">react16-3.demo.jarombek.com</code>)
+contains four resources.  These resources are the files generated from my React applications Webpack build.
+They are <strong>index.html</strong>, <strong>app.js</strong>, <strong>styles.js</strong>, and
+<strong>styles.css</strong>.  The following HCL code is the Terraform configuration for these objects.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_s3_bucket_object" "app-js" {
+  bucket = aws_s3_bucket.react16-3-demo-jarombek.id
+  key = "app.js"
+  source = "assets/app.js"
+  etag = filemd5("${path.cwd}/assets/app.js")
+  content_type = "application/javascript"
+}
+
+resource "aws_s3_bucket_object" "index-html" {
+  bucket = aws_s3_bucket.react16-3-demo-jarombek.id
+  key = "index.html"
+  source = "assets/index.html"
+  etag = filemd5("${path.cwd}/assets/index.html")
+  content_type = "text/html"
+}
+
+resource "aws_s3_bucket_object" "styles-css" {
+  bucket = aws_s3_bucket.react16-3-demo-jarombek.id
+  key = "styles.css"
+  source = "assets/styles.css"
+  etag = filemd5("${path.cwd}/assets/styles.css")
+  content_type = "text/css"
+}
+
+resource "aws_s3_bucket_object" "styles-js" {
+  bucket = aws_s3_bucket.react16-3-demo-jarombek.id
+  key = "styles.js"
+  source = "assets/styles.js"
+  etag = filemd5("${path.cwd}/assets/styles.js")
+  content_type = "application/javascript"
+}
+</CodeSnippet>
+<p>
+<strong>index.html</strong> is the entrypoint to the React application, loading the JS and CSS files
+in its <code className="jarombek-inline-code">&lt;script&gt;</code> and
+<code className="jarombek-inline-code">&lt;link&gt;</code> tags, respectively.  All four files are
+part of the same S3 bucket.  Its configuration is listed next.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_s3_bucket" "react16-3-demo-jarombek" {
+  bucket = "react16-3.demo.jarombek.com"
+  acl = "public-read"
+  policy = file("${path.module}/policy.json")
+
+  tags = {
+    Name = "react16-3.demo.jarombek.com"
+    Environment = "production"
+  }
+
+  website {
+    index_document = "index.html"
+    error_document = "index.html"
+  }
+}
+</CodeSnippet>
+<p>
+The name of the S3 bucket (<code className="jarombek-inline-code">react16-3.demo.jarombek.com</code>)
+matches its domain name.  The static websites index and error document are specified as
+<code className="jarombek-inline-code">index.html</code>.  This means accessing the domain from its
+base URL (<strong>react16-3.demo.jarombek.com</strong> instead of
+<strong>react16-3.demo.jarombek.com/index.html</strong>) still returns the
+<code className="jarombek-inline-code">index.html</code> object from the S3 bucket.
+</p>
+<p>
+One layer up from the S3 bucket is a CloudFront distribution.  A CloudFront distribution is a CDN that
+delivers static assets through edge nodes hosted throughout the world<sup>3</sup>.  CloudFront speeds
+up access times to static assets for clients under the premise of data locality.  With assets stored on
+edge nodes closer to your geographical location than the S3 bucket (in my case hosted in an AWS data
+center in North Carolina, USA), assets can be accessed quicker.
+</p>
+<p>
+I created <a href="https://github.com/AJarombek/jarombek-com-infrastructure/blob/master/
+jarombek-com-react16-3-demo/main.tf#L59-L217">two CloudFront distributions</a> for the
+<strong>react16-3.demo.jarombek.com</strong> and <strong>www.react16-3.demo.jarombek.com</strong> domains.
+They both access assets from the same S3 bucket.
+</p>
+<CodeSnippet language="HCL">
+data "aws_acm_certificate" "wildcard-demo-jarombek-com-cert" {
+  domain = "*.demo.jarombek.com"
+}
+
+resource "aws_cloudfront_distribution" "react16-3-demo-jarombek-distribution" {
+  origin {
+    domain_name = aws_s3_bucket.react16-3-demo-jarombek.bucket_regional_domain_name
+    origin_id = "origin-bucket-${aws_s3_bucket.react16-3-demo-jarombek.id}"
+
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.origin-access-identity.cloudfront_access_identity_path
+    }
+  }
+
+  # Whether the cloudfront distribution is enabled to accept user requests
+  enabled = true
+
+  # Which HTTP version to use for requests
+  http_version = "http2"
+
+  # Whether the cloudfront distribution can use ipv6
+  is_ipv6_enabled = true
+
+  comment = "react16-3.demo.jarombek.com CloudFront Distribution"
+  default_root_object = "index.html"
+
+  # Extra CNAMEs for this distribution
+  aliases = ["react16-3.demo.jarombek.com"]
+
+  # The pricing model for CloudFront
+  price_class = "PriceClass_100"
+
+  default_cache_behavior {
+    # Which HTTP verbs CloudFront processes
+    allowed_methods = ["HEAD", "GET"]
+
+    # Which HTTP verbs CloudFront caches responses to requests
+    cached_methods = ["HEAD", "GET"]
+
+    forwarded_values {
+      cookies {
+        forward = "none"
+      }
+      query_string = false
+    }
+
+    target_origin_id = "origin-bucket-${aws_s3_bucket.react16-3-demo-jarombek.id}"
+
+    # Which protocols to use when accessing items from CloudFront
+    viewer_protocol_policy = "redirect-to-https"
+
+    # Determines the amount of time an object exists in the CloudFront cache
+    min_ttl = 0
+    default_ttl = 3600
+    max_ttl = 86400
+  }
+
+  custom_error_response {
+    error_code = 404
+    error_caching_min_ttl = 30
+    response_code = 200
+    response_page_path = "/"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  # The SSL certificate for CloudFront
+  viewer_certificate {
+    acm_certificate_arn = data.aws_acm_certificate.wildcard-demo-jarombek-com-cert.arn
+    ssl_support_method = "sni-only"
+  }
+
+  tags = {
+    Name = "react16-3-demo-jarombek-com-cloudfront"
+    Environment = "production"
+  }
+}
+
+resource "aws_cloudfront_origin_access_identity" "origin-access-identity" {
+  comment = "react16-3.demo.jarombek.com origin access identity"
+}
+</CodeSnippet>
+<p>
+I only listed the <strong>react16-3.demo.jarombek.com</strong> distribution above because the
+<a href="https://github.com/AJarombek/jarombek-com-infrastructure/blob/master/jarombek-com-react16-3-demo
+/main.tf#L141-L217">www.react16-3.demo.jarombek.com</a> distribution is identical except for its
+<code className="jarombek-inline-code">aliases</code>, which are
+<code className="jarombek-inline-code">["www.react16-3.demo.jarombek.com"]</code> instead of
+<code className="jarombek-inline-code">["react16-3.demo.jarombek.com"]</code>.  I could probably spend
+an entire article discussing CloudFront distribution configurations, however all you need to know for
+this demo is that it optimizes the retrieval of S3 objects.
+</p>
+<p>
+The final piece of the static website infrastructure is Route53 DNS records for the domains and ACM
+certificates for using HTTPS.  The Route53 records are shown below and the ACM certificate infrastructure
+is viewable in my <a href="https://github.com/AJarombek/jarombek-com-infrastructure">
+jarombek-com-infrastructure</a> and <a href="https://github.com/AJarombek/terraform-modules/tree/master/acm-certificate">
+terraform-modules</a> repositories.
+</p>
+<CodeSnippet language="HCL">
+data "aws_route53_zone" "jarombek" {
+  name = "jarombek.com."
+}
+
+resource "aws_route53_record" "demo-jarombek-a" {
+  name = "react16-3.demo.jarombek.com."
+  type = "A"
+  zone_id = data.aws_route53_zone.jarombek.zone_id
+
+  alias {
+    evaluate_target_health = false
+    name = aws_cloudfront_distribution.react16-3-demo-jarombek-distribution.domain_name
+    zone_id = aws_cloudfront_distribution.react16-3-demo-jarombek-distribution.hosted_zone_id
+  }
+}
+
+resource "aws_route53_record" "www-demo-jarombek-a" {
+  name = "www.react16-3.demo.jarombek.com."
+  type = "A"
+  zone_id = data.aws_route53_zone.jarombek.zone_id
+
+  alias {
+    evaluate_target_health = false
+    name = aws_cloudfront_distribution.www-react16-3-demo-jarombek-distribution.domain_name
+    zone_id = aws_cloudfront_distribution.www-react16-3-demo-jarombek-distribution.hosted_zone_id
+  }
+}
+</CodeSnippet>
+<p>
+The full Terraform configuration is viewable on <a href="https://github.com/AJarombek/
+jarombek-com-infrastructure/blob/master/jarombek-com-react16-3-demo">GitHub</a>.
+</p>
+<SectionTitle title="S3 Static Website Challenges">S3 Static Website Challenges</SectionTitle>
+<p>
+One of the biggest issues I faced when setting up S3 to host a static website was redirecting
+<strong>www</strong> prefixed HTTPS requests to my S3 bucket.  I read tutorials mentioning that two S3
+buckets should be created, one with the main domain (<strong>react16-3.demo.jarombek.com</strong>) and another with the
+www prefixed subdomain (<strong>www.react16-3.demo.jarombek.com</strong>)<sup>4</sup>.  Unfortunately this solution didn't
+work due to my configuration using CloudFront.
+</p>
+<p>
+Since CloudFront creates proxy servers which retrieve and cache assets from S3, a different approach is
+needed to route www prefixed traffic to the same assets as base domain traffic.  The solution is actually
+quite simple.  Two CloudFront distributions are created instead of two S3 buckets.  Both CloudFront
+distributions retrieve assets from the same underlying S3 bucket.
+</p>
+<p>
+Another challenge arose when navigating through the React application and refreshing the page in a browser.
+CloudFront and S3's default behavior is to return whatever static asset is located at the path provided
+by the request.  For example, if a browser navigates to <a href="https://react16-3.demo.jarombek.com/
+styles.css">react16-3.demo.jarombek.com/styles.css</a>, CloudFront accesses the
+<code className="jarombek-inline-code">styles.css</code> object from the S3 bucket.
+</p>
+<p>
+With React Router, the URL changes whenever a new page is accessed.  For example, a user can navigate
+from the home page (<a href="https://react16-3.demo.jarombek.com">https://react16-3.demo.jarombek.com</a>)
+to a Context API demo page (<a href="https://react16-3.demo.jarombek.com/context">
+https://react16-3.demo.jarombek.com/context</a>).  However, if a user refreshes the page, routing won't
+be handled by React Router since its only available on the client side in a static website.  Therefore,
+the routing is handled by CloudFront.
+</p>
+<p>
+By default, CloudFront looks for objects in S3 that correspond to the resource requested.  In the case of
+<a href="https://react16-3.demo.jarombek.com/context">https://react16-3.demo.jarombek.com/context</a>
+CloudFront will look for an object in S3 with the name <strong>context</strong>.  This object does not
+exist, so a 404 HTTP error is returned to the client.  Users of the website receive an error page similar
+to the one below.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/2-15-20-error-page.png"/>
+</figure>
+<p>
+A generic XML error page isn't an ideal scenario.   In this case there shouldn't be an error page displayed
+at all.  React Router should perform the routing no matter which URL is used under the
+<strong>react16-3.demo.jarombek.com</strong> domain.  With React Router in control, the proper pages
+will be loaded for valid paths and redirects to the home page will occur for invalid paths.
+</p>
+<p>
+The solution to my problem is quite simple.  If a 404 HTTP error occurs when loading assets from CloudFront,
+serve the default asset in the S3 bucket.  In my case the default asset is <strong>index.html</strong>,
+which in turn will load JavaScript files that bootstrap React and React Router.  By adding the following
+configuration to my CloudFront distributions, React Router always navigates users to the proper webpage.
+</p>
+<CodeSnippet language="HCL">
+custom_error_response {
+  error_code = 404
+  error_caching_min_ttl = 30
+  response_code = 200
+  response_page_path = "/"
+}
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Learning the intricacies between static and dynamic websites helps when making infrastructure decisions
+for applications.  Depending on the application, choosing a static website hosted on S3 can be a cheaper
+and easier option, resulting in zero maintenance of a web server.  You can check out the full infrastructure
+for my static React web application on <a href="https://github.com/AJarombek/jarombek-com-infrastructure/
+blob/master/jarombek-com-react16-3-demo">GitHub</a>.
+</p>
+</div>

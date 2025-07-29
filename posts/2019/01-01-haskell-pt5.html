@@ -1,0 +1,287 @@
+<div>
+<p>
+In this article, I'm exploring classes in Haskell.  Coming from object oriented languages, the
+concept of Haskell classes was a bit confusing for me.  Haskell is a <a href="https://jarombek.com/blog/
+oct-6-2018-haskell-pt1">functional programming language</a>, so its class functionality doesn't
+match classes in object oriented languages such as Java or Python.  The closest comparison for
+Haskell classes in the object oriented world is Java interfaces with default methods<sup>1</sup>.
+This article helps clear the confusion of Haskell classes.
+</p>
+<SectionTitle title="Type Classes">Type Classes</SectionTitle>
+<p>
+My previous Haskell post looked at declaring custom types.  Custom types and existing types can become
+instances of classes, giving them functionality.  Type classes are created with a
+<code className="jarombek-inline-code">class</code> declaration and instances are created with an
+<code className="jarombek-inline-code">instance</code> declaration.
+</p>
+<p>
+As I mentioned earlier, a class is similar to a Java interface.  Therefore it provides operator and function
+declarations without bodies.  For example, the following <code className="jarombek-inline-code">Eq</code> class matches the one in the
+<code className="jarombek-inline-code">Prelude</code> module that checks for equality.
+</p>
+<CodeSnippet language="Haskell">
+class Eq a where
+  (==), (/=) :: a -> a -> Bool
+
+  x /= y = not (x == y)
+</CodeSnippet>
+<p>
+The class <code className="jarombek-inline-code">Eq</code> defines two operators, <code className="jarombek-inline-code">
+==</code> and <code className="jarombek-inline-code">/=</code>.  It also creates a default definition
+for the <code className="jarombek-inline-code">/=</code> operator (which is simply the opposite of
+<code className="jarombek-inline-code">==</code>).  If an instance of <code className="jarombek-inline-code">
+Eq</code> does not implement the <code className="jarombek-inline-code">/=</code> operator, its functionality falls
+back to the default definition<sup>2</sup>.
+</p>
+<p>
+A type is defined as an instance of a class using an <code className="jarombek-inline-code">instance</code>
+declaration.  The following code declares <code className="jarombek-inline-code">Int</code> as an instance
+of <code className="jarombek-inline-code">Eq</code>.
+</p>
+<CodeSnippet language="Haskell">
+instance Eq Int where
+  (==) = eqInt
+  (/=) = neInt
+</CodeSnippet>
+<p>
+While I didn't have to implement <code className="jarombek-inline-code">(/=)</code> due to the default
+definition, there is no harm in implementing it anyway.  <code className="jarombek-inline-code">eqInt</code>
+and <code className="jarombek-inline-code">neInt</code> are internal Haskell functions used to determine
+integer equality.
+</p>
+<p>
+Thanks to the <code className="jarombek-inline-code">Eq</code> class and corresponding instance declaration, any two
+<code className="jarombek-inline-code">Int</code> types can be used with the <code className="jarombek-inline-code">
+==</code> and <code className="jarombek-inline-code">/=</code> operators.
+</p>
+<CodeSnippet language="Haskell">
+main :: IO ()
+main = do
+  print $ (1 :: Int) == (1 :: Int) -- True
+  print $ (2 :: Int) == (1 :: Int) -- False
+</CodeSnippet>
+<p>
+Just like built-in types, instances can be created with custom types.  The following code creates
+a custom <code className="jarombek-inline-code">FirTree</code> type and declares it as an instance of
+<code className="jarombek-inline-code">Eq</code>.
+</p>
+<CodeSnippet language="Haskell">
+
+-- Create a type for fir trees of different species.  A tree needs to be provided a height in feet and inches
+data FirTree = FrasierFir Int Int | BalsamFir Int Int | DouglasFir Int Int
+
+{-|
+ - Make FirTree an instance of Eq.  In order to be equal, the species of tree must be the same
+ - and the trees must have the same height.
+ -}
+instance Eq FirTree where
+  (FrasierFir f1 i1) == (FrasierFir f2 i2) = (f1 == f2) && (i1 == i2)
+  (BalsamFir f1 i1) == (BalsamFir f2 i2) = (f1 == f2) && (i1 == i2)
+  (DouglasFir f1 i1) == (DouglasFir f2 i2) = (f1 == f2) && (i1 == i2)
+  _ == _ = False
+</CodeSnippet>
+<p>
+I tested the <code className="jarombek-inline-code">==</code> and <code className="jarombek-inline-code">
+/=</code> operators with <code className="jarombek-inline-code">FirTree</code> types.
+</p>
+<CodeSnippet language="Haskell">
+main :: IO ()
+main = do
+
+  let balsam1 = BalsamFir 6 2
+  let balsam2 = BalsamFir 7 4
+  let balsam3 = BalsamFir 6 2
+
+  print $ balsam1 == balsam2 -- False
+  print $ balsam1 == balsam3 -- True
+
+  let frasier1 = FrasierFir 6 2
+  let frasier2 = FrasierFir 7 4
+  let frasier3 = FrasierFir 6 2
+
+  print $ frasier1 == frasier2 -- False
+  print $ frasier1 == frasier3 -- True
+  print $ frasier1 == balsam1 -- False
+</CodeSnippet>
+<SectionTitle title="Class Extensions">Class Extensions</SectionTitle>
+<p>
+Type classes can extend one of many existing classes.  Class extensions are a form of class inheritance,
+and a class that extends multiple classes demonstrates multiple inheritance.  I do feel nervous speaking
+of Haskell classes in object oriented terms simply because there are many differences between the two.
+These differences become apparent when dealing with multiple inheritance and class extensions.
+</p>
+<p>
+A simple example of a class extension from the <code className="jarombek-inline-code">Prelude</code> module
+is the <code className="jarombek-inline-code">Ord</code> class which extends <code className="jarombek-inline-code">Eq</code>.
+</p>
+<CodeSnippet language="Haskell">
+class (Eq a) => Ord a where
+  (<), (<=), (>=), (>) :: a -> a -> Bool
+  max, min :: a -> a -> a
+
+  -- Default methods
+  min x y | x <= y = x
+          | otherwise = y
+
+  max x y | x <= y = y
+          | otherwise = x
+</CodeSnippet>
+<p>
+One of the major misconceptions I had about class extensions was a result of my object oriented
+background.  I figured that instances of <code className="jarombek-inline-code">Ord</code> would
+inherit the operators and functions from <code className="jarombek-inline-code">Eq</code>, but that is not
+the case.  What a class extension actually means is that for a type to be an instance of
+<code className="jarombek-inline-code">Ord</code> it must also be an instance of <code className="jarombek-inline-code">Eq</code><sup>3</sup>.
+This is much different than object oriented class inheritance.
+</p>
+<p>
+I created a full <a href="https://jarombek.com/blog/jan-16-2018-java-default-method">diamond problem</a> of
+Haskell class extensions, similar to my object oriented <a href="https://jarombek.com/blog/dec-22-2018-multiple-inheritance">multiple inheritance</a> example.
+</p>
+<CodeSnippet language="Haskell">
+-- Types of fir trees
+data FrasierFir = FrasierFir Int Int
+                  deriving Show
+
+data BalsamFir = BalsamFir Int Int
+                 deriving Show
+
+data DouglasFir = DouglasFir Int Int
+                  deriving Show
+
+-- Grades for different qualities of the fir trees
+data Grade = Fair | Good | Excellent
+             deriving Show
+
+{-|
+ - A class for a biological tree.  Each tree must be able to calculate its height
+ -}
+class Tree a where
+  -- Class operator
+  height :: a -> Int
+
+  -- Default definition
+  height _ = 0
+
+{-|
+ - A class for a Christmas tree which is an extension of the biological tree class.
+ -}
+class (Tree a) => ChristmasTree a where
+  -- Class operator
+  holiday_tree :: a -> Bool
+
+  -- Default definition
+  holiday_tree _ = True
+
+{-|
+ - A class for an evergreen tree which is an extension of the biological tree class.
+ -}
+class (Tree a) => EvergreenTree a where
+  -- Class operator
+  leaf_persistence :: a -> Bool
+
+  -- Default definition
+  leaf_persistence _ = True
+
+{-|
+ - A class for a fir tree, which is an extension of both a Christmas tree and an evergreen tree.
+ -}
+class (ChristmasTree a, EvergreenTree a) => FirTree a where
+  -- Class operators
+  fragrance :: a -> Grade
+  ease_to_decorate :: a -> Grade
+  needle_retention :: a -> Grade
+</CodeSnippet>
+<p>
+To make the <code className="jarombek-inline-code">FrasierFir</code>, <code className="jarombek-inline-code">BalsamFir</code>,
+and <code className="jarombek-inline-code">DouglasFir</code> types instances of <code className="jarombek-inline-code">
+FirTree</code>, they first must be instances of <code className="jarombek-inline-code">Tree</code>,
+<code className="jarombek-inline-code">ChristmasTree</code>, and <code className="jarombek-inline-code">EvergreenTree</code>.
+</p>
+<CodeSnippet language="Haskell">
+{-|
+ - FrasierFir is an instance of FirTree.  Since it is an instance of FirTree, it must also be an instance
+ - of ChristmasTree, EvergreenTree, and Tree
+ -}
+instance FirTree FrasierFir where
+  fragrance a = Fair
+  ease_to_decorate a = Good
+  needle_retention a = Excellent
+
+instance ChristmasTree FrasierFir
+instance EvergreenTree FrasierFir
+
+instance Tree FrasierFir where
+  height (FrasierFir x y) = (x * 12) + y
+
+{-|
+ - DouglasFir is an instance of FirTree.  Since it is an instance of FirTree, it must also be an instance
+ - of ChristmasTree, EvergreenTree, and Tree
+ -}
+instance FirTree DouglasFir where
+  fragrance a = Good
+  ease_to_decorate a = Fair
+  needle_retention a = Excellent
+
+instance ChristmasTree DouglasFir
+instance EvergreenTree DouglasFir
+
+instance Tree DouglasFir where
+  height (DouglasFir x y) = (x * 12) + y
+
+{-|
+ - BalsamFir is an instance of FirTree.  Since it is an instance of FirTree, it must also be an instance
+ - of ChristmasTree, EvergreenTree, and Tree
+ -}
+instance FirTree BalsamFir where
+  fragrance a = Excellent
+  ease_to_decorate a = Excellent
+  needle_retention a = Fair
+
+instance ChristmasTree BalsamFir
+instance EvergreenTree BalsamFir
+
+instance Tree BalsamFir where
+  height (BalsamFir x y) = (x * 12) + y
+</CodeSnippet>
+<p>
+Next I tested the functionality provided by the type classes.
+</p>
+<CodeSnippet language="Haskell">
+main :: IO ()
+main = do
+  let frasier = FrasierFir 7 2
+
+  print $ frasier -- FrasierFir 7 2
+  print $ fragrance frasier -- Fair
+  print $ ease_to_decorate frasier -- Good
+  print $ needle_retention frasier -- Excellent
+  print $ leaf_persistence frasier -- True
+  print $ holiday_tree frasier -- True
+  print $ height frasier -- 86
+
+  let balsam = BalsamFir 5 6
+
+  print $ balsam -- BalsamFir 5 6
+  print $ fragrance balsam -- Excellent
+  print $ ease_to_decorate balsam -- Excellent
+  print $ needle_retention balsam -- Fair
+
+  let douglas = DouglasFir 10 2
+
+  print $ douglas -- DouglasFir 10 2
+  print $ fragrance douglas -- Good
+  print $ ease_to_decorate douglas -- Fair
+  print $ needle_retention douglas -- Excellent
+</CodeSnippet>
+<p>
+As this example demonstrates, Haskell provides multiple inheritance of classes.
+However, Haskell classes are more like interfaces, and instances of subclasses must explicitly be instances
+of all parent classes in the inheritance hierarchy.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Type classes in Haskell are much different than the ones found in object oriented languages.  I'm
+excited to learn how to use them in more complex Haskell programs.
+</p>
+</div>

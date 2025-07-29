@@ -1,0 +1,296 @@
+<div>
+<p>
+Front-end applications, specifically those created with <a href="https://jarombek.com/blog?query=React&page=1">React</a>,
+are built with small reusable JavaScript functions called <a href="https://jarombek.com/blog/may-31-2018-react-seed#react-component">
+components</a>.  Each component renders and handles the business logic for a small chunk of the application.  Components
+have props, state, and elements that render on the screen.
+</p>
+<p>
+For developers working on multiple React applications or working for an organization that uses React, there are benefits to using reusable
+component libraries.  Component libraries are shared amongst applications and contain generic components such as buttons,
+accordions, and form elements.  Besides the obvious benefit of code reuse, component libraries help enforce
+organizational style guides and allow developers to easily iterate on components used in all their applications.
+ Component library setup is easy and can save a lot of front-end development time in the long run.
+</p>
+<SectionTitle title="Library Structure">Library Structure</SectionTitle>
+<span className="code-span">
+jarombek-react-components
+|-- .storybook
+|-- components
+|    |-- src
+|    |-- stories
+|    +-- test
++-- dist
+</span>
+<p>
+The directory structure shown above matches my <a href="https://github.com/AJarombek/jarombek-react-components">
+reusable component library</a>.  There are three top level directories.  <strong>.storybook</strong> holds configuration
+for <a href="https://storybook.js.org/">storybook</a>, a visualization tool for components.  I use storybook to both view
+and test the functionality of my reusable components.  <strong>components</strong> holds React component source code,
+tests, and storybook stories.  Storybook stories display and serve as documentation for a component.  <strong>dist</strong> is the bundled
+and minimized code of the reusable component library.  This code is used by applications that utilize the component
+library.
+</p>
+<SectionTitle title="Reusable Component Example">Reusable Component Example</SectionTitle>
+<p>
+Inside the <strong>components</strong> directory of my <a href="https://github.com/AJarombek/jarombek-react-components">
+reusable component library</a> is an <strong>index.js</strong> file which exports all the components in the
+<strong>src</strong> directory.  <strong>index.js</strong> is the entry point for the library.
+</p>
+<p>
+Inside the <a href="https://github.com/AJarombek/jarombek-react-components/tree/master/components/src">src</a>
+directory, each component has its own directory.  Components are split into multiple files:
+<strong>&lt;ComponentName&gt;.js</strong>, <strong>styles.js</strong>, and <strong>index.js</strong>.
+</p>
+<p>
+For example, I have a reusable component called <code className="jarombek-inline-code">AJSwitch</code>.  All my reusable
+components are prefixed with <strong>AJ</strong> so that they are easy to recognize in application code.  A switch is a
+toggle with an on and off state, just like a typical light switch in a home.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/11-5-20-aj-switch.gif"/>
+</figure>
+<p>
+<code className="jarombek-inline-code">AJSwitch</code> has three source code files: <strong>AJSwitch.js</strong>,
+<strong>styles.js</strong>, and <strong>index.js</strong>.  <a href="https://github.com/AJarombek/jarombek-react-components/
+blob/master/components/src/AJSwitch/AJSwitch.js">AJSwitch.js</a> contains the <code className="jarombek-inline-code">AJSwitch</code>
+component function.  <a href="https://github.com/AJarombek/jarombek-react-components/blob/master/components/src/AJSwitch/
+styles.js">styles.js</a> defines the styles for the component written in JSS.  <a href="https://github.com/AJarombek/
+jarombek-react-components/blob/master/components/src/AJSwitch/index.js">index.js</a> exports the component function to
+the rest of the library.
+</p>
+<p>
+Below is an abbreviated code snippet of the component function declared in <strong>AJSwitch.js</strong>.  Most of the
+omitted code determines which styles and classes are applied to the switch (depending on whether it's toggled on/off).
+</p>
+<CodeSnippet language="JavaScript">
+import React, {useState} from 'react';
+import PropTypes from 'prop-types';
+import {createUseStyles} from 'react-jss';
+
+import styles from './styles';
+
+const useStyles = createUseStyles(styles);
+
+/**
+ * Component representing an off and on switch.  The user can plug in custom logic which will occur
+ * when the off/on state changes.
+ * @param onChange Function that is called when the switch is toggled.  The function takes a single
+ * boolean argument, whose value is {@code true} if the switch is on and {@code false} if the
+ * switch is off.
+ * @param initialState The initial on/off state of the switch.
+ * @param disabled Whether clicking on the switch changes its state.
+ * @param className Custom class attribute(s) attached to the component.
+ * @return {*} React elements representing a toggleable switch.
+ */
+const AJSwitch = ({onChange, initialState=false, disabled=false, className}) => {
+  const classes = useStyles();
+  const [state, setState] = useState(initialState);
+
+  const onClick = () => {
+    if (!disabled) {
+      const newState = !state;
+      setState(newState);
+
+      if (typeof onChange === 'function') {
+        onChange(newState);
+      }
+    }
+  };
+
+  return (
+    &lt;div className={mainClass} onClick={onClick}>
+      &lt;div className={headClass}> &lt;/div>
+      &lt;div className={tailClass}> &lt;/div>
+    &lt;/div>
+  );
+};
+
+AJSwitch.propTypes = {
+  onChange: PropTypes.func.isRequired,
+  initialState: PropTypes.bool,
+  disabled: PropTypes.bool,
+  className: PropTypes.string
+};
+
+export default AJSwitch;
+</CodeSnippet>
+<p>
+The JSS styles for the component are imported from <strong>styles.js</strong> and created with
+<code className="jarombek-inline-code">createUseStyles()</code> and a <code className="jarombek-inline-code">
+useStyles()</code> React hook<sup>1</sup>.  Below is the stylesheet for <code className="jarombek-inline-code">AJSwitch</code>.
+</p>
+<CodeSnippet language="JavaScript">
+export default {
+  ajSwitch: {
+    display: 'flex',
+    height: '20px',
+    width: '36px',
+    cursor: 'pointer'
+  },
+  ajSwitchDisabled: {
+    cursor: 'default'
+  },
+  ajSwitchActive: {
+    flexDirection: 'row-reverse'
+  },
+  ajSwitchInactive: {
+    flexDirection: 'row'
+  },
+  ajSwitchHead: {
+    position: 'absolute',
+    height: '20px',
+    width: '20px',
+    borderRadius: '50%',
+    boxShadow: '0 2px 2px 0 rgba(0, 0, 0, 0.24)'
+  },
+  ajSwitchHeadActive: {
+    backgroundColor: '#4b6cc9'
+  },
+  ajSwitchHeadInactive: {
+    backgroundColor: '#f5f5f5'
+  },
+  ajSwitchTail: {
+    height: '100%',
+    width: '100%',
+    borderRadius: '10px'
+  },
+  ajSwitchTailActive: {
+    backgroundColor: 'rgba(75, 108, 201, 0.5)'
+  },
+  ajSwitchTailInactive: {
+    backgroundColor: '#ccc'
+  }
+};
+</CodeSnippet>
+<p>
+JSS is a library for writing CSS styles in JavaScript code.  I've found JSS to be a very flexible framework, with its
+greatest strength being the ability to adjust styles dynamically.  With JSS, any JavaScript value or object can be
+passed to the stylesheet object.  This process is further simplified with the React-JSS library; state,
+props, or other variables can be passed to the JSS object, allowing the styles to change as the React component updates<sup>2</sup>.
+I plan to dedicate a future article to JSS where I will discuss its benefits and drawbacks compared to more traditional
+approaches like CSS or a CSS preprocessor.
+</p>
+<p>
+The final file, <strong>index.js</strong>, simply exports the component using ES6 modules.
+</p>
+<CodeSnippet language="JavaScript">
+import AJSwitch from './AJSwitch';
+
+export default AJSwitch;
+</CodeSnippet>
+<SectionTitle title="Viewing Components with Storybook">Viewing Components with Storybook</SectionTitle>
+<p>
+<a href="https://storybook.js.org/docs/react/get-started/introduction">Storybook</a> is a visualization tool which
+allows components to be tested, viewed, and documented in isolation from the rest of an application.  It can be
+customized and re-styled to match your company brand or personal taste.
+</p>
+<p>
+I use Storybook for a couple of reasons.  First, Storybook is helpful during a components development process for
+debugging and testing out styles.  Second, it is useful for trying all the different props that a component can take
+in.  Third, it serves as helpful documentation and allows users to search for components
+ they want to use in their applications.
+</p>
+<p>
+Storybook contains multiple stories, with each story visualizing different configurations of a single component.  For
+example, I have a story for the <code className="jarombek-inline-code">AJSwitch</code> component defined in a
+<a href="https://github.com/AJarombek/jarombek-react-components/tree/master/components/stories">stories</a> directory
+in <a href="https://github.com/AJarombek/jarombek-react-components/blob/master/components/stories/storiesAJSwitch.js">
+storiesAJSwitch.js</a>.  It shows two different <code className="jarombek-inline-code">AJSwitch</code> component
+configurations.
+</p>
+<CodeSnippet language="JavaScript">
+import React, {useState} from 'react';
+import {storiesOf} from '@storybook/react';
+import {AJSwitch} from '../src';
+
+storiesOf('AJSwitch', module)
+  .add('default', () =>
+    &lt;AJSwitch
+      onChange={state => console.info(`AJSwitch state: ${state}`)}
+      disabled={false}
+    />
+  )
+  .add('disabled', () =>
+    &lt;AJSwitch
+      onChange={state => console.info(`Disabled AJSwitch state: ${state}`)}
+      initialState={true}
+      disabled={true}
+    />
+  );
+</CodeSnippet>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/11-5-20-aj-switch.png"/>
+</figure>
+<p>
+Storybook is easily started locally on its own server with the <code className="jarombek-inline-code">start-storybook -p 6006</code>
+command (the port can be changed to your liking).
+</p>
+<SectionTitle title="TypeScript/IDE Support">TypeScript/IDE Support</SectionTitle>
+<p>
+Although I decided to write my React component library in JavaScript, many of the applications that use it are written
+in TypeScript.  To avoid any type errors when using the component library in a TypeScript application, I created an
+<a href="https://github.com/AJarombek/jarombek-react-components/blob/master/index.d.ts">index.d.ts</a> file.
+<strong>*.d.ts</strong> files are used by TypeScript to provide type information for JavaScript files<sup>2</sup>.  They
+also help IDEs to properly autocomplete component imports and props when used in applications.
+</p>
+<p>
+For example, the <code className="jarombek-inline-code">AJSwitch</code> component has the following type information
+defined in <strong>index.d.ts</strong>.
+</p>
+<CodeSnippet language="TypeScript">
+import {FunctionComponent} from "react";
+
+// AJSwitch component
+
+export interface AJSwitchProps {
+    onChange: Function;
+    initialState?: boolean;
+    disabled?: boolean;
+    className?: string;
+}
+
+export const AJSwitch: FunctionComponent&lt;AJSwitchProps>;
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">AJSwitchProps</code> interface provides type information for the props passed
+to the <code className="jarombek-inline-code">AJSwitch</code> component.
+</p>
+<p>
+Finally, component typing information must be made available to applications that utilize the library.  This is
+accomplished by adding a <code className="jarombek-inline-code">typings</code> (or
+<code className="jarombek-inline-code">types</code>) field to <a href="https://github.com/AJarombek/
+jarombek-react-components/blob/master/package.json">package.json</a>.  <code className="jarombek-inline-code">typings
+</code> points to the type declaration file, which in my case is <strong>index.d.ts</strong><sup>3</sup>.
+</p>
+<CodeSnippet language="JSON">
+{
+    ...
+    "typings": "./index.d.ts"
+}
+</CodeSnippet>
+<SectionTitle title="Handling Releases">Handling Releases</SectionTitle>
+<p>
+When I release a new version of the component library, I add a <a href="https://github.com/AJarombek/jarombek-react-components/
+tags">tag</a> to its GitHub repository.  This tag is then referenced in an applications <strong>package.json</strong>
+file.  For example, my SaintsXCTF web application’s <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/
+package.json">package.json</a> file has a dependency listed for my component library with a specific tag.  Here is how
+that dependency definition looks:
+</p>
+<CodeSnippet language="JSON">
+{
+    ...
+    "dependencies": {
+        "jarombek-react-components": "git://github.com/ajarombek/jarombek-react-components.git#v0.3.7",
+        ...
+    }
+}
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Reusable component libraries reduce a developers workload when they are programming multiple UI applications.
+My reusable React components have allowed me to quickly create both full production frontend applications and small
+ prototypes.  You can find my component library code on <a href="https://github.com/AJarombek/
+jarombek-react-components">GitHub</a>.
+</p>
+</div>

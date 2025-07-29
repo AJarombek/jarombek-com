@@ -1,0 +1,565 @@
+<div>
+<Note type="info">
+This is part of a series of articles on SaintsXCTF Version 2.0. The first article in the series provides an
+<a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">overview of the application</a>.  You
+<strong>DO NOT</strong> need to read prior articles in the series to fully understand this article.
+</Note>
+<p>
+In a <a href="https://jarombek.com/blog/dec-24-2021-flask-python-api">prior article</a>, I discussed my Flask API
+written for <a href="https://saintsxctf.com/">SaintsXCTF</a>, an application which allows users and their teammates to
+log running exercises and keep track of their running mileage.  As with any piece of software, this Flask API requires
+extensive testing to keep it functional and maintainable.  In this article, I discuss the automated testing approach I
+implemented for the API.
+</p>
+<SubTitle title="SaintsXCTF Version 2.0 Articles">SaintsXCTF Version 2.0 Articles</SubTitle>
+<ul>
+<li><a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">Architectural Overview</a></li>
+<li><a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">AWS Infrastructure</a></li>
+<li><a href="https://jarombek.com/blog/oct-25-2021-saints-xctf-v2-k8s-infrastructure">Kubernetes Infrastructure</a></li>
+<li><a href="https://jarombek.com/blog/nov-1-2021-saints-xctf-v2-react-web-app">React Web Application Overview</a></li>
+<li><a href="https://jarombek.com/blog/nov-15-2021-react-typescript">Web Application React and TypeScript</a></li>
+<li><a href="https://jarombek.com/blog/dec-3-2021-redux-react">Web Application Redux State Configuration</a></li>
+<li><a href="https://jarombek.com/blog/aug-11-2021-cypress-typescript">Web Application Cypress E2E Tests</a></li>
+<li><a href="https://jarombek.com/blog/jun-30-2021-react-jss">Web Application JSS Modular Design</a></li>
+<li><a href="https://jarombek.com/blog/dec-24-2021-flask-python-api">Flask Python API</a></li>
+<li><strong>Flask API Testing</strong></li>
+<li><a href="https://jarombek.com/blog/feb-5-2022-function-api">Function API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/feb-18-2022-auth-api">Auth API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/mar-27-2022-mysql-client-kubernetes">Database Client on Kubernetes</a></li>
+</ul>
+<SectionTitle title="Configuring Automated Tests">Configuring Automated Tests</SectionTitle>
+<p>
+The tests for my application use the built-in Python <strong>unittest</strong> library, along with the
+ <a href="https://coverage.readthedocs.io/en/6.2/">coverage</a> library for code coverage.  Code coverage determines which lines of API source code are
+covered by tests, allowing me to find gaps in testing.  The <strong>coverage</strong> library shows both textual and
+HTML reports of code coverage, making it extremely easy to drill down into specific source files and find which lines
+of code aren't being tested.
+</p>
+<p>
+In the Flask application source code, I created a custom CLI command which triggers the <strong>unittest</strong> tests
+with code coverage enabled.  This way, application tests are triggered from the command line with a
+<code className="jarombek-inline-code">flask test</code> command.  In Flask code, the CLI command is a Python
+function <code className="jarombek-inline-code">test()</code>, located within a <a href="https://github.com/AJarombek/
+saints-xctf-api/blob/v2.0.1/api/src/commands.py#L20-L46">commands.py</a> file.  <code className="jarombek-inline-code">
+test()</code> is added to the Flask application in my <a href="https://github.com/AJarombek/saints-xctf-api/blob/
+v2.0.1/api/src/app.py#L61">app.py</a> file with the following line:
+</p>
+<CodeSnippet language="Python">
+application.cli.add_command(test)
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">test()</code> starts code coverage, runs the tests, and generates a code
+coverage report.  The code is shown below, and is inspired by a function found in the book
+<a href="https://www.oreilly.com/library/view/flask-web-development/9781491991725/">Flask Web Development</a><sup>1</sup>.
+</p>
+<CodeSnippet language="Python">
+cov = None
+if os.environ.get('FLASK_COVERAGE'):
+    cov = coverage.coverage(branch=True, include=['app.py', 'dao/*', 'model/*', 'route/*', 'utils/*'])
+    cov.start()
+
+
+@click.command()
+@with_appcontext
+def test():
+    """
+    Create a Flask command for running unit tests.  Execute with 'flask test' from a command line.
+    """
+    if not os.environ.get('FLASK_COVERAGE'):
+        os.environ['FLASK_COVERAGE'] = '1'
+        os.execvp(sys.executable, [sys.executable] + sys.argv)
+
+    # Create a test runner an execute the test suite
+    tests = unittest.TestLoader().discover('tests')
+    runner = unittest.TextTestRunner(verbosity=3)
+    result: unittest.TestResult = runner.run(tests)
+
+    if cov:
+        cov.stop()
+        cov.save()
+        print('Coverage Summary:')
+        cov.report()
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        cov_dir = os.path.join(basedir, 'tmp/coverage')
+        cov.html_report(directory=cov_dir)
+        print('HTML version: file://%s/index.html' % cov_dir)
+        cov.erase()
+
+    exit(len(result.errors))
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">test()</code> runs all the Python files in the <a href="https://github.com/
+AJarombek/saints-xctf-api/tree/v2.0.1/api/src/tests">test</a> directory of my application.
+</p>
+<SectionTitle title="Testing Approach">Testing Approach</SectionTitle>
+<p>
+Most of the tests in my application invoke API endpoints and assert they return certain HTTP response bodies and
+response status codes.  This means that in order for my tests to execute successfully, a running instance of the API is
+needed.  Instead of using the API running in production, I use a test API that is quickly spun up before tests
+begin and spun down after tests stop.  All the configuration for this test API and the execution environment for the
+tests themselves is accomplished using Docker and Docker Compose.
+</p>
+<p>
+In general, each component of my application backend has a corresponding Docker Compose file.  There is also a Docker
+Compose file for the API tests.  These Docker Compose files exist in a <a href="https://github.com/AJarombek/
+saints-xctf-api/tree/v2.0.1/infra/docker-compose">docker-compose</a> directory in my repository.
+</p>
+<p>
+There are five Docker Compose files in total, each running a single Docker container.  There are four Docker Compose files
+that together complete my application backend.  They are for my <a href="https://github.com/AJarombek/saints-xctf-api/blob/
+v2.0.1/infra/docker-compose/docker-compose-db-local.yml">database</a>, <a href="https://github.com/AJarombek/
+saints-xctf-api/blob/v2.0.1/infra/docker-compose/docker-compose-auth-local.yml">authentication API</a>,
+<a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/infra/docker-compose/docker-compose-fn-local.yml">
+AWS Lambda function API</a>, and <a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/infra/docker-compose/
+docker-compose-api-local.yml">main Flask API</a>.  These four Docker Compose configurations need to be started using
+the <code className="jarombek-inline-code">docker-compose up</code> command before the API tests are run.  Once they
+are running, the <a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/infra/docker-compose/
+docker-compose-test-local.yml">API test</a> Docker Compose file can be run.  This Docker Compose file starts a
+container, runs the API tests on that container, and then stops the container.  Its configuration is shown below.
+</p>
+<CodeSnippet language="YAML">
+# docker-compose-test-local.yml
+
+version: '3.7'
+services:
+  test:
+    build:
+      context: ../../api/src/
+      dockerfile: local.test.dockerfile
+      network: host
+    networks:
+      - local-saints-xctf-api-net
+
+networks:
+  local-saints-xctf-api-net:
+    driver: bridge
+</CodeSnippet>
+<p>
+This Docker Compose file runs a <a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/api/src/
+local.test.dockerfile">local.test.dockerfile</a> Dockerfile, which has the following configuration:
+</p>
+<CodeSnippet language="Dockerfile">
+FROM python:3.8-alpine
+
+RUN apk update \
+    && apk add --virtual .build-deps gcc python3-dev libc-dev libffi-dev g++ \
+    && pip install --upgrade pip \
+    && pip install pipenv
+
+COPY . /src
+WORKDIR /src
+
+RUN pipenv install
+
+ENV FLASK_APP app.py
+ENV ENV localtest
+
+COPY credentials .aws/
+ENV AWS_DEFAULT_REGION us-east-1
+ENV AWS_SHARED_CREDENTIALS_FILE .aws/credentials
+
+ENTRYPOINT ["pipenv", "run", "flask", "test"]
+</CodeSnippet>
+<p>
+At its core, this container uses a <code className="jarombek-inline-code">python:3.8-alpine</code> container as its
+base, installs necessary dependencies for the API code, and runs the <code className="jarombek-inline-code">
+flask test</code> command in the container <code className="jarombek-inline-code">ENTRYPOINT</code>.  Running this
+container shows a console output similar to the following:
+</p>
+<CodeSnippet>
+Starting docker-compose_test_1 ... done
+Attaching to docker-compose_test_1
+test_1  | test_app_exists (test_src.testApp.TestApp) ... ok
+test_1  | test_non_existent_route (test_src.testApp.TestApp)
+test_1  | ...
+test_1  | test_user_update_last_login_by_username_put_route_unauthorized (test_src.test_route.testUserRoute.TestUserRoute)
+test_1  | Test performing an unauthorized HTTP PUT request on the '/v2/users/&lt;username>/update_last_login' route. ... ok
+test_1  |
+test_1  | ----------------------------------------------------------------------
+test_1  | Ran 467 tests in 77.992s
+test_1  |
+test_1  | OK (skipped=11)
+test_1  | Coverage Summary:
+test_1  | Name                           Stmts   Miss Branch BrPart  Cover
+test_1  | ----------------------------------------------------------------
+test_1  | app.py                            73     35      6      0    48%
+test_1  | dao/activationCodeDao.py          25      0      0      0   100%
+test_1  | dao/basicDao.py                   15      0      0      0   100%
+test_1  | dao/userDao.py                    40      3      0      0    92%
+test_1  | model/User.py                     75      0      0      0   100%
+test_1  | model/UserData.py                 30      2      4      2    88%
+test_1  | route/userRoute.py               486     31    138     30    90%
+test_1  | utils/exerciseFilters.py          19      2     14      2    88%
+test_1  | ...
+test_1  | ----------------------------------------------------------------
+test_1  | TOTAL                           3625    261    692    154    90%
+test_1  | HTML version: file:///src/tmp/coverage/index.html
+docker-compose_test_1 exited with code 0
+</CodeSnippet>
+<p>
+This output states that the container started, 467 tests ran in 78 seconds with a successful (OK) status, and the code
+coverage of the API is 90%.
+</p>
+<SectionTitle title="Test Code">Test Code</SectionTitle>
+<p>
+The test code for my API exists within a <a href="https://github.com/AJarombek/saints-xctf-api/tree/v2.0.1/api/src/
+tests">tests</a> directory.  The file structure of the <strong>tests</strong> directory matches the application
+source code directory.  For example, inside <strong>tests</strong> is a <a href="https://github.com/AJarombek/
+saints-xctf-api/tree/v2.0.1/api/src/tests/test_src">test_src</a> directory, which matches the
+<a href="https://github.com/AJarombek/saints-xctf-api/tree/v2.0.1/api/src">src</a> directory of the application.  Inside
+<strong>test_src</strong> is a <a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/api/src/tests/
+test_src/testApp.py">testApp.py</a> file, which is a test file corresponding to an <a href="https://github.com/
+AJarombek/saints-xctf-api/blob/v2.0.1/api/src/app.py">app.py</a> file in the source code.  As you can see, in the test
+code, directories and files are prefixed with <strong>test</strong>.  Directories are in
+snake case while files are in camel case.  This isn’t a required convention, but consistent naming makes it easy to
+associate test files with source code.
+</p>
+<p>
+The contents of <strong>testApp.py</strong>, which tests the entrypoint of the Flask application, is shown below.
+</p>
+<CodeSnippet language="Python">
+from flask import current_app, Response
+from tests.TestSuite import TestSuite
+
+
+class TestApp(TestSuite):
+
+    def test_app_exists(self):
+        self.assertTrue(current_app is not None)
+
+    def test_non_existent_route(self) -> None:
+        """
+        Test performing an HTTP GET request against an endpoint that doesn't exist. This query should invoke the
+        custom 404 error handler.
+        """
+        response: Response = self.client.get('/path/doesnt/exist')
+        response_json: dict = response.get_json()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response_json.get('error_description'), 'Page Not Found')
+        self.assertGreater(len(response_json.get('exception')), 0)
+        self.assertEqual(response_json.get('contact'), 'andrew@jarombek.com')
+        self.assertEqual(response_json.get('api_index'), '/versions')
+</CodeSnippet>
+<p>
+This test code contains two test functions: <code className="jarombek-inline-code">test_app_exists()</code> and
+<code className="jarombek-inline-code">test_non_existent_route()</code>.  <code className="jarombek-inline-code">
+test_app_exists()</code> checks if <code className="jarombek-inline-code">current_app</code>, a proxy to the Flask
+application object, exists as expected<sup>2</sup>.  <code className="jarombek-inline-code">test_non_existent_route()
+</code> tests that making an HTTP request to an invalid route in the API returns a specific JSON response with a 404
+status code.
+</p>
+<p>
+Each test file contains a single class with functions for individual tests.  These test classes,
+<code className="jarombek-inline-code">TestApp</code> in the example above, extend a base class called
+<code className="jarombek-inline-code">TestSuite</code>.  <code className="jarombek-inline-code">TestSuite</code>
+performs setup and cleanup work for tests.  <code className="jarombek-inline-code">TestSuite</code> extends a
+<code className="jarombek-inline-code">unittest.TestCase</code> class, which <a href="https://docs.python.org/3.8/
+library/unittest.html#test-cases">exposes methods</a> for performing setup and cleanup logic<sup>3</sup>.
+<code className="jarombek-inline-code">TestSuite</code> overrides these methods, as shown below.  The full code is
+available in my <a href="https://github.com/AJarombek/saints-xctf-api/blob/master/api/src/tests/TestSuite.py">
+TestSuite.py</a> file.
+</p>
+<CodeSnippet language="Python">
+import unittest
+import os
+import asyncio
+import json
+
+import boto3
+import aiohttp
+from flask.testing import FlaskClient
+
+from config import config
+from app import create_app
+from database import db
+
+
+class TestSuite(unittest.TestCase):
+    jwt = None
+    auth_url = None
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """
+        Set up logic performed before each test class executes.
+        """
+        flask_env = os.getenv('FLASK_ENV') or 'local'
+        auth_url = config[flask_env].AUTH_URL
+        TestSuite.auth_url = auth_url
+
+        secretsmanager = boto3.client('secretsmanager')
+        response = secretsmanager.get_secret_value(SecretId=f'saints-xctf-andy-password')
+        secret_string = response.get("SecretString")
+        secret_dict = json.loads(secret_string)
+        client_secret = secret_dict.get("password")
+
+        async def token():
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url=f"{auth_url}/token",
+                    json={'clientId': 'andy', 'clientSecret': client_secret}
+                ) as response:
+                    response_body = await response.json()
+                    result = response_body.get('result')
+                    if result:
+                        TestSuite.jwt = result
+
+        asyncio.run(token())
+
+    def setUp(self) -> None:
+        """
+        Set up logic performed before every test.
+        """
+        if os.environ.get('ENV') == 'localtest':
+            env = 'localtest'
+        else:
+            env = 'test'
+
+        self.app = create_app(env)
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        self.client: FlaskClient = self.app.test_client()
+        self.jwt = TestSuite.jwt
+        self.auth_url = TestSuite.auth_url
+        self.jwts = {}
+
+    def tearDown(self) -> None:
+        """
+        Tear down logic performed after every test.
+        """
+        db.session.remove()
+        self.app_context.pop()
+</CodeSnippet>
+<p>
+The setup functions perform actions such as retrieving an authentication token (JWT) to use in tests and
+creating a test client for the API of type <code className="jarombek-inline-code">FlaskClient</code>.  More expensive
+operations, such as making an external API call to receive a JWT, are performed in <code className="jarombek-inline-code">
+setUpClass()</code> instead of <code className="jarombek-inline-code">setUp()</code>.  This way, long running tasks
+don’t take place before each test function, only at the start of each class.
+</p>
+<p>
+I already showed some basic tests in the <a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/api/src/
+tests/test_src/testApp.py">testApp.py</a> file, but now let's look at more complex examples.
+<a href="https://github.com/AJarombek/saints-xctf-api/blob/master/api/src/tests/test_src/test_route/testGroupRoute.py">
+testGroupRoute.py</a> is a file that tests all the API routes defined in my <a href="https://github.com/AJarombek/
+saints-xctf-api/blob/master/api/src/route/groupRoute.py">groupRoute.py</a> source code file.  Let’s walk through a few
+tests, starting with <code className="jarombek-inline-code">test_group_get_all_route_200()</code>.
+</p>
+<CodeSnippet language="Python">
+def test_group_get_all_route_200(self) -> None:
+    """
+    Test performing an HTTP GET request on the '/v2/groups/' route.  This test proves that the endpoint returns
+    a list of groups.
+    """
+    response: Response = self.client.get('/v2/groups/', headers={'Authorization': f'Bearer {self.jwt}'})
+    response_json: dict = response.get_json()
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response_json.get('self'), '/v2/groups')
+    self.assertGreater(len(response_json.get('groups')), 1)
+</CodeSnippet>
+<p>
+<a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/api/src/tests/test_src/test_route/testGroupRoute.py#L42-L51">
+This test</a> checks that API calls to the <strong>/v2/groups/</strong> endpoint returns a 200 status code and a specific
+JSON body.  It is very similar to the <code className="jarombek-inline-code">test_non_existent_route()</code> test,
+except this API endpoint requires authentication, which is passed to the endpoint in the
+<code className="jarombek-inline-code">Authorization</code> header.
+</p>
+<p>
+A slightly more complex test is <code className="jarombek-inline-code">test_group_by_id_put_route_400_not_an_admin()</code>.
+</p>
+<CodeSnippet language="Python">
+def test_group_by_id_put_route_400_not_an_admin(self) -> None:
+    """
+    Test performing an HTTP PUT request on the '/v2/groups/&lt;group_id>' route.  This test proves that
+    a user trying to update a group they are not an administrator of results in a 400 error.
+    """
+    response: Response = self.client.get(
+        '/v2/groups/saintsxctf/wmenstf',
+        headers={'Authorization': f'Bearer {self.jwt}'}
+    )
+    response_json: dict = response.get_json()
+    self.assertEqual(response.status_code, 200)
+    self.assertIsNotNone(response_json.get('group'))
+    group_id = response_json.get('group').get('id')
+
+    response: Response = self.client.put(f'/v2/groups/{group_id}', headers={'Authorization': f'Bearer {self.jwt}'})
+    response_json: dict = response.get_json()
+    self.assertEqual(response.status_code, 400)
+    self.assertEqual(response_json.get('self'), f'/v2/groups/{group_id}')
+    self.assertFalse(response_json.get('updated'))
+    self.assertIsNone(response_json.get('group'))
+    self.assertEqual(
+        response_json.get('error'),
+        f'User andy is not authorized to update a group with id {group_id}.'
+    )
+</CodeSnippet>
+<p>
+<a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/api/src/tests/test_src/test_route/
+testGroupRoute.py#L269-L292">This test</a> asserts that if my user tries to update a group it is not a member of (the
+Women’s Track & Field group), the API returns a 400 error. Two API calls are needed to complete the test, which adds
+some complexity.  The first API call (a GET request) receives Women’s Track & Field group information, including a
+unique identifier for the group.  This unique identifier is stored in <code className="jarombek-inline-code">
+group_id</code> and is used in the next API call, a PUT request to <code className="jarombek-inline-code">
+/v2/groups/{group_id}</code>.
+</p>
+<p>
+A successful variant of the test above is <code className="jarombek-inline-code">
+test_group_by_id_put_route_200()</code>, which asserts that my user can update an Alumni group, which I am a member of.
+<a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/api/src/tests/test_src/test_route/testGroupRoute.py#L326-L355">
+This test</a> also requires two API calls.
+</p>
+<CodeSnippet language="Python">
+def test_group_by_id_put_route_200(self) -> None:
+    """
+    Test performing an HTTP PUT request on the '/v2/groups/&lt;group_id>' route.  This test proves that if the updated
+    group object is valid and the user is an admin of the group, the group is updated and a 200 status code is
+    returned.
+    """
+    response: Response = self.client.get(
+        '/v2/groups/saintsxctf/alumni',
+        headers={'Authorization': f'Bearer {self.jwt}'}
+    )
+    response_json: dict = response.get_json()
+    self.assertEqual(response.status_code, 200)
+    self.assertIsNotNone(response_json.get('group'))
+    group_id = response_json.get('group').get('id')
+
+    group_dict: dict = response_json.get('group')
+    group_dict['description'] = f"Updated: {datetime.now()}"
+    request_body = json.dumps(group_dict)
+
+    response: Response = self.client.put(
+        f'/v2/groups/{group_id}',
+        data=request_body,
+        content_type='application/json',
+        headers={'Authorization': f'Bearer {self.jwt}'}
+    )
+    response_json: dict = response.get_json()
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response_json.get('self'), f'/v2/groups/{group_id}')
+    self.assertTrue(response_json.get('updated'))
+    self.assertIsNotNone(response_json.get('group'))
+</CodeSnippet>
+<p>
+All the API endpoint tests in my application follow a similar pattern to the ones I’ve shown.  There are two other
+types of tests for my Flask application.  The first type is unit tests for utility functions in my API, such as those
+found in <a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/api/src/tests/test_src/test_utils/testLogs.py">
+testLogs.py</a>.  This file tests conversions between distance units, such as converting miles to kilometers.  The
+second type is unit tests for <a href="https://jarombek.com/blog/dec-24-2021-flask-python-api#database-models">
+SQLAlchemy Model classes</a>.  SQLAlchemy model class tests are located in a <a href="https://github.com/AJarombek/
+saints-xctf-api/tree/v2.0.1/api/src/tests/test_src/test_model">test_model</a> directory.  One example is
+<a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/api/src/tests/test_src/test_model/testUser.py">
+testUser.py</a>, which tests the <a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.1/api/src/model/User.py">
+User.py</a> model.
+</p>
+<CodeSnippet language="Python">
+from datetime import datetime
+from tests.TestSuite import TestSuite
+from model.User import User
+
+
+class TestUser(TestSuite):
+    user1_dict = {
+        'username': "andy",
+        'first': 'Andy',
+        'last': 'Jarombek',
+        'salt': None,
+        'password': 'hashed_and_salted_password',
+        'profilepic': None,
+        'profilepic_name': None,
+        'description': "Andy's Profile",
+        'member_since': datetime.fromisoformat('2016-12-23'),
+        'class_year': 2017,
+        'location': 'Riverside, CT',
+        'favorite_event': '8K, 5000m',
+        'activation_code': 'ABC123',
+        'email': 'andrew@jarombek.com',
+        'subscribed': 1,
+        'last_signin': datetime.fromisoformat('2019-12-10'),
+        'week_start': 'monday',
+        'deleted': False
+    }
+
+    user2_dict = {
+        'username': "andy2",
+        'first': 'Andrew',
+        'last': 'Jarombek',
+        'salt': None,
+        'password': 'hashed_and_salted_password',
+        'profilepic': None,
+        'profilepic_name': None,
+        'description': None,
+        'member_since': datetime.fromisoformat('2019-12-10'),
+        'class_year': 2017,
+        'location': None,
+        'favorite_event': None,
+        'activation_code': 'DEF456',
+        'email': 'andrew@jarombek.com',
+        'subscribed': None,
+        'last_signin': datetime.now(),
+        'week_start': None,
+        'deleted': False
+    }
+
+    user1 = User(user1_dict)
+    user1copy = User(user1_dict)
+    user2 = User(user2_dict)
+
+    def test_user_str(self) -> None:
+        """
+        Prove that the human readable string representation of a User object is as expected.
+        """
+        log_str = 'User: [username: andy, first: Andy, last: Jarombek, salt: None, ' \
+                  'password: hashed_and_salted_password, ' \
+                  "description: Andy's Profile, member_since: 2016-12-23 00:00:00, class_year: 2017, " \
+                  'location: Riverside, CT, favorite_event: 8K, 5000m, activation_code: ABC123, ' \
+                  'email: andrew@jarombek.com, subscribed: 1, last_signin: 2019-12-10 00:00:00, week_start: monday, ' \
+                  'deleted: False]'
+
+        self.maxDiff = None
+        self.assertEquals(str(self.user1), log_str)
+        self.assertEquals(self.user1.__str__(), log_str)
+
+    def test_user_repr(self) -> None:
+        """
+        Prove that the machine readable string representation of a User object is as expected.
+        """
+        self.assertEquals(repr(self.user1), "&lt;User 'andy'>")
+        self.assertEquals(self.user1.__repr__(), "&lt;User 'andy'>")
+
+    def test_user_eq(self) -> None:
+        """
+        Prove that two User objects with the same property values test positive for value equality.
+        """
+        self.assertTrue(self.user1 == self.user1copy)
+        self.assertTrue(self.user1.__eq__(self.user1copy))
+
+    def test_user_ne(self) -> None:
+        """
+        Prove that two User objects with different property values test negative for value equality.
+        """
+        self.assertTrue(self.user1 != self.user2)
+        self.assertTrue(self.user1.__ne__(self.user2))
+</CodeSnippet>
+<p>
+There are a couple aspects of the model classes that I prioritize in these tests.
+<code className="jarombek-inline-code">test_user_str()</code> tests that the string representation of a model class
+(created by passing an instance of the class to <code className="jarombek-inline-code">str()</code>) is as expected.
+<code className="jarombek-inline-code">test_user_repr()</code> tests that the machine representation of a model class
+(created by passing an instance of the class to <code className="jarombek-inline-code">repr()</code>) is as expected.
+<code className="jarombek-inline-code">test_user_eq()</code> and <code className="jarombek-inline-code">
+test_user_ne()</code> test for value equality between instances of the model class.
+</p>
+<p>
+One piece of my API that is not directly under test is the <a href="https://jarombek.com/blog/
+dec-24-2021-flask-python-api#data-access-objects">Data Access Objects (DAOs)</a>.  My reasoning for this decision is
+that the DAOs are invoked by the API routes, so they are already indirectly tested by the API endpoint tests.  Testing
+them individually would be a duplication of these existing endpoint tests, just written in a different format.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Writing automated tests is critical for the reliability of any application, and hopefully this article helped illustrate
+that tests for Flask APIs are easy to set up and write.  All the code discussed in this article is available in my
+<a href="https://github.com/AJarombek/saints-xctf-api">saints-xctf-api</a> repository on GitHub.
+</p>
+</div>

@@ -1,0 +1,128 @@
+<div>
+<p>
+In the client side code for my <a href="https://github.com/AJarombek/mean-client-prototype">
+MEAN stack prototype</a> I used Sass for stylesheets instead of CSS.  I experimented with Sass
+before, but this was my first time using it in a full project.  Until native CSS adds the features
+that Sass provides, I will continue using Sass for stylesheets in the future.
+</p>
+<p>
+Sass is a CSS preprocessor with Ruby style syntax.  Its a superset of CSS, so any CSS document is
+valid Sass<sup>1</sup>.  Sass adds lots of new features including variable definitions, mixins,
+and other syntax to help create reusable components in stylesheets.  The biggest problem I had
+with CSS is that it ends up looking like a jumbled mess with many repeated styles.  With Sass,
+I can create reusable styles!
+</p>
+<p>
+In the past I played around with basic Sass features like inline comments and variables.  For
+example, a variable can be defined for a color used throughout the application.
+</p>
+<CodeSnippet language="Sass">
+$baby-blue: #8bb3f4;
+$baby-blue-light: #ccdfff;
+$light-gray: #aaa;
+$off-white: #eee;
+</CodeSnippet>
+<p>
+Variables can be referenced inside a CSS declaration:
+</p>
+<CodeSnippet language="Sass">
+button {
+    border-color: $baby-blue;
+}
+</CodeSnippet>
+<p>
+This time around I experimented with more complex Sass features.  I will discuss these exciting features next!
+</p>
+<SectionTitle title="Mixins">Mixins</SectionTitle>
+<p>
+Mixins are an extremely powerful Sass property that create reusable style blocks.
+Mixins are created with the <code className="jarombek-inline-code">@mixin</code> directive and are used
+in a style declaration with the <code className="jarombek-inline-code">@include</code>
+directive<sup>2</sup>.  For example, in my application I created a mixin for each of my fonts:
+</p>
+<CodeSnippet language="Sass">
+@mixin dyslexie {
+    background-color: transparent !important;
+    font-family: 'Dyslexie', Helvetica, sans-serif !important;
+    font-weight: normal;
+    font-style: normal;
+}
+</CodeSnippet>
+<p>
+Then I included the mixin in a declaration:
+</p>
+<CodeSnippet language="Sass">
+body {
+    @include dyslexie;
+}
+</CodeSnippet>
+<p>
+Every element in the website that needed a specific font used its mixin!  I also
+used mixins to perform more complex operations like transformations.  Another powerful feature of
+mixins is the ability to pass in arguments.  These arguments can also have default values!  Here is a
+mixin that I created to apply a transition to a property:
+</p>
+<CodeSnippet language="Sass">
+/**
+* a mixin that simplifies transition generation
+* @param $property - the property of the element that transitions
+* @param $result - the resulting style of the transition
+* @param $time - the time the transition takes to complete (optional)
+*/
+@mixin transition($property, $result, $time: .3s) {
+    transition: #{$property} $time ease;
+
+    // #{} syntax compiles the contents as a property name or selector
+    &:hover {
+        #{$property}: $result;
+    }
+}
+</CodeSnippet>
+<p>
+This mixin creates a transition style for the <code className="jarombek-inline-code">$property</code> parameter.  If no
+<code className="jarombek-inline-code">$time</code> argument is passed to the mixin, the default 0.3 seconds is used.
+</p>
+<p>
+Another cool piece of this code is the ampersand (<code className="jarombek-inline-code">&amp;</code>)
+placeholder.  This placeholder is a reference to the parent selector<sup>3</sup>.  The
+<code className="jarombek-inline-code">:hover</code> pseudo-class is applied to the parent
+selector that the mixin is included in!
+</p>
+<p>
+Here is some code where I include the transition mixin:
+</p>
+<CodeSnippet language="Sass">
+#login-button {
+    @include transition("background-color", $light-gray);
+}
+</CodeSnippet>
+<p>
+Mixins allow for reduced code and less repetition in Sass files!
+</p>
+<SectionTitle title="Extends">Extends</SectionTitle>
+<p>
+When there are multiple selectors that use the same styles, each selector can extend a single class.
+Here is an example:
+</p>
+<CodeSnippet language="Sass">
+// Define a general style to be extended for &lt;span&gt; elements
+.span-style {
+    @include sylexiad;
+    color: #990000;
+}
+
+span {
+    @extend .span-style;
+}
+</CodeSnippet>
+<p>
+Now all the styles in the <code className="jarombek-inline-code">.span-style</code> class are used in
+the <code className="jarombek-inline-code">span</code> element.  The best part is that this class can be
+extended into other CSS selectors as well!  It is yet another great way to create reusable styling.
+</p>
+<p>
+I'm having a ton of fun exploring Sass and all the exciting possibilities it offers.  While I hope
+these features eventually make it into the native CSS spec, for now Sass is a nice alternative.  I'm
+sure this won't be my last discovery on the matter!
+</p>
+</div>

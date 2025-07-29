@@ -1,0 +1,304 @@
+<div>
+<p>
+A common higher-order function in functional programming is a fold (also referred to as reduce or
+inject depending on the language).  The goal of a fold is to take a list and reduce it into a single
+value.  <a href="https://jarombek.com/blog/oct-6-2018-haskell-pt1">Haskell</a> implements multiple
+fold functions, each of which has a different implementation.  This article clears up the differences
+between each fold function and introduces some simple use cases.
+</p>
+<SectionTitle title="foldl and foldr">
+<code className="jarombek-header-code">foldl</code> and <code className="jarombek-header-code">foldr</code>
+</SectionTitle>
+<p>
+The two main fold functions in Haskell are <code className="jarombek-inline-code">foldr</code> and
+<code className="jarombek-inline-code">foldl</code>, both of which are found in the standard
+<code className="jarombek-inline-code">Prelude</code> module.  <code className="jarombek-inline-code">foldr</code>
+and <code className="jarombek-inline-code">foldl</code> take three arguments.  The first argument is
+a list (<code className="jarombek-inline-code">xs</code>) from which the single returned value is reduced.
+The second argument is a base value (<code className="jarombek-inline-code">v</code>).
+<code className="jarombek-inline-code">v</code> is the result of a fold function with an empty list argument.
+If a populated list is passed as an argument, <code className="jarombek-inline-code">v</code> assists in
+building a reduced value.  How a reduced value is created depends on the third argument which is a function.
+</p>
+<p>
+This function (<code className="jarombek-inline-code">f</code>) takes in two arguments - the base value
+<code className="jarombek-inline-code">v</code> and an item from the list <code className="jarombek-inline-code">x</code>.
+<code className="jarombek-inline-code">f</code> performs an operation on <code className="jarombek-inline-code">v</code>
+and <code className="jarombek-inline-code">x</code>, returning a single value.  Fold is a recursive function,
+so each item in the list <code className="jarombek-inline-code">xs</code> passes through
+<code className="jarombek-inline-code">f</code>, resulting in a single value after the list is exhausted.
+</p>
+<p>
+The difference between <code className="jarombek-inline-code">foldr</code> and <code className="jarombek-inline-code">
+foldl</code> is how the recursion is applied to list items.  The following function is a recreation of
+<code className="jarombek-inline-code">foldr</code>:
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Redefining the fold-right recursive function for reference
+  (a -> b -> b) - a function that takes a list item 'a' and an accumulator 'b' and performs an operation
+                    on 'a' that combines it with 'b'
+              b - the starting value for the accumulator
+            [a] - a list to operate on
+-}
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr f v [] = v
+foldr f v (x:xs) = f x (foldr f v xs)
+</CodeSnippet>
+<p>
+The following code uses <code className="jarombek-inline-code">foldr</code> to add up all the items in a list.
+</p>
+<CodeSnippet language="Haskell">
+foldr (+) 0 [1..10] -- 55
+</CodeSnippet>
+<p>
+To begin, <code className="jarombek-inline-code">foldr</code> invokes function <code className="jarombek-inline-code">
+f</code> on the first list item <code className="jarombek-inline-code">x</code> and the recursive case
+<code className="jarombek-inline-code">(foldr f v xs)</code>.  Finally once <code className="jarombek-inline-code">
+foldr</code> is recursively called enough times to exhaust the list, the base case is returned.
+This type of fold function is known as a 'right fold' since the computed result folds over from the
+right<sup>1</sup>.  Visually this is hard to picture so I'll show you an example in a bit.
+</p>
+<p>
+The other type of fold is a ‘left fold' which Haskell implements with the <code className="jarombek-inline-code">
+foldl</code> function.  I recreated <code className="jarombek-inline-code">foldl</code> below:
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Redefining the fold-left recursive function for reference
+  (a -> b -> a) - a function that takes an accumulator 'a' and a list item 'b' and performs an operation
+                    on 'b' that combines it with 'a'
+              a - a starting value for the accumulator
+            [b] - a list to operate on
+-}
+foldl :: (a -> b -> a) -> a -> [b] -> a
+foldl f v [] = v
+foldl f v (x:xs) = foldl f (f v x) xs
+</CodeSnippet>
+<p>
+The following code uses <code className="jarombek-inline-code">foldl</code> to add up all the items in a list.
+</p>
+<CodeSnippet language="Haskell">
+foldl (+) 0 [1..10] -- 55
+</CodeSnippet>
+<p>
+The only difference between <code className="jarombek-inline-code">foldl</code> and
+<code className="jarombek-inline-code">foldr</code> is the recursive case.  <code className="jarombek-inline-code">
+foldl</code> immediately invokes function <code className="jarombek-inline-code">f</code> on the first list
+item <code className="jarombek-inline-code">x</code> and the base value <code className="jarombek-inline-code">v</code>.
+The result of this invocation (<code className="jarombek-inline-code">f v x</code>) is passed as the new base
+value to <code className="jarombek-inline-code">foldl</code>.  This type of fold function is known as a 'left fold'
+since the computed result folds over from the left.
+</p>
+<p>
+The concepts of folding left and right are quite confusing at first.  Using the fold functions to create
+a string representation of their execution pattern is a helpful way to visualize the differences between
+<code className="jarombek-inline-code">foldl</code> and <code className="jarombek-inline-code">foldr</code><sup>2</sup>.
+</p>
+<p>
+The following two functions are used to debug <code className="jarombek-inline-code">foldl</code> and
+<code className="jarombek-inline-code">foldr</code>.
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Visualize the execution of the foldr function.
+  Inspiration from: https://wiki.haskell.org/Fold#Examples
+-}
+debug_foldr :: [String] -> String -> String
+debug_foldr xs s = foldr (\x y -> "(" ++ x ++ "+" ++ y ++ ")") s xs
+
+{-|
+  Visualize the execution of the foldl function
+-}
+debug_foldl :: [String] -> String -> String
+debug_foldl xs s = foldl (\x y -> "(" ++ x ++ "+" ++ y ++ ")") s xs
+</CodeSnippet>
+<p>
+Invoking these two functions on a list <code className="jarombek-inline-code">[1..10]</code> reveals how
+recursion constructs the final result.
+</p>
+<CodeSnippet language="Haskell">
+main :: IO ()
+main = do
+  print( debug_foldr (map show [1..10]) "0" )
+  print( debug_foldl (map show [1..10]) "0" )
+</CodeSnippet>
+<CodeSnippet>
+"(1+(2+(3+(4+(5+(6+(7+(8+(9+(10+0))))))))))"
+"((((((((((0+1)+2)+3)+4)+5)+6)+7)+8)+9)+10)"
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">foldr</code> and <code className="jarombek-inline-code">foldl</code> result
+in nested addition operations.  Since <code className="jarombek-inline-code">foldr</code> folds over from the
+right, the right most operation <code className="jarombek-inline-code">10+0</code> is computed first, then
+<code className="jarombek-inline-code">9+10</code>, <code className="jarombek-inline-code">8+19</code>, etc.
+Since <code className="jarombek-inline-code">foldl</code> folds over from the left, <code className="jarombek-inline-code">
+0+1</code> is computed first, then <code className="jarombek-inline-code">1+2</code>,
+<code className="jarombek-inline-code">3+3</code>, etc.
+</p>
+<SectionTitle title="Issues with Large Lists">Issues with Large Lists</SectionTitle>
+<p>
+Using <code className="jarombek-inline-code">foldr</code> and <code className="jarombek-inline-code">foldl</code>
+on small lists is no problem.  However, once lists get extremely large they start to cause issues.
+</p>
+<p>
+First I attempted invoking <code className="jarombek-inline-code">foldr</code> with a list of 100 million
+elements on my MacBook.  Unfortunately it resulted in a stack overflow error.
+</p>
+<CodeSnippet language="Haskell">
+print( foldr (+) 0 [0..100000000] )
+</CodeSnippet>
+<CodeSnippet>
+*** Exception: stack overflow
+</CodeSnippet>
+<p>
+What happens is each time a recursive call is made, a new item is pushed onto the programs call stack.
+The reason why the recursive function <code className="jarombek-inline-code">foldr</code> grows the call
+stack is because it lacks a reducible expression until the list is exhausted<sup>3</sup>.  Because of
+this the call stack grows until a reducible expression is encountered.
+</p>
+<Definition word="Reducible Expression">
+In programming languages any expression that can be reduced or altered into a simpler or different
+value.  For example, a function invocation that requires work to be done is a reducible expression,
+while a constant value that doesn't change is not<sup>4</sup>.    Reducible expressions are commonly
+referred to as 'redexes<sup>5</sup>.'
+</Definition>
+<p>
+The execution of <code className="jarombek-inline-code">foldr (+) 0 [0..100000000]</code> doesn't encounter
+a reducible expression until <code className="jarombek-inline-code">100000000+0</code>, and before the recursion
+reaches that point the stack is already out of memory on my machine.
+</p>
+<p>
+<code className="jarombek-inline-code">foldl</code> is different because it has a reducible expression in each
+recursive case.  Unfortunately <code className="jarombek-inline-code">foldl</code> also runs into a memory issue.
+</p>
+<CodeSnippet language="Haskell">
+print( foldl (+) 0 [0..100000000] )
+</CodeSnippet>
+<CodeSnippet>
+*** Exception:
+</CodeSnippet>
+<p>
+When I ran this code no further exception information was given, but according to the Haskell documentation
+this code runs out of heap space.  Every reduction in <code className="jarombek-inline-code">foldl</code>
+is executed lazily, so instead of immediately storing the result of a reducible expression, Haskell stores
+the reducible expression on the heap.  This lazy behavior is expensive in terms of heap space, and operating
+on a large list can overflow the allocated heap memory.
+</p>
+<p>
+Luckily there is a fold function implementation that works with large lists.
+</p>
+<SectionTitle title="foldl and foldr"><code className="jarombek-header-code">foldl'</code></SectionTitle>
+<p>
+<code className="jarombek-inline-code">foldl'</code> is a left folding function located in the
+<code className="jarombek-inline-code">Data.List</code> module.  Its implemented using a native
+<code className="jarombek-inline-code">seq</code> function to remove the lazy behavior of redexes<sup>6,7</sup>.
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Implement a custom version of foldl'
+-}
+foldl'' :: (a -> b -> a) -> a -> [b] -> a
+foldl'' f v [] = v
+foldl'' f v (x:xs) = seq v' (foldl'' f v' xs)
+                      where
+                        v' = f v x
+</CodeSnippet>
+<p>
+When using <code className="jarombek-inline-code">foldl'</code> no overflow exceptions occur!
+</p>
+<CodeSnippet language="Haskell">
+import Data.List
+
+main :: IO ()
+main = do
+  print( foldl (+) 0 [0..100000000] )
+</CodeSnippet>
+<CodeSnippet>
+5000000050000000
+</CodeSnippet>
+<SectionTitle title="Use Cases">Use Cases</SectionTitle>
+<p>
+In the example code so far I've used <code className="jarombek-inline-code">foldr</code> and
+<code className="jarombek-inline-code">foldl</code> to add up the contents of a list.  The following two use
+cases count the odd numbers in a list and divide the items in a list.  I wrote these examples
+using standard recursion first and then altered them to use fold functions.
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Count the number of odd numbers in a list using recursion
+-}
+odds :: Integral a => [a] -> a
+odds [] = 0
+odds (x:xs) = x `mod` 2 + odds xs
+
+{-|
+  Count the number of odd numbers using the foldr function
+-}
+odds' :: Integral a => [a] -> a
+odds' xs = foldr (+) 0 [x `mod` 2 | x <- xs]
+
+{-|
+  Count the number of odd numbers in a list using recursion that is associated to the left
+-}
+odds'' :: Integral a => [a] -> a
+odds'' list = calc_odds 0 list
+              where
+                calc_odds v [] = v
+                calc_odds v (x:xs) = calc_odds (v + (x `mod` 2)) xs
+
+{-|
+  Count the number of odd numbers using the foldl function
+-}
+odds''' :: Integral a => [a] -> a
+odds''' xs = foldl (+) 0 [x `mod` 2 | x <- xs]
+
+{-|
+  Divide the items in a list, basically creating a fraction out of the list
+-}
+frac :: Integral a => [a] -> a
+frac [] = 1
+frac (x:xs) = x `div` frac(xs)
+
+{-|
+  Divide the items in a list using the foldr function
+-}
+frac' :: Integral a => [a] -> a
+frac' = foldr div 1
+
+{-|
+  Divide the items in a list using left associated recursion
+-}
+frac'' :: Integral a => [a] -> a
+frac'' (x:xs) = calc_frac x xs
+                where
+                  calc_frac v [] = v
+                  calc_frac v (x:xs) = calc_frac (v `div` x) xs
+
+{-|
+  Divide the items in a list using the foldl function
+-}
+frac''' :: Integral a => [a] -> a
+frac''' (x:xs) = foldl div x xs
+
+main :: IO ()
+main = do
+  print( odds [1,2,3] ) -- 2
+  print( odds [1,3,5,7,11,12] ) -- 5
+
+  print( odds'' [1,2,3] ) -- 2
+  print( odds'' [1,3,5,7,11,12] ) -- 5
+
+  print( frac [12, 3] ) -- 4
+  print( frac [20, 4, 2] ) -- 10 - first divide 4 by 2 = 2, then divide 20 by 2 = 10
+
+  print( frac'' [12, 3] ) -- 4
+  print( frac'' [20, 4, 2] ) -- 2
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Working with fold functions in Haskell showed me the origins of higher-order reduction functions
+found in many mainstream languages today.  The full code from this discovery post is on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/10-Oct/10-20-haskell-pt2">GitHub</a>.
+</p>
+</div>

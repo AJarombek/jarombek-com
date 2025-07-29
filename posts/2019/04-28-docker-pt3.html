@@ -1,0 +1,135 @@
+<div>
+<p>
+In my <a href="https://jarombek.com/blog/apr-1-2019-docker-pt1">previous</a> <a href="https://jarombek.com/blog/
+apr-8-2019-docker-pt2">two</a> Docker articles, I explored container environment basics and created
+a playground to run Docker on AWS.  In this article, I'm creating a containerized application that
+is publicly accessible from the internet.
+</p>
+<SectionTitle title="Containerizing a Node.js Application">Containerizing a Node.js Application</SectionTitle>
+<Definition word="Containerized Application">
+A software application which is running inside a <a href="https://jarombek.com/blog/
+apr-1-2019-docker-pt1#container">container</a>.  Configuring an application to run inside a container
+is known as "containerizing an application.<sup>1</sup>"  This process usually includes creating a
+Dockerfile in the root directory of an application repository.  Dockerfiles are blueprints for building
+Docker images, and commonly declare application dependencies and execution processes<sup>2</sup>.
+</Definition>
+<p>
+The first thing needed before containerizing an application is the application itself.  I created a
+basic <a href="https://jarombek.com/blog?query=node.js&page=1">Node.js</a> application which prints out
+some JSON.  It consists of a single <strong>main.js</strong> file.
+</p>
+<CodeSnippet language="JavaScript">
+// main.js
+
+const express = require('express');
+
+const app = express();
+const port = process.env.port || 3000;
+
+app.get('/', (req, res) => {
+  res.json({title: 'Dockerized Node.js App'});
+});
+
+module.exports = app.listen(port, () => {
+  console.info(`Started Containerized App on Port ${port}`);
+});
+</CodeSnippet>
+<p>
+With the Node.js application in place, I created a Dockerfile which configures a container to run the
+<strong>main.js</strong> file.
+</p>
+<CodeSnippet language="Dockerfile">
+# Dockerfile
+
+# The 'FROM' instruction defines the base layer of the image.
+# This image uses the Alpine Linux distro as the base image.
+FROM alpine
+
+# The 'LABEL' instruction is used to add metadata about the image.
+LABEL maintainer="andrew@jarombek.com"
+
+# The 'RUN' instruction adds a new layer to an image.  It executes commands on the image.
+RUN apk add --update nodejs nodejs-npm
+
+# The 'COPY' instruction copies files in the build context onto the image
+COPY . /src
+
+# The 'WORKDIR' instruction sets the directory to execute the remaining commands from
+WORKDIR /src
+
+# Install npm inside the /src directory
+RUN npm install
+
+# The 'EXPOSE' instruction determines which port is exposed for the containerized application
+EXPOSE 3000
+
+# The 'ENTRYPOINT' instruction declares the main application that the container runs
+ENTRYPOINT ["node", "./main.js"]
+</CodeSnippet>
+<p>
+As previously mentioned, a Dockerfile is a blueprint for an image.  A container is a running image.
+The Dockerfile for my application begins by building on top of the <code className="jarombek-inline-code">alpine</code>
+image.  <code className="jarombek-inline-code">alpine</code> is an extremely small Docker image based
+on the Alpine Linux distribution.  On top of the Alpine OS, I install Node.js and the application npm
+dependencies.  Finally I declare the <code className="jarombek-inline-code">node</code> process that
+runs on the container in the <code className="jarombek-inline-code">ENTRYPOINT</code> instruction.
+</p>
+<p>
+Now it's time to containerize the application in the <a href="https://jarombek.com/blog/apr-8-2019-docker-pt2">
+Docker playground</a> I built in my previous post.  The first steps are connecting to the playground EC2
+instance and cloning the Git repository which contains the Node.js application.
+</p>
+<CodeSnippet language="Bash">
+# Connect to Docker Playground EC2
+ssh -A ec2-user@ec2-xx-xx-xx-xx.compute-1.amazonaws.com
+
+git clone https://github.com/AJarombek/devops-prototypes.git
+cd devops-prototypes/docker/nodejs-docker-app/
+</CodeSnippet>
+<p>
+With the Node.js application on the EC2 instance, it's time to containerize the application using Docker.
+The following command does the trick:
+</p>
+<CodeSnippet language="Bash">
+docker image build -t nodejs-docker-app:latest .
+</CodeSnippet>
+<p>
+The final dot (<code className="jarombek-inline-code">.</code>) in this command is important since it tells
+Docker to build an image based on the Dockerfile in the current directory.  List all the Docker images
+to confirm that a new <code className="jarombek-inline-code">nodejs-docker-app</code> image exists.
+</p>
+<CodeSnippet language="Bash">
+docker image ls
+
+# REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+# nodejs-docker-app   latest              1510b5182aaa        2 seconds ago       50.3MB
+# alpine              latest              cdf98d1859c1        6 days ago          5.53MB
+</CodeSnippet>
+<p>
+Notice there is also an <code className="jarombek-inline-code">alpine</code> image.  This is pulled from
+DockerHub during the <code className="jarombek-inline-code">FROM alpine</code> instruction of my Dockerfile.
+</p>
+<p>
+The next step is to start a Docker container from the <code className="jarombek-inline-code">nodejs-docker-app</code> image.
+</p>
+<CodeSnippet language="Bash">
+docker container run -d --name nodejs-app -p 80:3000 nodejs-docker-app:latest
+</CodeSnippet>
+<p>
+Confirm the container is running by listing the containers with <code className="jarombek-inline-code">docker
+ container ls</code>.  The application is now running in a container on port 3000 and accessible from the
+Docker playground EC2 instance on port 80.  Using the public DNS name of the EC2 instance, the application
+is viewable from a web browser.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/4-28-19-app.png"/>
+</figure>
+<p>
+While this is a very basic application, the same containerizing process can be used for complex pieces
+of software.  In a production system, you won't just run a single container.  Replicas will be created
+through a container orchestrator such as Kubernetes or Docker Swarm.  Kubernetes will be the topic of
+ <a href="https://jarombek.com/blog/may-13-2019-kubernetes-pt1">future articles</a> since I've been using it
+ extensively lately.  All the code from this article is available
+on <a href="https://github.com/AJarombek/devops-prototypes/tree/master/docker/nodejs-docker-app">GitHub</a>.
+</p>
+</div>

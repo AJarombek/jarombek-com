@@ -1,0 +1,721 @@
+<div>
+<p>
+I recently read a book discussing multiple inheritance in Python.  Python is one of the few
+object oriented languages that permits multiple inheritance of classes.  Many other languages include
+workarounds for multiple inheritance.  For example, Java allows for classes to implement multiple
+interfaces.  On the other hand, PHP allows for classes to use multiple traits.  This article looks at
+programming languages I use and how they enforce multiple inheritance or available workarounds.
+</p>
+<SectionTitle title="What is Multiple Inheritance?">What is Multiple Inheritance?</SectionTitle>
+<p>
+In object oriented programming, inheritance is when a class takes properties and methods from another
+existing class.  With inheritance, hierarchies of class relationships are formed.  For example, class
+<code className="jarombek-inline-code">B</code> which inherits properties and methods from class
+<code className="jarombek-inline-code">A</code> forms an is-a relationship, such that
+<code className="jarombek-inline-code">B</code> is an <code className="jarombek-inline-code">A</code>.  All
+the properties and methods from <code className="jarombek-inline-code">A</code> are passed along to
+<code className="jarombek-inline-code">B</code>.  If another class <code className="jarombek-inline-code">
+C</code> inherits class <code className="jarombek-inline-code">B</code>, its concluded that
+<code className="jarombek-inline-code">C</code> is a <code className="jarombek-inline-code">B</code> and
+<code className="jarombek-inline-code">C</code> is an <code className="jarombek-inline-code">A</code>.
+Therefore the following class hierarchy is formed:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/12-22-18-hierarchy1.png"/>
+</figure>
+<Definition word="Multiple Inheritance">
+When a class takes properties and methods from more than one existing class.  For example, class
+<code className="jarombek-inline-code">C</code> might inherit from classes <code className="jarombek-inline-code">
+A</code> and <code className="jarombek-inline-code">B</code>. This is known as 'extending multiple classes.'
+Most languages have specialized syntax to extend (inherit) a class. Multiple inheritance is unavailable
+in many languages due to its complexity and ambiguity, although certain languages such as C++ and
+Python enable it.
+</Definition>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/12-22-18-hierarchy2.png"/>
+</figure>
+<p>
+To understand the pitfalls of multiple inheritance, take the case where classes <code className="jarombek-inline-code">
+A</code> and <code className="jarombek-inline-code">B</code> both have a method named
+<code className="jarombek-inline-code">execute()</code>.  When an instance of class <code className="jarombek-inline-code">
+C</code> invokes <code className="jarombek-inline-code">execute()</code>, is the method in
+<code className="jarombek-inline-code">A</code> or <code className="jarombek-inline-code">B</code> called?
+This is an ambiguous situation, and determining which one is invoked often comes down to documented rules.
+</p>
+<p>
+Some object-oriented languages I use (such as Python) permit multiple inheritance.  Many others
+prohibit multiple inheritance but provide safer workarounds.  The rest of this post looks at how
+different languages handle multiple inheritance, in particular the <a href="https://jarombek.com/blog/
+jan-16-2018-java-default-method">diamond problem</a>.
+</p>
+<SectionTitle title="C++">C++</SectionTitle>
+<p>
+Although I don't really use C++, it's the language I always think of when hearing about multiple
+inheritance.  C++ is one of the earliest languages I know of that implements multiple inheritance.
+In fact, the troubles that multiple inheritance gave developers in C++ is what influenced James
+Gosling (the creator of Java) to omit multiple inheritance from Java<sup>1</sup>.
+</p>
+<p>
+I'm not very good at C++, but I wrote an example of the diamond problem.  The following class
+hierarchy relates to biological trees.
+</p>
+<CodeSnippet language="C++">
+// Defines a generic tree
+class Tree {
+protected:
+  int feet;
+  int inches;
+public:
+  Tree(int feet, int inches) {
+    cout << "Tree()" << endl;
+    this->feet = feet;
+    this->inches = inches;
+  }
+
+  // Calculates the height of the tree in inches
+  int height() {
+    return (this->feet * 12) + this->inches;
+  }
+};
+
+// Defines a Christmas tree
+class ChristmasTree: virtual public Tree {
+public:
+  ChristmasTree(int feet, int inches): Tree(feet, inches) {
+    cout << "ChristmasTree()" << endl;
+  }
+
+  string type() {
+    return "Christmas";
+  }
+};
+
+// Defines an evergreen tree
+class EvergreenTree: virtual public Tree {
+public:
+  EvergreenTree(int feet, int inches): Tree(feet, inches) {
+    cout << "EvergreenTree()" << endl;
+  }
+
+  string type() {
+    return "Evergreen";
+  }
+};
+
+// Defines a balsam fir, which is a christmas tree and an evergreen tree
+class BalsamFir: public ChristmasTree, public EvergreenTree {
+public:
+  BalsamFir(int feet, int inches): ChristmasTree(feet, inches), EvergreenTree(feet, inches), Tree(feet, inches) {
+    cout << "BalsamFir()" << endl;
+  }
+
+  bool leafPeristence() {
+    return EvergreenTree::type() == "Evergreen";
+  }
+};
+</CodeSnippet>
+<p>
+At the top is a generic <code className="jarombek-inline-code">Tree</code> class, which is extended by
+the <code className="jarombek-inline-code">ChristmasTree</code> and <code className="jarombek-inline-code">
+EvergreenTree</code> classes.  Finally the <code className="jarombek-inline-code">BalsamFir</code> class
+extends both <code className="jarombek-inline-code">ChristmasTree</code> and <code className="jarombek-inline-code">
+EvergreenTree</code>.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/12-22-18-hierarchy3.png"/>
+</figure>
+<p>
+This code works fine except for the <code className="jarombek-inline-code">type()</code> method defined
+in <code className="jarombek-inline-code">ChristmasTree</code> and <code className="jarombek-inline-code">
+EvergreenTree</code>.  Invoking <code className="jarombek-inline-code">type()</code> on an instance of
+<code className="jarombek-inline-code">BalsamFir</code> is ambiguous since it could come from either
+<code className="jarombek-inline-code">ChristmasTree</code> or <code className="jarombek-inline-code">
+EvergreenTree</code>.  If you try to, the code won't compile.
+</p>
+<p>
+The following is printed to stdout when invoking the <code className="jarombek-inline-code">BalsamFir</code>
+constructor.
+</p>
+<CodeSnippet language="C++">
+int main() {
+  BalsamFir balsamFir(7, 2);
+
+  assert(balsamFir.height() == 86);
+  assert(balsamFir.leafPeristence());
+
+  return 0;
+}
+</CodeSnippet>
+<CodeSnippet>
+Tree()
+ChristmasTree()
+EvergreenTree()
+BalsamFir()
+</CodeSnippet>
+<p>
+Notice that each class constructor is called once.  This isn't actually the default behavior of the
+diamond problem in C++.  It's the result of virtual inheritance, which is implemented using the
+<code className="jarombek-inline-code">virtual</code> keyword on the <code className="jarombek-inline-code">
+ChristmasTree</code> and <code className="jarombek-inline-code">EvergreenTree</code> class definitions
+where <code className="jarombek-inline-code">Tree</code> is extended.
+</p>
+<CodeSnippet language="C++">
+class ChristmasTree: virtual public Tree {...}
+
+…
+
+class EvergreenTree: virtual public Tree {...}
+</CodeSnippet>
+<p>
+If the virtual keyword is removed from these class definitions, the code doesn't even compile.  What
+impact does the <code className="jarombek-inline-code">virtual</code> keyword have?
+</p>
+<p>
+When a class inherits another class in C++, the subclass retains a copy of all the properties and
+methods in the parent class<sup>2</sup>.  The subclass also contains a copy of all the properties and
+methods from inherited classes of the parent class.  This process of copying properties and methods continues
+all the way up the class hierarchy.
+</p>
+<p>
+As a result of these copies, an interesting issue forms in the diamond problem.  Subclass <code className="jarombek-inline-code">
+BalsamFir</code> stores copies of the properties and methods in <code className="jarombek-inline-code">
+ChristmasTree</code> and its parent class <code className="jarombek-inline-code">Tree</code>.
+<code className="jarombek-inline-code">BalsamFir</code> also stores copies of the properties and methods in
+<code className="jarombek-inline-code">EvergreenTree</code> and its parent class <code className="jarombek-inline-code">
+Tree</code>.  Notice that <code className="jarombek-inline-code">BalsamFir</code> receives copies from
+<code className="jarombek-inline-code">Tree</code> twice - once from <code className="jarombek-inline-code">
+ChristmasTree</code> and once from <code className="jarombek-inline-code">EvergreenTree</code>.  This is a
+source of conflict that causes errors.
+</p>
+<p>
+The fix to this issue is virtual inheritance, which is implemented using the <code className="jarombek-inline-code">
+virtual</code> keyword.  With virtual inheritance, <code className="jarombek-inline-code">BalsamFir</code>
+only receives one copy of <code className="jarombek-inline-code">Tree</code>.
+</p>
+<SectionTitle title="Java">Java</SectionTitle>
+<p>
+When writing Java, James Gosling thought the benefits of multiple inheritance were not worth the
+risks and complexities.  Java does not support multiple inheritance of classes, instead using an
+interface construct to simulate multiple inheritance.  When Java was first released, all
+methods defined in interfaces had no bodies.  Instead, construction of method bodies were delegated
+to implementing classes.
+</p>
+<p>
+As of Java 8, methods in interfaces can have bodies.  These methods are called "default methods,"
+and are mostly used for API backwards compatibility.  I wrote an article about
+<a href="https://jarombek.com/blog/jan-16-2018-java-default-method">default methods and the diamond problem</a>
+back in January.  While I'll let you read that post for more insight, here is the biological tree hierarchy
+implemented in Java:
+</p>
+<CodeSnippet language="Java">
+public interface Tree {
+
+  String type();
+
+  default String height() {
+    return "(0, 0)";
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+public interface ChristmasTree extends Tree {
+
+  default String type() {
+    return "Christmas";
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+public interface EvergreenTree extends Tree {
+
+  default String type() {
+    return "Evergreen";
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+public class BalsamFir implements EvergreenTree, ChristmasTree {
+
+  private List&lt;Integer&gt; height;
+
+  public BalsamFir(int feet, int inches) {
+    this.height = List.of(feet, inches);
+  }
+
+  @Override
+  public String type() {
+    return EvergreenTree.super.type();
+  }
+
+  @Override
+  public String height() {
+    return "(" + height.get(0) + ", " + height.get(1) + ")";
+  }
+
+  /**
+   * Determine if the leaves persist in winter or not.
+   * @return {@code true}
+   */
+  public boolean leafPersistence() {
+    return EvergreenTree.super.type().equals("Evergreen");
+  }
+
+  /**
+   * Determine if the tree is a christmas tree.
+   * @return {@code true}
+   */
+  public boolean isChristmasTree() {
+    return ChristmasTree.super.type().equals("Christmas");
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+public class Main {
+  public static void main(String... args) {
+    var balsam = new BalsamFir(7, 2);
+
+    assert balsam.isChristmasTree();
+    assert balsam.leafPersistence();
+    assert balsam.height().equals("(7, 2)");
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Groovy">Groovy</SectionTitle>
+<p>
+In Groovy you can simulate multiple inheritance just like in Java.  However, Groovy introduces
+an additional construct called a trait, which is designed with composition in mind<sup>3</sup>.
+Classes implement traits, which give them additional functionality.  Classes can implement multiple
+traits, simulating a multiple inheritance model just like Java interfaces with default methods.
+In the case of naming conflicts for methods in traits, the method from the last trait declared after
+the <code className="jarombek-inline-code">implements</code> keyword is used in the class<sup>4</sup>.
+You can see this rule at work in the <code className="jarombek-inline-code">BalsamFir</code> class.
+</p>
+<CodeSnippet language="Groovy">
+trait Tree {
+  int height_feet
+  int height_inches
+
+  /**
+   * The height of the tree in feet and inches
+   * @return A string of the form ('feet', 'inches')
+   */
+  def height() {
+    return "(${this.height_feet}, ${this.height_inches})"
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Groovy">
+trait ChristmasTree implements Tree {
+  private String tree_type = "Christmas"
+
+  def type() {
+    return this.tree_type
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Groovy">
+trait EvergreenTree implements Tree {
+  private String tree_type = "Evergreen"
+
+  def type() {
+    return this.tree_type
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Groovy">
+class BalsamFir implements ChristmasTree, EvergreenTree {
+
+  BalsamFir(heightMap) {
+    this.height_feet = heightMap.feet
+    this.height_inches = heightMap.inches
+  }
+
+  /**
+   * Determine if the leaves persist in winter or not.  Method {@code type()} on the {@link EvergreenTree} trait
+   * is used here because it is declared after {@link ChristmasTree} in the {@code implements} clause.
+   * @return {@code true}
+   */
+  def leafPersistence() {
+    return this.type() == "Evergreen"
+  }
+
+  /**
+   * Determine if the tree is a christmas tree.  Explicitly use the {@code type()} method from
+   * the implemented {@link ChristmasTree} trait.
+   * @return {@code true}
+   */
+  def isChristmasTree() {
+    return ChristmasTree.super.type() == "Christmas"
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Groovy">
+def heightMap = [feet: 7, inches: 2]
+def balsam = new BalsamFir(heightMap)
+
+assert balsam.leafPersistence()
+assert balsam.height() == '(7, 2)'
+
+assert balsam.isChristmasTree()
+</CodeSnippet>
+<SectionTitle title="PHP">PHP</SectionTitle>
+<p>
+PHP does not allow for multiple inheritance.  However, just like Groovy it has traits which can be
+used to simulate multiple inheritance.  The biggest difference between traits in Groovy and PHP is
+the way naming conflicts are resolved.  While Groovy picks the method from the last implemented trait
+in the case of a conflict, PHP throws an error.  When a class uses multiple traits in PHP,
+method names must be unique across all traits.  While this is stricter than Groovy, PHP classes that
+inherit multiple traits are very predictable because of this enforcement.
+</p>
+<p>
+I commented out the <code className="jarombek-inline-code">type()</code> method in
+<code className="jarombek-inline-code">ChristmasTree</code> in order for the example to work.
+</p>
+<CodeSnippet language="PHP">
+interface Tree
+{
+  public function height();
+}
+</CodeSnippet>
+<CodeSnippet language="PHP">
+trait EvergreenTree
+{
+  public function type() {
+    return "Evergreen";
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="PHP">
+trait ChristmasTree
+{
+
+  public $holidayTree = true;
+
+  // PHP Fatal error:  Trait method type has not been applied, because there are collisions with other trait methods
+  // Methods from traits used in a class must be unique.  If multiple traits have methods of the same name,
+  // a conflict occurs.
+
+  // public function type() {return "Christmas";}
+}
+</CodeSnippet>
+<CodeSnippet language="PHP">
+class BalsamFir implements Tree
+{
+  // Add traits to the class
+  use EvergreenTree;
+  use ChristmasTree;
+
+  private $height_feet;
+  private $height_inches;
+
+  public function __construct($height)
+  {
+    $this->height_feet = $height["feet"];
+    $this->height_inches = $height["inches"];
+  }
+
+  public function height()
+  {
+    return sprintf("%d' %d\"", $this->height_feet, $this->height_inches);
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="PHP">
+include 'Tree.php';
+include 'ChristmasTree.php';
+include 'EvergreenTree.php';
+include 'BalsamFir.php';
+
+$tree_height = ["feet" => 7, "inches" => 2];
+
+$balsam = new BalsamFir($tree_height);
+
+print_r($balsam);
+
+assert($balsam->type() == "Evergreen");
+assert($balsam->height() == "7' 2\"");
+assert($balsam->holidayTree);
+</CodeSnippet>
+<SectionTitle title="Swift">Swift</SectionTitle>
+<p>
+The Swift implementation is quite unique.  Swift does not support multiple inheritance, but does
+support protocols (equivalent to interfaces in Java, Groovy, and PHP).  Swift also has extensions,
+which allow you to add functionality to an existing class or protocol.  One restriction enforced by extensions is that names
+of variables and methods must be unique across all extensions for a class or protocol.
+Therefore I couldn't create two extensions for the <code className="jarombek-inline-code">Tree</code> protocol
+called <code className="jarombek-inline-code">ChristmasTree</code> and <code className="jarombek-inline-code">
+EvergreenTree</code> that both contain a variable named <code className="jarombek-inline-code">type</code>.  Here
+is my attempt at simulating multiple inheritance:
+</p>
+<CodeSnippet language="Swift">
+/**
+ Create a protocol for a generic tree.  Protocols are similar to interfaces from Java
+ */
+protocol Tree {
+
+  /**
+   Get the height of the tree
+   */
+  func height() -> [String:Int]
+}
+
+typealias ChristmasTree = Tree
+
+/**
+ Add an extension to the Tree protocol for Christmas trees
+ */
+extension ChristmasTree {
+
+  var type: String {
+    return "Christmas"
+  }
+}
+
+typealias EvergreenTree = Tree
+
+/**
+ Add an extension to the Tree protocol for Evergreen trees
+ */
+extension EvergreenTree {
+  // Can't redeclare var 'type', since it already exists in ChristmasTree
+
+  var leaf_persistence: String {
+    return "Evergreen"
+  }
+}
+
+/**
+ Implement the Tree protocol with the ChristmasTree and EvergreenTree extensions
+ */
+class BalsamFir: Tree {
+
+  let feet: Int
+  let inches: Int
+
+  init(height: [String:Int]) {
+    self.feet = height["feet"] ?? 0
+    self.inches = height["inches"] ?? 0
+  }
+
+  /**
+   Implement the height() method defined in the Tree protocol.
+   */
+  func height() -> [String:Int] {
+    return ["feet": self.feet, "inches": self.inches]
+  }
+
+  /**
+   Determine whether or not the leaves on the tree persist through winter
+   */
+  func leafPersistence() -> Bool {
+    return self.leaf_persistence == "Evergreen"
+  }
+}
+
+// Test scripts
+
+let balsam = BalsamFir(height: ["feet": 7, "inches": 2])
+
+assert(balsam.type == "Christmas")
+assert(balsam.height() == ["feet": 7, "inches": 2])
+assert(balsam.leafPersistence())
+</CodeSnippet>
+<SectionTitle title="JavaScript">JavaScript</SectionTitle>
+<p>
+JavaScript is unique amongst object oriented languages because it uses prototypes and prototype
+chains for object hierarchies.  I wrote an entire post on <a href="https://jarombek.com/blog/
+jun-9-2018-js-prototype">prototypes in JavaScript</a> if you want to learn more.
+</p>
+<p>
+An object in JavaScript can only have a single prototype, so multiple inheritance is not allowed.
+However, you can still use composition or mixins instead of inheritance.  After all, many say that
+composition should be used over inheritance, as famously coined from the Gang of Four Design Patterns
+book<sup>5</sup>.
+</p>
+<p>
+While slightly different than <a href="https://jarombek.com/blog/nov-6-2018-haskell-pt3">function
+compositions</a>, object compositions are when an object contains other objects as properties.  These
+other objects are used to give the enclosing object additional functionality.  For example,
+a method invoked on the enclosing object can delegate that call to an object it contains as a property.
+This is a way to inherit methods and properties from objects without dealing with the languages
+inheritance mechanism.  Here is the function composition approach:
+</p>
+<CodeSnippet language="JavaScript">
+/**
+ * Base tree functionality - every tree should have a height
+ * @type {{getHeight: function(): *}}
+ */
+const tree = {
+  getHeight: () => this._height
+};
+
+/**
+ * Evergreen tree functionality
+ * @type {{type: function(): string, leafPersistence: boolean}}
+ */
+const evergreenTree = {
+  type: () => "Evergreen",
+  leafPersistence: true
+};
+
+/**
+ * Christmas tree functionality
+ * @type {{type: function(): string}}
+ */
+const christmasTree = {
+  type: () => "Christmas"
+};
+
+/**
+ * A balsam fir tree.  Use object composition with the tree, evergreen tree,
+ * and christmas tree objects
+ * @param height - how tall the tree is
+ * @return {*}
+ */
+const balsamFir = (height) => {
+
+  // Object composition
+  this.tree = tree;
+  this.evergreenTree = evergreenTree;
+  this.christmasTree = christmasTree;
+
+  this._height = height;
+
+  // Delegate functions and properties to composed objects
+  this.type = christmasTree.type;
+  this.leafPersistence = evergreenTree.leafPersistence;
+  this.getHeight = tree.getHeight;
+
+  return this;
+};
+
+const balsam = balsamFir(7);
+
+assert(balsam.getHeight() === 7);
+assert(balsam.type() === "Christmas");
+assert(balsam.leafPersistence);
+</CodeSnippet>
+<p>
+Another option is to use mixins.  Mixins pass their contents to another object.  Here is the mixin approach
+(everything stays the same except for the <code className="jarombek-inline-code">balsamFir</code> object):
+</p>
+<CodeSnippet language="JavaScript">
+/**
+ * A balsam fir tree.  Mix-in the tree, evergreen tree, and christmas tree objects
+ * @param height - how tall the tree is
+ * @return {*}
+ */
+const balsamFir = (height) => {
+  this._height = height;
+
+  // Combine 'this', the tree, evergreenTree, and christmasTree mixins.
+  // Properties from the last mixed in object replace duplicates from prior objects
+  return Object.assign(this, { ...tree, ...evergreenTree, ...christmasTree });
+};
+
+const balsam = balsamFir(7);
+
+assert(balsam.getHeight() === 7);
+assert(balsam.type() === "Christmas");
+assert(balsam.leafPersistence);
+</CodeSnippet>
+<SectionTitle title="Python">Python</SectionTitle>
+<p>
+Python shares the most similarities with C++ in regards to multiple inheritance.  Like C++, Python enables multiple
+inheritance for classes, although it does not require virtual inheritance to function.  Unlike C++, the method
+<code className="jarombek-inline-code">type()</code> works fine in Python.  <code className="jarombek-inline-code">type()</code> didn't work in C++ because it was defined in two
+different inherited classes.  Python objects maintain a method resolution order
+that moves through the inherited classes in the order they are defined.  As soon as it encounters the
+first <code className="jarombek-inline-code">type()</code> method in an inherited class, it gets invoked from
+that class.  In the following example, <code className="jarombek-inline-code">type()</code> in class
+<code className="jarombek-inline-code">BalsamFir</code> always delegates to <code className="jarombek-inline-code">
+ChristmasTree</code> because its declared as the first superclass of <code className="jarombek-inline-code">
+BalsamFir</code>.
+</p>
+<CodeSnippet language="Python">
+class Tree:
+  """ Class representing a generic tree """
+
+  def __init__(self, height: tuple) -> None:
+    self.__height = height
+
+  @property
+  def height(self) -> tuple:
+    """
+    The height of the tree in feet and inches
+    :return: A tuple of form ('feet', 'inches')
+    """
+    return self.__height
+
+
+class ChristmasTree(Tree):
+  """ Class representing a tree used for Christmas """
+
+  def __init__(self, height: tuple) -> None:
+    super().__init__(height)
+    self.__type = 'Christmas'
+
+  def type(self) -> str:
+    """
+    The type of tree
+    :return: 'Christmas'
+    """
+    return self.__type
+
+
+class EvergreenTree(Tree):
+  """ Class representing a tree that keeps its foliage year round """
+
+  def __init__(self, height: tuple) -> None:
+    super().__init__(height)
+    self.__type = 'Evergreen'
+
+  def type(self) -> str:
+    """
+    The type of tree
+    :return: 'Evergreen'
+    """
+    return self.__type
+
+
+class BalsamFir(ChristmasTree, EvergreenTree):
+  """ Class representing a balsam fir Christmas tree """
+
+  def __init__(self, height: tuple) -> None:
+    super().__init__(height)
+
+  def leaf_persistence(self) -> str:
+    """
+    Determine if the leaves persist or not
+    :return: either 'Evergreen' or 'Deciduous'
+    """
+    return EvergreenTree.type(self)
+
+
+if __name__ == '__main__':
+  balsam = BalsamFir((7, 2))
+
+  assert balsam.height == (7, 2)
+  assert balsam.type() == 'Christmas'
+  assert balsam.leaf_persistence() == 'Evergreen'
+
+  # The method resolution order shows that the class 'ChristmasTree' comes before 'EvergreenTree'
+  assert BalsamFir.__mro__ == (BalsamFir, ChristmasTree, EvergreenTree, Tree, object)
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+This post explored how different languages use multiple inheritance or comparable workarounds.
+I'll add more languages to this list as I continue to explore!  All the code from this post is available 
+on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/12-Dec/
+12-22-multiple-inheritance">GitHub</a>.
+</p>
+<UpdateInfo date="January 31st, 2019">
+C# does not support multiple inheritance in its current version (7.0).  The inheritance features provided
+by C# are comparable to those in Java prior to Java 8.  Therefore, object composition is needed to
+create a multiple inheritance model in C#.  I demonstrate composing multiple objects on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/12-Dec/12-22-multiple-inheritance/
+csharp">GitHub</a>.  There are proposals to implement default interface methods in C# for a future
+release (similar to Java's <a href="https://jarombek.com/blog/jan-16-2018-java-default-method">
+default methods</a>)<sup>6</sup>.
+</UpdateInfo>
+</div>

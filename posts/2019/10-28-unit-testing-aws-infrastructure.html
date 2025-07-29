@@ -1,0 +1,339 @@
+<div>
+<p>
+From October 2018 to May 2019, I moved the infrastructure for both my websites to
+<a href="https://jarombek.com/blog?query=AWS&page=1">AWS</a>.   The process for building and tearing
+down this infrastructure is automated with IaC, specifically <a href="https://jarombek.com/
+blog?query=terraform&page=1">Terraform</a>.  I've had a lot of fun working with Terraform and learning
+the different design patterns for infrastructure in the cloud.
+</p>
+<p>
+After my infrastructure was built, I realized I needed a way to test that my IaC was behaving as
+expected.  The obvious solution to this requirement was a unit test suite.  I implemented
+this unit test suite in <a href="https://jarombek.com/blog?query=python&page=1">Python</a> with the
+help of the AWS SDK.  This article explains why I took the time to write unit tests and
+ walks through of the basics of testing AWS infrastructure in Python.
+</p>
+<SectionTitle title="Why Build Unit Tests">Why Build Unit Tests?</SectionTitle>
+<p>
+Over the three and a half years I've been a software engineer, I've slowly realized how valuable unit
+tests are.  In my early applications, unit tests were noticeably absent.  Unit tests finally started
+appearing in my repositories this spring.  Now it is mandatory for new applications to have full unit
+test coverage and I've begun adding tests to older applications.
+</p>
+<Definition word="Unit Test">
+A Unit Test is an assertion that a unit of code is working as expected<sup>1</sup>.  Units of code
+can be a single line, a function, a class, or an application.  Unit tests are run on a regular basis.
+This includes (but is not limited to) code commits, application deployments, and scheduled intervals.
+</Definition>
+<p>
+There are three main reasons why I hopped on the unit test bandwagon.  The first reason is that writing
+unit tests helps catch poorly written or useless code.  When I write code, my brain tends to wander and
+get sidetracked.  Often I write a section of code over the course of days or weeks.  I usually don't
+have the time to go back through every line of code and make sure its well written or still being used.
+However, when I write unit tests and have to formulate test scenarios for every line of a program, smelly
+code becomes easy to identify.
+</p>
+<p>
+The second reason is that unit tests help catch recurring bugs before they make it into a production build.
+A good practice is to create a unit test every time a bug is found in an application.  Writing tests for
+a bug helps developers learn their root cause and provides quick detection for their return in the future.
+</p>
+<p>
+The third reason is that unit tests ease the pain of upgrading technology versions in an application,
+whether it be a language, framework, or library.  Unit tests give us peace of mind that all the corners of
+our application are still functional after software upgrades occur.
+</p>
+<p>
+I firmly believe the upfront costs of building unit tests are worthwhile in the long run.
+</p>
+<SectionTitle title="Unit Testing AWS Infrastructure">Unit Testing AWS Infrastructure</SectionTitle>
+<p>
+I wrote unit tests for my Terraform infrastructure using Python and the <strong>boto3</strong> AWS SDK.
+I took two different approaches for setting up these unit tests.  For my <a href="https://github.com/AJarombek/
+global-aws-infrastructure">global</a> and <a href="https://github.com/AJarombek/saints-xctf-infrastructure">
+SaintsXCTF</a> AWS infrastructure, I reinvented the wheel and created custom test suites.  By the time I
+wrote my <a href="https://github.com/AJarombek/jarombek-com-infrastructure">jarombek.com</a> infrastructure,
+I figured there must be a better approach.  I decided to scrap the custom test suite and used Python's
+built-in <strong>unittest</strong> library instead.  I'll demonstrate both approaches next, followed by
+some unit test function examples.
+</p>
+<SectionTitle title="Custom Approach">Custom Approach</SectionTitle>
+<p>
+My first approach to unit testing infrastructure involved reinventing the wheel in regards to building a
+test suite.  I first defined an entrypoint to the unit tests.  Executing a single <a href="https://github.com/
+AJarombek/saints-xctf-infrastructure/blob/master/test/src/masterTestSuite.py">Python file</a> runs all
+the unit tests I wrote:
+</p>
+<CodeSnippet language="Python">
+# masterTestSuite.py
+
+import masterTestFuncs as Test
+from bastion import bastionTestSuite as Bastion
+from acm import acmTestSuite as ACM
+from databases import databaseTestSuite as Database
+from iam import iamTestSuite as IAM
+from route53 import route53TestSuite as Route53
+from webserver import webserverTestSuite as WebServer
+
+# List of all the test suites
+tests = [
+  Bastion.bastion_test_suite,
+  ACM.acm_test_suite,
+  Database.database_test_suite,
+  IAM.iam_test_suite,
+  Route53.route53_test_suite,
+  WebServer.webserver_test_suite
+]
+
+# Create and execute a master test suite
+Test.testsuite(tests, "Master Test Suite")
+</CodeSnippet>
+<p>
+This entrypoint file is referred to as the "master test suite."  The master test suite invokes child test
+suites which are grouped by AWS resource type.  For example, all my <a href="https://github.com/AJarombek/
+saints-xctf-infrastructure/blob/master/test/src/acm/acmTestSuite.py">ACM (AWS Certificate Manager)
+infrastructure tests</a> are found in <code className="jarombek-inline-code">acmTestSuite</code> and are
+invoked by calling <code className="jarombek-inline-code">ACM.acm_test_suite</code>.
+</p>
+<CodeSnippet language="Python">
+# acmTestSuite.py
+
+import masterTestFuncs as Test
+from acm import acmTestFuncs as Func
+
+tests = [
+  lambda: Test.test(Func.acm_dev_wildcard_cert_issued, "ACM SaintsXCTF Dev Wildcard Certificate Issued"),
+  lambda: Test.test(Func.acm_wildcard_cert_issued, "ACM SaintsXCTF Wildcard Certificate Issued"),
+  lambda: Test.test(Func.acm_cert_issued, "ACM SaintsXCTF Certificate Issued")
+]
+
+
+def acm_test_suite() -> bool:
+  """
+  Execute all the tests related to the ACM HTTPS certificates
+  :return: True if the tests succeed, False otherwise
+  """
+  return Test.testsuite(tests, "ACM Test Suite")
+</CodeSnippet>
+<p>
+Notice that the master test suite and ACM test suite have the same structure.  Both test suites contain
+a list of tests and a function which executes the tests.  The main difference is that the master test
+suite executes a list of <strong>test suites</strong> while the ACM test suite executes a list of
+<strong>unit tests</strong>.  Test suites are executed with the <code className="jarombek-inline-code">
+Test.testsuite()</code> function and unit tests are executed with the <code className="jarombek-inline-code">
+Test.test()</code> function.
+</p>
+<CodeSnippet language="Python">
+def testsuite(tests: list, title: str) -> bool:
+  """
+  Wrapper function to execute any number of logically grouped tests
+  :param tests: a list of tests to execute
+  :param title: description of the test suite
+  :return: True if the test suite succeeds, false otherwise
+  """
+  print(f"\u293F Executing Test Suite: {title}")
+
+  success = 0
+  failure = 0
+
+  for test_func in tests:
+    if test_func():
+      success += 1
+    else:
+      failure += 1
+
+  suitepassed = failure < 1
+
+  if suitepassed:
+    print(f"\u2713 Test Suite Success: {title} ({success} passed, {failure} failed)")
+  else:
+    print(f"\u274C Test Suite Failure: {title} ({success} passed, {failure} failed)")
+
+  return suitepassed
+
+
+def test(func: Callable[[], Any], title: str) -> bool:
+  """
+  Wrapper function for testing an AWS resource
+  :param func: a function to execute, must return a boolean value
+  :param title: describes the test
+  :return: True if the test succeeds, false otherwise
+  """
+
+  result = func()
+
+  if result:
+    print(f"\u2713 Success: {title}")
+    return True
+  else:
+    print(f"\u274C Failure: {title}")
+    return False
+</CodeSnippet>
+<p>
+A nice aspect of my <a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/test/src/
+masterTestFuncs.py">custom approach</a> is that a child test suite can be run as if it's the master test suite.  In this scenario, only the tests within the child test suite will execute.
+</p>
+<p>
+However, reinventing the unit test wheel didn't add much value to my tests.  Therefore, I decided to try
+a different approach for my <strong>jarombek.com</strong> infrastructure tests.
+</p>
+<SectionTitle title="unittest Approach">unittest Approach</SectionTitle>
+<p>
+My second approach to unit testing infrastructure involved the built-in Python <strong>unittest</strong>
+framework.  <strong>unittest</strong> has an additional component called a test runner.  The test runner
+orchestrates test suites and the execution of unit tests inside them<sup>2</sup>.  My <a href="https://github.com/
+AJarombek/jarombek-com-infrastructure/blob/master/test/src/runner.py">test runner</a> is configured to
+execute all the test suites.
+</p>
+<CodeSnippet language="Python">
+import unittest
+import suites.acm as acm
+import suites.iam as iam
+import suites.route53 as route53
+import suites.jarombekCom as jarombekCom
+import suites.jarombekComAssets as jarombekComAssets
+
+# Create the test suite
+loader = unittest.TestLoader()
+suite = unittest.TestSuite()
+
+# Add test files to the test suite
+suite.addTests(loader.loadTestsFromModule(acm))
+suite.addTests(loader.loadTestsFromModule(iam))
+suite.addTests(loader.loadTestsFromModule(route53))
+suite.addTests(loader.loadTestsFromModule(jarombekCom))
+suite.addTests(loader.loadTestsFromModule(jarombekComAssets))
+
+# Create a test runner and execute the test suite
+runner = unittest.TextTestRunner(verbosity=3)
+result = runner.run(suite)
+</CodeSnippet>
+<p>
+In <strong>unittest</strong>, test suites are subclasses of <code className="jarombek-inline-code">TestCase</code>.   <code className="jarombek-inline-code">TestCase</code> provides assertion methods, setup and teardown methods, and test execution methods<sup>3</sup>.  The following class is a <a href="https://github.com/AJarombek/jarombek-com-infrastructure/blob/master/test/src/suites/acm.py">test suite for ACM infrastructure tests</a>:
+</p>
+<CodeSnippet language="Python">
+import unittest
+import boto3
+
+
+class TestACM(unittest.TestCase):
+
+  def setUp(self) -> None:
+    """
+    Perform set-up logic before executing any unit tests
+    """
+    self.acm = boto3.client('acm')
+    self.acm_certificates = self.acm.list_certificates(CertificateStatuses=['ISSUED'])
+
+  def test_dev_wildcard_cert_issued(self) -> None:
+    pass
+
+  def test_wildcard_cert_issued(self) -> None:
+    pass
+</CodeSnippet>
+<p>
+With <strong>unittest</strong>, much of the test suite setup code necessary in my custom approach is
+handled by the test framework.  This allows me to spend more time working on the unit tests themselves.
+</p>
+<SectionTitle title="Unit Test Examples">Unit Test Examples</SectionTitle>
+<p>
+If you want to explore the unit tests I created in depth, I recommend exploring <a href="https://github.com/
+AJarombek/global-aws-infrastructure">my</a> <a href="https://github.com/AJarombek/saints-xctf-infrastructure">
+GitHub</a> <a href="https://github.com/AJarombek/jarombek-com-infrastructure">repositories</a>.  As a
+quick example, the following two code snippets are my ACM tests for <strong>saintsxctf.com</strong> and
+<strong>jarombek.com</strong>.  The first is written using my custom unit test approach and the second is
+written using the <strong>unittest</strong> framework.
+</p>
+<CodeSnippet language="Python">
+import boto3
+
+acm = boto3.client('acm')
+acm_certificates = acm.list_certificates(CertificateStatuses=['ISSUED'])
+
+
+def acm_dev_wildcard_cert_issued() -> bool:
+  """
+  Test that the dev wildcard ACM certificate exists
+  :return: True if the ACM certificate exists as expected, False otherwise
+  """
+  for cert in acm_certificates.get('CertificateSummaryList'):
+    if cert.get('DomainName') == '*.dev.saintsxctf.com':
+      return True
+
+  return False
+
+
+def acm_wildcard_cert_issued() -> bool:
+  """
+  Test that the wildcard ACM certificate exists
+  :return: True if the ACM certificate exists as expected, False otherwise
+  """
+  for cert in acm_certificates.get('CertificateSummaryList'):
+    if cert.get('DomainName') == '*.saintsxctf.com':
+      return True
+
+  return False
+
+
+def acm_cert_issued() -> bool:
+  """
+  Test that the main SaintsXCTF ACM certificate exists
+  :return: True if the ACM certificate exists as expected, False otherwise
+  """
+  for cert in acm_certificates.get('CertificateSummaryList'):
+    if cert.get('DomainName') == 'saintsxctf.com':
+      return True
+
+  return False
+</CodeSnippet>
+<CodeSnippet language="Python">
+import unittest
+import boto3
+
+
+class TestACM(unittest.TestCase):
+
+def setUp(self) -> None:
+  """
+  Perform set-up logic before executing any unit tests
+  """
+  self.acm = boto3.client('acm')
+  self.acm_certificates = self.acm.list_certificates(CertificateStatuses=['ISSUED'])
+
+def test_dev_wildcard_cert_issued(self) -> None:
+  """
+  Test that the dev wildcard ACM certificate exists
+  """
+  for cert in self.acm_certificates.get('CertificateSummaryList'):
+    if cert.get('DomainName') == '*.dev.jarombek.com':
+      self.assertTrue(True)
+      return
+
+  self.assertFalse(True)
+
+def test_wildcard_cert_issued(self) -> None:
+  """
+  Test that the wildcard ACM certificate exists
+  """
+  for cert in self.acm_certificates.get('CertificateSummaryList'):
+    if cert.get('DomainName') == '*.saintsxctf.com':
+      self.assertTrue(True)
+      return
+
+  self.assertFalse(True)
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+If I could start my infrastructure unit tests over from scratch, I would write them all with the
+<strong>unittest</strong> framework.  I believe that developers should only reinvent the wheel under two
+scenarios - as a learning experience or if they think they can improve the existing technology.  While it
+was a good learning experience creating a unit test suite from scratch, it was very barebones functionality
+wise.  Because of this, it didn't assist me in learning the underworkings of test frameworks such as
+<strong>unittest</strong>.
+</p>
+<p>
+I should've spent more time exploring the different approaches to Python unit tests before jumping into
+a custom solution.  There a many different unit testing frameworks for each programming language, and I
+will make sure to explore all my options before choosing one in future projects.
+</p>
+</div>

@@ -1,0 +1,140 @@
+<div>
+<p>
+I often use function compositions which pass the result of one function to the
+argument of another function.  In many modern languages function compositions appear as method chains.
+In <a href="https://jarombek.com/blog?query=haskell&page=1">Haskell</a>, function compositions are given
+their own language operator!  The composition of two functions <strong>f(x)</strong> and <strong>g(x)</strong>
+is easily defined using mathematical notation:
+</p>
+<MathNotation tex="﻿﻿(f \circ g)(x)"></MathNotation>
+<p>
+In mathematical notation, function compositions are represented by a circle.  In Haskell, function
+compositions use a dot (<code className="jarombek-inline-code">.</code>) notation.  The following function
+redefines the function composition operator<sup>1</sup>.
+</p>
+<CodeSnippet language="Haskell">
+(.) :: (b -> c) -> (a -> b) -> (a -> c)
+f . g = \x -> f (g x)
+</CodeSnippet>
+<p>
+The function composition operator is implemented as expected.  It takes in two functions
+(<code className="jarombek-inline-code">f</code> and <code className="jarombek-inline-code">g</code>) and composes
+them together to create a third function (<code className="jarombek-inline-code">f . g</code>).
+<code className="jarombek-inline-code">f . g</code> is then passed an argument
+<code className="jarombek-inline-code">x</code>.  Note that <code className="jarombek-inline-code">
+g</code> has type <code className="jarombek-inline-code">(a -> b)</code> and
+<code className="jarombek-inline-code">f</code> has type <code className="jarombek-inline-code">(b -> c)</code>.
+The return type of <code className="jarombek-inline-code">g</code> matches the parameter type of
+<code className="jarombek-inline-code">f</code>, and composed together their type is
+<code className="jarombek-inline-code">(a -> c)</code>.
+</p>
+<p>
+Function compositions make functions more readable and concise.  Here are two simple examples:
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Function that performs a Map-Reduce operation on an integer list.
+  Each item is first incremented and then the sum of this list is returned.
+-}
+inc_sum :: [Int] -> Int
+inc_sum = sum . map (+1)
+
+{-|
+  Take a list where each item is of class Show.  First convert each item into a string
+  and add a space between each item.  Then concat the list of strings, making one string.
+  Finally print out the string.
+-}
+list_str :: Show a => [a] -> IO ()
+list_str = print . concat . intersperse " " . map show
+
+main :: IO ()
+main = do
+  print $ inc_sum [0,1] -- 3
+
+  list_str [True, False] -- "True False"
+  list_str [2, 26, 1995] -- "2 26 1995"
+</CodeSnippet>
+<CodeSnippet>
+3
+"True False"
+"2 26 1995"
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">list_str</code> demonstrates that any number of functions can be
+composed together.  For more complex examples, you can look on my <a href="https://github.com/AJarombek/
+jarombek-com-sources/blob/master/2018/11-Nov/11-06-haskell-pt3/composition.hs">GitHub</a>.
+</p>
+<SectionTitle title="JavaScript Function Compositions">JavaScript Function Compositions</SectionTitle>
+<p>
+In the beginning of this article I mentioned that function compositions are represented as method
+chains in most languages.  While true for JavaScript, its also possible to use a dot syntax
+similar to Haskell.  Dot syntax is available since JavaScript is flexible about the amount of space
+around the member operator<sup>2</sup>.  For example, <code className="jarombek-inline-code">array.map()</code>
+can be rewritten as <code className="jarombek-inline-code">array . map()</code> and JavaScript won't complain.
+</p>
+<p>
+Here are the two Haskell functions from before rewritten in JavaScript:
+</p>
+<CodeSnippet language="JavaScript">
+/**
+* Using composition (method chaining), first increment each item in the list
+* and then add all the items together.
+* @param _ A list of numbers
+* @returns {*}
+*/
+const inc_sum = _ => _.map(x => x + 1) . reduce((acc, val) => acc + val);
+
+const list = [1,2];
+assert(inc_sum(list) === 5);
+
+/**
+* Using composition, add an empty space after each string in a list.  Then accumulate the list
+* and trim off the final empty space from the list.  There are much better ways to accomplish this task,
+* however this is another easy example of function compositions.
+* @param _ A list of strings
+* @returns {string}
+*/
+const list_str = _ => _.map(str => `${str} `) . reduce((acc, val) => acc + val) . trim();
+
+const list2 = ['My', 'name', 'is', 'Andy'];
+assert(list_str(list2) === 'My name is Andy');
+</CodeSnippet>
+<SectionTitle title="Java Function Compositions">Java Function Compositions</SectionTitle>
+<p>
+With Java 8, function compositions got a major overhaul.  The functional interface
+<code className="jarombek-inline-code">Function</code> contains two methods for creating function compositions:
+<code className="jarombek-inline-code">compose()</code> and <code className="jarombek-inline-code">andThen()</code>.
+The only difference between them is the ordering in which the composition operates.
+</p>
+<CodeSnippet language="Java">
+// Create lambda functions to increment an integer and square an integer
+Function&lt;Integer, Integer&gt; inc = x -> x + 1;
+Function&lt;Integer, Integer&gt; sq = x -> x * x;
+
+// First increment an integer and then square it
+var res1 = inc.andThen(sq).apply(2);
+
+// Fist square an integer and then increment it
+var res2 = inc.compose(sq).apply(2);
+
+assert res1 == 9;
+assert res2 == 5;
+</CodeSnippet>
+<p>
+With Java 8's Stream API it's also easy to perform compositions on lists by chaining methods:
+</p>
+<CodeSnippet language="Java">
+var list = List.of(1, 2);
+
+// Perform a function composition on a list using streams and the map reduce methods
+Optional&lt;Integer&gt; res3 = list.stream().map(x -> x + 1).reduce((x, y) -> x + y);
+
+assert res3.get() == 5;
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+This post was a brief look at function compositions across multiple different programming languages.  
+Haskell's composition operator is another cool aspect of the language.  The full code from this discovery 
+is on <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2018/11-Nov/11-06-haskell-pt3">GitHub</a>.
+</p>
+</div>

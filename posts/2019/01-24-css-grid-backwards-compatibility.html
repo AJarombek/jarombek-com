@@ -1,0 +1,377 @@
+<div>
+<p>
+When I created my personal website, I wanted to use all the latest technologies.  I created a modern
+front-end with React.js, Webpack, Sass, and the latest JavaScript.  When it came to stylesheets, I used
+the latest features that ease website layout creation.  One of these features is CSS Grid.  I wrote
+an article about <a href="https://jarombek.com/blog/jun-18-2018-css-grid">CSS Grid</a> over the summer,
+explaining how it simplifies complex CSS layouts.  As with all new web technologies, an issue with CSS
+Grid is that older browsers don't support it.  This article looks at some of the workarounds to make CSS
+Grid backwards compatible to older browsers.
+</p>
+<p>
+I took three components from my website and simplified them to show how they work on older browsers.
+All modern browsers (Chrome, Edge, Firefox, Opera, Safari) implement feature queries, which check if
+certain stylesheet features are available in the browser environment<sup>1,2</sup>.  Feature queries
+are created with the <code className="jarombek-inline-code">@supports</code> CSS rule.
+</p>
+<p>
+One of the big issues with my website was CSS Grid didn't work properly in Microsoft Edge.  This was due to
+Edge implementing an older spec of CSS Grid.  I used feature queries in my stylesheets to provide an
+equal viewing experience between Edge and the rest of the modern browsers.
+</p>
+<p>
+Unfortunately, Internet Explorer does not support feature queries.  If you are looking for IE support
+and also want to leverage new CSS features, you can use feature detection libraries such as
+<a href="https://modernizr.com/docs">Modernizr</a>.  The rest of this article uses my three components to
+explain feature queries and creating backwards compatible CSS Grid stylesheets.
+</p>
+<SectionTitle title="Article Component">Example 1: Article Component</SectionTitle>
+<p>
+The first layout example is similar to the one used in my software development articles (like the one
+you are currently viewing).
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/1-24-19-example-1.png"/>
+</figure>
+<p>
+Here is the HTML and relevant CSS styles for this layout:
+</p>
+<CodeSnippet language="HTML">
+&lt;body&gt;
+&lt;header class="header"&gt;
+  &lt;p&gt;Software Discovery&lt;/p&gt;
+  &lt;p&gt;January 10th, 2019&lt;/p&gt;
+&lt;/header&gt;
+&lt;div&gt;
+  &lt;h1&gt;CSS Grid Backwards Compatibility&lt;/h1&gt;
+  &lt;div&gt;
+    &lt;p&gt;
+      This article discusses how to make CSS Grid web pages backwards compatible
+      to older browsers.
+    &lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;p&gt;
+      &lt;strong&gt;[1]&lt;/strong&gt; CSS Grid
+    &lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;footer&gt;
+  &lt;figure&gt;
+    &lt;img src="https://asset.jarombek.com/jarombek.png"&gt;
+  &lt;/figure&gt;
+&lt;/footer&gt;
+&lt;/body&gt;
+</CodeSnippet>
+<CodeSnippet language="CSS">
+/* Layout for CSS Grid supporting browsers */
+@supports (grid-area: auto) {
+  body {
+    display: grid;
+    grid-gap: 10px;
+    grid-template-columns: 1fr 3fr 1fr;
+    grid-template-areas:
+              "header header header"
+              ".       body  .     "
+              ".      footer .     ";
+  }
+
+  header {
+    grid-area: header;
+
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-areas: "type  .  date";
+  }
+
+  header > p:nth-child(1) {
+    grid-area: type;
+    justify-self: start;
+    align-self: center;
+    padding-left: 20px;
+  }
+
+  header > p:nth-child(2) {
+    grid-area: date;
+    justify-self: end;
+    align-self: center;
+    padding-right: 20px;
+  }
+
+  body > div {
+    grid-area: body;
+    justify-self: center;
+    align-self: center;
+  }
+
+  footer {
+    grid-area: footer;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+/* Layout for legacy browsers */
+@supports not (grid-area: auto) {
+  header {
+    display: table;
+    height: 45px;
+    width: 100%;
+  }
+
+  header p {
+    display: table-cell;
+    vertical-align: middle;
+    height: 100%;
+    width: 50%;
+  }
+
+  header:nth-child(1) {
+    text-align: left;
+    padding-left: 20px;
+  }
+
+  header:nth-child(2) {
+    text-align: right;
+    padding-right: 20px;
+  }
+}
+</CodeSnippet>
+<p>
+In this layout, browsers supporting <code className="jarombek-inline-code">grid-area: auto</code>
+use styles within the <code className="jarombek-inline-code">@supports (grid-area: auto) {...}</code> rule
+block.  Browsers unsupportive of <code className="jarombek-inline-code">grid-area: auto</code>
+use styles within the <code className="jarombek-inline-code">@supports not (grid-area: auto) {...}</code> rule block.
+</p>
+<p>
+For browsers not supporting CSS Grid, I replaced <code className="jarombek-inline-code">display: grid</code> with
+<code className="jarombek-inline-code">display: table</code>.  The <code className="jarombek-inline-code">display</code>
+property is used to determine the display type of an HTML element.  Both the <code className="jarombek-inline-code">
+grid</code> and <code className="jarombek-inline-code">table</code> values for <code className="jarombek-inline-code">
+display</code> alter how child elements are laid out<sup>3</sup>.  While <code className="jarombek-inline-code">
+display: grid</code> defines a CSS Grid container, <code className="jarombek-inline-code">display: table</code>
+creates a table layout with rows and columns containing cells.  Table layout is just like an HTML table
+where the element <code className="jarombek-inline-code">&lt;tr&gt;</code> represents a table row and the
+element <code className="jarombek-inline-code">&lt;td&gt;</code> represents a table cell.  The corresponding
+<code className="jarombek-inline-code">display</code> values are <code className="jarombek-inline-code">table-row</code>
+and <code className="jarombek-inline-code">table-cell</code>, respectively<sup>4</sup>.
+</p>
+<p>
+With the table layout I created a similar view to the one built with CSS Grid.  I gave both article
+headers the <code className="jarombek-inline-code">display: table-cell</code> definition.  Table cells can
+be vertically positioned just like grid areas in CSS Grid<sup>5</sup>.  While CSS Grid uses
+<code className="jarombek-inline-code">align-self</code> to position elements vertically inside their grid
+area, table cells use <code className="jarombek-inline-code">vertical-align</code>.
+<code className="jarombek-inline-code">vertical-align: middle</code> positions the contents of a table
+cell in the middle of the cell<sup>6</sup>.
+</p>
+<p>
+The rest of the HTML component doesn't need a grid layout, making it easy to convert for older browsers.
+</p>
+<SectionTitle title="Tag Component">Example 2: Tag Component</SectionTitle>
+<p>
+The second layout example is a technology tag that I use at the top of my software development
+articles.  This article has CSS, CSS Grid, and HTML tags.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/1-24-19-example-2.png"/>
+</figure>
+<p>
+Here is the HTML and relevant CSS styles for this layout:
+</p>
+<CodeSnippet language="HTML">
+&lt;body&gt;
+&lt;div&gt;
+  &lt;figure&gt;
+    &lt;img src="https://asset.jarombek.com/jarombek.png" /&gt;
+  &lt;/figure&gt;
+  &lt;p&gt;CSS Grid&lt;/p&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+</CodeSnippet>
+<CodeSnippet language="CSS">
+/* Layout for CSS Grid supporting browsers */
+@supports (grid-area: auto) {
+  body {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    height: calc(100vh - 16px);
+  }
+
+  div {
+    display: grid;
+    grid-template-rows: [top] 100% [bottom];
+    grid-template-columns: [image] 40px [label] calc(100% - 39px) [end];
+  }
+
+  figure {
+    grid-area: top / image / bottom / label;
+    justify-self: center;
+    align-self: center;
+  }
+
+  p {
+    grid-area: top / label / bottom / end;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+/* Layout for legacy browsers */
+@supports not (grid-area: auto) {
+  body {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  div {
+    display: table;
+  }
+
+  figure {
+    display: table-cell;
+    vertical-align: middle;
+  }
+
+  p {
+    display: table-cell;
+    vertical-align: middle;
+  }
+}
+</CodeSnippet>
+<p>
+Once again I'm using <code className="jarombek-inline-code">display: table</code> as a replacement for
+<code className="jarombek-inline-code">display: grid</code>.  This time around I'm also centering the tag
+component in the middle of the the <code className="jarombek-inline-code">&lt;body&gt;</code> element.  In
+CSS Grid, I'm using <code className="jarombek-inline-code">align-items: center</code> and
+<code className="jarombek-inline-code">justify-items: center</code> to align children elements in the middle
+of the page vertically and horizontally, respectively.
+</p>
+<p>
+For older browsers, things get a bit more complex.  First I use the <code className="jarombek-inline-code">
+position: absolute</code> definition, which positions <code className="jarombek-inline-code">&lt;body&gt;</code>
+relative to its nearest positioned relative.  A positioned element is an HTML element with a
+<code className="jarombek-inline-code">position</code> property of value <code className="jarombek-inline-code">
+relative</code>, <code className="jarombek-inline-code">fixed</code>, <code className="jarombek-inline-code">
+absolute</code> or <code className="jarombek-inline-code">sticky</code>.  Since <code className="jarombek-inline-code">
+&lt;body&gt;</code> has no positioned ancestor, its positioned relative to the webpage document<sup>7</sup>.
+</p>
+<p>
+With absolute positioning, the <code className="jarombek-inline-code">top: 50%</code> and
+<code className="jarombek-inline-code">left: 50%</code> definitions place <code className="jarombek-inline-code">
+&lt;body&gt;</code> in the middle of the webpage document.  The only issue with these two definitions is
+they place the top left corner of <code className="jarombek-inline-code">&lt;body&gt;</code> in the
+middle of the webpage.  Therefore the tag component appears misaligned from the center.  To fix this I use the <code className="jarombek-inline-code">transform</code>
+property.  <code className="jarombek-inline-code">transform: translate(-50%, -50%)</code> feels like a hack
+to get the central positioning perfect, but sometimes with legacy CSS hacks are required<sup>8</sup>!
+<code className="jarombek-inline-code">translate()</code> repositions an element along the x-axis and y-axis
+of the webpage.  <code className="jarombek-inline-code">translate(-50%, -50%)</code> moves
+<code className="jarombek-inline-code">&lt;body&gt;</code> 50% of its height upwards along the y-axis and
+50% of its width leftwards along the x-axis.  Now the <code className="jarombek-inline-code">&lt;body&gt;
+</code> element is centered!
+</p>
+<SectionTitle title="Feature Component">Example 3: Feature Component</SectionTitle>
+<p>
+The third layout example displays a feature for the website. My website <a href="https://jarombek.com/">
+home page</a> has three feature components.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/1-24-19-example-3.png"/>
+</figure>
+<p>
+Here is the HTML and relevant CSS styles for this layout:
+</p>
+<CodeSnippet language="HTML">
+&lt;body&gt;
+&lt;div class="feature"&gt;
+  &lt;div&gt;
+    &lt;div class="feature-text"&gt;
+      &lt;h5&gt;Articles&lt;/h5&gt;
+      &lt;p&gt;Read software development articles I've written and follow my progress as a programmer.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class="feature-picture"&gt;
+      &lt;figure&gt;
+        &lt;img src="https://asset.jarombek.com/tech_logos_white.svg"/&gt;
+      &lt;/figure&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+</CodeSnippet>
+<CodeSnippet language="CSS">
+/* Layout for CSS Grid supporting browsers */
+@supports (grid-area: auto) {
+  body {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .feature > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "content picture";
+    grid-gap: 20px;
+  }
+
+  .feature-text, .feature-picture {
+    justify-self: center;
+    align-self: center;
+  }
+
+  .feature-text {
+    grid-area: content;
+  }
+
+  .feature-picture {
+    grid-area: picture;
+  }
+}
+
+/* Layout for legacy browsers */
+@supports not (grid-area: auto) {
+  body {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .feature > div {
+    display: table;
+    height: 100%;
+    width: 100%;
+    float: left;
+  }
+
+  .feature-text {
+    display: table-cell;
+    vertical-align: middle;
+    height: 100%;
+    width: 50%;
+  }
+
+  .feature-picture {
+    float: left;
+    margin-top: 15vh;
+  }
+}
+</CodeSnippet>
+<p>
+The concepts covered in my first two layouts will help you understand the code for my website features.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+While it's fun to work with the latest browser technologies, we still need to support users that
+aren't as bleeding edge.  Feature queries with the <code className="jarombek-inline-code">@supports</code>
+CSS rule will soon be all that's needed to support legacy browsers as Internet Explorer usage continues
+to dwindle.  All the code from this discovery post is available on <a href="https://github.com/AJarombek/jarombek-com-sources/
+tree/master/2019/01-Jan/01-24-css-grid-backwards-compatibility">GitHub</a>.
+</p>
+</div>

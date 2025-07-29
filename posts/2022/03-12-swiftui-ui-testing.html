@@ -1,0 +1,541 @@
+<div>
+<p>
+In my <a href="https://jarombek.com/blog/feb-28-2022-swiftui-uikit">previous article</a>, I discussed SwiftUI and how to
+integrate SwiftUI components into a UIKit application.  SwiftUI is a (relatively) new framework for creating user
+interfaces in Apple ecosystem applications.  User interfaces built using SwiftUI are configured completely in code with
+Swift.  In this article, I discuss how to UI test SwiftUI views in an iOS application.
+</p>
+<SectionTitle title="Introduction to UI Testing">Introduction to UI Testing</SectionTitle>
+<p>
+UI tests are a form of integration tests and end to end tests where a user interface is tested in a manner similar to
+how a user interacts with it.  For example, a UI test may click a button in a user interface and assert that something
+appears on the screen in response.  I've discussed UI testing frameworks such as
+<a href="https://jarombek.com/blog/aug-11-2021-cypress-typescript">Cypress</a> and <a href="https://jarombek.com/blog/
+jul-26-2021-aws-synthetics-canary">AWS Synthetics Canary Functions (which utilize Selenium and Puppeteer)</a> in prior
+articles, both of which are designed for testing web applications.
+</p>
+<p>
+If you are looking for a step by step guide to start building UI tests in the XCode IDE,
+<a href="https://www.hackingwithswift.com/articles/83/how-to-test-your-user-interface-using-xcode">this article</a> is a
+good place to start<sup>1</sup>.  If you want to view the UI test code discussed in this article, it is available in my
+<a href="https://github.com/AJarombek/saints-xctf-ios/tree/master/SaintsXCTFUITests">saints-xctf-ios</a> repository on
+GitHub.
+</p>
+<SectionTitle title="Writing UI Tests">Writing UI Tests</SectionTitle>
+<p>
+The application under test is my <a href="https://apps.apple.com/nz/app/saintsxctf/id1298285886?platform=iphone">
+SaintsXCTF</a> iOS app, which allows users to log their running exercises.  It was built for my college cross country
+and track & field teams.  The page under test is a SwiftUI view that allows users to create exercise logs.  This view is
+shown below.
+</p>
+<InlineImage filename="2-26-22-exercise-log-view.png" paddingTop="true" paddingBottom="true" maxwidth="60%">
+</InlineImage>
+<p>
+In my codebase, there is a <a href="https://github.com/AJarombek/saints-xctf-ios/blob/master/SaintsXCTFUITests/
+ExerciseLogUITests.swift">ExerciseLogUITests.swift</a> file containing UI tests for the "create exercise log"
+ view.  UI tests are outlined with the following Swift code.
+</p>
+<CodeSnippet language="Swift">
+// ExerciseLogUITests.swift
+
+import XCTest
+
+class ExerciseLogUITests: XCTestCase {
+
+    lazy var app = XCUIApplication()
+
+    override func setUpWithError() throws {
+        app.launchArguments += ["UI_TESTING"]
+        continueAfterFailure = false
+    }
+
+    override func tearDownWithError() throws {}
+
+    ...
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">ExerciseLogUITests</code> class contains all the UI tests for the "create
+exercise log" view.  It also contains instance variables used in tests and functions that run before and after test
+functions.  For example, <code className="jarombek-inline-code">app</code> is a variable of type
+<code className="jarombek-inline-code">XCUIApplication</code>, representing the iOS application.
+<code className="jarombek-inline-code">app</code> is used extensively in tests to interact with the UI and make
+assertions about its appearance.  The function <code className="jarombek-inline-code">setUpWithError()</code> is invoked
+before each test function and <code className="jarombek-inline-code">tearDownWithError()</code> is invoked after each
+test function.  I don't use these methods for much, but they can be utilized for elaborate testing configurations.  Within
+<code className="jarombek-inline-code">setUpWithError()</code>, the line
+<code className="jarombek-inline-code">app.launchArguments += ["UI_TESTING"]</code> sets the environment for the
+application during UI tests. The line <code className="jarombek-inline-code">
+continueAfterFailure = false</code> configures test methods to fail fast after they encounter their first error.
+</p>
+<p>
+The remainder of the <code className="jarombek-inline-code">ExerciseLogUITests</code> class contains UI test methods.
+Running these methods in XCode causes an iOS device simulator to run, opening the application and running test commands
+and assertions.  Let's look at a basic test.
+</p>
+<CodeSnippet language="Swift">
+func testShowsCreateLog() throws {
+    app.launch()
+    signIn(app: app)
+
+    let tabBar = app.tabBars["Tab Bar"]
+    tabBar.buttons["New Log"].tap()
+
+    let scrollViewsQuery = app.scrollViews
+    let elementsQuery = scrollViewsQuery.otherElements
+
+    XCTAssert(elementsQuery.staticTexts["Create Exercise Log"].exists)
+    XCTAssert(elementsQuery.staticTexts["Average"].exists)
+    XCTAssert(elementsQuery.staticTexts["Exercise Name*"].exists)
+    XCTAssert(elementsQuery.staticTexts["Location"].exists)
+    XCTAssert(elementsQuery.staticTexts["Date*"].exists)
+    XCTAssert(elementsQuery.staticTexts["Exercise Type"].exists)
+    XCTAssert(elementsQuery.staticTexts["Distance"].exists)
+    XCTAssert(elementsQuery.staticTexts["Time"].exists)
+    XCTAssert(elementsQuery.staticTexts["Feel"].exists)
+    XCTAssert(elementsQuery.staticTexts["Description"].exists)
+
+    XCTAssert(elementsQuery.buttons["Create"].exists)
+    XCTAssert(elementsQuery.buttons["Cancel"].exists)
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">testShowsCreateLog()</code> is a UI test method asserting certain
+ input elements and buttons exist on a page.  It begins with the method call
+<code className="jarombek-inline-code">app.launch()</code>, which launches the application in the device simulator.  It
+then invokes a custom helper function <code className="jarombek-inline-code">signIn(app: app)</code>, which signs a test
+user into the application.  <code className="jarombek-inline-code">tabBar.buttons["New Log"].tap()</code> navigates to
+the "create exercise log" page by clicking on a button containing the text "New Log".
+</p>
+<p>
+<code className="jarombek-inline-code">testShowsCreateLog()</code> uses a <code className="jarombek-inline-code">
+XCTAssert()</code> function to make assertions about the UI.  For example, the assertion
+<code className="jarombek-inline-code">XCTAssert(elementsQuery.staticTexts["Distance"].exists)</code> ensures that the
+text "Distance" exists on the page.  Meanwhile, <code className="jarombek-inline-code">
+XCTAssert(elementsQuery.buttons["Create"].exists)</code> ensures that the page has a button with the text "Create".
+This test is very simple, but more complicated tests still use the same building blocks; all tests interact with the UI
+and use <code className="jarombek-inline-code">XCTAssert()</code> to make assertions.
+</p>
+<p>
+Let's look at a slightly more complex UI test.
+</p>
+<CodeSnippet language="Swift">
+func testSliderChangesFeel() throws {
+    app.launch()
+    signIn(app: app)
+
+    let tabBar = app.tabBars["Tab Bar"]
+    tabBar.buttons["New Log"].tap()
+
+    let scrollViewsQuery = app.scrollViews
+    let elementsQuery = scrollViewsQuery.otherElements
+    let feelSlider = elementsQuery.sliders["Feel"]
+
+    XCTAssert(elementsQuery.staticTexts["Average"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.0)
+    XCTAssert(elementsQuery.staticTexts["Terrible"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.1)
+    XCTAssert(elementsQuery.staticTexts["Very Bad"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.2)
+    XCTAssert(elementsQuery.staticTexts["Bad"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.3)
+    XCTAssert(elementsQuery.staticTexts["Pretty Bad"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.4)
+    XCTAssert(elementsQuery.staticTexts["Mediocre"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.6)
+    XCTAssert(elementsQuery.staticTexts["Average"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.7)
+    XCTAssert(elementsQuery.staticTexts["Fairly Good"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.8)
+    XCTAssert(elementsQuery.staticTexts["Good"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.9)
+    XCTAssert(elementsQuery.staticTexts["Great"].exists)
+
+    feelSlider.adjust(toNormalizedSliderPosition: 1.0)
+    XCTAssert(elementsQuery.staticTexts["Fantastic"].exists)
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">testSliderChangesFeel()</code> tests a slider on the "create exercise log" page.
+This slider is used to indicate how an athlete felt while exercising.
+</p>
+<InlineImage filename="3-12-22-feel-slider.gif" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+<code className="jarombek-inline-code">testSliderChangesFeel()</code> starts off the same as the previous test.  It
+launches the application (<code className="jarombek-inline-code">app.launch()</code>), signs in a test user
+(<code className="jarombek-inline-code">signIn(app: app)</code>), and navigates to the "create exercise log" page
+(<code className="jarombek-inline-code">buttons["New Log"].tap()</code>).  <code className="jarombek-inline-code">
+testSliderChangesFeel()</code> is a bit more complex than the previous test because it interacts with the page along
+with making assertions.  Method invocations to <code className="jarombek-inline-code">
+feelSlider.adjust(toNormalizedSliderPosition: _)</code> move the slider to different positions.  Then,
+<code className="jarombek-inline-code">XCTAssert()</code> ensures that text describing how the athlete felt is displayed
+on the screen.
+</p>
+<p>
+Let's look at one more UI test.
+</p>
+<CodeSnippet language="Swift">
+func testNameFormValidation() throws {
+    app.launch()
+    signIn(app: app)
+
+    let tabBar = app.tabBars["Tab Bar"]
+    tabBar.buttons["New Log"].tap()
+
+    let scrollViewsQuery = app.scrollViews
+    let elementsQuery = scrollViewsQuery.otherElements
+
+    let nameField = elementsQuery.textFields["Name Field"]
+    let nameValidationText = elementsQuery.staticTexts["Name Validation Text"]
+
+    XCTAssertEqual(nameField.value as? String, "")
+    XCTAssertFalse(nameValidationText.exists)
+
+    nameField.tap()
+    nameField.typeText("5th Ave Mile")
+
+    XCTAssertEqual(nameField.value as? String, "5th Ave Mile")
+    XCTAssertFalse(nameValidationText.exists)
+
+    nameField.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 12))
+    XCTAssertEqual(nameField.value as? String, "")
+    XCTAssert(nameValidationText.exists)
+
+    nameField.typeText("A")
+    XCTAssertEqual(nameField.value as? String, "A")
+    XCTAssertFalse(nameValidationText.exists)
+
+    nameField.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 1))
+    XCTAssertEqual(nameField.value as? String, "")
+    XCTAssert(nameValidationText.exists)
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">testNameFormValidation()</code> tests that form validation is functional for an
+input field on the "create exercise log" page.  The test types text into a "Name Field" and then deletes it, asserting
+that a validation message appears when the text is gone.
+</p>
+<InlineImage filename="3-12-22-input-validation.gif" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Again, this test starts the same as the previous two.  Later on in the test, two new assertion functions
+are used - <code className="jarombek-inline-code">XCTAssertEqual()</code> and <code className="jarombek-inline-code">
+XCTAssertFalse()</code>.  Like any other testing library, XCTest provides many different assertion functions to make
+testing easier.  <code className="jarombek-inline-code">XCTAssertEqual(nameField.value as? String, "")</code> checks
+that the "Name" field is empty when the page first loads, and <code className="jarombek-inline-code">
+XCTAssertFalse(nameValidationText.exists)</code> checks that no validation text is shown when the page first loads.
+</p>
+<p>
+<code className="jarombek-inline-code">nameField.typeText("5th Ave Mile")</code> types a value into the "Name" field.
+Assertions follow, ensuring the text is displayed on the screen.  The text is then deleted by passing
+<code className="jarombek-inline-code">String(repeating: XCUIKeyboardKey.delete.rawValue, count: 12)</code> to
+<code className="jarombek-inline-code">nameField.typeText()</code>.  The assertion <code className="jarombek-inline-code">
+XCTAssert(nameValidationText.exists)</code> ensures that the validation message is properly displayed.
+</p>
+<SectionTitle title="Writing UI Tests with Network Stubs">Writing UI Tests with Network Stubs</SectionTitle>
+<p>
+Many applications use API calls to populate their user interfaces with data.  The UI tests I've shown so far make API
+calls the same way as the production application.  However, sometimes we want to manipulate API responses to help
+perform UI tests.  For example, to test an error scenario, we can manipulate the API to return an error
+response instead of a typical successful response.
+</p>
+<p>
+In E2E testing frameworks such as Cypress, manipulated API responses (mocked/stubbed responses) are achieved with
+<a href="https://jarombek.com/blog/aug-11-2021-cypress-typescript">fixtures</a>.  Fixtures are JSON files that represent
+API response objects.  When writing iOS UI tests, a similar approach can be implemented.
+</p>
+<p>
+The approach for mocking/stubbing API calls in UI tests is to start an API server while the tests run.  From this
+API, custom API responses can be implemented.  Classes for UI tests with stubbed API calls are configured slightly
+differently than classes with standard API calls.  The following code, which comes from my <a href="https://github.com/
+AJarombek/saints-xctf-ios/blob/master/SaintsXCTFUITests/ExerciseLogUIStubTests.swift">ExerciseLogUIStubTests.swift</a>
+file, shows a class outline for my "create exercise log" page UI tests with stubbed API calls.
+</p>
+<CodeSnippet language="Swift">
+import XCTest
+
+class ExerciseLogUIStubTests: XCTestCase {
+
+    let apiStubs = Stubs()
+
+    lazy var app = XCUIApplication()
+
+    override func setUpWithError() throws {
+        try! apiStubs.server.start(9080)
+        app.launchArguments += ["UI_STUB_TESTING"]
+        continueAfterFailure = false
+    }
+
+    override func tearDownWithError() throws {
+        apiStubs.server.stop()
+    }
+
+    ...
+}
+</CodeSnippet>
+<p>
+Compared to the <code className="jarombek-inline-code">ExerciseLogUITests</code> class shown previously,
+<code className="jarombek-inline-code">ExerciseLogUIStubTests</code> adds another instance variable
+(<code className="jarombek-inline-code">apiStubs</code>) and additional lines of code to
+<code className="jarombek-inline-code">setUpWithError()</code> and <code className="jarombek-inline-code">
+tearDownWithError()</code>.  Within <code className="jarombek-inline-code">setUpWithError()</code>, the line
+<code className="jarombek-inline-code">try! apiStubs.server.start(9080)</code> starts an API server on port 9080.  The
+UI sends requests to this API during tests.  The line <code className="jarombek-inline-code">
+app.launchArguments += ["UI_STUB_TESTING"]</code> configures the environment of the application.  My application is
+configured to use the local API server running on port 9080 when the environment is <code className="jarombek-inline-code">
+UI_STUB_TESTING</code>.  Within <code className="jarombek-inline-code">tearDownWithError()</code>, the line
+<code className="jarombek-inline-code">apiStubs.server.stop()</code> stops the API server after testing completes.
+</p>
+<p>
+The <code className="jarombek-inline-code">apiStubs</code> instance variable is used for both starting and stopping the
+local API server.  <code className="jarombek-inline-code">apiStubs</code> is an instance of
+<code className="jarombek-inline-code">Stubs</code>, a custom class containing an instance variable
+representing the API server and a factory function for stubbing API endpoints.  <code className="jarombek-inline-code">
+Stubs</code> exists in a <a href="https://github.com/AJarombek/saints-xctf-ios/blob/master/SaintsXCTFUITests/
+Stubs.swift">Stubs.swift</a> file and is shown below.
+</p>
+<CodeSnippet language="Swift">
+import Foundation
+import Swifter
+
+enum StubHttpVerb: String, CaseIterable, Identifiable {
+    case get
+    case post
+    case put
+    case delete
+
+    var id: String {
+        self.rawValue
+    }
+}
+
+enum StubHttpStatus: String, CaseIterable, Identifiable {
+    case ok
+    case badRequest
+
+    var id: String {
+        self.rawValue
+    }
+}
+
+class Stubs {
+    let server = HttpServer()
+
+    func stubRequest(path: String, jsonData: Data, verb: StubHttpVerb = .get, status: StubHttpStatus = .ok) {
+        guard let json = try? JSONSerialization.jsonObject(with: jsonData, options: .mutableContainers) else {
+            return
+        }
+
+        let response: ((HttpRequest) -> HttpResponse) = { _ in
+            if status == .badRequest {
+                return HttpResponse.badRequest(.json(json as AnyObject))
+            } else {
+                return HttpResponse.ok(.json(json as AnyObject))
+            }
+        }
+
+        if verb == .post {
+            server.post[path] = response
+        } else if verb == .put {
+            server.put[path] = response
+        } else if verb == .delete {
+            server.delete[path] = response
+        } else {
+            server.get[path] = response
+        }
+    }
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">Swifter</code> library is used to create a server in Swift code.  This server
+is represented in code by the <code className="jarombek-inline-code">server</code> instance variable, initialized with
+the line <code className="jarombek-inline-code">let server = HttpServer()</code>.  <code className="jarombek-inline-code">
+stubRequest()</code> is the factory function for stubbing API endpoints that I mentioned previously.
+</p>
+<p>
+<code className="jarombek-inline-code">stubRequest()</code> takes four arguments: <code className="jarombek-inline-code">
+path</code>, <code className="jarombek-inline-code">jsonData</code>, <code className="jarombek-inline-code">verb</code>,
+and <code className="jarombek-inline-code">status</code>.  <code className="jarombek-inline-code">path</code> is the
+path of an endpoint in an API to be stubbed.  <code className="jarombek-inline-code">verb</code> is the HTTP verb of the
+endpoint and <code className="jarombek-inline-code">jsonData</code> is the JSON response body of the endpoint.
+<code className="jarombek-inline-code">status</code> is the HTTP status code returned by the API endpoint.
+</p>
+<p>
+Although <code className="jarombek-inline-code">stubRequest()</code> doesn't return any value, it configures a new
+API endpoint with the desired configuration on the <code className="jarombek-inline-code">server</code> object.  Once
+execution of <code className="jarombek-inline-code">stubRequest()</code> is complete, this API endpoint can be invoked
+with HTTP requests.   For UI tests that utilize stubbed API calls, every API endpoint that the application calls is
+configured with <code className="jarombek-inline-code">stubRequest()</code>.
+</p>
+<p>
+Let's look at one of these tests.  The following test, from the <a href="https://github.com/AJarombek/saints-xctf-ios/
+blob/v2.1.0/SaintsXCTFUITests/ExerciseLogUIStubTests.swift#L27-L81">ExerciseLogUIStubTests.swift</a> file, tests the successful
+creation of an exercise log.
+</p>
+<CodeSnippet language="Swift">
+func testCreateLogSuccess() throws {
+    apiStubs.stubRequest(path: "/v2/logs/", jsonData: LogStubs().createdData, verb: .post)
+    app.launch()
+    signIn(app: app)
+
+    let tabBar = app.tabBars["Tab Bar"]
+    tabBar.buttons["New Log"].tap()
+
+    let scrollViewsQuery = app.scrollViews
+    let elementsQuery = scrollViewsQuery.otherElements
+
+    let nameField = elementsQuery.textFields["Name Field"]
+    let locationField = elementsQuery.textFields["Location Field"]
+    let distanceField = elementsQuery.textFields["Distance Field"]
+    let timeField = elementsQuery.textFields["Time Field"]
+    let descriptionField = elementsQuery.textFields["Description Field"]
+    let feelSlider = elementsQuery.sliders["Feel"]
+
+    nameField.tap()
+    nameField.typeText("Central Park")
+
+    locationField.tap()
+    locationField.typeText("New York, NY")
+
+    distanceField.tap()
+    distanceField.typeText("6.3")
+
+    timeField.tap()
+    timeField.typeText("43")
+    timeField.typeText("21")
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.7)
+
+    descriptionField.tap()
+    descriptionField.typeText("Wednesday AM Run")
+
+    let alert = app.alerts["Exercise log created!"]
+    XCTAssertFalse(alert.exists)
+
+    let createButton = elementsQuery.buttons["Create"]
+    createButton.tap()
+
+    XCTAssert(elementsQuery.staticTexts["Average"].waitForExistence(timeout: 2))
+    XCTAssert(alert.exists)
+
+    alert.buttons["Continue"].tap()
+    XCTAssertFalse(alert.exists)
+
+    XCTAssertEqual(nameField.value as? String, "")
+    XCTAssertEqual(locationField.value as? String, "")
+    XCTAssertEqual(distanceField.value as? String, "")
+    XCTAssertEqual(timeField.value as? String, "")
+    XCTAssert(elementsQuery.staticTexts["Average"].exists)
+    XCTAssertEqual(descriptionField.value as? String, "")
+}
+</CodeSnippet>
+<p>
+The first line of the test, <code className="jarombek-inline-code">
+apiStubs.stubRequest(path: "/v2/logs/", jsonData: LogStubs().createdData, verb: .post)</code>, stubs an HTTP POST
+request to a <strong>/v2/logs/</strong> endpoint.  This endpoint is used to create an exercise log.  The remainder of
+the test fills values into the form displayed on the UI using the <code className="jarombek-inline-code">
+typeText()</code> method.  Once all values are filled in, the "Create" button is clicked using the
+<code className="jarombek-inline-code">createButton.tap()</code> command.
+</p>
+<p>
+Because the test uses a stubbed API call, no exercise log is created in the application database.  However, from the
+UI's perspective, it appears that the log was successfully created.  This is one of the great benefits of subbed API
+calls - they aren't dependent on and don't impact the backend system of an application.
+</p>
+<p>
+Let's look at another example.  The following test, also from the <a href="https://github.com/AJarombek/saints-xctf-ios/
+blob/v2.1.0/SaintsXCTFUITests/ExerciseLogUIStubTests.swift#L83-L140">ExerciseLogUIStubTests.swift</a> file, tests a
+scenario where an internal server error occurs while creating an exercise log.
+</p>
+<CodeSnippet language="Swift">
+func testCreateLogFailure() throws {
+    apiStubs.stubRequest(path: "/v2/logs/", jsonData: LogStubs().createdData, verb: .post, status: .badRequest)
+    app.launch()
+    signIn(app: app)
+
+    let tabBar = app.tabBars["Tab Bar"]
+    tabBar.buttons["New Log"].tap()
+
+    let scrollViewsQuery = app.scrollViews
+    let elementsQuery = scrollViewsQuery.otherElements
+
+    let nameField = elementsQuery.textFields["Name Field"]
+    let locationField = elementsQuery.textFields["Location Field"]
+    let distanceField = elementsQuery.textFields["Distance Field"]
+    let timeField = elementsQuery.textFields["Time Field"]
+    let descriptionField = elementsQuery.textFields["Description Field"]
+    let feelSlider = elementsQuery.sliders["Feel"]
+
+    nameField.tap()
+    nameField.typeText("Central Park Hills")
+
+    locationField.tap()
+    locationField.typeText("New York, NY")
+
+    distanceField.tap()
+    distanceField.typeText("10.75")
+
+    timeField.tap()
+    timeField.typeText("1")
+    timeField.typeText("13")
+    timeField.typeText("02")
+
+    feelSlider.adjust(toNormalizedSliderPosition: 0.8)
+
+    descriptionField.tap()
+    descriptionField.typeText("Thursday Hill Workout")
+
+    let alert = app.alerts["An unexpected error occurred while creating an exercise log."]
+    XCTAssertFalse(alert.exists)
+
+    let createButton = elementsQuery.buttons["Create"]
+    createButton.tap()
+
+    XCTAssert(alert.waitForExistence(timeout: 2))
+
+    alert.buttons["Try Again"].tap()
+    XCTAssert(alert.waitForExistence(timeout: 2))
+
+    alert.buttons["Cancel"].tap()
+    XCTAssertFalse(alert.exists)
+
+    XCTAssertEqual(nameField.value as? String, "Central Park Hills")
+    XCTAssertEqual(locationField.value as? String, "New York, NY")
+    XCTAssertEqual(distanceField.value as? String, "10.75")
+    XCTAssertEqual(timeField.value as? String, "1:13:02")
+    XCTAssert(elementsQuery.staticTexts["Good"].exists)
+    XCTAssertEqual(descriptionField.value as? String, "Thursday Hill Workout")
+}
+</CodeSnippet>
+<p>
+Right off the bat, the stubbed API request for this test is configured to return an HTTP error code with the
+<code className="jarombek-inline-code">status: .badRequest</code> argument.  Similar to the previous example, this test
+fills out the form shown on the UI and clicks the "Create" button to create a new exercise log.  The line
+<code className="jarombek-inline-code">let alert = app.alerts["An unexpected error occurred while creating an exercise log."]
+</code> assigns a UI alert for an unexpected error to the variable <code className="jarombek-inline-code">alert</code>.
+The UI test checks to make sure this alert is shown on the UI when an API call fails unexpectedly.  This is accomplished
+with the <code className="jarombek-inline-code">XCTAssert(alert.waitForExistence(timeout: 2))</code> function call,
+which asserts that the alert is displayed on the UI within two seconds.
+</p>
+<p>
+This test demonstrates another benefit of stubbed API calls - testing unexpected application states, such as when
+errors occur.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Writing UI tests is a great way to automate the testing of an application.  With UI tests in place, applications have an
+additional safety net, ensuring they operate as users expect.  Creating UI tests for SwiftUI views is
+relatively easy, so it's definitely worth the effort.  All the UI test code shown in this article is available on
+<a href="https://github.com/AJarombek/saints-xctf-ios/tree/master/SaintsXCTFUITests">GitHub</a>.
+</p>
+</div>

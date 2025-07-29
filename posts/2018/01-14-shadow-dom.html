@@ -1,0 +1,71 @@
+<div>
+<p>
+I was recently reading a book on Angular 2 and came across an HTML concept I had never heard of before
+- the shadow DOM.  Angular utilizes the shadow DOM to modularize HTML and CSS code, although you can
+also use the shadow DOM API in native JavaScript<sup>1</sup>.
+</p>
+<p>
+A shadow DOM results in modularization by removing its contents from the main Document Object Model.
+The shadow DOM is attached onto an existing HTML element using the <code className="jarombek-inline-code">
+Element.attachShadow()</code> function<sup>2</sup>.  You can then add new HTML code or
+<code className="jarombek-inline-code">&lt;style&gt;</code> elements containing CSS to the shadow DOM.  All of the
+styles and HTML specified in the shadow DOM are hidden from the outer HTML implementation.  Shadow DOM helps
+avoid CSS style conflicts, HTML <code className="jarombek-inline-code">id</code> overlaps, and more!
+</p>
+<p>
+Here is an example of some HTML code that creates a shadow DOM (notice that the
+<code className="jarombek-inline-code">shadow</code> variable is a new shadow DOM element
+and I add elements to the shadow using <code className="jarombek-inline-code">innerHTML</code>).
+</p>
+<CodeSnippet language="HTML">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta chartset="utf-8"&gt;
+        &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;!-- This div will be the holder for the shadow dom --&gt;
+        &lt;div id="host"&gt;&lt;/div&gt;
+        &lt;div&gt;
+            &lt;style&gt;
+                p {color: red}
+            &lt;/style&gt;
+        &lt;/div&gt;
+        &lt;p&gt;I'm outside the shadow.&lt;/p&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</CodeSnippet>
+<CodeSnippet language="JavaScript">
+// Attach the shadow dom
+const shadow = document.querySelector("#host").attachShadow({mode: 'open'});
+
+// Create the shadow dom's contents
+shadow.innerHTML = "&lt;p&gt;I'm in a Shadow!&lt;/p&gt;";
+shadow.innerHTML += `&lt;style&gt;
+                        p {
+                            font-style: italic;
+                            color: #999;
+                            font-weight: bold;
+                        }
+                    &lt;/style&gt;`
+</CodeSnippet>
+<p>
+The result:
+</p>
+<figure id="webresult-image">
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/1-14-18-webresult.png">
+</figure>
+<p>
+Upon inspecting the HTML in the browsers developer tools, you will notice that the
+shadow DOM is wrapped in a <code className="jarombek-inline-code">#shadow-root</code> item, which simply
+specifies that a shadow DOM exists<sup>3</sup>.
+</p>
+<figure id="html-image">
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/1-14-18-html.png" align="middle">
+</figure>
+<p>
+The ability to modularize a HTML document is awesome!  I will utilize the shadow DOM in my Angular
+code and look into other native HTML modularization techniques like reusable custom elements in the future!
+</p>
+</div>

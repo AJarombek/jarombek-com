@@ -1,0 +1,534 @@
+<div>
+<p>
+In my <a href="https://jarombek.com/blog/sep-3-2019-rds-backups-pt1">previous article</a> I discussed my
+existing AWS infrastructure and the additional resources needed to automate backups for a RDS MySQL instance using a
+lambda function.  In this article I'll create those additional resources and further explain my design decisions.
+Finally, I'll test the lambda function and show the backup file in my S3 bucket.
+</p>
+<SectionTitle title="Building the Additional Infrastructure">Building the Additional Infrastructure</SectionTitle>
+<p>
+The lambda function for RDS backups is currently implemented for my <a href="https://www.saintsxctf.com">SaintsXCTF</a>
+  application.  Before creating the lambda function, all my application
+infrastructure was in place.  This includes a VPC with four subnets - two public and two private.  It also
+includes web servers behind a load balancer and a highly available RDS MySQL database.  Here is a diagram
+of my existing infrastructure:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-3-19-saints-xctf-infra-diagram-2.png"/>
+</figure>
+<p>
+As I discussed in my <a href="https://jarombek.com/blog/sep-3-2019-rds-backups-pt1">last article</a>, there are
+four additional resources needed to implement the lambda function.  The first is the lambda function itself,
+which is placed in the VPC alongside the RDS instances.  The second is an S3 bucket to store the
+database backup files.  The third is credentials for the database which are stored in Secrets Manager.  The fourth and
+final resource is a VPC endpoint allowing the lambda function to access S3 and Secrets Manager.  We actually
+need two separate VPC endpoints to complete this task.  Here is the infrastructure diagram with the new resources:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-3-19-saints-xctf-infra-diagram-4.png"/>
+</figure>
+<p>
+Now let’s add these additional pieces to my infrastructure using <a href="https://jarombek.com/blog?query=terraform&page=1">Terraform</a>.
+</p>
+<SectionTitle title="AWS Lambda Function">AWS Lambda Function</SectionTitle>
+<p>
+The lambda function for creating backups of an RDS MySQL instance is written in Python.  I chose Python because
+of its concise syntax and my liking of the <strong>boto3</strong> AWS SDK.  The Python function also invokes a Bash
+script which executes on the AWS Lambda runtime environment.  AWS Lambda functions run on an Amazon Linux server,
+so executing Bash is no problem<sup>1</sup>.
+</p>
+<p>
+The lambda function is scheduled to run every morning at 7:00am UTC.  Its located in the same private subnet as
+the RDS instance.  This is necessary for the Lambda function to connect to the database.  With the help of IAM
+roles, the lambda function is granted access to RDS, S3, and Secrets Manager resources.
+</p>
+<p>
+At the core of the Terraform infrastructure is the <a href="https://github.com/AJarombek/saints-xctf-infrastructure/
+tree/master/database-snapshot/modules/lambda">lambda function configuration</a>.
+</p>
+<CodeSnippet language="HCL">
+locals {
+  env = var.prod ? "prod" : "dev"
+}
+
+#-------------------
+# Existing Resources
+#-------------------
+
+data "aws_vpc" "saints-xctf-com-vpc" {
+  tags = {
+    Name = "saints-xctf-com-vpc"
+  }
+}
+
+data "aws_subnet" "saints-xctf-com-vpc-public-subnet-0" {
+  tags = {
+    Name = "saints-xctf-com-lisag-public-subnet"
+  }
+}
+
+data "aws_subnet" "saints-xctf-com-vpc-public-subnet-1" {
+  tags = {
+    Name = "saints-xctf-com-megank-public-subnet"
+  }
+}
+
+data "aws_db_instance" "saints-xctf-mysql-database" {
+  db_instance_identifier = "saints-xctf-mysql-database-${local.env}"
+}
+
+data "archive_file" "lambda" {
+  source_dir = "${path.module}/func"
+  output_path = "${path.module}/dist/lambda-${local.env}.zip"
+  type = "zip"
+}
+
+#--------------------------------------------------
+# SaintsXCTF MySQL Backup Lambda Function Resources
+#--------------------------------------------------
+
+resource "aws_lambda_function" "rds-backup-lambda-function" {
+  function_name = "SaintsXCTFMySQLBackup${upper(local.env)}"
+  filename = "${path.module}/dist/lambda-${local.env}.zip"
+  handler = "lambda.create_backup"
+  role = aws_iam_role.lambda-role.arn
+  runtime = "python3.7"
+  timeout = 15
+
+  environment {
+    variables = {
+      ENV = local.env
+      DB_HOST = data.aws_db_instance.saints-xctf-mysql-database.address
+    }
+  }
+
+  vpc_config {
+    security_group_ids = [module.lambda-rds-backup-security-group.security_group_id[0]]
+    subnet_ids = [
+      data.aws_subnet.saints-xctf-com-vpc-public-subnet-0.id,
+      data.aws_subnet.saints-xctf-com-vpc-public-subnet-1.id
+    ]
+  }
+
+  tags = {
+    Name = "saints-xctf-rds-${local.env}-backup"
+    Environment = upper(local.env)
+    Application = "saints-xctf"
+  }
+}
+</CodeSnippet>
+<p>
+The first thing you will notice is that my <a href="https://jarombek.com/blog/sep-3-2018-terraform#infrastructure-as-code-(iac)">IaC</a>
+is applied to my production and development environments depending on the <code className="jarombek-inline-code">
+var.prod</code> variable.  Production and development databases live in the same VPC and subnets, so
+I grab the VPC and subnet information with the <code className="jarombek-inline-code">data</code> code blocks.
+I also grab the database information for the specified environment.
+</p>
+<p>
+When the <a href="https://jarombek.com/blog/jun-17-2019-terraform-module">Terraform module</a> first executes,
+the <code className="jarombek-inline-code">archive_file</code> code blocks executes.  <code className="jarombek-inline-code">archive_file</code>
+zips the functions code because AWS Lambda expects source code to be uploaded in a <strong>zip</strong> file.
+This zip file includes a <strong>lambda.py</strong> file containing the entry point to the lambda function, a
+<strong>backup.sh</strong> file which creates a SQL backup file from the RDS instance, and a <strong>mysqldump</strong>
+binary which connects to MySQL and dumps the database contents into a SQL file.  I will walk through the Python
+and Bash files momentarily.
+</p>
+<p>
+The <code className="jarombek-inline-code">resource</code> block in the Terraform code defines the AWS lambda function.
+In my production environment the lambda function is named <code className="jarombek-inline-code">SaintsXCTFMySQLBackupPROD</code>
+and uses the Python 3 runtime.  I pass the RDS instance domain name as an environment variable to the
+functions runtime environment.  This is used to connect to the database.  The domain name can also be obtained
+programmatically in the lambda function, however a <a href="https://docs.aws.amazon.com/vpc/latest/userguide/
+vpc-nat-gateway.html">NAT Gateway</a> would be required because the lambda function lives in my applications
+VPC and has no internet access<sup>2</sup>.  NAT Gateways are expensive, so I avoided that approach.  RDS
+does not offer VPC endpoints at this time (as of September 2019)<sup>3</sup>.
+</p>
+<p>
+The next chunk of Terraform IaC configures the IAM policy for the lambda function.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_iam_role" "lambda-role" {
+  name = "saints-xctf-rds-backup-lambda-role"
+  assume_role_policy = file("${path.module}/role.json")
+
+  tags = {
+    Name = "saints-xctf-rds-backup-lambda-role"
+    Environment = "all"
+    Application = "saints-xctf"
+  }
+}
+
+resource "aws_iam_policy" "rds-backup-lambda-policy" {
+  name = "rds-backup-lambda-policy"
+  path = "/saintsxctf/"
+  policy = file("${path.module}/rds-backup-lambda-policy.json")
+}
+
+resource "aws_iam_role_policy_attachment" "lambda-role-policy-attachment" {
+  policy_arn = aws_iam_policy.rds-backup-lambda-policy.arn
+  role = aws_iam_role.lambda-role.name
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">rds-backup-lambda-policy</code> IAM policy is attached to the
+<code className="jarombek-inline-code">saints-xctf-rds-backup-lambda-role</code> IAM role, which in turn is
+bound to the lambda function.  The IAM policy grants the lambda function access to Secrets Manager, S3,
+RDS, and the Network Interfaces in the VPC.  Network Interface access is required for the lambda function
+to connect to my VPC<sup>4</sup>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": [
+      "secretsmanager:Describe*",
+      "secretsmanager:Get*",
+      "secretsmanager:List*",
+      "ec2:CreateNetworkInterface",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:DetachNetworkInterface",
+      "ec2:DeleteNetworkInterface",
+      "rds:*",
+      "s3:*"
+    ],
+    "Resource": "*"
+  }
+}
+</CodeSnippet>
+<p>
+Further improvement can be made to this policy by restricting RDS and S3 access to certain operations.
+</p>
+<p>
+The final piece of lambda function infrastructure is a CloudWatch trigger<sup>5</sup>.  The following IaC
+configures a CloudWatch event that invokes the lambda function every morning at 7:00am UTC.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_cloudwatch_event_rule" "lambda-function-schedule-rule" {
+  name = "saints-xctf-rds-${local.env}-backup-lambda-rule"
+  description = "Execute the Lambda Function Daily"
+  schedule_expression = "cron(0 7 * * ? *)"
+  is_enabled = true
+
+  tags = {
+    Name = "saints-xctf-rds-${local.env}-backup-lambda-rule"
+    Environment = upper(local.env)
+    Application = "saints-xctf"
+  }
+}
+
+resource "aws_cloudwatch_event_target" "lambda-function-schedule-target" {
+  arn = aws_lambda_function.rds-backup-lambda-function.arn
+  rule = aws_cloudwatch_event_rule.lambda-function-schedule-rule.name
+}
+
+resource "aws_lambda_permission" "lambda-function-schedule-permission" {
+  statement_id = "AllowExecutionFromCloudWatch"
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.rds-backup-lambda-function.function_name
+  principal = "events.amazonaws.com"
+  source_arn = aws_cloudwatch_event_rule.lambda-function-schedule-rule.arn
+}
+</CodeSnippet>
+<SectionTitle title="Lambda Function Source Code">Lambda Function Source Code</SectionTitle>
+<p>
+In the previous section I discussed all the infrastructure required to configure the AWS Lambda function.
+Now let’s explore the function source code!
+</p>
+<p>
+The lambda function is written in Python and utilizes the <strong>boto3</strong> AWS SDK.  It grabs the database credentials
+from Secrets Manager, runs a Bash script which calls the <strong>mysqldump</strong> command line utility,
+and uploads the resulting SQL file to an S3 bucket.
+</p>
+<CodeSnippet language="Python">
+import os
+import boto3
+import botocore.config
+import json
+import subprocess
+
+
+def create_backup(event, context):
+  """
+  Create a backup of an RDS MySQL database and store it on S3
+  :param event: provides information about the triggering of the function
+  :param context: provides information about the execution environment
+  :return: True when successful
+  """
+
+  # Set the path to the executable scripts in the AWS Lambda environment.
+  # Source: https://aws.amazon.com/blogs/compute/running-executables-in-aws-lambda/
+  os.environ['PATH'] = os.environ['PATH'] + ':' + os.environ['LAMBDA_TASK_ROOT']
+
+  try:
+    env = os.environ['ENV']
+  except KeyError:
+    env = "prod"
+
+  try:
+    host = os.environ['DB_HOST']
+  except KeyError:
+    host = ""
+
+  secretsmanager = boto3.client('secretsmanager')
+  response = secretsmanager.get_secret_value(SecretId=f'saints-xctf-rds-{env}-secret')
+  secret_string = response.get("SecretString")
+  secret_dict = json.loads(secret_string)
+
+  username = secret_dict.get("username")
+  password = secret_dict.get("password")
+
+  # To execute the bash script on AWS Lambda, change its pemissions and move it into the /tmp/ directory.
+  # Source: https://stackoverflow.com/a/48196444
+  subprocess.check_call(["cp ./backup.sh /tmp/backup.sh && chmod 755 /tmp/backup.sh"], shell=True)
+
+  subprocess.check_call(["/tmp/backup.sh", env, host, username, password])
+
+  # By default, S3 resolves buckets using the internet.  To use the VPC endpoint instead, use the 'path' addressing
+  # style config.  Source: https://stackoverflow.com/a/44478894
+  s3 = boto3.resource('s3', 'us-east-1', config=botocore.config.Config(s3={'addressing_style':'path'}))
+
+  s3.meta.client.upload_file('/tmp/backup.sql', f'saints-xctf-db-backups-{env}', 'backup.sql')
+
+  return True
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">subprocess.check_call()</code> invokes the Bash script which creates the
+database backup SQL file.  The bash script only backs up the <code className="jarombek-inline-code">saintsxctf</code>
+database within my MySQL RDS instance:
+</p>
+<CodeSnippet language="Bash">
+# backup.sh
+
+# Input Variables
+ENV=$1
+HOST=$2
+USERNAME=$3
+PASSWORD=$4
+
+cp ./mysqldump /tmp/mysqldump
+chmod 755 /tmp/mysqldump
+
+# Use an environment variable for the MySQL password so that mysqldump doesn't have to prompt for one.
+export MYSQL_PWD="${PASSWORD}"
+
+# Dump the saintsxctf database into a sql file
+/tmp/mysqldump -v --host ${HOST} --user ${USERNAME} --max_allowed_packet=1G --single-transaction --quick \
+  --lock-tables=false --routines saintsxctf > /tmp/backup.sql
+</CodeSnippet>
+<p>
+The function takes less than 15 seconds to complete in my tests.  By the time it finishes, the S3 bucket is
+updated with a new SQL file.
+</p>
+<SectionTitle title="S3 Bucket">S3 Bucket</SectionTitle>
+<p>
+I configured an S3 bucket in my production and development environments to hold database backups.  The following
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/database/modules/s3">S3
+  infrastructure and IAM policy</a> create the buckets and give other AWS resources read and write access
+to bucket objects (files).
+</p>
+<CodeSnippet language="HCL">
+locals {
+  env = var.prod ? "prod" : "dev"
+}
+
+/* The S3 bucket holding database backups keeps old files versioned for 60 days.  After that they are deleted. */
+resource "aws_s3_bucket" "saints-xctf-db-backups" {
+  bucket = "saints-xctf-db-backups-${local.env}"
+
+  # Bucket owner gets full control, nobody else has access
+  acl = "private"
+
+  # Policy allows for resources in this AWS account to create and read objects
+  policy = file("${path.module}/policies/policy-${local.env}.json")
+
+  versioning {
+    enabled = true
+  }
+
+  lifecycle_rule {
+    enabled = true
+
+    noncurrent_version_expiration {
+      days = 60
+    }
+  }
+
+  tags = {
+    Name = "SaintsXCTF Database Backups Bucket"
+    Application = "saints-xctf"
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="JSON">
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Permissions",
+      "Effect": "Allow",
+      "Principal": { "AWS": "xxxx" },
+      "Action": ["s3:PutObject", "s3:GetObject"],
+      "Resource": ["arn:aws:s3:::saints-xctf-db-backups-prod/*"]
+    }
+  ]
+}
+</CodeSnippet>
+<SectionTitle title="Secrets Manager Credentials">Secrets Manager Credentials</SectionTitle>
+<p>
+Protecting sensitive data is paramount when developing software.  To avoid hard coding credentials anywhere
+in my source code, I utilized AWS Secrets Manager to store database credentials.  As I previously showed,
+the Python lambda function grabs the RDS database credentials from Secrets Manager via the AWS SDK.  The
+following IaC stores RDS credentials in Secrets Manager through a command line variable
+<code className="jarombek-inline-code">rds_secrets</code>.
+</p>
+<CodeSnippet language="HCL">
+locals {
+  env = var.prod ? "prod" : "dev"
+}
+
+resource "aws_secretsmanager_secret" "saints-xctf-rds-secret" {
+  name = "saints-xctf-rds-${local.env}-secret"
+  description = "SaintsXCTF MySQL RDS Login Credentials for the ${upper(local.env)} Environment"
+
+  tags = {
+    Name = "saints-xctf-rds-${local.env}-secret"
+    Environment = upper(local.env)
+    Application = "saints-xctf"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "saints-xctf-rds-secret-version" {
+  secret_id = aws_secretsmanager_secret.saints-xctf-rds-secret.id
+  secret_string = jsonencode(var.rds_secrets)
+}
+</CodeSnippet>
+<p>
+My <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/secrets-manager">Secrets Manager
+module on GitHub</a> walks through how to pass the database credentials into Terraform using the CLI.
+It’s as simple as running the <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/
+secrets-manager/env/prod">following command</a> from your terminal:
+</p>
+<CodeSnippet language="Bash">
+terraform apply -auto-approve -var 'rds_secrets={ username = "saintsxctfprod", password = "XXX" }'
+</CodeSnippet>
+<SectionTitle title="VPC Endpoints">VPC Endpoints</SectionTitle>
+<p>
+A consequence of my AWS Lambda function living in my application VPC (so it can connect to my RDS instance)
+is that it has no access to the internet.  This is a problem when using the AWS SDK, which requires an internet
+connection to access other AWS resources.  Fortunately, Amazon created a solution to this problem called VPC
+endpoints.  VPC endpoints provide access to other AWS services without the need for an internet connection.
+I use them to connect to Secrets Manager and S3 from my lambda function.
+</p>
+<p>
+The following <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/database-snapshot/
+modules/vpc-endpoints">IaC creates my two VPC endpoints</a>:
+</p>
+<CodeSnippet language="HCL">
+locals {
+  public_cidr = "0.0.0.0/0"
+}
+
+#-------------------
+# Existing Resources
+#-------------------
+
+data "aws_vpc" "saints-xctf-com-vpc" {
+  tags = {
+    Name = "saints-xctf-com-vpc"
+  }
+}
+
+data "aws_subnet" "saints-xctf-com-vpc-public-subnet-0" {
+  tags = {
+    Name = "saints-xctf-com-lisag-public-subnet"
+  }
+}
+
+data "aws_subnet" "saints-xctf-com-vpc-public-subnet-1" {
+  tags = {
+    Name = "saints-xctf-com-megank-public-subnet"
+  }
+}
+
+data "aws_route_table" "saints-xctf-com-route-table-public" {
+  tags = {
+    Name = "saints-xctf-com-vpc-public-subnet-rt"
+  }
+}
+
+#----------------------------------
+# SaintsXCTF VPC Ednpoint Resources
+#----------------------------------
+
+resource "aws_vpc_endpoint" "saints-xctf-secrets-manager-vpc-endpoint" {
+  vpc_id = data.aws_vpc.saints-xctf-com-vpc.id
+  service_name = "com.amazonaws.us-east-1.secretsmanager"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids = [
+    data.aws_subnet.saints-xctf-com-vpc-public-subnet-0.id,
+    data.aws_subnet.saints-xctf-com-vpc-public-subnet-1.id
+  ]
+
+  security_group_ids = [module.vpc-endpoint-security-group.security_group_id[0]]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "saints-xctf-s3-vpc-endpoint" {
+  vpc_id = data.aws_vpc.saints-xctf-com-vpc.id
+  service_name = "com.amazonaws.us-east-1.s3"
+  vpc_endpoint_type = "Gateway"
+
+  route_table_ids = [
+    data.aws_route_table.saints-xctf-com-route-table-public.id
+  ]
+}
+</CodeSnippet>
+<SectionTitle title="Testing the Lambda Function">Testing the Lambda Function</SectionTitle>
+<p>
+After building my new AWS Lambda, S3, Secrets Manager, and VPC Endpoint resources with Terraform, I’m
+ready to test out the lambda function.  If you want to implement your own version of this lambda function,
+you will have to tweak the code on <a href="https://github.com/AJarombek/saints-xctf-infrastructure">GitHub</a>
+to match your application needs.
+</p>
+<p>
+When navigating to the AWS Lambda service page in the AWS Console, I can view the code uploaded in my new
+lambda function.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-5-19-rds-backup-lambda-1.png"/>
+</figure>
+<p>
+There are multiple options for invoking the AWS Lambda function.  One option is to test the function directly
+in the AWS Console.  Another is to invoke it programmatically using the AWS CLI or SDKs.  I could enhance the
+lambda function by placing it behind API Gateway.  Or I can just wait until 7:00am UTC for the function to be
+invoked via the CloudWatch event.
+</p>
+<p>
+After testing the function a few times manually, I checked my S3 bucket and saw the <strong>backup.sql</strong>
+file as expected:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-5-19-rds-backup-lambda-2.png"/>
+</figure>
+<p>
+The next morning, I checked the version history of the <strong>backup.sql</strong> file and saw it was
+updated at 3:00am EST (7:00am UTC) as expected:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-5-19-rds-backup-lambda-3.png"/>
+</figure>
+<p>
+From here I can download the backup file, test it on a local MySQL instance, or run it on my RDS instance to
+restore the database contents.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Creating an AWS Lambda function that handles RDS MySQL backups involved a lot of moving parts and was more
+complex than I initially anticipated.  The biggest hurdle was getting the function to connect to an RDS instance
+living in a private subnet while simultaneously granting it access to S3 and Secrets Manager.  You can view
+the code from this discovery post along with the rest of my application infrastructure on
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure">GitHub</a>.
+</p>
+</div>

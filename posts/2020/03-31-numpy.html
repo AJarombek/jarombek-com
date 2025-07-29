@@ -1,0 +1,430 @@
+<!--
+"I won't look too far ahead
+It's too much for me to take
+But break it down to this next breath
+This next step
+This next choice is one that I can make"
+ -->
+<div>
+<p>
+In my new role at work, a good chunk of my programming is Python based and revolves around data
+analysis.  I already knew Python, however I wanted a review libraries such as numpy and
+ learn libraries such as pandas and matplotlib.  This article discusses numpy, short for
+"Numerical Python".  The goal of this article isn't to teach numpy to beginners, instead focusing on
+ library aspects I found most interesting.
+</p>
+<SectionTitle title="What is Numpy">What is Numpy?</SectionTitle>
+<p>
+Numpy is a library used for data analysis and scientific computing.  At its most basic level, numpy
+exposes an API for working with arrays of one or more dimensions.  Numpy is often used in conjunction
+with higher-level libraries such as pandas, which builds upon numpy arrays.
+</p>
+<p>
+A single-dimension numpy array containing the numbers 1 through 3 is created with the following code:
+</p>
+<CodeSnippet language="Python">
+import numpy as np
+
+arr = np.array([1, 2, 3])
+</CodeSnippet>
+<p>
+Since Python already has native lists, the typical question to ask is what benefits numpy arrays provide.
+First, numpy arrays are fast.  Numpy stores its arrays in a separate storage location from other Python
+objects and avoids certain overheads found in all Python objects<sup>1</sup>.  Its lower level C
+implementation helps facilitate extremely fast array manipulation and analysis.
+</p>
+<p>
+In my opinion, numpy's API is superior to the native Python list implementation.  Simple array
+operations are performed in a more concise manner, and advanced commands exist that are
+challenging to implement in the Python list API.  One of the simple features that shows the power of numpy is
+vectorization.
+</p>
+<SectionTitle title="Vectorization">Vectorization</SectionTitle>
+<p>
+Numpy arrays provide <strong>vectorization</strong> abilities.  Vectorization in numpy is when operations
+are applied to entire arrays instead of individual items within a
+<code className="jarombek-inline-code">for</code> loop<sup>2</sup>.  Instead of writing a
+ <code className="jarombek-inline-code">for</code> loop for numpy arrays in Python code, the underlying numpy API uses a <code className="jarombek-inline-code">for</code>
+loop in its C implementation, which is much faster than native Python.  As a simple vectorization example,
+let's take a numpy array and multiply each element by two.
+</p>
+<CodeSnippet language="Python">
+arr = np.arange(10)
+arr
+
+# Out[1]: array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+arr * 2
+
+# Out[2]: array([ 0,  2,  4,  6,  8, 10, 12, 14, 16, 18])
+</CodeSnippet>
+<p>
+The output above is what you would see when running the code in a
+<a href="https://jupyter.org/">Jupyter Notebook</a>.  The initial <code className="jarombek-inline-code">arange()</code>
+function creates an array of length 10 from 0 to 9.  Next, a vectorization operation is performed.  Each item in the array
+is multiplied by two.  An equivalent Python list operation would use a
+<code className="jarombek-inline-code">for</code> loop.
+</p>
+<CodeSnippet language="Python">
+native_arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+def mult_by_2(arr: list, val: int) -> list:
+  new_arr = arr.copy()
+
+  for i in range(len(new_arr)):
+    new_arr[i] *= val
+
+  return new_arr
+
+mult_by_2(native_arr, 2)
+
+# Out[3]: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+</CodeSnippet>
+<p>
+Vectorization operations on numpy arrays don't mutate the original array, instead creating a new array
+instance.  Therefore, my native Python implementation first makes a copy of the existing list before
+making changes.
+</p>
+<p>
+The numpy vectorization I wrote applied a multiplication operator (<code className="jarombek-inline-code">*</code>)
+with a scalar value (<code className="jarombek-inline-code">2</code>) to an array.  Vectorization
+operators can also apply an operator with an array to an equally sized array<sup>4</sup>.  For example,
+the following code multiplies the items in each array with each other.
+</p>
+<CodeSnippet language="Python">
+arr * arr
+
+# Out[4]: array([ 0,  1,  4,  9, 16, 25, 36, 49, 64, 81])
+</CodeSnippet>
+<p>
+Once again, this would be more difficult to write with native Python lists.
+</p>
+<CodeSnippet language="Python">
+def mult_together(arr1: list, arr2: list) -> list:
+  return [arr1[i] * arr2[i] for i in range(len(arr1))]
+
+mult_together(native_arr, native_arr)
+
+# Out[5]: [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+</CodeSnippet>
+<p>
+I made the implementation a bit shorter with a list comprehension, however it still isn't as elegant as
+the numpy solution.
+</p>
+<SectionTitle title="Broadcasting">Broadcasting</SectionTitle>
+<p>
+Related to vectorization, <strong>broadcasting</strong> is when vectorization operators are performed
+on two arrays of different sizes.  Technically my first example, <code className="jarombek-inline-code">arr * 2</code>,
+is an example of broadcasting an array of length N to an array of length 1<sup>5</sup>.  Numpy has
+certain rules for how broadcasting works between two arrays<sup>6</sup>.  Two arrays are eligible for
+broadcasting if:
+</p>
+<ComparisonTable title="Broadcasting Rules">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Equal Dimensions
+</h5>
+<div className="jarombek-cte-body">
+<p>
+The dimension values for both arrays are equal.  For example, an array of dimension <strong>2 x 3</strong> and
+another array of dimension <strong>2 x 3</strong> are eligible for broadcasting.  Likewise, an array of
+dimension <strong>2 x 3 x 4</strong> and another array of dimension <strong>3 x 4</strong> are eligible
+for broadcasting.  However, an array of dimension <strong>2 x 3</strong> and another array of dimension
+<strong>3 x 2</strong> are not eligible for broadcasting.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Single Dimension Equal to One
+</h5>
+<div className="jarombek-cte-body">
+<p>
+The dimension value in one array is greater than one while the other is equal to one.  For example, an
+array of dimension 2 x 3 and another array of dimension 2 x 1 are eligible for broadcasting.  Likewise,
+an array of dimension 2 x 3 x 4 and another array of dimension 1 x 4 are eligible for broadcasting.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+Here are broadcasting results from the five scenarios I mentioned in my comparison table above:
+</p>
+<CodeSnippet language="Python">
+# Broadcasting [2 x 3] and [2 x 3].
+arr1 = np.arange(6).reshape((2, 3))
+arr2 = np.ones(6).reshape((2, 3))
+
+assert arr1.shape == (2, 3)
+assert arr2.shape == (2, 3)
+
+arr1 + arr2
+
+# Out[6]: array([[1., 2., 3.],
+#                [4., 5., 6.]])
+
+# Broadcasting [2 x 3 x 4] and [3 x 4].
+arr1 = np.arange(24).reshape((2, 3, 4))
+arr2 = np.arange(12).reshape((3, 4))
+
+assert arr1.shape == (2, 3, 4)
+assert arr2.shape == (3, 4)
+
+arr1 - arr2
+
+# Out[7]: array([[[ 0,  0,  0,  0],
+#                 [ 0,  0,  0,  0],
+#                 [ 0,  0,  0,  0]],
+#
+#                [[12, 12, 12, 12],
+#                 [12, 12, 12, 12],
+#                 [12, 12, 12, 12]]])
+
+# Broadcasting [2 x 3] and [3 x 2].
+arr1 = np.arange(6).reshape((2, 3))
+arr2 = np.arange(6).reshape((3, 2))
+
+assert arr1.shape == (2, 3)
+assert arr2.shape == (3, 2)
+
+try:
+  arr1 + arr2
+
+  # This point will never be reached.
+  assert False
+
+except ValueError as e:
+  assert str(e).strip() == 'operands could not be broadcast together with shapes (2,3) (3,2)'
+
+# Broadcasting [2 x 3] and [2 x 1].
+arr1 = np.arange(6).reshape((2, 3))
+arr2 = np.arange(1, 3).reshape((2, 1))
+
+assert arr1.shape == (2, 3)
+assert arr2.shape == (2, 1)
+
+arr1 + arr2
+
+# Out[8]: array([[1, 2, 3],
+#                [5, 6, 7]])
+
+# Broadcasting [2 x 3 x 4] and [1 x 4].
+arr1 = np.arange(24).reshape((2, 3, 4))
+arr2 = np.arange(1, 5).reshape((1, 4))
+
+assert arr1.shape == (2, 3, 4)
+assert arr2.shape == (1, 4)
+
+result = arr1 * arr2
+
+# Out[9]: array([[[ 0,  2,  6, 12],
+#                 [ 4, 10, 18, 28],
+#                 [ 8, 18, 30, 44]],
+#
+#                [[12, 26, 42, 60],
+#                 [16, 34, 54, 76],
+#                 [20, 42, 66, 92]]])
+</CodeSnippet>
+<SectionTitle title="Ease of Creating Arrays">Ease of Creating Arrays</SectionTitle>
+<p>
+Creation of lists in Python is straightforward yet limited in options.  More complex list creation can
+be accomplished with list comprehensions, as shown in the section on vectorization.  Still, even list
+comprehensions aren't as powerful as the API numpy exposes for array creation.
+</p>
+<p>
+A good example is a reshaped numpy array.  In comparison to a Python list created with a list comprehension,
+ the numpy <code className="jarombek-inline-code">reshape()</code> method is more explicit in describing what it accomplishes.
+</p>
+<CodeSnippet language="Python">
+np.arange(0, 23, 2).reshape(3, 4)
+
+# Out[10]: array([[ 0,  2,  4,  6], [ 8, 10, 12, 14], [16, 18, 20, 22]])
+
+[[i, i+2, i+4, i+6] for i in range(0, 23, 8)]
+
+# Out[11]: [[0, 2, 4, 6], [8, 10, 12, 14], [16, 18, 20, 22]]
+</CodeSnippet>
+<SectionTitle title="Enhanced Slicing">Enhanced Slicing</SectionTitle>
+<p>
+Python lists already provide pretty nice slicing capabilities.  Numpy takes slicing to another level.
+Numpy extends the indexing and slicing syntax in Python single-dimension lists for use in
+multi-dimensional arrays.  The following examples demonstrate multi-dimensional indexing and slicing.
+</p>
+<CodeSnippet language="Python">
+# Unlike Python lists, numpy array indexes accept comma separated values.
+# Each value is a slice for a dimension of the array.
+arr = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+arr[1, 1]
+
+# Out[12]: 4
+
+arr[:, :]
+
+# Out[13]: array([[0, 1, 2],
+#                 [3, 4, 5],
+#                 [6, 7, 8]])
+
+arr[1:, :1]
+
+# Out[14]: array([[3],
+#                 [6]])
+
+arr[:, 2]
+
+# Out[15]: array([2, 5, 8])
+
+arr[:, 2] = 10
+arr
+
+# Out[16]: array([[ 0,  1, 10],
+#                 [ 3,  4, 10],
+#                 [ 6,  7, 10]])
+</CodeSnippet>
+<p>
+Numpy indexing and slicing operations can contain conditional logic.  Here are some more advanced
+indexing and slicing operations on the same numpy array instance.
+</p>
+<CodeSnippet language="Python">
+arr
+
+# Out[17]: array([[ 0,  1, 10],
+#                 [ 3,  4, 10],
+#                 [ 6,  7, 10]])
+
+arr[2, arr[2] == 6]
+
+# Out[18]: array([6])
+
+arr[1, arr[1] > 3]
+
+# Out[19]: array([ 4, 10])
+
+arr[arr > 3]
+
+# Out[20]: array([10,  4, 10,  6,  7, 10])
+
+arr[~(arr > 5)]
+
+# Out[21]: array([0, 1, 3, 4])
+
+arr[(arr < 2) | (arr > 8)]
+
+# Out[22]: array([ 0,  1, 10, 10, 10])
+
+arr[(arr > 2) & (arr < 8)]
+
+# Out[23]: array([3, 4, 6, 7])
+
+arr[(arr > 3) & (arr < 7)] = 20
+arr
+
+# Out[24]: array([[ 0,  1, 10],
+#                 [ 3, 20, 10],
+#                 [20,  7, 10]])
+</CodeSnippet>
+<SectionTitle title="Reshaping Arrays">Reshaping Arrays</SectionTitle>
+<p>
+Reshaping numpy arrays is easy with a variety of functions for altering data arrangements.  Some
+of the basic ones include <code className="jarombek-inline-code">reshape(shape)</code>,
+<code className="jarombek-inline-code">flatten()</code>, and <code className="jarombek-inline-code">T</code>
+(short for transpose).
+</p>
+<CodeSnippet language="Python">
+arr = np.arange(12, 36, 2)
+arr
+
+# Out[25]: array([12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34])
+
+arr = np.arange(12, 36, 2).reshape(3, 4)
+arr
+
+# Out[26]: array([[12, 14, 16, 18],
+#                 [20, 22, 24, 26],
+#                 [28, 30, 32, 34]])
+
+arr.flatten()
+
+# Out[27]: array([12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34])
+
+arr.T
+
+# Out[28]: array([[12, 20, 28],
+#                 [14, 22, 30],
+#                 [16, 24, 32],
+#                 [18, 26, 34]])
+</CodeSnippet>
+<SectionTitle title="Custom Functions">Custom Functions</SectionTitle>
+<p>
+While vectorization and built-in numpy functions are extremely helpful when transforming numpy arrays,
+sometimes they aren't flexible enough for our needs.  In this case, custom functions can be created.
+For example, I created the following function which converts miles to kilometers:
+</p>
+<CodeSnippet language="Python">
+# Custom functions can be created with frompyfunc().  Note that these functions take a performance hit
+# compared to their numpy counterparts.  There is a way to speed up custom functions to numpy-like performance
+# with the numba library.
+def miles_to_kilometers(miles):
+  return miles * 1.609
+
+# Create a custom unary ufunc (takes a single argument) that converts miles to kilometers
+mile2km = np.frompyfunc(miles_to_kilometers, 1, 1)
+</CodeSnippet>
+<p>
+This function can be applied to each item in an array.
+</p>
+<CodeSnippet language="Python">
+arr = np.array([1, 3, 5])
+mile2km(arr)
+
+# Out[29]: array([1.609, 4.827, 8.045])
+</CodeSnippet>
+<p>
+Unfortunately, this custom function is very slow.  The following test shows the time taken by
+the custom function versus vectorization.
+</p>
+<CodeSnippet language="Python">
+%timeit mile2km(arr)
+
+# Out[30]: 6.75 µs ± 107 ns per loop
+
+%timeit arr * 1.609
+
+# Out[31]: 1.04 µs ± 11.3 ns per loop
+</CodeSnippet>
+<p>
+The performance problem is that custom functions live in Python instead of C, with the latter being much faster.
+Luckily it is possible to write fast custom numpy functions using a library called <strong>numba</strong>.
+Numba uses LLVM to convert Python code to assembly code<sup>7</sup>.  The mile to kilometer function
+is easily rewritten with numba.
+</p>
+<CodeSnippet language="Python">
+@nb.jit
+def miles_to_kilometers(miles):
+  return miles * 1.609
+
+arr = np.array([1, 3, 5])
+miles_to_kilometers(arr)
+
+# Out[32]: array([1.609, 4.827, 8.045])
+</CodeSnippet>
+<p>
+The numba function is extremely fast!  In fact, numba functions are often faster than
+their numpy vectorization counterparts.
+</p>
+<CodeSnippet language="Python">
+%timeit miles_to_kilometers(np.arange(100))
+
+# Out[33]: 1.18 µs ± 13.9 ns per loop
+
+%timeit np.arange(100) * 1.609
+
+# Out[34]: 1.89 µs ± 53.2 ns per loop
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Numpy is an array object library that exposes an elegant API which is fun to use.  I've used it often
+at work and will likely find usages for it in my personal Python code.  If you want to see more
+numpy code samples, check out my data analytics repository on <a href="https://github.com/AJarombek/
+data-analytics-prototypes/tree/master/Python/numpy">GitHub</a>.
+</p>
+</div>

@@ -1,0 +1,318 @@
+<div>
+<p>
+Over the past few months I've read a book about the ELK stack.  <strong>ELK</strong> stands for <strong>E</strong>lasticsearch,
+<strong>L</strong>ogstash, and <strong>K</strong>ibana.  Together these three technologies provide the ability to search,
+stream, and visualize data.  In this article I discuss Elasticsearch, which is the core technology of ELK
+Stack.  First I'll define Elasticsearch and provide details about what its used for.  Second I'll create
+AWS infrastructure for Elasticsearch using Amazon Elasticsearch Service.  Third and finally I'll populate
+Elasticsearch with data and show some basic queries.
+</p>
+<SectionTitle title="What is Elasticsearch">What is Elasticsearch?</SectionTitle>
+<Definition word="Elasticsearch">
+Elasticsearch is a search and analytics engine<sup>1</sup>.  It's also a document-oriented NoSQL database that
+holds data in schemaless JSON documents and provides the ability to query data using JSON syntax<sup>2</sup>.
+Elasticsearch is very fast at querying data, especially when performing text searches<sup>3</sup>.  It's the
+core technology of ELK stack, along with Logstash and Kibana.  Logstash is utilized as a pipeline for data into Elasticsearch and Kibana is used
+as a way to visualize the data in Elasticsearch.
+</Definition>
+<p>
+Elasticsearch is commonly used to perform quick text searches.  I've explored <a href="https://jarombek.com/blog/
+dec-30-2017-nodejs-mongodb-api-prototype#text-search">text searching</a> briefly in the past with MongoDB and
+Node.js.  However, text search isn't the main reason to use a document store like MongoDB.  If you want a data
+store built around text search, Elasticsearch is a great option.
+</p>
+<p>
+Elasticsearch is also used for analytics, which is the process of discovering patterns in a large data set.
+</p>
+<SectionTitle title="Creating an Elasticsearch Server on AWS">Creating an Elasticsearch Server on AWS</SectionTitle>
+<p>
+An Elasticsearch server can be run locally, on a virtual machine, on a container, or by other means.  AWS
+provides a service for Elasticsearch called Amazon Elasticsearch Service.  Behind the scenes Amazon Elasticsearch
+Service runs an Elasticsearch cluster on EC2 virtual machines.  Amazon takes care of these EC2 instances,
+allowing developers to focus on populating and querying data instead of infrastructure maintenance.
+</p>
+<p>
+I built the AWS infrastructure for Elasticsearch with Terraform.  The following code creates a new Elasticsearch domain:
+</p>
+<CodeSnippet language="HCL">
+locals {
+  public_cidr = "0.0.0.0/0"
+  my_ip_address = var.ip_address
+  es_domain = "sandbox-elasticsearch-demo"
+}
+
+#-----------------------
+# Existing AWS Resources
+#-----------------------
+
+data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}
+
+data "template_file" "elasticsearch-access-policy" {
+  template = file("es-access-policy.json")
+
+  vars = {
+    MY_IP = local.my_ip_address
+    REGION = data.aws_region.current.name
+    ACCOUNT_ID = data.aws_caller_identity.current.account_id
+    ES_DOMAIN = local.es_domain
+  }
+}
+
+#------------------
+# New AWS Resources
+#------------------
+
+resource "aws_elasticsearch_domain" "elasticsearch" {
+  domain_name = local.es_domain
+  elasticsearch_version = "7.1"
+
+  cluster_config {
+    instance_type = "t2.small.elasticsearch"
+    instance_count = 1
+  }
+
+  ebs_options {
+    ebs_enabled = true
+    volume_size = 10
+  }
+
+  snapshot_options {
+    automated_snapshot_start_hour = 23
+  }
+
+  tags = {
+    Name = "sandbox-elasticsearch-demo-domain"
+    Application = "jarombek-com-sources"
+    Environment = "sandbox"
+  }
+}
+
+resource "aws_elasticsearch_domain_policy" "elasticsearch-policy" {
+  domain_name = aws_elasticsearch_domain.elasticsearch.domain_name
+  access_policies = data.template_file.elasticsearch-access-policy.rendered
+}
+</CodeSnippet>
+<p>
+The rest of the file is available on <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/
+2019/09-Sep/09-15-elasticsearch/main.tf">GitHub</a>.  This Terraform infrastructure has a single input
+argument called <code className="jarombek-inline-code">ip_address</code>, which specifies the IP address
+that has access to the ElasticSearch endpoints.  I set this IP address to my local computer.  The Terraform
+infrastructure is built with the following command:
+</p>
+<CodeSnippet language="Bash">
+terraform apply -auto-approve -var 'ip_address=xxx.xxx.xxx.xxx'
+</CodeSnippet>
+<p>
+Terraform creates two resources for Elasticsearch - the domain and the domain policy.  An Elasticsearch
+domain is the server managed by AWS.  The domain policy is an IAM policy which specifies what AWS resources
+Elasticsearch has access to along with who has access to the Elasticsearch domain.  In my case, the policy
+grants an IP address full access to the Elasticsearch domain.  To get the URL for Elasticsearch and Kibana,
+navigate to the Elasticsearch domain in the AWS Console:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-15-19-aws-console.png"/>
+</figure>
+<p>
+Using the Kibana URL in a browser should navigate to the Elasticsearch server's Kibana UI.  If you get a
+DNS error instead, make sure you used the proper IP address in the Terraform module.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-15-19-kibana-ui.png"/>
+</figure>
+<p>
+Now it's time to start working with Elasticsearch!
+</p>
+<SectionTitle title="Elasticsearch Basics">Elasticsearch Basics</SectionTitle>
+<p>
+The three main constructs in Elasticsearch are indexes, types, and documents.
+</p>
+<ComparisonTable title="Elasticsearch Constructs">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Index
+</h5>
+<div className="jarombek-cte-body">
+<p>
+An index is a container for a type in Elasticsearch.  In RDBMS terms, an index is similar to a database
+schema (however in Elasticsearch an index can only hold a single type while in an RDBMS a schema can
+contain multiple tables).  In MongoDB terms, an index is similar to a database.  However, in MongoDB, a
+database can also hold multiple types (collections).
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Type
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A type is a logical grouping of documents in Elasticsearch.  By default, types in  Elasticsearch are schemaless.
+This means documents within a type can contain different fields.  However, the data type used by a field in a
+type must be consistent across all documents.  Schemas for types can be created through mappings.  In RDBMS
+terms, a type is similar to a table (However in RDBMS a table has a strict schema).  In MongoDB terms, a
+type is the same construct as a collection.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Document
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A document holds data in fields and conforms to a certain type in Elasticsearch.  Documents are represented as
+JSON.  In RDBMS terms, a document is similar to a row in a table (although a row in a relational database can't
+hold nested data while a JSON document in Elasticsearch can).  A document in MongoDB is the same construct as
+a document in Elasticsearch.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+There are two simple ways to manipulate indexes, types, and documents.  The first is to use the Dev Tools
+Console in the Kibana UI and the second is to use cURL.  In the upcoming examples I'll utilize both.
+</p>
+<p>
+It's time to create some initial data in Elasticsearch representing license plates in my collection.  The
+first step is to create an index and a mapping for the type in the index.  The index defines the number
+of shards and replicas it uses.  The type mapping declares the data types of the fields in the document.
+</p>
+<CodeSnippet language="JSON">
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 5,
+      "number_of_replicas": 2
+    }
+  },
+  "mappings": {
+    "properties": {
+      "name": {
+        "type": "text"
+      },
+      "description": {
+        "type": "keyword",
+        "ignore_above": 256
+      },
+      "user": {
+        "type": "text"
+      },
+      "issued": {
+        "type": "integer"
+      },
+      "number": {
+        "type": "text"
+      },
+      "state": {
+        "type": "text"
+      },
+      "state_code": {
+        "type": "text"
+      },
+      "country": {
+        "type": "text"
+      },
+      "resale": {
+        "type": "nested",
+        "properties": {
+          "top_range": {
+            "type": "double"
+          },
+          "bottom_range": {
+            "type": "double"
+          }
+        }
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+I built the index and mapping in Kibana with the following PUT (create) request:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-15-19-kibana-index-put.png"/>
+</figure>
+<p>
+Let's first go over shards and replicas.  An Elasticsearch cluster is highly available across multiple machines.
+In the case of Amazon Elasticsearch Service, these machines are EC2 VMs.  The machines in an Elasticsearch
+cluster are called nodes.  Shards divide documents in an index across the nodes in a cluster<sup>4</sup>.  My
+configuration defines five shards for the <code className="jarombek-inline-code">license_plate</code> index.
+These shards are evenly distributed across the nodes in the cluster.  Replicas (also known as replica shards)
+are copies of shards which exist for high-availability purposes<sup>5</sup>.  If one of the nodes goes down,
+all the shards on that node are no longer available.  With replicas, a copy of those shards are stored on
+the other nodes.
+</p>
+<p>
+Now let's go over the type mapping.  The <code className="jarombek-inline-code">properties</code> object in
+the JSON document defines all the fields in the type.  Each field has a data type defined by the
+<code className="jarombek-inline-code">type</code> property.  For example, the <code className="jarombek-inline-code">name</code>
+field has type <code className="jarombek-inline-code">text</code> and the <code className="jarombek-inline-code">description</code>
+field has type <code className="jarombek-inline-code">keyword</code>.  The type mapping also demonstrates
+the ability for documents to contain nested fields.  The data type of <code className="jarombek-inline-code">resale</code>
+is <code className="jarombek-inline-code">nested</code>, representing a nested object.
+</p>
+<p>
+Data types such as <code className="jarombek-inline-code">integer</code> and <code className="jarombek-inline-code">nested</code>
+are fairly self-explanatory.  However, the difference between <code className="jarombek-inline-code">text</code>
+and <code className="jarombek-inline-code">keyword</code> requires further explanation.  While both handle
+string data, they behave differently when queried.  Querying a field of type <code className="jarombek-inline-code">text</code>
+performs a full-text search.  Querying a field of type <code className="jarombek-inline-code">keyword</code>
+performs a keyword search.
+</p>
+<p>
+Full-text searches are how search engines work.  When querying documents with a string, full-text searches
+don't just check for exact matches against a field, but also partial matches and close matches.  On the other
+hand, keyword searches always check for exact matches against a field<sup>6</sup>.
+</p>
+<p>
+Let's populate the <code className="jarombek-inline-code">license_plate</code> index and type with some
+documents.  One way to create documents is by writing a PUT request in Kibana:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-15-19-kibana-create-doc.png"/>
+</figure>
+<p>
+Another way is to write cURL commands in Bash.  The following code creates a JSON document for a license plate
+and uses it in the <code className="jarombek-inline-code">curl</code> command-line tool.
+</p>
+<CodeSnippet language="JSON">
+{
+  "name": "ct-passenger-default-1987",
+  "description": "A passenger license plate from Connecticut, USA in 1987.  Follows the default state scheme.",
+  "user": "passenger",
+  "issued": 1987,
+  "number": "BUSCH 5",
+  "state": "Connecticut",
+  "state_code": "CT",
+  "country": "USA",
+  "resale": {}
+}
+</CodeSnippet>
+<CodeSnippet language="Bash">
+curl -XPUT ${ES_ENDPOINT}/license_plate/_doc/2 -H 'Content-Type: application/json' \
+  -d @data/license_plate/ct_1987_passenger.json
+</CodeSnippet>
+<p>
+I created seven license plate documents in total, all of which can be viewed on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2019/09-Sep/09-15-elasticsearch/data/license_plate">GitHub</a>.  The
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2019/09-Sep/09-15-elasticsearch/
+es-curl-commands.sh">cURL</a> commands are also available in the same repository, along with commands
+to query and delete a document.  With all the documents in place, we can start performing text-search queries:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-15-19-kibana-search.png"/>
+</figure>
+<p>
+I'll explore text-search querying in depth in my next Elasticsearch article.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Elasticsearch is a very interesting technology that I'm excited to continue learning about.  Now that I
+have an Elasticsearch cluster up and running, I'm ready to explore some of the advanced Elasticsearch
+features.  You can view all the code from this article on <a href="https://github.com/AJarombek/jarombek-com-sources/
+tree/master/2019/09-Sep/09-15-elasticsearch">GitHub</a>.
+</p>
+</div>

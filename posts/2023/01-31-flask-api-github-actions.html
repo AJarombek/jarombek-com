@@ -1,0 +1,328 @@
+<div>
+<p>
+Since I graduated from college almost six years ago, I’ve maintained a website, <a href="https://saintsxctf.com/">
+saintsxctf.com</a>, for my former collegiate cross country and track & field teams.  The website has evolved over
+the years, as I’ve explained in <a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">prior
+articles</a>, but at its core it has a client facing mobile app and website, backend APIs, and a database.  The
+main API, written in Python using the Flask framework, has been in service for almost two years now.
+</p>
+<p>
+During the Flask APIs initial development, I wrote many integration tests, asserting that certain API calls
+returned appropriate responses.  I wrote an article about <a href="https://jarombek.com/blog/jan-10-2022-flask-api-testing">
+these tests and how they were configured</a>.  My initial API testing approach was flawed in two ways.  First, it was
+dependent on production data to properly function.  Second, it could only be run locally.
+</p>
+<p>
+Using GitHub Actions and Docker containers, I configured Flask API integration tests as part of my CI/CD pipeline.
+In this article, I’ll give an overview of my application infrastructure and show how GitHub Actions are leveraged to
+run integration tests and code quality tests every time I commit new code.
+</p>
+<SectionTitle title="Application Overview">Application Overview</SectionTitle>
+<p>
+My Flask API is part of a larger "SaintsXCTF" application that is hosted on AWS.  The following image shows my
+application's infrastructure, with the Flask API outlined in red.
+</p>
+<InlineImage filename="1-31-23-saintsxctf-infrastructure-flask-api.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+The Flask API is a REST API supporting basic CRUD operations (Create, Read, Update, and Delete).  A basic request to get a
+list of endpoints related to users in the API is shown below.
+</p>
+<CodeSnippet language="Bash">
+curl https://api.saintsxctf.com/v2/users/links
+</CodeSnippet>
+<CodeSnippet language="JSON">
+{
+   "endpoints":[
+      {
+         "description":"Get all the users in the database.",
+         "link":"/v2/users",
+         "verb":"GET"
+      },
+      {
+         "description":"Create a new user.",
+         "link":"/v2/users",
+         "verb":"POST"
+      },
+      {
+         "description":"Retrieve a single user with a given username.",
+         "link":"/v2/users/&lt;username>",
+         "verb":"GET"
+      },
+      {
+         "description":"Update a user with a given username.",
+         "link":"/v2/users/&lt;username>",
+         "verb":"PUT"
+      },
+      {
+         "description":"Soft delete a user with a given username.",
+         "link":"/v2/users/soft/&lt;username>",
+         "verb":"DELETE"
+      },
+      ...
+   ],
+   "self":"/v2/users/links"
+}
+</CodeSnippet>
+<SectionTitle title="Technology Overview">Technology Overview</SectionTitle>
+<Definition word="Flask">
+Flask is a lightweight web framework for Python that is designed to make it easy to build web applications and APIs.
+It provides an API for handling requests and responses, and allows developers to define routes and views using Python
+functions. Flask is often used for building small to medium-sized web applications and APIs, and can be easily extended
+with a wide range of third-party libraries and packages.
+</Definition>
+<p>
+To integrate Flask API tests and code quality checks into my CI/CD pipeline, technologies such as GitHub Actions,
+Docker, Pylint, and Black are utilized.
+</p>
+<Definition word="GitHub Actions">
+GitHub Actions is a feature of GitHub that allows users to automate their CI/CD workflows by creating custom
+scripts, called "Actions," that can be triggered by specific events on the platform, such as a push to a repository or
+the opening of a pull request. These actions perform tasks such as building and testing code, deploying software, and
+running automated checks.
+</Definition>
+<Definition word="Docker">
+Docker is a platform for developing, shipping, and running applications in containers. Containers are a lightweight and
+portable form of virtualization that allow developers to package an application and its dependencies together in a
+single container, making it easy to deploy and run on any system.  Docker is widely used in software development,
+providing a consistent and efficient way to package and deploy applications. It is platform-agnostic and supports
+multiple operating systems, which enables developers to build and run applications on different environments and
+infrastructures.
+</Definition>
+<Definition word="Pylint">
+Pylint is a source code quality checker for the Python programming language. It checks code for adherence to a certain
+standard, as well as for errors and potential issues. Pylint can be used to check for a wide range of coding issues,
+including coding style, naming conventions, and potential bugs. It also has the ability to generate reports, including
+a detailed list of issues found in the code, and provides suggestions to fix the issues.
+</Definition>
+<Definition word="Black">
+Black is a popular code formatter for the Python programming language. It is a command-line tool that automatically
+reformats Python code according to a set of predefined rules and conventions. Black uses a strict, uncompromising
+approach to formatting, which results in clean and consistent code that is easy to read and maintain. It helps to
+reduce the time spent on code formatting and allows developers to focus on the logic of the code. Black is highly
+configurable and can be set up to work with different coding conventions and styles.
+</Definition>
+<p>
+I use Docker to package components of my application into separate containers.  For example, I have a container for my
+Flask API, MySQL database (used for testing and local development purposes only), web application, and more.  Some of these
+containers are used by GitHub Actions workflows to perform integration tests and code quality checks.
+</p>
+<SectionTitle title="GitHub Actions Workflows">GitHub Actions Workflows</SectionTitle>
+<p>
+My Flask API contains two GitHub Actions workflows - one for linting and formatting Python code and another for API
+integration tests.
+</p>
+<InlineImage filename="1-31-23-github-workflows.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<SubTitle title="Lint and Format Workflow">Lint and Format Workflow</SubTitle>
+<p>
+The linting and formatting workflow is less intricate than the integration test workflow, so I will discuss it first.
+In my API, Python code is linted using Pylint and formatted using Black.  When working locally, using Pylint and Black
+is as simple as the following two commands (run within my
+<a href="https://github.com/AJarombek/saints-xctf-api/tree/v2.0.4/api/src">api/src directory</a>).
+</p>
+<CodeSnippet language="Bash">
+# Pylint Linting
+pylint $(git ls-files '*.py')
+
+# Black Formatting
+black .
+</CodeSnippet>
+<p>
+The GitHub Actions workflow for linting and formatting has the following configuration, located within
+<a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.4/.github/workflows/formatting_linting.yml">
+formatting_linting.yml</a>.
+</p>
+<CodeSnippet language="YAML">
+name: Black Formatting & Pylint Linting
+
+on:
+  push:
+    branches: ["main", "feature/*"]
+  pull_request:
+    branches: ["main"]
+
+  schedule:
+    - cron: "0 5 * * 5"
+
+  workflow_dispatch:
+
+jobs:
+  linting_formatting:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: echo "Job running on a ${{ runner.os }} server"
+
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Black formatting dry run
+        uses: psf/black@stable
+        with:
+          options: "--check"
+          src: "./api/src"
+
+      - name: Install Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install Pylint & Pipenv
+        run: |
+          pip install --upgrade pip
+          pip install pylint==2.15.9
+          pip install pipenv==2022.12.19
+
+      - name: Analysing the Code with Pylint
+        working-directory: ./api/src
+        run: |
+          pipenv install --ignore-pipfile --system
+          pylint $(git ls-files '*.py')
+</CodeSnippet>
+<p>
+The "Black Formatting & Pylint Linting" workflow contains a single job, <code className="jarombek-inline-code">
+linting_formatting</code>, running on an Ubuntu virtual machine (<code className="jarombek-inline-code">
+ubuntu-latest</code>)<sup>1</sup>.  It is triggered upon code commits to the <code className="jarombek-inline-code">main</code>
+branch and any branch matching a <code className="jarombek-inline-code">feature/*</code> pattern, along with pull
+requests to the <code className="jarombek-inline-code">main</code> branch and every Friday at 5 AM (using the
+<code className="jarombek-inline-code">0 5 * * 5</code> cron schedule).
+</p>
+<p>
+<code className="jarombek-inline-code">linting_formatting</code> contains a list of steps which execute on the Ubuntu
+virtual machine, which is hosted by GitHub.  Step "Check out repository code" uses git to checkout my repository, and
+step "Black formatting dry run" runs a Black CLI command using the <code className="jarombek-inline-code">--check</code>
+flag within the repositories source code directory (<a href="https://github.com/AJarombek/saints-xctf-api/tree/v2.0.4/api/src">
+./api/src</a>).  The <code className="jarombek-inline-code">--check</code> flag performs a dry-run of Black’s
+formatting, succeeding if the source code is properly formatted and failing with error logs if formatting issues are
+detected.
+</p>
+<p>
+Steps "Install Python 3.8" and "Install Pylint & Pipenv" install the version of Python used by my API along with pylint
+and pipenv third party libraries.  The final step, "Analyzing the Code with Pylint", uses pipenv to install all third
+party dependencies used in the API.  This is required because pylint checks to see if import statements in Python code
+are valid.  It then runs <code className="jarombek-inline-code">pylint $(git ls-files '*.py')</code> to lint all Python
+files in the repository.
+</p>
+<InlineImage filename="1-31-23-linting-formatting-workflow.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<SubTitle title="Integration Test Workflow">Integration Test Workflow</SubTitle>
+<p>
+The integration test workflow is more complex, using multiple Docker containers running on an Ubuntu virtual machine
+hosted by GitHub.  It has the following configuration, located within <a href="https://github.com/AJarombek/
+saints-xctf-api/blob/v2.0.4/.github/workflows/integration_test.yml">integration_test.yml</a>.
+</p>
+<CodeSnippet language="YAML">
+name: Integration Test
+
+on:
+  push:
+    branches: ["main", "feature/*"]
+  pull_request:
+    branches: ["main"]
+
+  schedule:
+    - cron: "0 5 * * 5"
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    container: ajarombek/saints-xctf-api-cicd
+    services:
+      db:
+        image: mysql:5.7.36
+        env:
+          MYSQL_ROOT_PASSWORD: saintsxctf
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      auth:
+        image: ajarombek/mock-saints-xctf-auth
+      functions:
+        image: ajarombek/mock-saints-xctf-functions
+    steps:
+      - run: echo "Job running on a ${{ runner.os }} server"
+
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Setup Database
+        working-directory: ./api/src
+        run: |
+          mysql --protocol=tcp -h db -u root --password=saintsxctf -e "DROP USER IF EXISTS 'saintsxctflocal'@'%'" -v
+          mysql --protocol=tcp -h db -u root --password=saintsxctf -e "CREATE USER 'saintsxctflocal'@'%' IDENTIFIED BY 'saintsxctf'" -v
+          mysql --protocol=tcp -h db -u root --password=saintsxctf -e "CREATE DATABASE IF NOT EXISTS saintsxctf" -v
+          mysql --protocol=tcp -h db -u root --password=saintsxctf -e "GRANT ALL ON saintsxctf.* TO 'saintsxctflocal'@'%'" -v
+          mysql --protocol=tcp -h db -u saintsxctflocal -D saintsxctf --password=saintsxctf -v < test-db-init.sql
+          mysql --protocol=tcp -h db -u saintsxctflocal -D saintsxctf --password=saintsxctf -v < test-db-update.sql
+
+      - name: Install libraries
+        working-directory: ./api/src
+        run: pipenv install
+
+      - name: Create Log File
+        working-directory: /
+        run: |
+          mkdir logs
+          cd logs
+          touch saints-xctf-api.log
+
+      - name: Run Tests
+        working-directory: ./api/src
+        run: pipenv run flask test
+        env:
+          FLASK_ENV: cicdtest
+          ENV: cicdtest
+</CodeSnippet>
+<p>
+Similar to the "Black Formatting & Pylint Linting" workflow, the "Integration Test" workflow contains a single job,
+<code className="jarombek-inline-code">test</code>, running on an Ubuntu virtual machine
+(<code className="jarombek-inline-code">ubuntu-latest</code>).  However, this time, steps within the job are executed
+within a container, based on the Docker image <code className="jarombek-inline-code">ajarombek/saints-xctf-api-cicd</code>.
+This Docker image, which is <a href="https://hub.docker.com/r/ajarombek/saints-xctf-api-cicd">hosted on DockerHub</a>
+and is built from a <a href="https://github.com/AJarombek/saints-xctf-api/blob/v2.0.4/api/src/cicd.test.dockerfile">
+Dockerfile in my API repository</a>, installs dependencies needed to run my API integration tests.  Once again, the
+workflow is triggered upon code commits to the <code className="jarombek-inline-code">main</code> branch and any branch
+matching a <code className="jarombek-inline-code">feature/*</code> pattern, along with pull requests to the
+<code className="jarombek-inline-code">main</code> branch and every Friday at 5 AM.
+</p>
+<p>
+The <code className="jarombek-inline-code">test</code> job also uses service containers, which are defined under
+the <code className="jarombek-inline-code">services</code> object.  Service containers are a way to host services that
+a job needs to connect with to perform tests or other operations.  <code className="jarombek-inline-code">test</code>
+contains three service containers: <code className="jarombek-inline-code">db</code>,
+<code className="jarombek-inline-code">auth</code>, and <code className="jarombek-inline-code">functions</code>.
+<code className="jarombek-inline-code">db</code> is a MySQL database which uses the <code className="jarombek-inline-code">
+mysql:5.7.36</code> Docker image.  Since this is a short-lived container with mocked data, I hardcode the password
+using the environment variable <code className="jarombek-inline-code">MYSQL_ROOT_PASSWORD</code>.  Port 3306 is exposed
+so that the workflow container can connect to MySQL.  An additional <code className="jarombek-inline-code">options</code>
+parameter is added for health checks<sup>2</sup>.  <code className="jarombek-inline-code">auth</code> and
+<code className="jarombek-inline-code">functions</code> are mocked versions of other smaller APIs within my application,
+used for authenticating users and running AWS Lambda functions, respectively.
+</p>
+<p>
+Just like the <code className="jarombek-inline-code">linting_formatting</code> job within the "Black Formatting &
+Pylint Linting" workflow, the <code className="jarombek-inline-code">test</code> job contains a list of steps, starting
+with checking out the repository onto the running container.  Step "Setup Database" executes MySQL commands to create a
+user and database for the API tests and populates it with mocked data from <a href="https://github.com/AJarombek/
+saints-xctf-api/blob/v2.0.4/api/src/test-db-init.sql">test-db-init.sql</a> and <a href="https://github.com/AJarombek/
+saints-xctf-api/blob/v2.0.4/api/src/test-db-update.sql">test-db-update.sql</a>.
+</p>
+<p>
+Steps "Install libraries" and "Create Log File" perform some prerequisites to running my tests, such as installing the
+APIs third party dependencies.  Finally, "Run Tests" executes the Flask API integration tests with the command
+<code className="jarombek-inline-code">pipenv run flask test</code>.
+</p>
+<InlineImage filename="1-31-23-integration-test-workflow.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+GitHub Actions are a great way to run CI/CD pipelines for repositories hosted on GitHub.  For my Flask API, configuring 
+code quality checks and integration tests within GitHub Actions workflows was a breeze.  The code for my Flask API 
+discussed in this article is available in a <a href="https://github.com/AJarombek/saints-xctf-api/tree/v2.0.4">
+saints-xctf-api</a> repository on GitHub.
+</p>
+</div>

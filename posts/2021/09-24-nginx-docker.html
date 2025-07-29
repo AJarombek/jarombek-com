@@ -1,0 +1,335 @@
+<div>
+<p>
+Many of my applications contain frontend components and API components.  These two components are loosely coupled but
+communicate with each other over HTTPS.  For example, my <a href="https://saintsxctf.com/">saintsxctf.com</a>
+application has a React frontend which communicates with a Flask REST API backend, along with other API Gateway REST
+APIs.  One way to accomplish communication from a frontend to an API is by explicitly writing the URLs of the APIs
+in the frontend code.  This works fine, but it also exposes information about API origin servers to clients.
+Origin server information exposure can be avoided by passing all API traffic through the same URL as the frontend
+application. This is accomplished using a reverse proxy.
+</p>
+<p>
+The following image shows my SaintsXCTF website, and how the URL of the API is hidden from clients.  If users inspect
+the website's network traffic, they see HTTPS requests sent to the reverse proxy server for <strong>saintsxctf.com</strong>,
+instead of the actual API server <strong>api.saintsxctf.com</strong>.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-24-21-shared-url.png"/>
+</figure>
+<p>
+This article discusses reverse proxy servers, shows examples from my applications, and provides application
+source code; allowing you to achieve similar results.  More specifically, it looks at creating Nginx reverse proxies
+in Docker containers.
+</p>
+<SectionTitle title="What is an Nginx Reverse Proxy">What is an Nginx Reverse Proxy?</SectionTitle>
+<p>
+When discussing Nginx reverse proxies, there are two distinct technologies to unpack: Nginx and reverse proxies.
+</p>
+<Definition word="Nginx">
+Nginx (pronounced Engine-X) is an open source web server which can be used as a reverse proxy<sup>1</sup>.  It is
+commonly used for serving content from HTTP requests, as well as caching and load balancing requests.  Nginx is
+comparable in popularity with Apache HTTP Server, which is another open source web server.  Nginx has its own
+configuration language, which engineers use to adjust the web server's behavior<sup>2</sup>.
+</Definition>
+<Definition word="Reverse Proxy">
+A reverse proxy server sits between a client and one or more backend servers.  Reverse proxy servers intake 
+ requests from a client, and appropriately distributes those requests to servers sitting behind it.  When a
+ reverse proxy server sends responses from it's backend servers to a client, it does so without alluding to the
+existence of backend servers at all.  From the client's perspective, responses originate from the reverse proxy
+server itself.  Reverse proxy servers are used to hide backend servers, cache responses, load balance, and more<sup>3</sup>.
+</Definition>
+<p>
+Using Nginx's configuration language, servers can be configured as reverse proxy servers.  While these servers can exist
+on physical machines or virtual machines, the Nginx servers discussed in this article exist on Docker containers.
+</p>
+<SectionTitle title="Architectural Overview">Architectural Overview</SectionTitle>
+<p>
+I have multiple applications which use Nginx reverse proxy servers on Docker containers, including the <a href="https://
+github.com/AJarombek/saints-xctf-web/blob/master/nginx.conf">SaintsXCTF web application</a>, <a href="https://github.com/
+AJarombek/saints-xctf-api/blob/master/api/src/nginx.conf">SaintsXCTF API</a>, <a href="https://github.com/AJarombek/
+apollo-client-server-prototype/blob/master/client/nginx.conf">Apollo client prototype</a>, <a href="https://github.com/
+AJarombek/apollo-client-server-prototype/blob/master/server/nginx.conf">Apollo server prototype</a>, and <a href="https://
+github.com/AJarombek/graphql-react-prototype/blob/master/nginx.conf">GraphQL React prototype</a>.  All these proxy server containers
+are orchestrated using Kubernetes and hosted on AWS EKS.  For the remainder of the article, I'll look specifically at
+the Nginx configuration for my SaintsXCTF application.  Nginx code from my other applications can be viewed on GitHub
+using the links above.
+</p>
+<p>
+The SaintsXCTF application has two Nginx reverse proxies, one for the web application and one for the main API.  The
+application also has smaller APIs which are hosted using AWS API Gateway.  As I mentioned earlier, the Nginx reverse
+proxies are hosted on Docker containers orchestrated on Kubernetes.  My Kubernetes infrastructure is hosted on an AWS
+EKS cluster in my AWS account.  Below is an infrastructure diagram showing the reverse proxy servers.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-24-21-reverse-proxy-infrastructure.png"/>
+</figure>
+<p>
+The web application Kubernetes deployment consists of a single container running an Nginx server.  The API Kubernetes
+deployment consists of two containers: an Nginx server and a uWSGI server.  For the API, the Nginx server is the
+reverse proxy server and the uWSGI server is the application server, hosting the Python/Flask API.
+</p>
+<SectionTitle title="Configuring Nginx Docker Containers">Configuring Nginx Docker Containers</SectionTitle>
+<p>
+Let's look at the Docker and Nginx configurations for these containers, back to front; starting with the uWSGI container
+for the API code.  The two important configuration files for the uWSGI container are a <a href="https://github.com/
+AJarombek/saints-xctf-api/blob/master/api/src/api.flask.dockerfile">Dockerfile</a> and a <a href="https://github.com/
+AJarombek/saints-xctf-api/blob/master/api/src/uwsgi.ini">uwsgi.ini</a> file.
+</p>
+<CodeSnippet language="Dockerfile">
+# Dockerfile
+
+FROM python:3.8
+
+LABEL maintainer="andrew@jarombek.com" \
+      version="1.0.0" \
+      description="Dockerfile for the Flask SaintsXCTF API in Production"
+
+RUN apt-get update \
+    && apt-get install g++
+
+RUN pip install pipenv \
+    && pip install uwsgi
+
+RUN mkdir /src
+WORKDIR /src
+
+COPY Pipfile .
+COPY Pipfile.lock .
+
+RUN pipenv install --system
+
+COPY . .
+ENV FLASK_ENV production
+ENV ENV prod
+
+COPY credentials .aws/
+ENV AWS_DEFAULT_REGION us-east-1
+ENV AWS_SHARED_CREDENTIALS_FILE .aws/credentials
+
+STOPSIGNAL SIGTERM
+EXPOSE 5000
+
+CMD ["uwsgi", "--ini", "uwsgi.ini"]
+</CodeSnippet>
+<CodeSnippet language="TOML">
+; uwsgi.ini
+
+[uwsgi]
+protocol = uwsgi
+module = main
+callable = app
+master = true
+processes = 5
+
+; When using an Nginx reverse proxy, use 'socket'
+socket = :5000
+
+; When using uWSGI as a server that awaits HTTP requests, use 'http-socket'
+; http-socket = :5000
+</CodeSnippet>
+<p>
+Don't get bogged down by the details of the Dockerfile; the important takeaway is that it installs uWSGI with
+<code className="jarombek-inline-code">pip install uwsgi</code> and starts the uWSGI application server with the
+configuration specified in <strong>uwsgi.ini</strong>.  It does so using the <code className="jarombek-inline-code">
+CMD ["uwsgi", "--ini", "uwsgi.ini"]</code> entrypoint.
+</p>
+<p>
+The uWSGI configuration file is configured to open a socket on port <strong>5000</strong> for incoming requests.  These
+requests are passed from the Nginx reverse proxy server<sup>4</sup>.  The Nginx container for the API has two important
+configuration files: the <a href="https://github.com/AJarombek/saints-xctf-api/blob/master/api/src/
+api.nginx.dockerfile">Dockerfile</a> and an <a href="">nginx.conf</a> file.
+</p>
+<CodeSnippet language="Dockerfile">
+# Dockerfile
+
+FROM nginx:latest
+
+LABEL maintainer="andrew@jarombek.com" \
+      version="1.0.0" \
+      description="Dockerfile for the Nginx Reverse Proxy to the SaintsXCTF API in Production"
+
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d
+
+STOPSIGNAL SIGTERM
+EXPOSE 80
+</CodeSnippet>
+<CodeSnippet language="Nginx">
+# nginx.conf
+
+server {
+    listen 80;
+    root /usr/share/nginx/html;
+
+    location / {
+        try_files $uri @api;
+    }
+
+    location @api {
+        include uwsgi_params;
+        uwsgi_pass saints-xctf-api-flask:5000;
+    }
+}
+</CodeSnippet>
+<p>
+The important parts of the <strong>Dockerfile</strong> are the <code className="jarombek-inline-code">RUN</code> and
+<code className="jarombek-inline-code">COPY</code> commands.  These commands delete the default Nginx configuration
+and add the custom Nginx configuration, respectively.  The custom Nginx configuration exists in the
+<strong>nginx.conf</strong> file.
+</p>
+<p>
+In the Nginx configuration, the <code className="jarombek-inline-code">server</code> block creates a virtual server,
+which in my case is a reverse proxy server<sup>5</sup>.  Inside the <code className="jarombek-inline-code">server</code>
+block are two <code className="jarombek-inline-code">location</code> blocks; each location determines what actions occur
+when incoming requests are made to certain URLs<sup>6</sup>.  The remaining configuration is a standard Flask/uWSGI
+Nginx setup found in the Flask <a href="https://flask.palletsprojects.com/en/2.0.x/deploying/uwsgi/#configuring-nginx">
+documentation</a><sup>7</sup>.  The <code className="jarombek-inline-code">uwsgi_pass</code> directive makes the Nginx
+server a reverse proxy server that proxies requests to the uWSGI application server located at
+<strong>saints-xctf-api-flask:5000</strong>.  This URL is the DNS location of the uWSGI Docker container on my
+Kubernetes cluster.
+</p>
+<p>
+With the uWSGI and Nginx containers created, the infrastructure for my API is in place.  The Docker containers are
+configured to run locally with Docker Compose in a <a href="https://github.com/AJarombek/saints-xctf-api/blob/master/
+infra/docker-compose/docker-compose-api.yml">docker-compose-api.yml</a> file and in production with Kubernetes in a
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/saints-xctf-com-api/modules/kubernetes/
+main.tf">main.tf</a> file.
+</p>
+<p>
+The web application infrastructure consists of a single Nginx Docker container.  The two important configuration files
+for the web application container are a <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/
+app.dockerfile">Dockerfile</a> and a <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/nginx.conf">
+nginx.conf</a> file.
+</p>
+<CodeSnippet language="Dockerfile">
+# Dockerfile
+
+FROM 739088120071.dkr.ecr.us-east-1.amazonaws.com/saints-xctf-web-base:latest AS base
+
+WORKDIR src
+RUN yarn build
+
+FROM nginx AS host
+
+LABEL maintainer="andrew@jarombek.com" \
+      version="1.0.0" \
+      description="Dockerfile for running the SaintsXCTF web application."
+
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d
+
+COPY --from=base /src/dist /usr/share/nginx/html
+</CodeSnippet>
+<CodeSnippet language="Nginx">
+# nginx.conf
+
+server {
+    listen 80;
+
+    location / {
+        root /usr/share/nginx/html;
+        try_files $uri /index.html;
+    }
+
+    location /api {
+        rewrite /api/(.*) /$1 break;
+        proxy_pass https://api.saintsxctf.com;
+    }
+
+    location /auth {
+        rewrite /auth/(.*) /$1 break;
+        proxy_pass https://auth.saintsxctf.com;
+
+        proxy_redirect off;
+        proxy_ssl_server_name on;
+        proxy_ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        proxy_buffering off;
+
+        proxy_set_header Host $proxy_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-NginX-Proxy true;
+    }
+
+    location /fn {
+        rewrite /fn/(.*) /$1 break;
+        proxy_pass https://fn.saintsxctf.com;
+
+        proxy_redirect off;
+        proxy_ssl_server_name on;
+        proxy_ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        proxy_buffering off;
+
+        proxy_set_header Host $proxy_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-NginX-Proxy true;
+    }
+
+    location /asset {
+        rewrite /asset/(.*) /$1 break;
+        proxy_pass https://asset.saintsxctf.com;
+
+        proxy_redirect off;
+        proxy_ssl_server_name on;
+        proxy_ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        proxy_buffering off;
+
+        proxy_set_header Host $proxy_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-NginX-Proxy true;
+    }
+
+    location /uasset {
+        rewrite /uasset/(.*) /prod/$1 break;
+        proxy_pass https://uasset.saintsxctf.com;
+
+        proxy_redirect off;
+        proxy_ssl_server_name on;
+        proxy_ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        proxy_buffering off;
+
+        proxy_set_header Host $proxy_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-NginX-Proxy true;
+    }
+
+    location /s3 {
+        rewrite /s3/(.*) /$1 break;
+        proxy_pass https://s3.amazonaws.com;
+    }
+}
+</CodeSnippet>
+<p>
+The <strong>Dockerfile</strong> for the web application should look similar to the Nginx Dockerfile for the API.  The
+differences include the use of a <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/base.dockerfile">
+base image</a> which installs npm dependencies using yarn, the creation of JavaScript bundles for the frontend
+application via <code className="jarombek-inline-code">RUN yarn build</code>, and JavaScript bundles being copied from
+the base image to the Nginx image via <code className="jarombek-inline-code">COPY --from=base /src/dist /usr/share/nginx/html</code>.
+</p>
+<p>
+The Nginx reverse proxy server configuration for the web application is a bit more complex. The
+<code className="jarombek-inline-code">server</code> block for the web application has many
+<code className="jarombek-inline-code">location</code> blocks.  The first <code className="jarombek-inline-code">
+location</code> block serves the React.js web application, while each subsequent block proxies requests to different
+backend servers.  These proxies use <code className="jarombek-inline-code">proxy_pass</code> directives instead of
+<code className="jarombek-inline-code">uwsgi_pass</code> directives, since the backend servers are simple HTTPS servers
+instead of uWSGI applciation servers<sup>8</sup>.
+</p>
+<p>
+Similar to the API, the web application is configured to run in production with Kubernetes in a <a href="https://github.com/
+AJarombek/saints-xctf-infrastructure/blob/master/saints-xctf-com/modules/kubernetes/main.tf">main.tf</a> file.  Instead
+of using Docker Compose locally like the API, the web application configures a local reverse proxy using webpack dev server<sup>9</sup>.
+The configuration for webpack dev server exists in a <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/
+webpack.config.js#L116-L155">webpack.config.js</a> file.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Reverse proxy servers are a great way to hide backend server locations from end users.  I also find them very elegant,
+as they remove the need to hardcode server URLs in application code.  Code for the <a href="https://github.com/AJarombek/
+saints-xctf-web">web application</a> and <a href="https://github.com/AJarombek/saints-xctf-api">API</a> referenced
+throughout this article is available on GitHub.
+</p>
+</div>

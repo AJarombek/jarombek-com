@@ -1,0 +1,454 @@
+<div>
+<p>
+The benefits of keeping data immutable while programming is well documented.  Immutable data is side effect free,
+predictable, and easy to test.   While immutability is a strict requirement in the functional paradigm, for other
+paradigms it is simply a recommendation.  In a language like JavaScript that supports multiple
+paradigms, some code does <strong>not</strong> keep data immutable.  I am guilty of it too.
+</p>
+<p>
+All the code I write these days has immutability in mind.  This post goes over the basics of preventing object
+mutations in JavaScript and how ES6+ features simplify the task.
+</p>
+<Definition word="Immutable">
+Something that is immutable can't be changed.  In a programming language data is immutable when the value of
+an object or primitive can't be altered.
+</Definition>
+<SectionTitle title="Constant vs Immutable">Constant vs. Immutable</SectionTitle>
+<p>
+One common confusion with immutability in JavaScript revolves around the new <code className="jarombek-inline-code">
+const</code> keyword introduced in ES6.  <code className="jarombek-inline-code">const</code> declares a
+constant variable, one that can't change once its assigned.  The trick is that constant in JavaScript
+doesn't mean that the referenced object is immutable.  You can mutate the referenced object all you want.
+What you can't do is change the reference to point to a different object or primitive.
+</p>
+<p>
+In JavaScript a constant variable is bound to a primitive type or a reference to an object. All primitives in
+JavaScript are immutable, so a constant primitive is effectively immutable.
+</p>
+<CodeSnippet language="JavaScript">
+/* Const can't be rebound to a new primitive or object */
+const name = 'Andy';
+
+/* Throws TypeError: Assignment to constant variable. */
+// name = 'Joe';
+
+/* Let can be bound to a new object or primitive */
+let othername = 'Andy';
+othername = 'Joe';
+
+console.info(othername);
+</CodeSnippet>
+<CodeSnippet>
+Joe
+</CodeSnippet>
+<p>
+Objects are not necessarily immutable.  More care must be taken to avoid mutating an object.  Here is an
+example of a constant variable referencing an array.  Note that the array can mutate:
+</p>
+<CodeSnippet language="JavaScript">
+const names = ["Andrew", "Jarombek"];
+names[0] = "Joe";
+
+console.info(`Names After Modification: ${names}`);
+
+/* Throws TypeError: Assignment to constant variable. */
+// names = ["Joe", "Jarombek"];
+
+// Freezing the names array makes it read only
+Object.freeze(names);
+
+names[0] = "Tom";
+console.info(`Names After Frozen: ${names}`);
+</CodeSnippet>
+<CodeSnippet>
+Names After Modification: Joe,Jarombek
+Names After Frozen: Joe,Jarombek
+</CodeSnippet>
+<p>
+More on that <code className="jarombek-inline-code">Object.freeze()</code> function shortly.  For now simply note that it
+prevents the mutation of an object!
+</p>
+<p>
+Now that the difference between constant and immutable is clear, it is time to look at approaches for immutability in
+JavaScript.  There are two common approaches - making code explicitly immutable or just implicitly immutable.
+</p>
+<SectionTitle title="Explicitly Immutable">Explicitly Immutable</SectionTitle>
+<Definition word="Explicitly Immutable">
+When a piece of data is clearly defined as being immutable.  When a variable is explicitly immutable
+it is impossible to mutate its value even if you try.
+</Definition>
+<p>
+In JavaScript all objects have internal attributes determining which actions can be performed on them<sup>1</sup>.
+One of these internal attributes is <code className="jarombek-inline-code">Extensible</code>, which determines whether
+an object can be modified.  Modifying an object entails removing or adding a property.  By default,
+objects in JavaScript are extensible, meaning programmers are free to modify them.
+</p>
+<p>
+One way to set the internal <code className="jarombek-inline-code">Extensible</code> attribute to false is
+<code className="jarombek-inline-code">Object.seal()</code>.  Once an object is passed to this function it can
+no longer be modified.  Note that sealing is not the same as making an object immutable.  You can still mutate
+existing properties:
+</p>
+<CodeSnippet language="JavaScript">
+const cat = {
+    breed: "Russian Blue",
+    name: "Lily"
+};
+
+Object.seal(cat);
+
+const isSealed = Object.isSealed(cat);
+console.info(`Is Cat Sealed: ${isSealed}`);
+
+/* Sealed objects allow for properties to be modified... */
+cat.name = "Dotty";
+
+/* ...But they do not allow for new properties to be added... */
+cat.owner = "Andy";
+
+/* ...or deleted */
+delete cat.name;
+
+console.info(`Sealed Cat After Modification: ${JSON.stringify(cat)}`);
+</CodeSnippet>
+<CodeSnippet>
+Is Cat Sealed: true
+Sealed Cat After Modification: {"breed":"Russian Blue","name":"Dotty"}
+</CodeSnippet>
+<p>
+Sealing an object makes it explicitly un-modifiable.  This is nice, however we are looking for explicit
+immutability.  To achieve this goal, we can use <code className="jarombek-inline-code">Object.freeze()</code>.
+</p>
+<CodeSnippet language="JavaScript">
+const person = {
+    name: "Andy",
+    hometown: {
+        city: "Riverside",
+        state: "Connecticut",
+        country: "USA"
+    }
+};
+
+Object.freeze(person);
+
+const isFrozen = Object.isFrozen(person);
+console.info(`Is Person Frozen: ${isFrozen}`);
+
+// Object is frozen, this mutation has no effect
+person.name = "Joe";
+
+// Freezing is shallow, so nested objects can be mutated!
+person.hometown.country = "Canada";
+
+console.info(person);
+</CodeSnippet>
+<CodeSnippet>
+Is Person Frozen: true
+{
+    name: 'Andy',
+    hometown: {
+        city: 'Riverside',
+        state: 'Connecticut',
+        country: 'Canada'
+    }
+}
+</CodeSnippet>
+<p>
+Once an object is frozen none of its properties can be modified.  <code className="jarombek-inline-code">Object.freeze()
+</code> explicitly states the object passed as an argument is immutable.
+</p>
+<p>
+There is a catch with <code className="jarombek-inline-code">Object.freeze()</code>.  The freeze operation is shallow,
+meaning only direct properties on the object are restricted from mutating.  Nested objects properties are not
+frozen.  This is why in the above code the <code className="jarombek-inline-code">country</code> property is able to
+mutate.  Code that performs a deep freeze is a bit more involved<sup>2</sup>.
+</p>
+<SectionTitle title="Implicitly Immutable">Implicitly Immutable</SectionTitle>
+<Definition word="Implicitly Immutable">
+When something is implicit it is not directly said or expressed.  Instead its implied and known to be true.  When data is
+implicitly immutable in a programming language it is never strictly declared as being immutable.  However, as a
+developer its implied that the data is immutable because other code doesn't mutate it.  Its known to be immutable.
+</Definition>
+<p>
+ES6 introduced two new ways to keep data implicitly immutable.  One is <code className="jarombek-inline-code">
+Object.assign()</code> and the other is the spread operator (the recommended approach).  I demonstrate both
+on the <code className="jarombek-inline-code">person</code> object below:
+</p>
+<CodeSnippet language="JavaScript">
+const person = {
+    name: "Andy",
+    hometown: {
+        city: "Riverside",
+        state: "Connecticut",
+        country: "USA"
+    }
+};
+
+const changedNamePerson = {
+    ...person,
+    name: "Joe"
+};
+
+console.info(`The Original Person: ${JSON.stringify(person)}`);
+console.info(`The New Person: ${JSON.stringify(changedNamePerson)}`);
+
+const anotherNewPerson = Object.assign({}, changedNamePerson, {name: "Tom"});
+
+console.info(`The New Person: ${JSON.stringify(changedNamePerson)}`);
+console.info(`The New(er) Person: ${JSON.stringify(anotherNewPerson)}`);
+</CodeSnippet>
+<CodeSnippet>
+
+The Original Person: {"name":"Andy","hometown":{"city":"Riverside","state":"Connecticut","country":"USA"}}
+The New Person: {"name":"Joe","hometown":{"city":"Riverside","state":"Connecticut","country":"USA"}}
+
+The New Person: {"name":"Joe","hometown":{"city":"Riverside","state":"Connecticut","country":"USA"}}
+The New(er) Person: {"name":"Tom","hometown":{"city":"Riverside","state":"Connecticut","country":"USA"}}
+</CodeSnippet>
+<p>
+The spread operator (<code className="jarombek-inline-code">...</code>) makes a copy of every property on an original
+object (or array) and spreads them out into a new object (or array).  It performs the necessary copy to keep
+property data immutable.  Note that just like <code className="jarombek-inline-code">Object.freeze()</code>, the spread
+operator makes a shallow copy.  If you wanted to make a deep copy the code is a bit more involved.
+</p>
+<p>
+<code className="jarombek-inline-code">Object.assign()</code> is a bit more verbose.  It creates a copy of an object,
+where the first parameter is the target object upon which the new object is built.  The rest of the parameters are
+the sources objects, which are copied into the target object.  Although
+<code className="jarombek-inline-code">Object.assign()</code> gets the job done, the spread operator is much more
+concise (and the recommended approach).
+</p>
+<p>
+One important note before moving on.  In the examples above the <code className="jarombek-inline-code">name</code>
+property is defined twice in the target object.  In JavaScript this is okay.  In the case of a property name conflict the 
+second property value overwrites the first property value.  Property conflict resolution helps give a copied
+object's property a new value without mutating the existing property!
+</p>
+<p>
+The following two sections show some basic operations on objects and arrays to keep them immutable.
+These operations follow the "implicitly immutable" approach.  Note the extensive use of ES6+ features such as the
+spread operator, destructuring, and functional methods.
+</p>
+<SectionTitle title="Immutable Objects">Immutable Objects</SectionTitle>
+<p>
+The following code provides static methods for objects to keep them immutable:
+</p>
+<CodeSnippet language="JavaScript">
+
+/* Class with static helper methods for immutably manipulating objects */
+class Objects {
+
+    /* Add a new property to an object */
+    static add(item, object) {
+        return {
+            ...object,
+            ...item
+        };
+    };
+
+    /* Replace a property in an object */
+    static replace(newItem, object) {
+        return Objects.add(newItem, object);
+    };
+
+    /* Remove a property from an object */
+    static remove(item, object) {
+
+        // Destructure the original object.  Unpack the property whose key matches
+        // the string value of the 'item' parameter.  Then rename it to '_', which will
+        // be ignored.  Copy the rest of the properties into the newObject.
+        const {[item]: _, ...newObject} = object;
+        console.info(`Removing ${JSON.stringify(_)}`);
+
+        return newObject;
+    };
+}
+
+/* Object representing a software developer */
+const object = {
+    name: "Andrew Jarombek",
+    skills: ["Java", "JavaScript", "Etc"],
+    job: {
+        position: "Software Developer",
+        company: "Gartner"
+    }
+};
+
+const objectWithAge = Objects.add({age: 23}, object);
+
+console.info(object);
+console.info(objectWithAge);
+
+const objectWithNewSkills = Objects.replace({skills: ["Java", "JavaScript"]}, object);
+
+console.info(object);
+console.info(objectWithNewSkills);
+
+const objectNoSkills = Objects.remove('job', object);
+
+console.info(object);
+console.info(objectNoSkills);
+</CodeSnippet>
+<CodeSnippet language="Bash">
+# Adding a property
+{ name: 'Andrew Jarombek',
+skills: [ 'Java', 'JavaScript', 'Etc' ],
+job: { position: 'Software Developer', company: 'Gartner' } }
+
+{ name: 'Andrew Jarombek',
+skills: [ 'Java', 'JavaScript', 'Etc' ],
+job: { position: 'Software Developer', company: 'Gartner' },
+age: 23 }
+
+# Replacing a property
+{ name: 'Andrew Jarombek',
+skills: [ 'Java', 'JavaScript', 'Etc' ],
+job: { position: 'Software Developer', company: 'Gartner' } }
+
+{ name: 'Andrew Jarombek',
+skills: [ 'Java', 'JavaScript' ],
+job: { position: 'Software Developer', company: 'Gartner' } }
+
+# Removing a property
+Removing {"position":"Software Developer","company":"Gartner"}
+
+{ name: 'Andrew Jarombek',
+skills: [ 'Java', 'JavaScript', 'Etc' ],
+job: { position: 'Software Developer', company: 'Gartner' } }
+
+{ name: 'Andrew Jarombek',
+skills: [ 'Java', 'JavaScript', 'Etc' ] }
+</CodeSnippet>
+<SectionTitle title="Immutable Arrays">Immutable Arrays</SectionTitle>
+<p>
+The following code provides static methods for arrays to keep them immutable:
+</p>
+<CodeSnippet language="JavaScript">
+
+/* Class with static helper methods for immutably manipulating arrays */
+class Arrays {
+
+    /* Add a new element to an array */
+    static add(item, array) {
+        return [
+            ...array,
+            item
+        ];
+    };
+
+    /* Replace an element in an array */
+    static replace(item, newItem, array) {
+        return array.map((i) => {
+            return (i === item) ? newItem : i;
+        });
+    };
+
+    /* Remove an element from an array */
+    static remove(item, array) {
+        return array.filter((i) => i !== item);
+    };
+}
+
+const array = [1, 2, 4, 8, 16];
+
+const thirtyTwoArray = Arrays.add(32, array);
+
+console.info(array);
+console.info(thirtyTwoArray);
+
+const zeroMiddleArray = Arrays.replace(4, 0, array);
+
+console.info(array);
+console.info(zeroMiddleArray);
+
+const noEightArray = Arrays.remove(8, array);
+
+console.info(array);
+console.info(noEightArray);
+</CodeSnippet>
+<CodeSnippet>
+[ 1, 2, 4, 8, 16 ]
+[ 1, 2, 4, 8, 16, 32 ]
+
+[ 1, 2, 4, 8, 16 ]
+[ 1, 2, 0, 8, 16 ]
+
+[ 1, 2, 4, 8, 16 ]
+[ 1, 2, 4, 16 ]
+</CodeSnippet>
+<SectionTitle title="Explicit Immutability TypeScript">Explicit Immutability TypeScript</SectionTitle>
+<p>
+I know this post is centered around JavaScript, but this year I also spent time working in
+<a href="https://jarombek.com/blog/mar-8-2018-typescript">TypeScript</a> for the <a href="https://jarombek.com/
+blog/mar-17-2018-mean-stack-prototype">Angular framework</a>.  TypeScript has a really cool way to define
+explicitly immutable properties and variables with the <code className="jarombek-inline-code">readonly</code> keyword.
+This keyword makes properties immutable<sup>3</sup>!
+</p>
+<CodeSnippet language="TypeScript">
+type Time = {
+    readonly minutes: number;
+    readonly seconds: number;
+}
+
+class Run {
+    readonly name: string;
+    readonly date = Date.now();
+    readonly miles: number;
+    readonly time: Time;
+
+    constructor(name: string, miles: number, time: Time) {
+        this.name = name;
+        this.miles = miles;
+        this.time = time;
+    }
+}
+
+const todaysRun = new Run(
+        "Beach Run",
+        3.26,
+        {minutes: 25, seconds: 56}
+    );
+
+console.info(todaysRun);
+
+// You can't change the name property because it is read only
+// todaysRun.name = "Trail Run";
+</CodeSnippet>
+<CodeSnippet>
+Run {
+    date: 1527090916455,
+    name: 'Beach Run',
+    miles: 3.26,
+    time: { minutes: 25, seconds: 56 }
+}
+</CodeSnippet>
+<p>
+Pretty cool right?  Too bad there isn't any similar syntax in JavaScript that can be defined on property definitions.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+We all know that mutability is bad and leads to fragile code.  I recently worked on an existing codebase in Java
+that contained mutable data and it was a nightmare.  A central data structure to the application was mutated
+by a function call on a variable that didn't even match the one the data structure was bound to!  It was confusing
+to say the least.
+</p>
+<p>
+One question that arises from this post is which is better - implicit or explicit immutability.  I would say it
+depends.  In JavaScript the <code className="jarombek-inline-code">Object.freeze()</code> approach to explicit
+immutability is not very safe.  Since the object is not frozen when it is initialized there are points in time
+before its frozen.  This is dangerous.  The TypeScript approach to explicit immutability is much better since
+it is applied to the property definitions.
+</p>
+<p>
+The upside to explicit immutability is that its obvious to other developers (and your future self) that
+properties can't be mutated.  The fact that attempts to mutate an object will fail is a very safe approach.
+</p>
+<p>
+However if you know what you're doing implicit immutability is good enough.  With implicit immutability code is dependable and
+side effect free!
+</p>
+<p>
+As always, the code for this discovery is on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/
+master/2018/05-May/5-23-JavaScript-Immutable">GitHub</a>.
+</p>
+</div>

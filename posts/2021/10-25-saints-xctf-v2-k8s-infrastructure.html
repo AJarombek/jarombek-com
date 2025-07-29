@@ -1,0 +1,365 @@
+<div>
+<Note type="info">
+This is part of a series of articles on SaintsXCTF Version 2.0. The first article in the series provides an
+<a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">overview of the application</a>.
+</Note>
+<p>
+The infrastructure for the React/TypeScript frontend and Flask/Python backend for my website
+<a href="https://saintsxctf.com/">saintsxctf.com</a> is hosted on Kubernetes.  My Kubernetes infrastructure is hosted
+on a cluster, which is managed by AWS EKS.  This article outlines the <a href="https://jarombek.com/
+blog?query=kubernetes&page=1">Kubernetes</a> infrastructure and walks through <a href="https://jarombek.com/
+blog?query=Terraform&page=1">Terraform</a> code which configures and builds the infrastructure.
+</p>
+<SubTitle title="SaintsXCTF Version 2.0 Articles">SaintsXCTF Version 2.0 Articles</SubTitle>
+<ul>
+<li><a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">Architectural Overview</a></li>
+<li><a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">AWS Infrastructure</a></li>
+<li><strong>Kubernetes Infrastructure</strong></li>
+<li><a href="https://jarombek.com/blog/nov-1-2021-saints-xctf-v2-react-web-app">React Web Application Overview</a></li>
+<li><a href="https://jarombek.com/blog/nov-15-2021-react-typescript">Web Application React and TypeScript</a></li>
+<li><a href="https://jarombek.com/blog/dec-3-2021-redux-react">Web Application Redux State Configuration</a></li>
+<li><a href="https://jarombek.com/blog/aug-11-2021-cypress-typescript">Web Application Cypress E2E Tests</a></li>
+<li><a href="https://jarombek.com/blog/jun-30-2021-react-jss">Web Application JSS Modular Design</a></li>
+<li><a href="https://jarombek.com/blog/dec-24-2021-flask-python-api">Flask Python API</a></li>
+<li><a href="https://jarombek.com/blog/jan-10-2022-flask-api-testing">Flask API Testing</a></li>
+<li><a href="https://jarombek.com/blog/feb-5-2022-function-api">Function API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/feb-18-2022-auth-api">Auth API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/mar-27-2022-mysql-client-kubernetes">Database Client on Kubernetes</a></li>
+</ul>
+<SectionTitle title="Infrastructure Overview">Infrastructure Overview</SectionTitle>
+<p>
+SaintsXCTF application infrastructure can be grouped into two categories - AWS and Kubernetes.  This article only
+discusses the Kubernetes infrastructure, which has a green background in the diagram below.  The AWS infrastructure,
+which has a red background in the diagram, was discussed in <a href="https://jarombek.com/blog/
+jun-18-2021-saints-xctf-v2-aws-infrastructure">a prior article</a>.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/10-25-21-k8s-architecture.png"/>
+</figure>
+<p>
+Similar to the AWS infrastructure, the SaintsXCTF Kubernetes infrastructure is logically grouped into Terraform
+modules.  More specifically, there are three Terraform modules for Kubernetes infrastructure.  The
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/saints-xctf-com">first</a> is for the web
+ (frontend) application, the <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/saints-xctf-com-api">
+second</a> is for the API (backend) application, and the <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/
+master/saints-xctf-com-ingress">third</a> is for an Ingress object which directs traffic to the web application and
+API.  All three are discussed in this article.
+</p>
+<SectionTitle title="Motivations for using Kubernetes">Motivations for using Kubernetes</SectionTitle>
+<p>
+In the <a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview#lift-and-shift-aws-architecture">prior
+infrastructure for my SaintsXCTF website</a>, the web application and API were hosted on an EC2 instance in AWS.  While
+this worked okay, it presented a number of issues.  First, there was no easy way to update the application without any
+downtime.  Second, since the application was on a virtual machine and not a container, updates to the virtual machine
+often caused unexpected behavior for the application, sometimes requiring code changes.
+</p>
+<p>
+While updating the application infrastructure for version 2.0, I wanted to use a more lightweight container approach to my application
+infrastructure.  I also wanted to leverage a container orchestrator with built-in deployment management that could
+ update an application with zero downtime.  <a href="https://jarombek.com/blog?query=Docker&page=1">Docker</a>
+containers orchestrated with Kubernetes matched this requirement.  Since my application was already hosted on AWS,
+the clear choice was to use <a href="https://jarombek.com/blog?query=aws%20eks&page=1">AWS EKS</a> to host
+ Kubernetes infrastructure for the application.
+</p>
+<SectionTitle title="SaintsXCTF Web Application Infrastructure">SaintsXCTF Web Application Infrastructure</SectionTitle>
+<p>
+Kubernetes infrastructure for the web application consists of a service and a deployment.  The service networks traffic to
+the pods in the deployment.  The service YAML configuration is shown below.
+</p>
+<CodeSnippet language="YAML">
+apiVersion: v1
+kind: Service
+metadata:
+  name: saints-xctf-web-service
+  namespace: saints-xctf
+  labels:
+    version: v1.0.0
+    environment: production
+    application: saints-xctf-web
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    application: saints-xctf-web
+</CodeSnippet>
+<p>
+This YAML configuration is translated into HCL (Hashicorp Configuration Language) for use in Terraform.  The
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/saints-xctf-com/modules/kubernetes/
+main.tf#L137-L162">Terraform configuration for the service</a> is shown below.
+</p>
+<CodeSnippet language="HCL">
+resource "kubernetes_service" "service" {
+  metadata {
+    name = "saints-xctf-web-service"
+    namespace = local.namespace
+
+    labels = {
+      version = local.version
+      environment = local.env
+      application = "saints-xctf-web"
+    }
+  }
+
+  spec {
+    type = "NodePort"
+
+    port {
+      port = 80
+      target_port = 80
+      protocol = "TCP"
+    }
+
+    selector = {
+      application = "saints-xctf-web"
+    }
+  }
+}
+</CodeSnippet>
+<p>
+The service object <code className="jarombek-inline-code">saints-xctf-web-service</code> navigates traffic to port 80
+of the SaintsXCTF web application, which is hosted on Kubernetes pods as part of a deployment object.  The web
+application deployment, <code className="jarombek-inline-code">saints-xctf-web-deployment</code>, is also translated
+from a <a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/saints-xctf-com/modules/kubernetes/
+k8s-config/deployment.yaml">YAML file</a> into <a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/
+master/saints-xctf-com/modules/kubernetes/main.tf#L45-L135">Terraform configuration</a>.
+</p>
+<CodeSnippet language="HCL">
+resource "kubernetes_deployment" "deployment" {
+  metadata {
+    name = "saints-xctf-web-deployment"
+    namespace = local.namespace
+
+    labels = {
+      version = local.version
+      environment = local.env
+      application = "saints-xctf-web"
+    }
+  }
+
+  spec {
+    replicas = 2
+    min_ready_seconds = 10
+
+    strategy {
+      type = "RollingUpdate"
+
+      rolling_update {
+        max_surge = "1"
+        max_unavailable = "0"
+      }
+    }
+
+    selector {
+      match_labels = {
+        version = local.version
+        environment = local.env
+        application = "saints-xctf-web"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          version = local.version
+          environment = local.env
+          application = "saints-xctf-web"
+        }
+      }
+
+      spec {
+        affinity {
+          node_affinity {
+            required_during_scheduling_ignored_during_execution {
+              node_selector_term {
+                match_expressions {
+                  key = "workload"
+                  operator = "In"
+                  values = ["production-applications"]
+                }
+              }
+            }
+          }
+        }
+
+        container {
+          name = "saints-xctf-web"
+          image = "${local.account_id}.dkr.ecr.us-east-1.amazonaws.com/${local.image}:${local.short_version}"
+
+          readiness_probe {
+            period_seconds = 5
+            initial_delay_seconds = 20
+
+            http_get {
+              path = "/"
+              port = 80
+            }
+          }
+
+          liveness_probe {
+            period_seconds = 5
+            initial_delay_seconds = 20
+            failure_threshold = 4
+
+            http_get {
+              path = "/api/"
+              port = 80
+            }
+          }
+
+          port {
+            container_port = 80
+            protocol = "TCP"
+          }
+        }
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">saints-xctf-web-deployment</code> object creates two pods which host the
+SaintsXCTF web application (as configured by <code className="jarombek-inline-code">replicas</code>).  The deployment
+strategy is a <code className="jarombek-inline-code">RollingUpdate</code>, which allows for zero downtime as pods
+update one by one.  The pods are configured with node affinity (configured by <code className="jarombek-inline-code">
+node_affinity</code>), which forces all pods to exist on Kubernetes cluster nodes with a certain label, in this case
+<code className="jarombek-inline-code">production-applications</code>.  Node affinity allows me to separate production
+applications from non-production and prototype applications on my Kubernetes cluster.  The pods are configured with
+readiness probes (<code className="jarombek-inline-code">readiness_probe</code>) and liveness probes
+(<code className="jarombek-inline-code">liveness_probe</code>).  The readiness probe checks that the web application is
+accessible via HTTP requests, and the liveness probe checks that the API is accessible from the pod via HTTP requests.
+If these checks fail, a new pod is started and the current pod is terminated.  This helps ensure that my application
+doesn't face any downtime.
+</p>
+<SectionTitle title="SaintsXCTF API Infrastructure">SaintsXCTF API Infrastructure</SectionTitle>
+<p>
+Similar to the web application infrastructure, the API infrastructure consists of Kubernetes service and deployment
+objects.  Unlike the web application, the API has two services and two deployments.  One service-deployment pair is for
+an Nginx reverse proxy, and the other is for a uWSGI application server.  The Nginx reverse
+proxy sits in front of the uWSGI server, routing traffic to it.  The uWSGI application server holds the API code.  I wrote
+<a href="https://jarombek.com/blog/sep-24-2021-nginx-docker">an article</a> about using Nginx reverse proxies, with the
+SaintsXCTF application as the case study.
+</p>
+<p>
+Just like the web application Kubernetes configuration, the API Kubernetes configuration has YAML documents for the
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/saints-xctf-com-api/modules/kubernetes/
+k8s-config/service.yaml">services</a> and <a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/
+saints-xctf-com-api/modules/kubernetes/k8s-config/deployment.yaml">deployments</a> which are translated into
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/saints-xctf-com-api/modules/kubernetes/
+main.tf">Terraform configuration</a>.
+</p>
+<SectionTitle title="Ingress Infrastructure">Ingress Infrastructure</SectionTitle>
+<p>
+The SaintsXCTF Kubernetes infrastructure has an Ingress object, which creates load balancing infrastructure needed
+to route traffic from the internet to the web application and API.  The Ingress object utilizes an ALB Ingress
+Controller (now known as an AWS Load Balancer Controller) to create a load balancer on AWS for the SaintsXCTF
+application.  It also uses ExternalDNS to create Route53 DNS records for <strong>saintsxctf.com</strong>,
+<strong>www.saintsxctf.com</strong>, <strong>api.saintsxctf.com</strong>, and <strong>www.api.saintsxctf.com</strong>.
+I discussed ALB Ingress Controllers and  ExternalDNS in another article on <a href="https://jarombek.com/blog/
+sep-28-2020-eks">AWS EKS</a>.
+</p>
+<p>
+Again, the infrastructure is originally configured in YAML and then translated into Terraform/HCL.  The following code
+is the Ingress YAML configuration.  The Terraform configuration is viewable on <a href="https://github.com/AJarombek/
+saints-xctf-infrastructure/blob/master/saints-xctf-com-ingress/modules/kubernetes/main.tf">GitHub</a>.
+</p>
+<CodeSnippet language="YAML">
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: saints-xctf-ingress
+  namespace: saints-xctf
+  annotations:
+    kubernetes.io/ingress.class: alb
+    external-dns.alpha.kubernetes.io/hostname: saintsxctf.com,www.saintsxctf.com,api.saintsxctf.com,www.api.saintsxctf.com
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/certificate-arn: ${ACM_CERT_ARNS}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: '/'
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/security-groups: ${SECURITY_GROUPS_ID}
+    alb.ingress.kubernetes.io/subnets: ${SUBNET_IDS}
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/tags: Name=saints-xctf-load-balancer,Application=saints-xctf,Environment=${ENV}
+  labels:
+    version: v1.0.0
+    environment: production
+    application: saints-xctf-api
+spec:
+  rules:
+    - host: saintsxctf.com
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: ssl-redirect
+              servicePort: use-annotation
+          - path: /*
+            backend:
+              serviceName: saints-xctf-web-service
+              servicePort: 80
+    - host: www.saintsxctf.com
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: ssl-redirect
+              servicePort: use-annotation
+          - path: /*
+            backend:
+              serviceName: saints-xctf-web-service
+              servicePort: 80
+    - host: api.saintsxctf.com
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: ssl-redirect
+              servicePort: use-annotation
+          - path: /*
+            backend:
+              serviceName: saints-xctf-api
+              servicePort: 80
+    - host: www.api.saintsxctf.com
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: ssl-redirect
+              servicePort: use-annotation
+          - path: /*
+            backend:
+              serviceName: saints-xctf-api
+              servicePort: 80
+</CodeSnippet>
+<p>
+Four hosts are specified in the configuration - <strong>saintsxctf.com</strong>, <strong>api.saintsxctf.com</strong>,
+and their <strong>www</strong> prefixed equivalents.  Traffic to these domains are appropriately routed to either the SaintsXCTF web
+application or API via their Kubernetes services.  The most interesting configuration fields are found in the
+<code className="jarombek-inline-code">annotations</code> dictionary.  All the <code className="jarombek-inline-code">
+alb.ingress.kubernetes.io</code> annotations configure an AWS load balancer to route traffic to the Kubernetes cluster.
+The <code className="jarombek-inline-code">external-dns.alpha.kubernetes.io</code> annotation creates Route53 DNS
+records for my SaintsXCTF web application & API domains.  With these DNS records created, HTTP/HTTPS requests to the
+ four <strong>saintsxctf.com</strong> domains are routed to the AWS load balancer created by the Ingress object, which
+ in turn routes traffic to my Kubernetes Pods.
+</p>
+<p>
+With the Ingress object and Service/Deployment objects created in Kubernetes, the website and API are fully functional
+and accessible from clients browsing the internet!
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Maintaining my SaintsXCTF web application and API infrastructure on Kubernetes is a massive improvement over my
+previous AWS EC2 virtual machine setup.  With Kubernetes, I can easily release new versions of my website and API with
+zero downtime.  Terraform also improves my ability to quickly alter Kubernetes infrastructure, since all the
+infrastructure is configured as code and can be created, updated, or destroyed on demand.  All the code for my
+Kubernetes infrastructure is available on <a href="https://github.com/AJarombek/saints-xctf-infrastructure">GitHub</a>.
+I also have <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/test-k8s">test code</a> for my
+Kubernetes infrastructure, which is discussed further in <a href="https://jarombek.com/blog/
+oct-10-2021-kubernetes-tests-go">another article</a>.
+</p>
+</div>

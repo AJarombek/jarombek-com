@@ -1,0 +1,161 @@
+<div>
+<p>
+Databricks is a data warehouse and data lake platform designed around Apache Spark.  I use Databricks extensively at
+work, but also use Databricks and Apache Spark for personal applications.  This summer, I attended my first software
+engineering conference, the <a href="https://www.databricks.com/dataaisummit/">Databricks Data+AI Summit</a> in San
+Francisco.  The conference was a great way to stay up-to-date on the latest trends in the data engineering industry.
+</p>
+<InlineImage filename="12-11-22-summit-main-stage.jpg" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+At the start, the Databricks Data+AI Summit felt more like a concert than a software engineering conference.  However,
+by the end, after taking part in many breakout sessions, I had clear takeaways about the future of the Databricks
+platform and the Data Science and AI industry at large.
+</p>
+<SectionTitle title="Evolving Data Towards AI">Evolving Data Towards AI</SectionTitle>
+<p>
+Databricks is continuously adding new features in attempts to become a one-stop cloud solution for data science and AI.
+Databricks isn't alone in this vision; Snowflake is also trying to build out a platform that customers can use for
+all their data science needs.  During the conference, Databricks emphasized the evolution of data science within a
+company and how moving from analyzing historical data to predicting future data gives companies a competitive
+edge<sup>1</sup>.  While the benefits of AI aren't a new revelation, hearing this said at the beginning of the
+conference resonated with me.  My AI programming experience is rusty at best, and is something I hope to sharpen up
+soon.  As someone who works with Databricks every day at work, I also need to look for opportunities to experiment with
+predictive modeling.
+</p>
+<p>
+The evolution of data science within a company was broken down into seven distinct stages<sup>2</sup>.
+</p>
+<ol>
+<li>Clean Data</li>
+<li>Reports</li>
+<li>Ad Hoc Queries</li>
+<li>Data Exploration</li>
+<li>Predictive Modeling</li>
+<li>Prescriptive Analytics</li>
+<li>Automated Decision Making</li>
+</ol>
+<p>
+Cleaning data, generating reports, ad hoc querying, and data exploration are activities I perform all the time. I believe
+ trying to find opportunities to move into stage five and beyond is equally important to iterating upon and continuously
+learning within stages 1-4.  All the Databricks infrastructure and data analytics code I've written for personal use is
+available in my <a href="https://github.com/AJarombek/databricks-spark-programs">databricks-spark-programs</a>
+repository, and I plan to expand upon this codebase soon.
+</p>
+<SectionTitle title="Databricks Workflows vs Airflow">Databricks Workflows vs. Airflow</SectionTitle>
+<p>
+As previously mentioned, Databricks is attempting to create a one-stop cloud solution for data science and AI.  One
+piece of software often used alongside Databricks is Apache Airflow, a data pipeline management tool.  I've written
+about the basics of <a href="https://jarombek.com/blog/jan-17-2022-airflow">Apache Airflow</a> and have
+<a href="https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow">Airflow code available on GitHub</a>.
+</p>
+<p>
+During the conference, Databricks discussed workflows, an alternative to Airflow integrated within the Databricks data
+lakehouse platform.  Both Airflow and Databricks workflows are designed around orchestrating Directed Acyclic Graphs
+(DAGs).  In Airflow, DAGs contain tasks and sensors of various purposes, such as running a Databricks job or waiting
+for a file to exist on AWS S3.  In Databricks workflows, DAGs contain one or more Databricks jobs, which are programs
+that run on a cluster within the Databricks environment.  Below is an image of a Databricks workflow containing
+multiple jobs.
+</p>
+<InlineImage filename="12-11-22-databricks-workflow.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+With workflows, Databricks hopes that data engineers will orchestrate their data pipelines within the Databricks
+platform instead of using a third party solution like Airflow.  Although Databricks continues to flesh out their
+workflow solution, Airflow currently has more features and integrates seamlessly with other cloud platforms and services.
+Because Airflow is so feature rich, I expect many Databricks customers will continue using it for building data
+pipelines instead of Databricks workflows until the functionality gap between the two closes.
+</p>
+<SectionTitle title="ELT and ETL Processes">ELT and ETL Processes</SectionTitle>
+<ComparisonTable title="ELT vs. ETL">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Extract, Load, Transform (ELT)
+</h5>
+<div className="jarombek-cte-body">
+<p>
+An ELT is a software engineering process with three steps.  The first step extracts data from a source, the second step
+loads data to a destination, and the third step transforms data within the destination locale.  Unlike an ETL, an ELT
+loads raw source data into its final destination, which is likely a data warehouse, data lake, or data lakehouse.  For example, an
+ELT might extract data from a source database such as PostgreSQL and load it into delta tables within Databricks, and
+then transform these delta tables and save their results within new delta tables.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Extract, Transform, Load (ETL)
+</h5>
+<div className="jarombek-cte-body">
+<p>
+An ETL is a software engineering process with three steps.  The first step extracts data from a source, the second step
+transforms data in an intermediary location, and the third step loads data into a destination.  For example, an ETL
+might extract data from a source database such as PostgreSQL, transform the data using temporary tables in the
+Databricks lakehouse, and load the transformed data into Parquet files on AWS S3.  ETLs are a more traditional process for
+working with data within a data warehouse setting, although ELTs are increasing in popularity.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+At the Databricks conference, there was a lot of discussion about ELTs and their potential benefits over ETLs.
+ One benefit of ELTs is a decoupling of the load and transform stages<sup>3</sup>.  In a traditional ETL,
+transforming and loading data is often done in the same process or step of a data pipeline.  The downside of this tight
+coupling is that if an error occurs during the transform stage, data won't be loaded into the destination location.
+With an ELT, data is loaded into the destination location before any transformations occur, making it available even if
+there is a transformation error.  Some other benefits of ELTs include creating a raw data archive that is queryable
+when business objectives change, along with potential speed increases since the load and transform stages can often be run in
+parallel<sup>4</sup>.
+</p>
+<p>
+A potential downside of ELTs is that unneeded raw, uncleaned data is stored in the destination location, which is likely
+a company's data warehouse, data lake, or data lakehouse (although as previously mentioned, some may see this as a
+positive).  Storing large amounts of raw data can increase security risks and raise compliance or data governance
+concerns<sup>5</sup>.
+</p>
+<p>
+Two technologies related to ELTs discussed throughout the Databricks Data+AI Summit were Fivetran and dbt.
+<a href="https://www.fivetran.com/">Fivetran</a> is attempting to redefine ETL data pipelines, instead focusing on ELTs
+that business analysts can set and forget<sup>6</sup>.  With Fivetran, data engineers no longer need to code the
+Extract and Load stages of an ELT, instead focusing their full attention on the Transform stage.  This makes engineers
+more efficient and kept busy working on business critical tasks.
+</p>
+<p>
+Fivetran provides connectors for data sources that engineers commonly require data from.  Fivetran has almost two
+hundred data source connectors at the time of this article's writing, including Google Analytics, Salesforce,
+PostgreSQL, and AWS S3, to name a few<sup>7</sup>.  Fivetran supports ten destinations as well, including Databricks,
+Snowflake, and Redshift<sup>8</sup>.  Mix and matching source connections and destinations enables the creation of many
+different ELTs with very little setup.
+</p>
+<p>
+dbt, which stands for "data build tool", is a data transformation workflow tool<sup>9,10</sup>.  dbt allows engineers
+to create data models using YAML documents and SQL <code className="jarombek-inline-code">SELECT</code> statements.
+These models are materialized as views or tables in data warehouses such as Databricks or Snowflake.  Fivetran
+integrates nicely with dbt, making it a common practice to use both technologies together.  I hope to create some code
+samples using Databricks, Fivetran, and dbt sometime soon!
+</p>
+<SectionTitle title="Spark Connect">Spark Connect</SectionTitle>
+<p>
+Spark Connect, which was announced at the Databricks Data+AI Summit, is a decoupled client server Spark
+architecture<sup>11</sup>.  Spark Connect allows a client application to generate an unresolved Spark plan and send it
+to a server for remote processing.  With its decoupled architecture, a client application, such as a website or mobile
+application, can include Spark code that delegates the heavy lifting to a remote server.  This is different from the
+current Spark data flow where a client application might call an API that behind the scenes runs Spark queries and returns
+their result.
+</p>
+<p>
+Spark Connect sounds really promising, although I haven't heard much about it since the conference except for a
+<a href="https://www.databricks.com/blog/2022/07/07/introducing-spark-connect-the-power-of-apache-spark-everywhere.html">
+single blog post</a>.  Hopefully we will get more details soon and I can try it out!
+</p>
+<SectionTitle title="Battle for Comprehensive Data Platform Supremacy">Battle for Comprehensive Data Platform Supremacy</SectionTitle>
+<p>
+While not explicitly discussed at the Databricks Data+AI Summit, it seems clear that Databricks is pushing towards
+creating a comprehensive data platform, as is its biggest competitor Snowflake (amongst others).
+<a href="https://www.macrometa.com/event-stream-processing/databricks-vs-snowflake">This article</a> does a great job
+of highlighting the current differences between Databricks and Snowflake, and if the conference is any indication, both
+platforms will continue to introduce new features and improve upon existing offerings.  I expect most large companies
+ will use a combination of both platforms due to each having unique strengths.  You can find my Databricks code within
+my <a href="https://github.com/AJarombek/databricks-spark-programs">databricks-spark-programs</a> repository on GitHub.
+</p>
+</div>

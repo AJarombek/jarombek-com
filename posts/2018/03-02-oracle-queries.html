@@ -1,0 +1,268 @@
+<div>
+<p>
+In my previous <a href="https://jarombek.com/blog/feb-12-2018-oracle-start">Oracle database discovery</a>
+I got a database instance up and running and created a basic table structure.  The database held programming
+language information and books I've read.  In this discovery I continue with that example and perform
+some interesting queries on the database of intermediate difficulty.
+</p>
+<p>
+I believe intermediate queries are ones beyond simple select statements with basic filters.  This
+discovery isn't a tutorial on creating SQL queries.  It explores different SQL syntax that
+was interesting to me!  I will start out pretty simple and then get more complex.
+</p>
+<SectionTitle title="Fun Queries">Fun Queries!</SectionTitle>
+<p>
+Often I perform queries with multiple <code className="jarombek-inline-code">WHERE</code> conditions chained
+by <code className="jarombek-inline-code">AND</code> clauses.  If I want to find whether a column is between two
+different values, I can use the <code className="jarombek-inline-code">BETWEEN</code>
+clause instead.  This makes my intentions clearer and reduces
+the number of <code className="jarombek-inline-code">AND</code> clauses.  The following query looks for books
+between two dates:
+</p>
+<CodeSnippet language="SQL">
+SELECT * FROM books WHERE released
+BETWEEN to_date('2014-08-01', 'YYYY-mm-dd')
+AND to_date('2014-08-31', 'YYYY-mm-dd');
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">WHERE</code> clauses can also look for soft matches, where
+only a portion of a string matches.  Soft matches use the
+<code className="jarombek-inline-code">LIKE</code> clause which can be chained with a
+string value.  The <code className="jarombek-inline-code">%</code> wildcard is used to match any
+number of characters.  The following query searches for books with titles containing the word 'Java':
+</p>
+<CodeSnippet language="SQL">
+SELECT * FROM books WHERE title LIKE '%Java%';
+</CodeSnippet>
+<span className="code-span">
+ISBN TITLE            RELEASED  STARTED   FINISHED  TIME_READING
+---- ---------------- --------- --------- --------- ------------
+.... Java 8 in Action 01-AUG-14 10-OCT-17 08-FEB-18 121
+</span>
+<p>
+The current table structure of this database forms a many to many relationship.  Here is the ER diagram:
+</p>
+<figure id="image">
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/Database-ER.png">
+</figure>
+<p>
+In the following query I perform an inner join across this many to many relationship to get a book, the
+language its about, and the inception date of the language.  Inner joins only return rows when the
+columns in the <code className="jarombek-inline-code">JOIN ... ON ...</code> statement have non-null
+values<sup>1</sup>.  Therefore, no row is returned for a language that has no corresponding book.
+</p>
+<CodeSnippet language="SQL">
+SELECT b.isbn, b.title, bl.name, l.created
+FROM books b
+INNER JOIN book_languages bl ON b.isbn = bl.isbn
+INNER JOIN languages l ON bl.name = l.name
+ORDER BY b.title;
+</CodeSnippet>
+<span className="code-span">
+           ISBN TITLE                      NAME       CREATED
+--------------- -------------------------- ---------- ----------
+  9781491901946 AngularJS: Up and Running  JavaScript 04-DEC-95
+  9781617291999 Java 8 in Action           Java       23-MAY-95
+  9780071799355 Oracle Database 12c SQL    SQL        01-JAN-74
+  9780071799355 Oracle Database 12c SQL    PL/SQL     01-JAN-92
+  9781617291203 Spring In Action           Java       23-MAY-95
+</span>
+<p>
+You may want to make a SQL query that doesn't actually return the data in a table, but
+instead returns different values depending on the underlying structure.  The following query does exactly that.
+Depending on whether a book has a <code className="jarombek-inline-code">time_reading</code> value, it
+returns 'Finished Reading' or 'Not Completed' (note: the <code className="jarombek-inline-code">time_reading
+</code> column is a virtual column that is only generated when both a <code className="jarombek-inline-code">
+finished</code> and <code className="jarombek-inline-code">started</code> date exist).  This operation is
+performed with the <code className="jarombek-inline-code">nvl2()</code> function, which for its
+first argument takes a column.  If this column isn't null, the second argument is returned.  Otherwise
+the third argument is returned.
+</p>
+<CodeSnippet language="SQL">
+SELECT title, nvl2(time_reading, 'Finished Reading', 'Not Completed') still_reading,
+    CASE WHEN time_reading > 100 THEN 'Long Read'
+        WHEN time_reading > 25 THEN 'Moderate Read'
+        ELSE 'Short Read' END duration
+FROM books;
+</CodeSnippet>
+<p>
+For if-else logic more complex than checking for null values, the
+<code className="jarombek-inline-code">CASE</code> statement is used<sup>2</sup>.
+I checked if the time spent reading a book was greater than certain values, and if so returned a
+different string.  Here is the result of this query:
+</p>
+<span className="code-span">
+TITLE                       STILL_READING     DURATION
+--------------------------- ----------------- -------------
+Java 8 in Action            Finished Reading  Long Read
+Oracle Database 12c SQL     Finished Reading  Moderate Read
+AngularJS: Up and Running   Not Completed     Short Read
+Jump Start: Bootstrap       Finished Reading  Short Read
+Spring In Action            Finished Reading  Short Read
+</span>
+<p>
+The next query looks at hierarchical data.  This data forms parent child relationships in
+a tree structure.  The three tables in the database don't have any hierarchical data.
+I changed that by creating a new table called <code className="jarombek-inline-code">language_hierarchy</code>
+which stores data about languages and other languages that influenced them.
+</p>
+<CodeSnippet language="SQL">
+-- Both name and influenced_by fields come from the language tables name column
+CREATE TABLE language_hierarchy(
+    name VARCHAR2(63),
+    influnced_by VARCHAR2(63),
+    CONSTRAINT language_hierarchy_name_fk
+      FOREIGN KEY (name) REFERENCES languages(name) ON DELETE CASCADE,
+    CONSTRAINT language_hierarchy_inf_by_fk
+      FOREIGN KEY (influnced_by) REFERENCES languages(name) ON DELETE CASCADE
+);
+</CodeSnippet>
+<span className="code-span">
+NAME          INFLUNCED_BY
+------------- --------------
+Java          C
+C
+JavaScript    Java
+JavaScript    C
+JavaScript    Python
+SQL
+PL/SQL        SQL
+HTML
+XML
+CSS
+Sass          CSS
+Swift         Python
+PHP           C
+PHP           Java
+Python        C
+Python        Java
+TypeScript    Java
+TypeScript    JavaScript
+JSON          JavaScript
+</span>
+<p>
+The hierarchical nature of this data can be displayed using the <code className="jarombek-inline-code">
+CONNECT BY PRIOR</code> and <code className="jarombek-inline-code">START WITH</code> clauses.
+<code className="jarombek-inline-code">START WITH</code> defines a row to start the hierarchical analysis at
+(it doesn't have to be the root node in the graph).  In the following query I started with the language 'C'
+since so many modern languages are influenced by it. The <code className="jarombek-inline-code">CONNECT BY
+ PRIOR</code> clause defines the parent child relationship.  For example, let's say there are two rows where the
+<code className="jarombek-inline-code">name</code> column in row #1 equals
+the <code className="jarombek-inline-code">influenced_by</code> column in row #2.  The
+<code className="jarombek-inline-code">CONNECT BY PRIOR name = influnced_by</code> statement says that row
+#1 is the child node and has a relationship with parent node row #2.
+</p>
+<p>
+Here is the full query:
+</p>
+<CodeSnippet language="SQL">
+SELECT LEVEL, lpad(' ', 2 * LEVEL -1) || name AS language
+FROM language_hierarchy
+START WITH name = 'C'
+CONNECT BY PRIOR name = influnced_by;
+</CodeSnippet>
+<span className="code-span">
+    LEVEL LANGUAGE
+--------- -----------------------
+        1 C
+        2   Java
+        3     JavaScript
+        4       JSON
+        4       TypeScript
+        3     PHP
+        3     Python
+        4       JavaScript
+        5         JSON
+        5         TypeScript
+        4       Swift
+        3     TypeScript
+        2   JavaScript
+        3     JSON
+        3     TypeScript
+        2   PHP
+        2   Python
+        3     JavaScript
+        4       JSON
+        4       TypeScript
+        3     Swift
+</span>
+    <p>
+You may be wondering about the <code className="jarombek-inline-code">LEVEL</code> column.  This is a pseudo
+column which indicates the level in the tree<sup>3</sup>.  <code className="jarombek-inline-code">LEVEL</code> is
+used along with the <code className="jarombek-inline-code">lpad()</code> function to add tabs in front of the
+language name.  In this example I started at the root column of the tree and
+navigated downwards, but trees can also be traversed upwards from a child node.  This is achieved by
+switching the columns in the <code className="jarombek-inline-code">CONNECT BY</code>
+clause<sup>4</sup>.  In the following query I started at the language 'Java' and traversed the tree upwards.
+</p>
+<CodeSnippet language="SQL">
+SELECT LEVEL, lpad(' ', 2 * LEVEL -1) || name AS language
+FROM language_hierarchy
+START WITH name = 'Java'
+CONNECT BY PRIOR influnced_by = name;
+</CodeSnippet>
+<span className="code-span">
+    LEVEL LANGUAGE
+--------- -----------------------
+        1 Java
+        2   C
+</span>
+<p>
+Let say I want to group the time spent reading with the language I am reading about.  I can do this by joining the
+<code className="jarombek-inline-code">books</code> and <code className="jarombek-inline-code">book_languages</code> tables
+on the language name. I also use the aggregate function <code className="jarombek-inline-code">sum()</code> on the
+<code className="jarombek-inline-code">time_reading</code> column.  Finally I want a row in the result set that totals
+all the time spent reading.  This is where the <code className="jarombek-inline-code">ROLLUP</code> clause comes
+in.  <code className="jarombek-inline-code">ROLLUP</code> is used in conjunction with the <code className="jarombek-inline-code">
+GROUP BY</code> clause to return a row with the subtotal for the grouping<sup>5</sup>:
+</p>
+<CodeSnippet language="SQL">
+-- In this scenario you could also use the CUBE clause to the same effect.
+SELECT l.name, sum(b.time_reading) FROM books b
+    INNER JOIN book_languages l ON b.isbn = l.isbn
+GROUP BY ROLLUP(l.name);
+</CodeSnippet>
+<span className="code-span">
+NAME          SUM(B.TIME_READING)
+------------- -------------------
+Java          134
+JavaScript
+PL/SQL        26
+SQL           26
+              186
+</span>
+<p>
+It would be nice if the name column in the
+subtotal row displayed a name like 'Total Days'.  This behavior is implemented with the help of
+the <code className="jarombek-inline-code">grouping()</code> function.  <code className="jarombek-inline-code">grouping()</code> accepts a column and
+returns 1 if the column value is null and 0 if the value exists<sup>6</sup>.  In this example I
+used the <code className="jarombek-inline-code">grouping()</code> function along with the
+<code className="jarombek-inline-code">CASE</code> clause to populate the last rows
+<code className="jarombek-inline-code">name</code> column.
+</p>
+<CodeSnippet language="SQL">
+SELECT
+    CASE grouping(l.name)
+        WHEN 1 THEN '*Total Days'
+        ELSE l.name
+        END AS name,
+    sum(b.time_reading) AS total_time_reading
+    FROM books b
+    INNER JOIN book_languages l ON b.isbn = l.isbn
+GROUP BY ROLLUP(l.name);
+</CodeSnippet>
+<span className="code-span">
+NAME          TOTAL_TIME_READING
+------------- -------------------
+Java          134
+JavaScript
+PL/SQL        26
+SQL           26
+*Total Days   186
+</span>
+<p>
+There are a ton more cool queries to explore in Oracle, and next time I plan on exploring
+<a href="https://jarombek.com/blog/mar-18-2018-oracle-adv-pt1">analytic functions</a>.  You can check out
+all the code from this discovery on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/03-Mar/3-2-Oracle-Queries">GitHub</a>.
+</p>
+</div>

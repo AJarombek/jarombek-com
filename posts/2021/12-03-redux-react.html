@@ -1,0 +1,786 @@
+<div>
+<Note type="info">
+This is part of a series of articles on SaintsXCTF Version 2.0. The first article in the series provides an
+<a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">overview of the application</a>.  You
+<strong>DO NOT</strong> need to read prior articles in the series to fully understand this article.
+</Note>
+<p>
+Redux is a state management pattern that is commonly used in complex React applications.  Redux, based on the Flux
+design pattern, is helpful when application state is shared between many pages of a website and is updated
+frequently<sup>1</sup>.  In my <a href="https://saintsxctf.com/">saintsxctf.com</a> website, Redux stores and uses
+application state across all my webpages.  SaintsXCTF is a good example of a website that can benefit from
+Redux;  it needs login information, user preferences, team memberships, group memberships, and more to be shared
+amongst all pages.
+</p>
+<p>
+In this article, I start by going over the basics of Redux.  I'll also explain the “ducks pattern”, which is an
+approach to writing Redux code.  Then, I'll walk through the Redux configuration and code in my SaintsXCTF
+application.  All the code for my SaintsXCTF web application is available in a <a href="https://github.com/AJarombek/
+saints-xctf-web">GitHub</a> repository.
+</p>
+<SubTitle title="SaintsXCTF Version 2.0 Articles">SaintsXCTF Version 2.0 Articles</SubTitle>
+<ul>
+<li><a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">Architectural Overview</a></li>
+<li><a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">AWS Infrastructure</a></li>
+<li><a href="https://jarombek.com/blog/oct-25-2021-saints-xctf-v2-k8s-infrastructure">Kubernetes Infrastructure</a></li>
+<li><a href="https://jarombek.com/blog/nov-1-2021-saints-xctf-v2-react-web-app">React Web Application Overview</a></li>
+<li><a href="https://jarombek.com/blog/nov-15-2021-react-typescript">Web Application React and TypeScript</a></li>
+<li><strong>Web Application Redux State Configuration</strong></li>
+<li><a href="https://jarombek.com/blog/aug-11-2021-cypress-typescript">Web Application Cypress E2E Tests</a></li>
+<li><a href="https://jarombek.com/blog/jun-30-2021-react-jss">Web Application JSS Modular Design</a></li>
+<li><a href="https://jarombek.com/blog/dec-24-2021-flask-python-api">Flask Python API</a></li>
+<li><a href="https://jarombek.com/blog/jan-10-2022-flask-api-testing">Flask API Testing</a></li>
+<li><a href="https://jarombek.com/blog/feb-5-2022-function-api">Function API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/feb-18-2022-auth-api">Auth API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/mar-27-2022-mysql-client-kubernetes">Database Client on Kubernetes</a></li>
+</ul>
+<SectionTitle title="Introduction to Redux">Introduction to Redux</SectionTitle>
+<p>
+Redux is an open-source JavaScript library based on the Flux design pattern.
+</p>
+<Definition word="Flux">
+<p>
+Flux is a web-development design pattern and architecture which is an alternative to the MVC (Model View Controller)
+pattern<sup>2,3</sup>.  Flex maintains application state in one or many <strong>stores</strong>.  Stores are updated
+with <strong>actions</strong>, which contain new state data and instructions for updating a store<sup>4</sup>.  Actions
+are passed to stores via a <strong>dispatcher</strong>.  Once actions reach the store, application state is updated
+accordingly, and any views that use the application state are re-rendered.
+</p>
+<p>
+Flux creates a unidirectional flow of data, beginning with an event on the UI, such as a button click. UI events
+trigger actions, with travel through the dispatcher to a store. Finally, the UI updates according to the new state in
+the store.  If you want to understand Flux in more detail, I recommend reading the official <a href="https://
+facebook.github.io/flux/docs/in-depth-overview">In-Depth Overview</a>.
+</p>
+</Definition>
+<Definition word="Redux">
+<p>
+Redux is based on the Flux design pattern with a few key differences.  Unlike Flux, Redux consists of a single store
+containing an immutable state object.  Redux also does not have dispatchers.  Instead, Redux has
+<strong>reducers</strong>.  Reducers are functions which take an action and the existing state as arguments.  During
+the execution of a reducer function, a new state object is created and returned<sup>5</sup>.
+</p>
+<p>
+Similar to Flux, Redux follows a unidirectional data flow.  Once again, actions are created when UI events occur.
+Actions pass data to the store, the state in the store is updated with the help of a reducer, and the UI is updated
+accordingly.
+</p>
+</Definition>
+<p>
+Let's describe the main components of Redux in more detail.  These components include <strong>actions</strong>,
+<strong>action creators</strong>, <strong>reducers</strong>, and <strong>the store</strong>.
+</p>
+<InlineImage filename="12-3-21-redux-components.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<ComparisonTable title="Redux Components">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Actions
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Actions are JavaScript objects which describe how to update the application state in the Redux store.  Action objects
+have a <code className="jarombek-inline-code">type</code> field, which is a string that identifies the action.  Actions
+often have additional fields with instructions on how to update the state or data to add to the state.  For example,
+an action to sign in a user and place their username in the application state may look like
+<code className="jarombek-inline-code">{type: "SIGN_IN", username: "andy"}</code>.
+</p>
+<p>
+Actions are dispatched to the Redux store.  The Redux store invokes a reducer function corresponding to the
+action.  This reducer function returns a new application state with changes made, which are determined by the action.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Action Creators
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Action creators are functions that create Redux action objects.  They simplify the creation of actions by encapsulating
+the logic for building an action of a specific type within a single function.  For example, the action
+<code className="jarombek-inline-code">{type: "SIGN_IN", username: "andy"}</code> can be built from an action creator
+<code className="jarombek-inline-code">signIn()</code> that takes a username as an argument.
+</p>
+<p>
+Sometimes, action creators perform more complex logic, such as performing asynchronous operations to external services
+and interfaces; for example, an action creator may invoke an API and create actions based on the response.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Reducers
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Reducers are functions that create new state objects.  Reducers take two arguments: an action object and an existing
+state object.  Reducers create a copy of the existing state object and apply changes specified in the action.
+The return value of a reducer is a new state object, which replaces the existing state object in the Redux store.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Store
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Redux applications contain a single store, which holds the application state.  Application state is immutable, i.e. an application
+state object cannot be modified.  To change the state in the store, a new state object replaces an existing
+state object.  New state objects are created with the help of reducer functions.  Reducer functions are called when
+actions are dispatched to the store.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+When using Redux in a React application, the <a href="https://react-redux.js.org/tutorials/quick-start">React Redux</a>
+library is often used to simplify the configuration and usage of Redux.  I utilize React Redux in my SaintsXCTF
+application.
+</p>
+<SectionTitle title="Ducks Pattern">Ducks Pattern</SectionTitle>
+<p>
+The <strong>ducks pattern</strong> relates to the file layout of Redux code.  In older applications, Redux code is
+ often grouped into separate directories for actions, reducers, and action creators<sup>6</sup>.  With the ducks
+pattern, actions, reducers, and action creators exist in the same files.  However, code is logically grouped in
+separate files.
+</p>
+<p>
+For example, my SaintsXCTF application has a <a href="https://github.com/AJarombek/saints-xctf-web/tree/master/src/
+redux/modules">modules</a> directory containing all the Redux TypeScript files following the ducks
+pattern.  Each file in this directory relates to a specific feature of the application.  The <a href="https://
+github.com/AJarombek/saints-xctf-web/blob/master/src/redux/modules/groups.ts">groups.ts</a> file, for example, contains
+actions, reducers, and action creators that relate to group pages on the website (user's in SaintsXCTF can be members
+of one or many groups).
+</p>
+<p>
+The following code snippet is an abbreviated version of <strong>groups.ts</strong>:
+</p>
+<CodeSnippet language="TypeScript">
+// groups.ts
+
+// Actions
+const GET_GROUP_REQUEST = 'saints-xctf-web/groups/GET_GROUP_REQUEST';
+...
+
+// Action Types
+interface GetGroupRequestAction {
+  type: typeof GET_GROUP_REQUEST;
+  groupId: number;
+}
+
+...
+
+// Reducers
+function getGroupRequestReducer(state: GroupState, action: GetGroupRequestAction): GroupState {
+  const existingGroupState = state.group[action.groupId] ?? {};
+
+  return {
+    ...state,
+    group: {
+      ...state.group,
+      [action.groupId]: {
+        ...existingGroupState,
+        isFetching: true,
+        lastUpdated: moment().unix(),
+        serverError: null
+      }
+    }
+  };
+}
+
+...
+
+export default function reducer(state = initialState, action: GroupActionTypes): GroupState {
+  switch (action.type) {
+    case GET_GROUP_REQUEST:
+      return getGroupRequestReducer(state, action);
+    ...
+    default:
+      return state;
+  }
+}
+
+// Action Creators
+export function getGroupRequest(groupId: number): GetGroupRequestAction {
+  return {
+    type: GET_GROUP_REQUEST,
+    groupId
+  };
+}
+
+...
+</CodeSnippet>
+<SectionTitle title="Redux Application Setup">Redux Application Setup</SectionTitle>
+<p>
+Redux is configured within the React application using the <a href="https://react-redux.js.org/tutorials/quick-start">
+React Redux</a> library.  Both <code className="jarombek-inline-code">react-redux</code> and
+<code className="jarombek-inline-code">@types/react-redux</code> are specified as application dependencies in
+the <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/package.json">package.json</a> file.  The
+configuration of Redux begins in the entrypoint of the React application, <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/master/src/index.tsx#L35-L48">index.ts</a>.  A simplified version of the code is shown below.
+</p>
+<CodeSnippet language="TypeScript">
+import React from 'react';
+import { render } from 'react-dom';
+import configureStore from './redux/store';
+import { Provider } from 'react-redux';
+
+const store = configureStore();
+
+const RoutedApp = (): JSX.Element => {
+  return (
+    &lt;Provider store={store}>
+        &lt;App />
+    &lt;/Provider>
+  );
+};
+
+render(&lt;RoutedApp />, document.getElementById('react-container'));
+
+export default RoutedApp;
+</CodeSnippet>
+<p>
+I removed all the details unrelated to Redux from this code, with the complete version available on
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/index.tsx">GitHub</a>.  The React Redux library
+supplies a <code className="jarombek-inline-code">&lt;Provider /></code> component, which makes the Redux store
+available to all components in the application<sup>7</sup>.  As you will see later on, the Redux store is accessible
+via React hooks.
+</p>
+<p>
+<code className="jarombek-inline-code">&lt;Provider /></code> is used at the top level of the application, right after
+bootstrapping React onto the DOM with the <code className="jarombek-inline-code">render()</code> method call.
+<code className="jarombek-inline-code">&lt;Provider /></code> takes a required prop
+<code className="jarombek-inline-code">store</code>, which is the Redux store for the application.  In my case, the
+Redux store is created with the line <code className="jarombek-inline-code">const store = configureStore()</code>.
+<code className="jarombek-inline-code">configureStore()</code> is a custom function, which is shown below.
+</p>
+<CodeSnippet language="TypeScript">
+import { createBrowserHistory } from 'history';
+import { createStore, applyMiddleware, Store } from 'redux';
+import { routerMiddleware } from 'connected-react-router';
+import { createLogger } from 'redux-logger';
+import thunkMiddleware from 'redux-thunk';
+import reducer from './modules/reducers';
+
+export const history = createBrowserHistory();
+
+export default function configureStore(): Store {
+  const loggerMiddleware = createLogger();
+  const middleware = [routerMiddleware(history), loggerMiddleware, thunkMiddleware];
+
+  const createStoreWithMiddleware = applyMiddleware(...middleware)(createStore);
+  const store = createStoreWithMiddleware(reducer(history));
+
+  return store;
+}
+</CodeSnippet>
+<p>
+The code above is a simplified version of a <a href="https://github.com/AJarombek/saints-xctf-web/blob/
+master/src/redux/store.ts">store.ts</a> file in my application.  <code className="jarombek-inline-code">
+configureStore()</code> is a function that returns a Redux store of type <code className="jarombek-inline-code">
+Store</code>.  You will often see variants of the code above in Redux tutorials.  Let's walk through this code line
+by line.
+</p>
+<p>
+<code className="jarombek-inline-code">const loggerMiddleware = createLogger()</code> creates a logging middleware for
+Redux using the <strong>redux-logger</strong> library.  Redux middleware is a means for adding third party extensions
+to Redux.  Third party libraries are invoked after actions are dispatched to the store, but before the store
+invokes a reducer function<sup>8</sup>.  <strong>redux-logger</strong> provides middleware for logging actions to the
+console output of a web browser.  This is very helpful for debugging.
+</p>
+<p>
+<code className="jarombek-inline-code">loggerMiddleware</code> is utilized in the line
+<code className="jarombek-inline-code">const middleware = [routerMiddleware(history), loggerMiddleware, thunkMiddleware]
+</code>.  <code className="jarombek-inline-code">middleware</code> is a list of Redux middlewares used in my
+application.  <code className="jarombek-inline-code">routerMiddleware</code> is a React Router middleware and
+<code className="jarombek-inline-code">thunkMiddleware</code> is a middleware for writing asynchronous code that
+interacts with the Redux store (for example, dispatching an action based on the result of an API request)<sup>9</sup>.
+</p>
+<p>
+<code className="jarombek-inline-code">const createStoreWithMiddleware = applyMiddleware(...middleware)(createStore)</code>
+is a complicated looking piece of code.  <code className="jarombek-inline-code">applyMiddleware</code> is a higher
+order function (a function that returns another function).  It takes my list of Redux middlewares as an argument.
+The result of <code className="jarombek-inline-code">applyMiddleware</code> is a function that takes
+<code className="jarombek-inline-code">createStore</code> as an argument.  The result is
+<code className="jarombek-inline-code">createStoreWithMiddleware</code>, which itself is a function.
+</p>
+<p>
+<code className="jarombek-inline-code">createStoreWithMiddleware()</code> is used to create a Redux store with our list
+of middlewares applied.  The line <code className="jarombek-inline-code">createStoreWithMiddleware(reducer(history))</code>
+accomplishes this task.  <code className="jarombek-inline-code">reducer()</code> is a function that creates all the
+Redux reducers for my application.  It also takes a browser history object as an argument
+(<code className="jarombek-inline-code">history</code>) for use with the React Router middleware.
+</p>
+<p>
+The following code shows the <code className="jarombek-inline-code">reducer()</code> function (named here as
+<code className="jarombek-inline-code">createRootReducer</code>).  It exists in a <a href="https://github.com/
+AJarombek/saints-xctf-web/blob/master/src/redux/modules/reducers.ts">reducers.ts</a> file in my repository.
+</p>
+<CodeSnippet language="TypeScript">
+import { combineReducers, Reducer } from 'redux';
+import { connectRouter } from 'connected-react-router';
+
+import auth from './auth';
+import registration from './registration';
+import logs from './logs';
+import memberships from './memberships';
+import notifications from './notifications';
+import profile from './profile';
+import rangeView from './rangeView';
+import teams from './teams';
+import groups from './groups';
+import { History } from 'history';
+
+const createRootReducer = (history: History): Reducer =>
+  combineReducers({
+    router: connectRouter(history),
+    auth,
+    registration,
+    logs,
+    memberships,
+    notifications,
+    profile,
+    rangeView,
+    teams,
+    groups
+  });
+
+export default createRootReducer;
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">createRootReducer()</code> is a function that creates a reducing function for
+the Redux store<sup>10</sup>.  In other words, it creates the Redux reducer for my application.
+<code className="jarombek-inline-code">createRootReducer()</code> returns the result of
+<code className="jarombek-inline-code">combineReducers()</code>, which is a utility function built-in to Redux.
+<code className="jarombek-inline-code">combineReducers()</code> takes an object of reducer functions as an argument.
+It merges these reducers and returns a single reducer function that can be used by the Redux store.  With the help of
+<code className="jarombek-inline-code">combineReducers()</code>, reducers can be split across multiple files, allowing
+engineers to follow the Ducks pattern.  As you can see, I have separate reducer functions for different application
+features (<a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/redux/modules/auth.ts#L506-L551">auth</a>,
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/redux/modules/registration.ts#L218-L243">registration</a>,
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/redux/modules/logs.ts#L660-L709">logs</a>, etc.).
+Each of these files is referred to as a Redux Ducks module<sup>11</sup>.
+</p>
+<SectionTitle title="Redux Ducks Modules">Redux Ducks Modules</SectionTitle>
+<p>
+Each Redux Ducks module is a JavaScript or TypeScript file containing Redux actions, action creators, and a reducer.
+When using TypeScript, a module can also contain type definitions for actions.
+</p>
+<p>
+For example, in my React/TypeScript application, one of my Redux Ducks modules is <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/master/src/redux/modules/teams.ts">teams.ts</a>.
+  <strong>teams.ts</strong> contains Redux logic for a single feature of my website - teams that users can be members
+of.  My Redux Ducks modules are logically split into five sections: actions, action types, reducers, action creators,
+and redux thunk functions.
+</p>
+<SubTitle title="Actions">Actions</SubTitle>
+<p>
+In Redux, actions have a type property, which is a unique identifier for the action.  The
+<code className="jarombek-inline-code">type</code> property is a string; all the type strings used in a module are
+defined at the top of the module.  For example, these are the type strings defined in my <a href="https://github.com/
+AJarombek/saints-xctf-web/blob/master/src/redux/modules/teams.ts#L15-L23">teams.ts</a> module.
+</p>
+<CodeSnippet language="TypeScript">
+const GET_TEAM_REQUEST = 'saints-xctf-web/teams/GET_TEAM_REQUEST';
+const GET_TEAM_SUCCESS = 'saints-xctf-web/teams/GET_TEAM_SUCCESS';
+const GET_TEAM_FAILURE = 'saints-xctf-web/teams/GET_TEAM_FAILURE';
+const GET_TEAM_GROUPS_REQUEST = 'saints-xctf-web/teams/GET_TEAM_GROUPS_REQUEST';
+const GET_TEAM_GROUPS_SUCCESS = 'saints-xctf-web/teams/GET_TEAM_GROUPS_SUCCESS';
+const GET_TEAM_GROUPS_FAILURE = 'saints-xctf-web/teams/GET_TEAM_GROUPS_FAILURE';
+const SEARCH_TEAMS_REQUEST = 'saints-xctf-web/teams/SEARCH_TEAMS_REQUEST';
+const SEARCH_TEAMS_SUCCESS = 'saints-xctf-web/teams/SEARCH_TEAMS_SUCCESS';
+const SEARCH_TEAMS_FAILURE = 'saints-xctf-web/teams/SEARCH_TEAMS_FAILURE';
+</CodeSnippet>
+<p>
+All actions follow the naming convention <code className="jarombek-inline-code">'application-name/module-name/ACTION_NAME'</code>.
+While Redux does not mandate this convention, I find it elegant and effective in removing the risk of naming conflicts
+between actions in different modules.
+</p>
+<p>
+Action type strings are used by action creators and reducers.  Action creators use action type strings when
+building an action object.  Reducers use action type strings to determine which reducer function to invoke based on
+the action dispatched to the Redux store.
+</p>
+<SubTitle title="Action Types">Action Types</SubTitle>
+<p>
+Action types are used by TypeScript to ensure that action objects are well-typed.  In other words, an action type
+defines an interface for an action, containing all the properties in an action and their corresponding types.  The
+following code shows all the action types defined in my <a href="https://github.com/AJarombek/saints-xctf-web/blob/
+master/src/redux/modules/teams.ts#L25-L87">teams.ts</a> module.
+</p>
+<CodeSnippet language="TypeScript">
+interface GetTeamRequestAction {
+  type: typeof GET_TEAM_REQUEST;
+  teamName: string;
+}
+
+interface GetTeamSuccessAction {
+  type: typeof GET_TEAM_SUCCESS;
+  team: Team;
+  teamName: string;
+}
+
+interface GetTeamFailureAction {
+  type: typeof GET_TEAM_FAILURE;
+  serverError: string;
+  teamName: string;
+}
+
+interface GetTeamGroupsRequestAction {
+  type: typeof GET_TEAM_GROUPS_REQUEST;
+  teamName: string;
+}
+
+interface GetTeamGroupsSuccessAction {
+  type: typeof GET_TEAM_GROUPS_SUCCESS;
+  groups: Group[];
+  teamName: string;
+}
+
+interface GetTeamGroupsFailureAction {
+  type: typeof GET_TEAM_GROUPS_FAILURE;
+  serverError: string;
+  teamName: string;
+}
+
+interface SearchTeamsRequestAction {
+  type: typeof SEARCH_TEAMS_REQUEST;
+  text: string;
+}
+
+interface SearchTeamsSuccessAction {
+  type: typeof SEARCH_TEAMS_SUCCESS;
+  teams: Team[];
+  text: string;
+}
+
+interface SearchTeamsFailureAction {
+  type: typeof SEARCH_TEAMS_FAILURE;
+  serverError: string;
+  text: string;
+}
+
+type TeamActionTypes =
+  | GetTeamRequestAction
+  | GetTeamSuccessAction
+  | GetTeamFailureAction
+  | GetTeamGroupsRequestAction
+  | GetTeamGroupsSuccessAction
+  | GetTeamGroupsFailureAction
+  | SearchTeamsRequestAction
+  | SearchTeamsSuccessAction
+  | SearchTeamsFailureAction;
+</CodeSnippet>
+<p>
+Each action has a corresponding <code className="jarombek-inline-code">interface</code>, containing a
+<code className="jarombek-inline-code">type</code> property and zero to many additional properties.  For example, type
+<code className="jarombek-inline-code">GetTeamSuccessAction</code> has a
+<code className="jarombek-inline-code">type</code> property along with <code className="jarombek-inline-code">team</code> and
+<code className="jarombek-inline-code">teamName</code> properties.  All these types are unioned together into a single
+<code className="jarombek-inline-code">TeamActionTypes</code> type.
+</p>
+<p>
+Action types are used extensively when defining reducers and action creators.
+</p>
+<SubTitle title="Reducers">Reducers</SubTitle>
+<p>
+In each module, there is a root reducer and one or many reducer functions.  The root reducer decides which reducer
+function to invoke based on the type of an action dispatched to the Redux store.  The following code shows the root
+reducer for my <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/redux/modules/
+teams.ts#L244-L267">teams.ts</a> module.
+</p>
+<CodeSnippet language="TypeScript">
+export default function reducer(state = initialState, action: TeamActionTypes): TeamState {
+  switch (action.type) {
+    case GET_TEAM_REQUEST:
+      return getTeamRequestReducer(state, action);
+    case GET_TEAM_SUCCESS:
+      return getTeamSuccessReducer(state, action);
+    case GET_TEAM_FAILURE:
+      return getTeamFailureReducer(state, action);
+    case GET_TEAM_GROUPS_REQUEST:
+      return getTeamGroupsRequestReducer(state, action);
+    case GET_TEAM_GROUPS_SUCCESS:
+      return getTeamGroupsSuccessReducer(state, action);
+    case GET_TEAM_GROUPS_FAILURE:
+      return getTeamGroupsFailureReducer(state, action);
+    case SEARCH_TEAMS_REQUEST:
+      return getSearchTeamsRequestReducer(state, action);
+    case SEARCH_TEAMS_SUCCESS:
+      return getSearchTeamsSuccessReducer(state, action);
+    case SEARCH_TEAMS_FAILURE:
+      return getSearchTeamsFailureReducer(state, action);
+    default:
+      return state;
+  }
+}
+</CodeSnippet>
+<p>
+The root reducer is written as the <code className="jarombek-inline-code">reducer()</code> function.
+<code className="jarombek-inline-code">reducer()</code> is the main export of the Redux Ducks module.
+<code className="jarombek-inline-code">reducer()</code> takes two arguments: <code className="jarombek-inline-code">
+state</code> and <code className="jarombek-inline-code">action</code>.  <code className="jarombek-inline-code">
+state</code> holds the existing state of the Redux store, and <code className="jarombek-inline-code">
+action</code> holds an action object that was dispatched to the store.  The <code className="jarombek-inline-code">
+type</code> property of the <code className="jarombek-inline-code">action</code> object determines which reducer
+function to invoke from the root reducer.
+</p>
+<p>
+<code className="jarombek-inline-code">action.type</code> is used in the switch statement to select a reducer function.
+For example, if an action <code className="jarombek-inline-code">{type: "GET_TEAM_REQUEST", teamName: "saintsxctf"}</code>
+is dispatched to the Redux store and the reducer is invoked, <code className="jarombek-inline-code">
+getTeamRequestReducer(state, action)</code> will be called.  <code className="jarombek-inline-code">
+getTeamRequestReducer()</code> has the following implementation:
+</p>
+<CodeSnippet language="TypeScript">
+function getTeamRequestReducer(state: TeamState, action: GetTeamRequestAction): TeamState {
+  const existingTeamState = state.team[action.teamName] ?? {};
+
+  return {
+    ...state,
+    team: {
+      ...state.team,
+      [action.teamName]: {
+        ...existingTeamState,
+        isFetching: true,
+        lastUpdated: moment().unix(),
+        serverError: null
+      }
+    }
+  };
+}
+</CodeSnippet>
+<p>
+This reducer function creates a new state object using the existing <code className="jarombek-inline-code">state</code>
+and the JavaScript spread (<code className="jarombek-inline-code">...</code>) notation.  Based on the contents of the
+<code className="jarombek-inline-code">action</code> object argument, a field <code className="jarombek-inline-code">
+team[action.teamName]</code> is added to the application state.
+</p>
+<p>
+If the existing state was:
+</p>
+<CodeSnippet language="JavaScript">
+{
+  team: {},
+  search: {}
+}
+</CodeSnippet>
+<p>
+The new state after a <code className="jarombek-inline-code">{type: "GET_TEAM_REQUEST", teamName: "saintsxctf"}</code>
+action is dispatched may look like:
+</p>
+<CodeSnippet language="JavaScript">
+{
+  team: {
+    saintsxctf: {
+      isFetching: true,
+      lastUpdated: 1638565750,
+      serverError: null
+    }
+  },
+  search: {}
+}
+</CodeSnippet>
+<SubTitle title="Action Creators">Action Creators</SubTitle>
+<p>
+Every action type has a corresponding action creator, which is a function that creates an action object.  The following
+code shows some of the action creators available in my <a href="https://github.com/AJarombek/saints-xctf-web/blob/
+master/src/redux/modules/teams.ts#L269-L337">teams.ts</a> module.
+</p>
+<CodeSnippet language="TypeScript">
+export function getTeamRequest(teamName: string): GetTeamRequestAction {
+  return {
+    type: GET_TEAM_REQUEST,
+    teamName
+  };
+}
+
+export function getTeamSuccess(team: Team, teamName: string): GetTeamSuccessAction {
+  return {
+    type: GET_TEAM_SUCCESS,
+    team,
+    teamName
+  };
+}
+
+export function getTeamFailure(serverError: string, teamName: string): GetTeamFailureAction {
+  return {
+    type: GET_TEAM_FAILURE,
+    serverError,
+    teamName
+  };
+}
+</CodeSnippet>
+<p>
+Basically, action creators parameterize actions.  Return values of action creators are often dispatched directly to the
+Redux store.  Other times, they are dispatched as part of Redux Thunk functions.
+</p>
+<SubTitle title="Redux Thunk Functions">Redux Thunk Functions</SubTitle>
+<p>
+Redux Thunk functions are created using the <a href="https://github.com/reduxjs/redux-thunk">redux-thunk</a> library.  Redux thunk
+functions are action creators, except they return a function instead of an action<sup>12</sup>.  These functions
+ run asynchronous code and dispatch actions to the Redux store depending on certain conditions.  The main use of
+<strong>redux-thunk</strong> in my application is to make API calls and dispatch actions depending on API
+responses.
+</p>
+<p>
+For example, the following Redux Thunk function makes a call to my API, retrieving a team with a specific name.  It
+exists in my <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/redux/modules/teams.ts#L339-L357">
+teams.ts</a> module.
+</p>
+<CodeSnippet language="TypeScript">
+export function getTeam(teamName: string): AppThunk&lt;Promise&lt;void>, TeamState> {
+  return async function (dispatch: Dispatch): Promise&lt;void> {
+    dispatch(getTeamRequest(teamName));
+
+    try {
+      const response = await api.get(`teams/${teamName}`);
+      const { team } = response.data;
+
+      dispatch(getTeamSuccess(team, teamName));
+    } catch (error) {
+      const { response } = error as AxiosError;
+      const serverError = response?.data?.error ?? 'An unexpected error occurred.';
+
+      if (response?.status !== 403) {
+        dispatch(getTeamFailure(serverError, teamName));
+      }
+    }
+  };
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">getTeam()</code> is a Redux Thunk function that returns an
+<code className="jarombek-inline-code">async</code> function.  This function takes a single argument called
+<code className="jarombek-inline-code">dispatch</code>, which is a Redux function that dispatches actions to the
+store.  <code className="jarombek-inline-code">dispatch</code> is used three times.  The first,
+<code className="jarombek-inline-code">dispatch(getTeamRequest(teamName))</code>, dispatches an action indicating that
+ an API request is about to be made.  This is useful for implementing loading icons or loading screens.  Inside the
+<code className="jarombek-inline-code">try… catch</code> block, <code className="jarombek-inline-code">
+await api.get(`teams/${teamName}`)</code> makes the actual API call.  The second dispatch,
+<code className="jarombek-inline-code">dispatch(getTeamSuccess(team, teamName))</code>, dispatches an action when the
+API call is successful.  The <code className="jarombek-inline-code">team</code> variable comes from the API response
+body.  The third dispatch, <code className="jarombek-inline-code">dispatch(getTeamFailure(serverError, teamName))</code>
+dispatches an action when the API call returns an error.
+</p>
+<p>
+If you look at the Redux Thunk functions in my <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/
+src/redux/modules/teams.ts#L339-L397">teams.ts</a> module or throughout my <a href="https://github.com/AJarombek/
+saints-xctf-web/tree/master/src/redux/modules">entire application</a>, you will notice that most follow this same
+pattern.
+</p>
+<SectionTitle title="React Redux State Management Code">React Redux State Management Code</SectionTitle>
+<p>
+When working with Redux in a React application, the <strong>react-redux</strong> library provides React hooks for
+dispatching actions to the Redux store and reading application state from the Redux store.  These React hooks are
+<code className="jarombek-inline-code">useDispatch()</code> and <code className="jarombek-inline-code">
+useSelector()</code>, respectively.
+</p>
+<p>
+Continuing with the example of teams in my application, let's look at the page which displays all the teams that a
+user is a member of.
+</p>
+<InlineImage filename="12-3-21-teams-page.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+The following code is for a <code className="jarombek-inline-code">TeamsBody</code> component, which represents the
+page shown above.  The code below is shortened for readability, with the full code available in a
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/components/teams/TeamsBody/TeamsBody.tsx">
+TeamsBody.tsx</a> file in my repository.
+</p>
+<CodeSnippet language="TypeScript">
+import React, { useEffect, useState } from 'react';
+import { GroupMeta, Memberships, RootState, TeamMembership, User, Users } from '../../../redux/types';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserMemberships } from '../../../redux/modules/profile';
+import { getTeamGroups } from '../../../redux/modules/teams';
+import { useNavigate } from 'react-router-dom';
+
+interface Props {
+  user: User;
+}
+
+const TeamsBody: React.FunctionComponent&lt;Props> = ({ user }) => {
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+  const userProfiles: Users = useSelector((state: RootState) => state.profile.users);
+  const teams = useSelector((state: RootState) => state.teams.team);
+
+  const [memberships, setMemberships] = useState&lt;TeamMembership[]>(null);
+
+  useEffect(() => {
+    if (userProfiles && user?.username && !userProfiles[user.username]?.memberships) {
+      dispatch(getUserMemberships(user.username));
+    }
+  }, [dispatch, user.username, userProfiles]);
+
+  useEffect(() => {
+    if (userProfiles && user.username) {
+      const membershipDetails: Memberships = userProfiles[user.username]?.memberships ?? {};
+      setMemberships(membershipDetails.teams?.filter((team) => team.status === 'accepted'));
+    }
+  }, [userProfiles, user.username]);
+
+  useEffect(() => {
+    if (memberships) {
+      memberships.forEach((membership: TeamMembership) => {
+        dispatch(getTeamGroups(membership.team_name));
+      });
+    }
+  }, [memberships, dispatch]);
+
+  return (
+    &lt;div>
+      &lt;h3>Select a group.&lt;/h3>
+      &lt;div>
+        {memberships?.map((membership) => (
+          &lt;div key={membership.team_name} data-cypress="teamItem">
+            &lt;h4>{membership.title}&lt;/h4>
+            &lt;div>
+              {teams[membership.team_name]?.groups?.items?.map((group: GroupMeta) => (
+                &lt;div data-cypress="groupItem" onClick={(): void => navigate(`/group/${group.id}`)}>
+                  &lt;p>{group.group_title}&lt;/p>
+                &lt;/div>
+              ))}
+            &lt;/div>
+          &lt;/div>
+        ))}
+      &lt;/div>
+    &lt;/div>
+  );
+};
+
+export default TeamsBody;
+</CodeSnippet>
+<p>
+First, notice that <code className="jarombek-inline-code">useDispatch()</code> and
+<code className="jarombek-inline-code">useSelector()</code> are imported from <code className="jarombek-inline-code">
+react-redux</code>.  <code className="jarombek-inline-code">useDistpatch()</code> is invoked to get a
+<code className="jarombek-inline-code">dispatch</code> function, with the line <code className="jarombek-inline-code">
+const dispatch = useDispatch()</code>.  On the next two lines, <code className="jarombek-inline-code">useSelector</code>
+is used to retrieve data from the Redux store; specifically, user profiles and teams are retrieved, saved in
+<code className="jarombek-inline-code">userProfiles</code> and <code className="jarombek-inline-code">teams</code>
+variables, respectively.
+</p>
+<p>
+<code className="jarombek-inline-code">dispatch</code> is invoked within <code className="jarombek-inline-code">
+useEffect()</code> React hooks.  <code className="jarombek-inline-code">useEffect()</code> is beyond the scope of this
+article; however, in general terms, this setup dispatches the results of action creators and Redux Thunk functions to
+the Redux store when the webpage loads or React props/state change.  These Redux Thunk functions make the API calls
+that supply data for the front-end application.  For example, <code className="jarombek-inline-code">
+dispatch(getUserMemberships(user.username))</code> gets all the team memberships from the API for the signed in user.
+</p>
+<p>
+The return statement is the JSX for the React  component, which is translated into HTML when displayed on a web browser.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Redux is a great way to store complex front-end application state.  It integrates seamlessly with React and TypeScript.
+While I don't recommend its use for basic applications, any time a website requires shared state across pages or persisted
+sign in data, I recommend giving Redux a try.  All the front-end code for my SaintsXCTF application, which uses Redux,
+ is available on <a href="https://github.com/AJarombek/saints-xctf-web">GitHub</a>.
+</p>
+</div>

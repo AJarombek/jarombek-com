@@ -1,0 +1,160 @@
+<div>
+<p>
+Today I'm building on my <a href="https://jarombek.com/blog/dec-15-2017-mongodb-pt1">first MongoDB discovery</a>
+and looking at documents in more depth.  To start, let's implement Christmas
+tree purchases in the database.  The first task is picking a tree to buy!  I searched the database for a tree I
+liked and used the <code className="jarombek-inline-code">findOne()</code> function to return a single tree.
+</p>
+<CodeSnippet language="JavaScript">
+db.tree.findOne({type:"douglas", grade:"7-8ft", height:"7' 3\""})
+
+/* Result */
+{
+    "_id" : ObjectId("5a3352702e48ee76cb1fe459"),
+    "type" : "douglas",
+    "height" : "7' 3\"",
+    "source_price" : 10,
+    "sell_price" : 60,
+    "grade" : "7-8ft",
+    "sold" : false,
+    "buyer_id" : undefined
+}
+</CodeSnippet>
+<p>
+Next I created a customer collection to hold all the people who bought trees:
+</p>
+<CodeSnippet language="JavaScript">
+db.customer.insert({
+    username: "andy",
+    name: "Andrew Jarombek",
+    email: "andy@jarombek.com"
+})
+</CodeSnippet>
+<p>
+One thing you may have noticed is that each document has a field called <code className="jarombek-inline-code">_id</code>
+with a value of <code className="jarombek-inline-code">ObjectId(...)</code> containing a hex number.  These hex
+digits are not randomly generated.  Instead they hold organized information about the document.  The first eight hex digits
+(four bytes) of the <code className="jarombek-inline-code">ObjectId</code> are a timestamp of
+when the id was created.  The rest of the id is broken down into three pieces - the machine ID, process ID,
+and a counter which increments each time an <code className="jarombek-inline-code">ObjectId</code> is generated.
+All these items together create a very reliable unique key (you don't have to worry
+about collisions, the possibility is so small).
+</p>
+<p>
+So why am I going into the details of the <code className="jarombek-inline-code">ObjectId</code>?  These
+unique ids are commonly used to link documents together by creating a property on one document that contains the id of
+another document.  In the case of the Christmas tree database, I created a collection for purchases.  In this
+collection, each document is linked to both the purchased tree and the customer.  I took
+the <code className="jarombek-inline-code">tree</code> and <code className="jarombek-inline-code">customer</code> document
+ids and put them in the <code className="jarombek-inline-code">purchase</code> document.
+</p>
+<CodeSnippet language="JavaScript">
+let tree_id = db.tree.findOne({type:"douglas", grade:"7-8ft", height:"7' 3\""})._id;
+let user_id = db.customer.findOne()._id;
+
+db.purchase.insert({
+    type: "douglas",
+    grade: "7-8ft",
+    price: 60,
+    tree_id: tree_id,
+    username: "andy",
+    user_id: user_id,
+    date: Date()
+})
+</CodeSnippet>
+<p>
+This code also displays the ability to use JavaScript variables in MongoDB queries.  Variables allow
+for readable and structured queries. Now I can see the other document ids in the purchase document:
+</p>
+<CodeSnippet language="JavaScript">
+db.purchase.findOne()
+
+/* Result */
+{
+    "_id" : ObjectId("5a34a1942e48ee76cb1fe82c"),
+    "type" : "douglas",
+    "grade" : "7-8ft",
+    "price" : 60,
+    "tree_id" : ObjectId("5a3352702e48ee76cb1fe459"),
+    "username" : "andy",
+    "user_id" : ObjectId("5a349e732e48ee76cb1fe82b"),
+    "date" : "Fri Dec 15 2017 23:31:16 GMT-0500 (EST)"
+}
+</CodeSnippet>
+<p>
+You will notice there are some duplicated fields from other collections in the purchase document (such as
+the <code className="jarombek-inline-code">username</code> property). This sort of duplication is frowned upon in a RDBMS,
+however since there are no JOINs in MongoDB duplication is okay<sup>1</sup>.
+</p>
+<p>
+I've demonstrated how to link related documents in MongoDB, making it easy to find a linked document
+without a <code className="jarombek-inline-code">JOIN</code> operation.  Let's take a step back and look at the first
+query I made for picking out a Christmas tree.  I called the <code className="jarombek-inline-code">explain()</code>
+function on this query to find useful execution information:
+</p>
+<CodeSnippet language="JavaScript">
+db.tree.find({type:"douglas", grade:"7-8ft", height:"7' 3\""}).explain("executionStats")
+
+/* Result */
+{
+    "executionStats" : {
+        "executionSuccess" : true,
+        "nReturned" : 6,
+        "executionTimeMillis" : 4,
+        "totalKeysExamined" : 0,
+        "totalDocsExamined" : 1003,
+    }
+}
+</CodeSnippet>
+<p>
+The most important property in the returned JSON object is <code className="jarombek-inline-code">totalDocsExamined</code>.
+Notice that the query looked at every single document in the collection.  Now imagine how slow this
+could be if there were millions of documents in the collection!  For anyone who has used databases before
+the solution should come to mind - an index.  Let's add indexes to the commonly queried fields in
+<code className="jarombek-inline-code">tree</code>.
+</p>
+<CodeSnippet language="JavaScript">
+db.tree.createIndex({type: 1})
+db.tree.createIndex({grade: 1})
+db.tree.createIndex({height: 1})
+</CodeSnippet>
+<p>
+You may be wondering about the significance of the value <code className="jarombek-inline-code">1</code>.
+This means that the index is stored in ascending order, while a <code className="jarombek-inline-code">-1</code> means
+descending order<sup>2</sup>.  When I call <code className="jarombek-inline-code">explain()</code> again,
+only the returned documents are examined.  Much better!
+</p>
+<p>
+All the indexes on a document are displayed with the <code className="jarombek-inline-code">getIndexes()</code> function.
+</p>
+<CodeSnippet language="JavaScript">
+db.tree.getIndexes()
+</CodeSnippet>
+<p>
+Indexes are used for other purposes besides speeding up query times.  They can
+expire documents in a time-to-live (TTL) collection<sup>3</sup>.  These collections
+use indexes to set a date that a document expires.  In order to create a TTL collection, a date property
+needs to exist on the documents.  In the <code className="jarombek-inline-code">tree</code> documents I set
+this date to Christmas eve, since nobody will buy a tree after then.
+</p>
+<CodeSnippet language="JavaScript">
+
+db.tree.updateMany({}, {$set: {"availableUntil": new Date("2017-12-24")}})
+</CodeSnippet>
+<p>
+Next I created an index on the <code className="jarombek-inline-code">availableUntil</code> property.
+The second parameter of <code className="jarombek-inline-code">createIndex()</code> contains additional
+options, in this case expiring the document zero seconds after the date in
+<code className="jarombek-inline-code">availableUntil</code><sup>4</sup>.
+</p>
+<CodeSnippet language="JavaScript">
+
+db.tree.createIndex({availableUntil: 1}, {expireAfterSeconds: 0})
+</CodeSnippet>
+<p>
+I applied a lot of new MongoDB concepts to the tree database.  The power of linked documents and indexes
+in MongoDB is now clear.  I will look at MongoDB even more in my next discovery.  The code for
+this discovery can be found on <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/
+2017/12-Dec/12-16-MongoDB-Pt2/dbscrips.js">GitHub</a>.
+</p>
+</div>

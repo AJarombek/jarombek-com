@@ -1,0 +1,363 @@
+<div>
+<p>
+In my relatively short time as a software engineer, I've used many different approaches to writing stylesheets for
+web applications.  My initial naive approach was writing a single CSS stylesheet per application, such as the
+<a href="https://github.com/AJarombek/saints-xctf/blob/master/views/style.css">styles.css</a> file for my SaintsXCTF
+application that I wrote in college.  Although this was a common practice in the early days of web development, lumping
+an entire website's styles into a single file has many downsides.  First, a single stylesheet is difficult to read and
+gets very long.  Second, it doesn't follow programming principles like
+<a href="https://jarombek.com/blog/jun-17-2019-terraform-module#dry-principal">DRY (Don't Repeat Yourself)</a>,
+<a href="https://jarombek.com/blog/sep-20-2018-intro-programming#abstraction">abstraction</a>, and encapsulation.
+Third, CSS lacks many programming language features which enable scalable and reusable code, such as functions,
+conditional statements, and variables.
+</p>
+<UpdateInfo date="June 29th, 2021">
+While writing this article I learned that CSS recently added variables into its specification<sup>1</sup>.  Variable
+support is a great new addition (although, unsurprisingly, it is not supported by Internet Explorer). If CSS continues
+to improve, I may consider its use in certain future applications.
+</UpdateInfo>
+<p>
+To help bring order to the chaos of CSS stylesheets, different CSS methodologies were introduced.  These ensured that
+CSS code followed certain conventions, thus making it easier to read. One common CSS methodology is BEM, which
+sets naming conventions for HTML element classes, which are used in CSS code<sup>2</sup>.  I never used these
+conventions since I believed there was a better alternative: <a href="https://jarombek.com/blog/mar-10-2018-sass">Sass</a>.
+</p>
+<p>
+Sass is a CSS preprocessor that adds features such as mixins, conditionals, extensions, variables, and more on top of CSS. I've used
+Sass in both prototype code and <a href="https://github.com/AJarombek/jarombek-com">production level code</a>. In fact,
+Sass is the stylesheet language used for this website!
+</p>
+<p>
+The Sass code for this website (which is written in React) is structured so that each React component has its own stylesheet
+file.  Reusable Sass code is achieved with <a href="https://jarombek.com/blog/mar-10-2018-sass#mixins">mixins</a>;
+mixins are groups of styles that are “mixed in” with other styles. While Sass is nice to work with, it's not without
+its shortcomings.
+</p>
+<p>
+For starters, there is no easy way to dynamically change styles based on application state.  You can't pass JavaScript
+variables containing values to Sass to determine which styles to show.  Also, even though Sass code can be split into
+many files, it still creates styles in a global namespace, which can result in unexpected conflicts between
+stylesheets.  One way to remedy this is to give each stylesheet a unique root level CSS selector and make all other
+styles exist in child CSS selectors.
+</p>
+<p>
+For example, in a UI component called <code className="jarombek-inline-code">Note</code> with a
+ <a href="https://github.com/AJarombek/jarombek-com/blob/master/src/client/Note.scss">Note.scss</a> stylesheet, I defined a
+root level <code className="jarombek-inline-code">.jarbek-note</code> CSS selector and two child CSS selectors:
+<code className="jarombek-inline-code">.jarbek-note-icon</code> and
+<code className="jarombek-inline-code">.jarbek-note-body</code>.
+</p>
+<CodeSnippet language="Sass">
+@import "./styles/mixins/elegantIcons";
+@import "./styles/mixins/sylexiads";
+@import "./styles/variables";
+
+.jarbek-note {
+  display: flex;
+  background-color: lighten($color-warning, 10%);
+
+  .jarbek-note-icon {
+    @include elegantIcons;
+    font-size: 32px;
+    padding: 10px 30px 10px 10px;
+    color: #555;
+  }
+
+  .jarbek-note-body {
+    @include sylexiad;
+  }
+}
+</CodeSnippet>
+<p>
+These Sass shortcomings are remedied in JSS, my new favorite stylesheet approach for React applications.  Although JSS
+isn't perfect, it has many great qualities which are worth discussing.
+</p>
+<SectionTitle title="What is JSS">What is JSS?</SectionTitle>
+<p>
+JSS, sometimes referred to as “CSS in JavaScript”, is a JavaScript library which allows stylesheets to be authored in
+JavaScript code.  These stylesheets take advantage of the JavaScript language and its ability to create reusable
+code.  JSS also creates unique class names from your stylesheet code, removing any worries of conflicting stylesheet
+selectors<sup>3</sup>. As for all those fancy Sass features such as functions, conditional statements, and
+variables - JSS uses JavaScript, which has all these features and more.  In my opinion, JavaScript has a far superior
+syntax to Sass.
+</p>
+<p>
+The greatest advantage of JSS is its ability to conditionally change styles depending on application state. Application
+state for UI applications written in JavaScript is stored in variables, containing primitive or object data types.
+I'll demonstrate this ability in this article, along with my
+ <a href="https://jarombek.com/blog/jun-30-2021-react-jss">followup article</a> on React JSS.
+</p>
+<SectionTitle title="Writing JSS Stylesheets">Writing JSS Stylesheets</SectionTitle>
+<p>
+JSS code is written with the <a href="https://www.npmjs.com/package/jss">jss</a> npm module. JSS also supports plugins,
+although I utilize the default plugins provided by the <a href="https://www.npmjs.com/package/jss-preset-default">
+jss-preset-default</a> npm module<sup>4</sup>.
+</p>
+<p>
+I created an npm project which uses JSS to style some basic HTML elements.  The code for this project, located on
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss">GitHub</a>, consists of
+an <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss/index.html">
+index.html</a> application entrypoint file, an
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss/index.js">index.js</a> file
+which adds additional elements and styles them with JSS, and a
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss/server.js">server.js</a>
+file which starts a server with Express to host the webpage.
+</p>
+<p>
+The JSS application displays a running exercise log, similar to those shown on my
+<a href="https://saintsxctf.com">SaintsXCTF</a> website. When viewed in the browser, the UI looks like the following
+screenshot:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-29-21-jss-demo.png"/>
+</figure>
+<p>
+The JSS code in <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss/index.js">
+index.js</a> will be our main focus going forward.  At the
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss/index.js#L7-L10">
+top of the file</a>, I install JSS and initialize it with the default plugin preset.
+</p>
+<CodeSnippet language="JavaScript">
+import jss from "jss";
+import preset from "jss-preset-default";
+
+jss.setup(preset());
+</CodeSnippet>
+<p>
+Next, I <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss/index.js#L33-L99">
+create all the JSS styles</a>.
+</p>
+<CodeSnippet language="JavaScript">
+const styles = {
+    '@global': {
+        body: {
+            backgroundColor: '#000',
+            margin: 0
+        }
+    },
+    page: {
+        width: '100%',
+        height: '100vh',
+        minHeight: 500,
+        backgroundColor: '#222',
+        margin: 0,
+        paddingTop: 25
+    },
+    exerciseLog: {
+        width: '70%',
+        backgroundColor: FeelColors[currentFeel],
+        border: '2px solid rgb(136, 136, 136)',
+        margin: '0 auto',
+        padding: 7,
+        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.2)',
+        borderRadius: 3
+    },
+    headerSection: {
+        display: 'flex'
+    },
+    titles: {
+        display: 'block'
+    },
+    titleLink: {
+        color: 'rgb(51, 51, 51)',
+        fontSize: 16,
+        textDecoration: 'none',
+        ...robotoSlabMixin
+    },
+    title: {
+        fontSize: 16,
+        margin: 0,
+        textDecoration: 'underline',
+        ...robotoSlabMixin
+    },
+    metadata: {
+        display: 'block',
+        margin: '0 0 0 auto',
+
+        '& > p': {
+            margin: 0,
+            fontSize: 14,
+            textAlign: 'right',
+            ...robotoSlabMixin
+        }
+    },
+    bodySection: {
+        marginTop: 20
+    },
+    dataField: {
+        margin: 0,
+        fontSize: 14,
+        ...robotoSlabMixin
+    },
+    description: {
+        marginTop: 10,
+        fontSize: 14,
+        ...robotoSlabMixin
+    },
+};
+</CodeSnippet>
+<p>
+As you can see, JSS styles are simply a JavaScript object!  This object contains properties, most of which represent
+class names.  For example, <code className="jarombek-inline-code">page</code>,
+<code className="jarombek-inline-code">exerciseLog</code>, and <code className="jarombek-inline-code">headerSection</code>
+are classes that are attached to HTML elements. While most styles created with JSS are written with classes, you can
+also use CSS at-rules such as media queries (<code className="jarombek-inline-code">@media</code>) and keyframes
+(<code className="jarombek-inline-code">@keyframes</code>)<sup>5,6</sup>. JSS also allows you to nest CSS selectors
+within classes, enabling more fine-grained control.  JSS has some great examples of these approaches on their
+<a href="https://cssinjs.org/jss-syntax?v=v10.6.0">website</a>.
+</p>
+<p>
+As I previously mentioned, JSS creates unique class names for its stylesheets.  This means that those
+<code className="jarombek-inline-code">page</code>, <code className="jarombek-inline-code">exerciseLog</code>, and
+<code className="jarombek-inline-code">headerSection</code> properties in the JavaScript object aren't the exact
+class names when rendered in the browser. Instead, JSS creates custom names loosely based on the property names. This
+behavior is proven by opening the developer tab of our web page and viewing the classes assigned to HTML elements.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-29-21-jss-class-names.png"/>
+</figure>
+<p>
+As you can see, <code className="jarombek-inline-code">page</code> was replaced with
+<code className="jarombek-inline-code">page-0-0-1</code>, <code className="jarombek-inline-code">exerciseLog</code> was
+replaced with <code className="jarombek-inline-code">exerciseLog-0-0-2</code>, and
+<code className="jarombek-inline-code">headerSection</code> was replaced with
+<code className="jarombek-inline-code">headerSection-0-0-1</code>.  This name mangling prevents naming conflicts when
+writing multiple classes with the same name in a different JSS style objects.
+</p>
+<p>
+One thing you may have noticed in the JSS styles was a property called <code className="jarombek-inline-code">@global</code>.
+</p>
+<CodeSnippet language="JavaScript">
+'@global': {
+  body: {
+    backgroundColor: '#000',
+    margin: 0
+  }
+}
+</CodeSnippet>
+<p>
+This property allows you to define styles in the global namespace as you would in traditional CSS code.  In other words,
+it bypasses JSS' unique class naming, instead applying styles to all HTML elements that match certain CSS selectors.
+</p>
+<p>
+Another thing demonstrated in my JSS code is how to utilize JavaScript language features to create reusable code.
+For example, I use a separate object and the JavaScript spread operator to apply matching styles to multiple classes.
+</p>
+<CodeSnippet language="JavaScript">
+const robotoSlabMixin = {
+    fontStyle: 'normal',
+    fontWeight: 'normal',
+    fontFamily: 'RobotoSlab-Regular, Helvetica, serif'
+}
+
+const styles = {
+    ...
+    titleLink: {
+        color: 'rgb(51, 51, 51)',
+        fontSize: 16,
+        textDecoration: 'none',
+        ...robotoSlabMixin
+    },
+    title: {
+        fontSize: 16,
+        margin: 0,
+        textDecoration: 'underline',
+        ...robotoSlabMixin
+    },
+    ...
+}
+</CodeSnippet>
+<p>
+This code applies the styles in <code className="jarombek-inline-code">robotoSlabMixin</code> to both the
+<code className="jarombek-inline-code">titleLink</code> and <code className="jarombek-inline-code">title</code> classes.
+In another example, I create an array of hex color codes and a number corresponding to an index in the array.  Both the
+array and index are used in the JSS style object to determine the background color of an element.
+</p>
+<CodeSnippet language="JavaScript">
+const FeelColors = [
+    '#EA9999',
+    '#FFAD99',
+    '#EAC199',
+    '#FFD699',
+    '#FFFFAD',
+    '#E3E3E3',
+    '#C7F599',
+    '#99D699',
+    '#99C199',
+    '#A3A3FF'
+];
+
+const currentFeel = 6;
+
+const styles = {
+    ...
+    exerciseLog: {
+        backgroundColor: FeelColors[currentFeel],
+        ...
+    },
+    ...
+};
+</CodeSnippet>
+<p>
+In my <a href="https://jarombek.com/blog/jun-30-2021-react-jss">upcoming article</a> on React JSS, I will show how
+ reusability and dynamic styling can be used in a production application.
+</p>
+<p>
+The final piece of the <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss/index.js">
+index.js</a> code <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss/index.js#L101">
+creates a stylesheet from the JavaScript object containing JSS styles</a> and
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss/index.js#L103-L129">
+attaches them to HTML elements</a>.
+</p>
+<CodeSnippet language="JavaScript">
+const { classes } = jss.createStyleSheet(styles).attach();
+
+document.body.innerHTML = `
+    &gt;div class="${classes.page}">
+        &gt;div class="${classes.exerciseLog}">
+            &gt;div class="${classes.headerSection}">
+                &gt;div class="${classes.titles}">
+                    &gt;a class="${classes.titleLink}">Andrew Jarombek&gt;/a>
+                    &gt;h6 class="${classes.title}">Long Run&gt;/h6>
+                &gt;/div>
+                &gt;div class="${classes.metadata}">
+                    &gt;p>Apr. 11th, 2021&gt;/p>
+                    &gt;p>RUN&gt;/p>
+                &gt;/div>
+            &gt;/div>
+            &gt;div class="${classes.bodySection}">
+                &gt;div>
+                    &gt;p class="${classes.dataField}">Location: Riverside, CT&gt;/p>
+                    &gt;p class="${classes.dataField}">14.01 miles&gt;/p>
+                    &gt;p class="${classes.dataField}">1:39:03 (7:04/mi)&gt;/p>
+                &gt;/div>
+                &gt;div class="${classes.description}">
+                    Went home to CT for the weekend to use the track on Saturday.  Got a nice long run in this morning
+                    as well, longest since last summer.
+                &gt;/div>
+            &gt;/div>
+        &gt;/div>
+    &gt;/div>
+`;
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+In this article I discussed many positive qualities of the JSS library.  These include the use of JavaScript syntax,
+style reusability, dynamic styling, and naming conflict resolution.  Despite these great qualities, JSS is not
+perfect.  IDE support isn't great, meaning you won't get the same autocompletion as you would with CSS or Sass.  Styles
+also need to be wrapped in quotes since they are string values assigned to properties.  This isn't quite as elegant as
+CSS or Sass where values such as <code className="jarombek-inline-code">auto</code> or
+<code className="jarombek-inline-code">flex</code> are built into the language itself.  Finally, you need to remember
+to use camel case instead of dash case for styles.  For example, <code className="jarombek-inline-code">font-size</code>
+in CSS and Sass is <code className="jarombek-inline-code">fontSize</code> in JSS.  Once you get accustomed to JSS that
+last point isn't much of an issue.
+</p>
+<p>
+Even with these downsides, JSS is a great library that I highly recommend for new frontend
+applications, especially those written in React. In my
+ <a href="https://jarombek.com/blog/jun-30-2021-react-jss">next article</a>, I will discuss React JSS, a library that
+integrates JSS with React components. I will also showcase how it is used in my
+<a href="https://saintsxctf.com">SaintsXCTF</a> application. All the code from this article is located on
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2021/06-Jun/06-29-jss">GitHub</a>.
+</p>
+</div>

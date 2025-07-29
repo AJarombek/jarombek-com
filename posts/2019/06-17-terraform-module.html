@@ -1,0 +1,232 @@
+<div>
+<p>
+When programming with <a href="https://jarombek.com/blog/sep-3-2018-terraform#what-is-terraform?">Terraform</a>,
+  I often find myself writing the same code again and again.  In order to maintain the DRY
+principal in Terraform configuration, modules are used to encapsulate logic and design a layer of abstraction
+for infrastructure code.  This article explains how I created Terraform modules that are reused throughout
+my AWS Infrastructure as Code.
+</p>
+<Definition word="DRY Principal">
+DRY stands for "Do not Repeat Yourself."  It's the design philosophy that similar code shouldn't exist in
+multiple locations.  Instead, repeated code segments should be combined into a single component or function.
+</Definition>
+<SectionTitle title="Terraform Module Design Choices">Terraform Module Design Choices</SectionTitle>
+<p>
+As I write Terraform code, I notice there are certain AWS resource configurations repeated across my
+repositories.  For example, my AWS infrastructure has multiple VPCs which are all configured in a similar
+manner.  Eventually I got unhappy with all this duplicate code.  I started creating reusable modules
+that are used across all my Terraform repositories.
+</p>
+<p>
+My current AWS architecture is split across multiple git repositories.  I have a single repository with global
+infrastructure such as VPCs and multiple other repositories with application specific infrastructure such
+as EC2 instances.  Additionally, I have one final repository containing reusable modules.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-17-19-repos.png"/>
+</figure>
+<p>
+All my repositories are able to use Terraform modules defined in <strong>terraform-modules</strong>.
+In fact, anyone can use these modules because the repository is public.
+</p>
+<p>
+Now that I've explained my Terraform modules from the repository standpoint, let's look at the code.
+</p>
+<SectionTitle title="Terraform Module Structure">Terraform Module Structure</SectionTitle>
+<p>
+Terraform defines a module as a series of <code className="jarombek-inline-code">.tf</code> files in a
+directory<sup>1</sup>.  Therefore, anytime you write Terraform code you are creating one or more modules.
+A common approach is to have three Terraform files in a module.  The first file contains resources and data
+blocks, the second file contains input variables, and the final file contains output variables<sup>2</sup>.
+For example, a VPC module would have the following folder structure:
+</p>
+<span className="code-span">
+vpc/
+├── main.tf
+├── var.tf
+├── output.tf
+</span>
+<p>
+This file structure isn't mandatory.  Instead, it's a common standard used for grouping related Terraform
+code blocks.  In practice Terraform simply loads all <code className="jarombek-inline-code">.tf</code> files
+in a directory at once for execution<sup>3</sup>.
+</p>
+<p>
+With this structure in mind, let's explore one of the reusable modules I've built so far:
+<code className="jarombek-inline-code">security-group</code>.
+</p>
+<SectionTitle title="Terraform Module Composition">Terraform Module Composition</SectionTitle>
+<p>
+I currently have two reusable modules - <code className="jarombek-inline-code">security-group</code> and
+<code className="jarombek-inline-code">vpc</code>. The rest of this article explores the <code className="jarombek-inline-code">
+security-group</code> module since it has fewer moving parts.  You can check out the <code className="jarombek-inline-code">vpc</code>
+module on <a href="https://github.com/AJarombek/terraform-modules/blob/master/vpc">GitHub</a>.
+</p>
+<p>
+In the <code className="jarombek-inline-code">security-group</code> module, the <a href="https://github.com/AJarombek/terraform-modules/
+blob/master/security-group/var.tf">var.tf</a> file contains input variables.  These variables are like
+function arguments for the module.
+</p>
+<CodeSnippet language="HCL">
+# var.tf
+
+variable "enabled" {
+  description = "Whether or not the security group should be created"
+  default = true
+}
+
+#-----------------
+# Naming Variables
+#-----------------
+
+variable "name" {
+  description = "Name to use as a prefix for different resources"
+}
+
+variable "tag_name" {
+  description = "Name to use for the Name property in the Tag objects"
+}
+
+#-----------------------------
+# aws_security_group Variables
+#-----------------------------
+
+variable "vpc_id" {
+  description = "VPC identifier for the security group"
+}
+
+variable "description" {
+  description = "Information about the security group"
+  type = string
+  default = "Security Group"
+}
+
+variable "sg_rules" {
+  description = "A list of security group rules"
+  type = list
+  default = []
+}
+</CodeSnippet>
+<p>
+The variable <code className="jarombek-inline-code">enabled</code> is used to enable or disable the creation
+of the security group.  Usually the <code className="jarombek-inline-code">count</code> variable is used for
+this purpose in Terraform resources, however it isn't exposed to modules.  Using the
+<code className="jarombek-inline-code">enabled</code> variable is a workaround for this limitation.
+</p>
+<p>
+Variables under the “Naming Variables” header are used to name the AWS resources and their tags.  Variables
+under the “aws_security_group Variables” header are used to configure the <code className="jarombek-inline-code">
+aws_security_group</code> and <code className="jarombek-inline-code">aws_security_group_rule</code> resources.
+Both are defined in <a href="https://github.com/AJarombek/terraform-modules/blob/master/security-group/main.tf">
+main.tf</a>.  It's important to note that these resources use the new Terraform 0.12 and HCL 2 syntax.
+</p>
+<CodeSnippet language="HCL">
+# main.tf
+
+locals {
+  count = var.enabled ? 1 : 0
+}
+
+resource "aws_security_group" "security" {
+  count = local.count
+
+  name = var.name
+  description = var.description
+  vpc_id = var.vpc_id
+
+  tags = {
+    Name = var.tag_name
+  }
+}
+
+resource "aws_security_group_rule" "security-rule" {
+  count = length(var.sg_rules)
+
+  security_group_id = local.count == 1 ? aws_security_group.security[0].id : null
+  type = lookup(var.sg_rules[count.index], "type", "ingress")
+
+  from_port = lookup(var.sg_rules[count.index], "from_port", 0)
+  to_port = lookup(var.sg_rules[count.index], "to_port", 0)
+  protocol = lookup(var.sg_rules[count.index], "protocol", "-1")
+
+  cidr_blocks = [lookup(var.sg_rules[count.index], "cidr_blocks", "")]
+}
+</CodeSnippet>
+<p>
+This code creates an AWS security group and its corresponding rules.  Rules are created for each item
+in the <code className="jarombek-inline-code">var.sg_rules</code> list.  This module returns a single value -
+the ID of the security group.
+</p>
+<CodeSnippet language="HCL">
+# outputs.tf
+
+output "security_group_id" {
+  # There will always be 0 or 1 security groups in the output
+  value = aws_security_group.security.*.id
+}
+</CodeSnippet>
+<p>
+This is the complete complete configuration of the <code className="jarombek-inline-code">security-group</code> module.
+To use this module, a <code className="jarombek-inline-code">module</code> code block must be created.
+<code className="jarombek-inline-code">module</code> exposes a variable <code className="jarombek-inline-code">source</code>
+which helps Terraform locate the module.   Since my module lives in a <a href="https://github.com/AJarombek/
+terraform-modules">GitHub repository</a>, its accessible using a GitHub source type<sup>5</sup>.
+</p>
+<CodeSnippet language="HCL">
+module "security-group" {
+  source = "github.com/ajarombek/terraform-modules//security-group?ref=v0.1.7"
+
+  ...
+}
+</CodeSnippet>
+<p>
+The module is located in the <strong>security-group</strong> subdirectory.  I tag my repository whenever
+I alter the modules.  In the example above, I'm pulling the module from the v0.1.7 tag.  This is helpful
+because I don't want a potentially breaking change to impact existing codebases.  You can also omit
+ the tag reference, in which case the latest commit is pulled.
+</p>
+<p>
+The rest of the <code className="jarombek-inline-code">module</code> code block assigns values to the input
+variables defined in <a href="https://github.com/AJarombek/terraform-modules/blob/master/security-group/var.tf">
+var.tf</a>.  The following code snippet is an example <code className="jarombek-inline-code">security-group</code>
+implementation.
+</p>
+<CodeSnippet language="HCL">
+module "security-group" {
+  source = "github.com/ajarombek/terraform-modules//security-group?ref=v0.1.7"
+  
+  # Mandatory arguments
+  name = "example-sg"
+  tag_name = "example-sg"
+  vpc_id = data.existing-vpc.vpc_id
+  
+  # Optional arguments
+  sg_rules = [
+    {
+      # Inbound traffic for SSH
+      type = "ingress"
+      from_port = 22
+      to_port = 22
+      protocol = "tcp"
+      cidr_blocks = local.my_cidr
+    },
+    {
+      # Outbound traffic for HTTP
+      type = "egress"
+      from_port = 80
+      to_port = 80
+      protocol = "tcp"
+      cidr_blocks = local.public_cidr
+    }
+  ]
+  description = "example sg module"
+}
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Creating generic Terraform modules promotes code reuse and cuts down on bugs that commonly plague developers 
+who copy and paste their code.  I have a much better understanding of Terraform
+and HCL syntax because I spent time designing reusable modules.  All the code from this article is available on
+<a href="https://github.com/AJarombek/terraform-modules">GitHub</a>.
+</p>
+</div>

@@ -1,0 +1,2600 @@
+/**
+ * Script for the MongoDB Shell.
+ * @author Andrew Jarombek
+ * @since 11/14/2021
+ */
+
+connection = new Mongo();
+db = connection.getDB("jarombekcom");
+
+content = [
+    {
+        "el":"note",
+        "attributes":{
+            "type":"info"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" This is part of a series of articles on SaintsXCTF Version 2.0. The first article in the series provides an  ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"overview of the application",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  You ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"DO NOT",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"  need to read prior articles in the series to fully understand this article. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" I recently rewrote my web application ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://saintsxctf.com/"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"saintsxctf.com",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" using React and TypeScript. This article looks at how the application is configured and walks through some React code.  All the code for the website exists in a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"GitHub",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" repository. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"subtitle",
+        "attributes":{
+            "title":"SaintsXCTF Version 2.0 Articles"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"SaintsXCTF Version 2.0 Articles",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"ul",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Architectural Overview",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"AWS Infrastructure",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/oct-25-2021-saints-xctf-v2-k8s-infrastructure"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Kubernetes Infrastructure",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/nov-1-2021-saints-xctf-v2-react-web-app"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"React Web Application Overview",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"strong",
+                        "attributes":null,
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Web Application React and TypeScript",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/dec-3-2021-redux-react"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Web Application Redux State Configuration",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/aug-11-2021-cypress-typescript"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Web Application Cypress E2E Tests",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/jun-30-2021-react-jss"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Web Application JSS Modular Design",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/dec-24-2021-flask-python-api"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Flask Python API",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/jan-10-2022-flask-api-testing"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Flask API Testing",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/feb-5-2022-function-api"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Function API Using API Gateway & Lambda",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/feb-18-2022-auth-api"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Auth API Using API Gateway & Lambda",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"li",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"a",
+                        "attributes":{
+                            "href":"https://jarombek.com/blog/mar-27-2022-mysql-client-kubernetes"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":"Database Client on Kubernetes",
+                                "children":null
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "el":"sectiontitle",
+        "attributes":{
+            "title":"React Application Configuration"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"React Application Configuration",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The TypeScript React application for SaintsXCTF is bundled with Webpack and transpiled with Babel.  My React application is ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"not",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" configured with ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"create-react-app",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". This approach requires more time and knowledge of React, Webpack, TypeScript, and Babel from the engineer, with the benefit of increased customization.  The application is also an npm package, and therefore has a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/package.json"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"package.json",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" configuration file.  Note that both ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/package.json#L106"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"Typescript",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/package.json#L35"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"React",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" are specified as application dependencies. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" TypeScript is configured for the application in a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/\ntsconfig.json"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"tsconfig.json",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file.  The TypeScript configuration for SaintsXCTF is shown below. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"JSON"
+        },
+        "value":"{\n  \"compilerOptions\": {\n    \"outDir\": \"./dist/\",\n    \"sourceMap\": true,\n    \"declaration\": false,\n    \"noImplicitAny\": true,\n    \"module\": \"ES6\",\n    \"moduleResolution\": \"Node\",\n    \"esModuleInterop\": true,\n    \"target\": \"ES2020\",\n    \"jsx\": \"react\"\n  },\n  \"exclude\": [\"node_modules\", \"test\", \"cypress\"]\n}\n",
+        "children":null
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"tsconfig.json",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" signifies the root directory of the TypeScript application and sets certain configuration parameters.  Most of these fall under ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"compilerOptions",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", which determines how the TypeScript language works (how it compiles)",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"1",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Webpack, specifically ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://webpack.js.org/guides/typescript/#loader"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"ts-loader",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", uses the ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"tsconfig.json",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file to determine how to compile TypeScript files",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"2",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Behind the scenes, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"ts-loader",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" uses the TypeScript compiler ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"tsc",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Let’s look through the configuration properties within ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"compilerOptions",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"\"outDir\": \"./dist/\"",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" specifies that JavaScript files compiled from TypeScript code are placed in a ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"dist",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" directory within the repository. ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"\"sourceMap\": true",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" enables source maps, which are useful for debugging ",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"3",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"\"declaration\": false",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" specifies that JavaScript files created from TypeScript code don’t require corresponding type definition (",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"*.d.ts",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":") files",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"4",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". This is because the codebase isn’t used as a third party library;  instead, it is read by a web browser when users navigate to the website.  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"\"noImplicitAny\": true",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" helps enforce type safety.   ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"\"module\": \"ES6\"",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" sets the JavaScript module system to use for compiled code.  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"\"target\": \"ES2020\"",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" sets the target JavaScript version of the compiled JavaScript code, and ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"\"jsx\": \"react\"",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" converts all JSX code to the equivalent JavaScript React library functions. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The final piece of the TypeScript configuration file is ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"exclude",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", which specifies that TypeScript files in certain directories are not part of the TypeScript program.  Excluded directories  are external dependencies (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"node_modules",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"), unit tests (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"test",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"), and end to end tests (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"cypress",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"). ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" As I mentioned, the configuration in ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"tsconfig.json",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is used by Webpack, specifically the loader ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"ts-loader",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Note that ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"ts-loader",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is also specified as a dependency in ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/\nmaster/package.json#L105"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"package.json",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  My application's Webpack configuration is specified in two files: ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/webpack.config.js"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"webpack.config.js",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/webpack.parts.js"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"webpack.parts.js",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Inside ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"webpack.config.js",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"ts-loader",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is configured to transpile TypeScript code to JavaScript code with the ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/\nwebpack.config.js#L32-L43"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"following setup",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":": ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"JavaScript"
+        },
+        "value":"{\n  test: /\\.ts(x?)$/,\n  exclude: /(node_modules)/,\n  use: [\n    {\n      loader: 'babel-loader'\n    },\n    {\n      loader: 'ts-loader'\n    }\n  ]\n}\n",
+        "children":null
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" This code configures Webpack loaders to be applied to certain file patterns.  The file pattern specified is the regular expression ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"/\\.ts(x?)$/",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", matching Typescript files with ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":".ts",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":".tsx",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file extensions.  Webpack loaders preprocess files by performing transformations on code",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"5,6",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  This step is executed prior to Webpack bundling the code.  The two loaders specified to execute on TypeScript files are ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"babel-loader",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"ts-loader",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" With this setup, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"ts-loader",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is run on the TypeScript code first, followed by ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"babel-loader",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"7",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Babel is a JavaScript compiler.  In my configuration, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"babel-loader",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" further compiles the intermediary JavaScript code that is created by ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"ts-loader",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"8",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Babel is configured by a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/.babelrc"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":".babelrc",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file, which is located at the root directory of the repository alongside the Webpack configuration. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" This process of compiling and bundling code is performed for my production and development environments, which are accessible from ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"saintsxctf.com",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"dev.saintsxctf.com",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", respectively.  In my local environment, ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/webpack/webpack-dev-server"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"webpack-dev-server",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is used to host the application. ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"webpack-dev-server",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" runs an application server for the React application and enables hot reloading of the webpage.  This means that whenever TypeScript files in the application are updated, the web application automatically reloads with the latest changes.  This makes development a breeze! ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"webpack-dev-server",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is configured in my ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/\nmaster/webpack.config.js#L116-L155"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"webpack.config.js",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file and is run from a terminal with the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"webpack-dev-server --hot --inline --env local",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" command.  Its configuration  is shown below. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"JavaScript"
+        },
+        "value":"devServer: {\n  historyApiFallback: true,\n  port: 8090,\n  proxy: {\n    '/api/**': {\n      target: 'http://localhost:5000/',\n      secure: false,\n      pathRewrite: { '^/api': '' }\n    },\n    '/auth/**': {\n      target: 'http://localhost:5001/',\n      secure: false,\n      pathRewrite: { '^/auth': '' }\n    },\n    '/fn/**': {\n      target: 'https://fn.saintsxctf.com/',\n      secure: true,\n      changeOrigin: true,\n      pathRewrite: { '^/fn': '' }\n    },\n    '/asset/**': {\n      target: 'https://asset.saintsxctf.com/',\n      secure: true,\n      changeOrigin: true,\n      pathRewrite: { '^/asset': '' }\n    },\n    '/uasset/**': {\n      target: 'https://uasset.saintsxctf.com/dev/',\n      secure: true,\n      changeOrigin: true,\n      pathRewrite: { '^/uasset': '' }\n    },\n    '/s3/**': {\n      target: 'https://s3.amazonaws.com/',\n      secure: true,\n      changeOrigin: true,\n      pathRewrite: { '^/s3': '' }\n    },\n  }\n}\n",
+        "children":null
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" This configuration specifies that the local development server for the application runs on port ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"8090",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". It also creates a reverse proxy server for API requests, which is configured under the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"proxy",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" object.  In development and production, the reverse proxy server is created with Nginx, and is configured in a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/\nnginx.conf"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"nginx.conf",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file.  I wrote an article on ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://jarombek.com/blog/sep-24-2021-nginx-docker"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":" Nginx reverse proxy servers",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" if you want to learn more. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The final piece of configuration is an ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/.eslintrc.js"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":" .eslintrc.js",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file for ESLint and Prettier.  ESLint is a linter which analyzes JavaScript and TypeScript code and detects any issues or formatting mistakes.  Engineers are able to set which rules they want tested, such as the maximum number of characters on a line and whether to use single quotes or double quotes for strings.  Prettier is a code formatter which can operate with ESLint.  Therefore, Prettier can automatically reformat code to match all the ESLint rules. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" By default, ESLint analyzes JavaScript code.  However, a ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"@typescript-eslint/eslint-parser",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" npm package can be installed, allowing ESLint to analyze TypeScript code. TypeScript also has its own set of default linting rules, which are found in a ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"@typescript-eslint/eslint-plugin",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" npm package.  The ESLint configuration for my application is shown below.  You can adapt it to your application needs and code formatting preferences. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"JavaScript"
+        },
+        "value":"module.exports = {\n    parser: \"@typescript-eslint/parser\",\n    extends: [\n        'plugin:react/recommended',\n        'plugin:@typescript-eslint/recommended',\n        'prettier/@typescript-eslint'\n    ],\n    parserOptions: {\n        ecmaVersion: 2020,\n        sourceType: 'module',\n        ecmaFeatures: {\n            jsx: true\n        }\n    },\n    settings: {\n        react: {\n            version: 'detect'\n        }\n    },\n    plugins: [\n        \"prettier\",\n        \"react-hooks\"\n    ],\n    rules: {\n        \"max-len\": [\"error\", { \"code\": 120 }],\n        \"quotes\": [\"error\", \"single\", { \"avoidEscape\": true }],\n        \"react/prop-types\": [\"off\"],\n        \"react/no-unescaped-entities\": [\"off\"],\n        \"react-hooks/rules-of-hooks\": \"error\",\n        \"react-hooks/exhaustive-deps\": \"warn\",\n        \"@typescript-eslint/camelcase\": [\"off\"],\n        \"prettier/prettier\": [\"error\", {\n            \"singleQuote\": true,\n            \"printWidth\": 120,\n            \"trailingComma\": \"none\",\n        }]\n    },\n    ignorePatterns: ['webpack.config.js', 'webpack.parts.js', 'jest.config.js']\n};\n",
+        "children":null
+    },
+    {
+        "el":"sectiontitle",
+        "attributes":{
+            "title":"Application Directory Structure"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"Application Directory Structure",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" React code for my SaintsXCTF application exists in a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/tree/\nmaster/src"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"src",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" directory.  The codebase has the following folder structure: ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"figure",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"img",
+                "attributes":{
+                    "className":"jarombek-blog-image",
+                    "src":"https://asset.jarombek.com/posts/11-15-21-directory-structure.png"
+                },
+                "value":null,
+                "children":[
+
+                ]
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/src/index.html"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"index.html",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is the entrypoint to the web application, and ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/blob/master/src/index.tsx"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"index.tsx",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" bootstraps the React application. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The subdirectories inside ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"src",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" contain TypeScript application code.  ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/\nAJarombek/saints-xctf-web/tree/master/src/components"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"components",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" contains React components used by the application.  ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/tree/master/src/containers"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"containers",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" also contains React components, however these are top-level components, one for each page in the application. ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/tree/master/src/datasources"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"datasources",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" configures ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://axios-http.com/docs/instance"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"axios instances",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" for each API used by the application",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"9",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". These instances determine how HTTP requests are routed and define actions to take on requests and responses. ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/tree/master/src/hooks"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"hooks",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" contains custom React hooks which are reused throughout the application.  ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/tree/master/src/\nredux"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"redux",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" configures Redux as the state management system for the application.  ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/\nAJarombek/saints-xctf-web/tree/master/src/styles"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"styles",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" contains global JSS styles and variables which are reused in component stylesheets.  Finally, ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/tree/master/src/utils"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":" utils",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" contains reusable TypeScript functions which are shared amongst components. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"sectiontitle",
+        "attributes":{
+            "title":"React Components"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"React Components",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Let’s look at some React components written in TypeScript.  One of the basic components in my application is a custom checkbox.  The ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/tree/master/src/components/shared/CheckBox"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":" checkbox component",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", named ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"CheckBox",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", is shown below. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"TypeScript"
+        },
+        "value":"import React from 'react';\nimport { createUseStyles } from 'react-jss';\nimport styles from './styles';\nimport classNames from 'classnames';\nimport { ClassValue } from 'classnames/types';\n\ninterface Props {\n  id?: string;\n  checked: boolean;\n  onChange: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;\n  className?: ClassValue;\n}\n\nconst useStyles = createUseStyles(styles);\n\nconst CheckBox: React.FunctionComponent<Props> = ({ id, checked, onChange, className }) => {\n  const classes = useStyles();\n\n  return (\n    <div className={classNames(classes.checkBox, className)} onClick={onChange}>\n      <input type=\"checkbox\" id={id} className={classes.input} checked={checked} />\n      <span>{checked && <p>N</p>}</span>\n    </div>\n  );\n};\n\nexport default CheckBox;\n",
+        "children":null
+    },
+    {
+        "el":"figure",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"img",
+                "attributes":{
+                    "className":"jarombek-blog-image",
+                    "src":"https://asset.jarombek.com/posts/11-15-21-checkbox-component.png"
+                },
+                "value":null,
+                "children":[
+
+                ]
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"CheckBox",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is a straightforward functional React component.  In this article, I assume that you understand basics concepts of the ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://jarombek.com/blog?query=React&page=1"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":" React",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" library.  However, I will go over aspects of the code which are specific to TypeScript.  First, let’s consider how a JavaScript equivalent of ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"CheckBox",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is written. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"JavaScript"
+        },
+        "value":"import React from 'react';\nimport { createUseStyles } from 'react-jss';\nimport styles from './styles';\nimport classNames from 'classnames';\nimport PropTypes from 'prop-types';\n\nconst useStyles = createUseStyles(styles);\n\nconst CheckBox = ({ id, checked, onChange, className }) => {\n  const classes = useStyles();\n\n  return (\n    <div className={classNames(classes.checkBox, className)} onClick={onChange}>\n      <input type=\"checkbox\" id={id} className={classes.input} checked={checked} />\n      <span>{checked && <p>N</p>}</span>\n    </div>\n  );\n};\n\nCheckBox.propTypes = {\n  id: PropTypes.string,\n  checked: PropTypes.bool.isRequired,\n  onChange: PropTypes.func.isRequired,\n  className: PropTypes.string\n};\n\nexport default CheckBox;\n",
+        "children":null
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The JavaScript and TypeScript versions of ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"CheckBox",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" are very similar.  The differences relate to type definitions.  For example, in TypeScript, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"CheckBox",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is given the type ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"React.FunctionComponent<Props>",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", while the JavaScript code does not supply an explicit type.  In TypeScript, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"Props",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is also an explicitly defined type, created as an ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"interface",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". In JavaScript, types of props are specified using the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"CheckBox.propTypes",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" syntax with assistance from the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"PropTypes",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" library. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Functions defined within components also take advantage of TypeScript’s explicit type definitions.  For example, I have a component named ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"UploadFile",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" which allows users to upload pictures.  It responds to DOM events such as page clicks or files being dragged and dropped.  The full component code is on  ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web/tree/master/src/components/shared/UploadFile"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"GitHub",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", with  the DOM event listeners shown below. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"TypeScript"
+        },
+        "value":"const handleDragEnter = (e: React.DragEvent<HTMLDivElement>): void => {\n  ...\n};\n\nconst handleDragLeave = (e: React.DragEvent<HTMLDivElement>): void => {\n  ...\n};\n\nconst handleDragOver = (e: React.DragEvent<HTMLDivElement>): void => {\n  ...\n};\n\nconst handleDrop = (e: React.DragEvent<HTMLDivElement>): void => {\n  ...\n};\n\nconst handleClickUpload = (): void => {\n  ...\n};\n\nconst handleFileInput = (e: React.ChangeEvent<HTMLInputElement>): void => {\n  ...\n};\n",
+        "children":null
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Event listener argument type definitions such as ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"React.DragEvent<HTMLDivElement>",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" or ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"React.ChangeEvent<HTMLInputElement>",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" are unique to TypeScript and do not exist and are not enforced in JavaScript code.  The event listener return types, in my case ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"void",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", are also not enforced or explicitly written in JavaScript. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"sectiontitle",
+        "attributes":{
+            "title":"Conclusions"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"Conclusions",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" As the code shows, the biggest benefit of using TypeScript in React applications is type safety, specifically static type analysis.  With TypeScript, subtle runtime type errors such as calling ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"string",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" methods on ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"number",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" types are avoided; instead, these errors are caught during code compilation.  Configuring a React application with TypeScript is also relatively easy.  Best of all, existing JavaScript applications can slowly be transformed into TypeScript, since both languages can coexist together. TypeScript code can import JavaScript code, and vice versa.  You can view all the code for my SaintsXCTF React application on ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/saints-xctf-web"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"GitHub",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    }
+];
+
+preview = content.slice(1, 3);
+
+postName = "nov-15-2021-react-typescript";
+postDate = new Date('2021-11-15T12:00:00');
+existingPost = db.posts.findOne({name: postName});
+
+postViews = (existingPost) ? existingPost.views : 0;
+
+db.posts.remove({name: postName});
+db.posts_content.remove({name: postName});
+
+db.posts.insertOne({
+    name: postName,
+    title: "Building a Web Application with React and TypeScript",
+    description: `I recently rewrote my web application saintsxctf.com using React and TypeScript.  This article looks 
+        at how the application is configured and walks through some React code.`,
+    date: postDate,
+    type: "Retrospective",
+    views: postViews,
+    tags: [
+        {
+            name: "React",
+            picture: "https://asset.jarombek.com/logos/react.png",
+            color: "react"
+        },
+        {
+            name: "TypeScript",
+            picture: "https://asset.jarombek.com/logos/ts.png",
+            color: "typescript"
+        },
+        {
+            name: "JavaScript",
+            picture: "https://asset.jarombek.com/logos/js.png",
+            color: "javascript"
+        },
+        {
+            name: "Webpack",
+            picture: "https://asset.jarombek.com/logos/webpack.png",
+            color: "webpack"
+        },
+        {
+            name: "Babel",
+            picture: "https://asset.jarombek.com/logos/babel.png",
+            color: "babel"
+        },
+        {
+            name: "ESLint",
+            picture: "https://asset.jarombek.com/logos/eslint.svg",
+            color: "eslint"
+        },
+        {
+            name: "Prettier",
+            picture: "https://asset.jarombek.com/logos/prettier.png",
+            color: "prettier"
+        }
+    ],
+    preview,
+    previewString: JSON.stringify(preview),
+    sources: [
+        {
+            startName: "\"TSConfig Reference: compilerOptions\", ",
+            endName: "",
+            linkName: "https://www.typescriptlang.org/tsconfig#compilerOptions",
+            link: "https://www.typescriptlang.org/tsconfig#compilerOptions"
+        },
+        {
+            startName: "\"TypeScript: Loader\", ",
+            endName: "",
+            linkName: "https://webpack.js.org/guides/typescript/#loader",
+            link: "https://webpack.js.org/guides/typescript/#loader"
+        },
+        {
+            startName: "\"TSConfig Reference: sourceMap\", ",
+            endName: "",
+            linkName: "https://www.typescriptlang.org/tsconfig#sourceMap",
+            link: "https://www.typescriptlang.org/tsconfig#sourceMap"
+        },
+        {
+            startName: "\"TSConfig Reference: declaration\", ",
+            endName: "",
+            linkName: "https://www.typescriptlang.org/tsconfig#declaration",
+            link: "https://www.typescriptlang.org/tsconfig#declaration"
+        },
+        {
+            startName: "\"Loaders\", ",
+            endName: "",
+            linkName: "https://webpack.js.org/loaders/",
+            link: "https://webpack.js.org/loaders/"
+        },
+        {
+            startName: "\"Loaders\", ",
+            endName: "",
+            linkName: "https://webpack.js.org/concepts/loaders/",
+            link: "https://webpack.js.org/concepts/loaders/"
+        },
+        {
+            startName: "\"What is the loader order for webpack?\", ",
+            endName: "",
+            linkName: "https://stackoverflow.com/a/32234468",
+            link: "https://stackoverflow.com/a/32234468"
+        },
+        {
+            startName: "\"babel-loader\", ",
+            endName: "",
+            linkName: "https://webpack.js.org/loaders/babel-loader/",
+            link: "https://webpack.js.org/loaders/babel-loader/"
+        },
+        {
+            startName: "\"The Axios Instance\", ",
+            endName: "",
+            linkName: "https://axios-http.com/docs/instance",
+            link: "https://axios-http.com/docs/instance"
+        }
+    ]
+});
+
+db.posts_content.insertOne({
+    name: postName,
+    date: postDate,
+    content,
+    contentString: JSON.stringify(content)
+});

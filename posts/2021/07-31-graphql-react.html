@@ -1,0 +1,415 @@
+<div>
+<p>
+Last year, I started using <a href="https://jarombek.com/blog?query=graphql&page=1">GraphQL</a> at my job.  I decided to
+create some GraphQL prototypes in my spare time, to get better acquainted with the GraphQL ecosystem.  In 2018 I learned
+the basics of GraphQL and wrote <a href="https://jarombek.com/blog/aug-5-2018-graphql-pt1">two</a>
+ <a href="https://jarombek.com/blog/aug-9-2018-graphql-pt2">articles</a> about my experience, but never dove into using
+GraphQL in real world applications.  The <a href="https://github.com/AJarombek/graphql-react-prototype">GraphQL React prototype</a>
+discussed in this article along with my <a href="https://github.com/AJarombek/apollo-client-server-prototype">Apollo prototype</a>
+are the beginnings of that production application journey.  In the future, I plan on using GraphQL for the API layer of
+my applications.
+</p>
+<p>
+The GraphQL prototype discussed in this article is a <a href="https://jarombek.com/blog?query=react&page=1">React</a>
+front-end application that connects to a GitHub GraphQL API.  The API provides details about my repositories, and React
+displays those details in a dashboard.  The dashboard is shown below.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-31-21-dashboard.png"/>
+</figure>
+<p>
+The dashboard has a responsive design, so its also viewable on tablets and mobile screens.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-31-21-dashboard-mobile.png"/>
+</figure>
+<SectionTitle title="GraphQL and React Application Code">GraphQL and React Application Code</SectionTitle>
+<p>
+The React code for the dashboard is broken down into multiple components, with each box displayed on the screen being
+its own component.  Components use <a href="https://jarombek.com/blog/aug-2-2021-less">Less</a> for their stylesheet
+language.  Less, similar to <a href="https://jarombek.com/blog?query=sass&page=1">Sass</a>, is a CSS preprocessor, which
+adds features on top of the base CSS language.
+</p>
+<p>
+Each component makes a GraphQL query to the GitHub API, collecting the data it wishes to display.  The front-end code
+doesn't use a GraphQL client library to make the API calls, instead just using an HTTP client library called
+<code className="jarombek-inline-code">axios</code>.  In an upcoming article I'll discuss my
+<a href="https://github.com/AJarombek/apollo-client-server-prototype">Apollo prototype</a>, which uses the Apollo Client
+library to make API calls. While the HTTP client library is a bare-bones approach, it is still fully capable of
+handling GraphQL APIs.
+</p>
+<SubTitle title="Repository Count Component">Repository Count Component</SubTitle>
+<p>
+Let's look at one of the basic components displayed on the UI.  The <code className="jarombek-inline-code">RepositoryCount</code>
+component has the responsibility of displaying the number of repositories in my GitHub account on the dashboard. It has
+a <a href="https://github.com/AJarombek/graphql-react-prototype/blob/master/src/components/items/RepositoryCount.js">
+RepositoryCount.js</a> file for the React component code and a <a href="https://github.com/AJarombek/
+graphql-react-prototype/blob/master/src/components/items/RepositoryCount.less">RepositoryCount.less</a> file for the
+stylesheet code.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-31-21-repository-count-component.png"/>
+</figure>
+<p>
+The <code className="jarombek-inline-code">RepositoryCount</code> component makes a GraphQL API call to the GitHub API
+after the component first renders.  Once a result is returned from the API, the component re-renders with the number of
+repositories in my GitHub account.
+</p>
+<CodeSnippet language="JavaScript">
+import React, { useEffect, useState } from 'react';
+import { getPersonalRepositories } from '../../datasource/GraphQL';
+
+const RepositoryCount = () => {
+  const [repoCount, setRepoCount] = useState(0);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function getGraphQLResult() {
+      const result = await getPersonalRepositories('AJarombek');
+
+      if (result.data.data) {
+        setRepoCount(result.data.data.user.repositories.totalCount);
+        setError(null);
+      } else {
+        setError(result.data.errors[0].message);
+      }
+    }
+
+    getGraphQLResult();
+  }, []);
+
+  return (
+    &lt;div className="items repository-count">
+      {error
+        ? (
+          &lt;div className="error">
+            &lt;h6>{error}&lt;/h6>
+          &lt;/div>
+        )
+        : (
+          <>
+            &lt;h3>Number of Repositories&lt;/h3>
+            &lt;h2>{repoCount}&lt;/h2>
+          &lt;/>
+        )}
+    &lt;/div>
+  );
+};
+
+export default RepositoryCount;
+</CodeSnippet>
+<p>
+The repository count is held in a <code className="jarombek-inline-code">useState</code> React hook with the name
+<code className="jarombek-inline-code">repoCount</code>. This value is changed using the
+<code className="jarombek-inline-code">setRepoCount</code> function. When
+<code className="jarombek-inline-code">setRepoCount</code> is invoked, the
+<code className="jarombek-inline-code">RepositoryCount</code> component re-renders and displays the repository count in
+an HTML <code className="jarombek-inline-code">&lt;h2&gt;</code> element. If an error occurs while making the API call,
+the error message is stored in the <code className="jarombek-inline-code">error</code> variable, which is also managed
+by a <code className="jarombek-inline-code">useState</code> React hook. If the <code className="jarombek-inline-code">error</code>
+variable contains a string value, it is displayed in an HTML <code className="jarombek-inline-code">&lt;h6&gt;</code>
+element.
+</p>
+<p>
+The <code className="jarombek-inline-code">useEffect</code> React hook is invoked once after the component first
+renders.  It's purpose is to make the GitHub API call and store its response in a state variable.  The
+<code className="jarombek-inline-code">getGraphQLResult()</code> function helps performs this task.  The first line of
+<code className="jarombek-inline-code">getGraphQLResult()</code> calls a
+<code className="jarombek-inline-code">getPersonalRepositories()</code> function, which is imported from another file. I
+extracted all the API client logic into a separate file, which I will discuss later. The API call is asynchronous, which
+is why I use the <code className="jarombek-inline-code">await</code> keyword.
+<code className="jarombek-inline-code">getPersonalRepositories()</code> returns a JavaScript object with the API
+response, and the remainder of the logic in <code className="jarombek-inline-code">getGraphQLResult()</code> handles the
+response in the case of a success or failure.
+</p>
+<p>
+If the API call is successful and the response object contains data, the repository count is assigned to the
+<code className="jarombek-inline-code">repoCount</code> variable using the
+<code className="jarombek-inline-code">setRepoCount</code> function. If the API call is unsuccessful and contains no
+data, the API returns an error message.  This error message is assigned to the
+<code className="jarombek-inline-code">error</code> variable using the <code className="jarombek-inline-code">setError</code>
+function.
+</p>
+<p>
+As previously mentioned, the API client logic is encapsulated in a separate file called
+<a href="https://github.com/AJarombek/graphql-react-prototype/blob/master/src/datasource/GraphQL.js">GraphQL.js</a>.
+ <code className="jarombek-inline-code">getPersonalRepositories()</code>, which is used in the
+<code className="jarombek-inline-code">RepositoryCount</code> component, is defined as follows:
+</p>
+<CodeSnippet language="JavaScript">
+const getPersonalRepositories = (username) => request(getPersonalRepositoriesQuery, { username });
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">getPersonalRepositories()</code> takes a GitHub username as an argument (in my
+case <strong>AJarombek</strong>) and then invokes a <code className="jarombek-inline-code">request()</code> function.
+<code className="jarombek-inline-code">request()</code> takes two arguments: a GraphQL query string and a JavaScript
+object containing variables passed to the GraphQL query.  <code className="jarombek-inline-code">request()</code> uses
+the <strong>axios</strong> HTTP client library to make the GraphQL API request to the GitHub API.
+</p>
+<CodeSnippet language="JavaScript">
+import axios from 'axios';
+
+const instance = axios.create({
+  baseURL: 'https://api.github.com/graphql',
+  headers: {
+    Authorization: `bearer ${process.env.GITHUB_ACCESS_TOKEN}`,
+  },
+});
+
+const request = (query, variables) => instance.post('', { query, variables });
+</CodeSnippet>
+<p>
+As you can see, both the GraphQL query and the query variables are passed in an HTTP POST body to
+<strong>https://api.github.com/graphql</strong>.
+</p>
+<p>
+The final piece of the puzzle is the GraphQL query.  The first argument to <code className="jarombek-inline-code">request()</code>
+in the <code className="jarombek-inline-code">getPersonalRepositories()</code> function body was a variable named
+<code className="jarombek-inline-code">getPersonalRepositoriesQuery</code>. This variable is a string containing a
+GraphQL query.
+</p>
+<CodeSnippet language="JavaScript">
+const getPersonalRepositoriesQuery = `
+  query PersonalRepositories($username: String!) {
+    user(login: $username) {
+      repositories(isFork: false, isLocked: false, privacy: PUBLIC, affiliations: OWNER,
+                  ownerAffiliations:OWNER, first: 100) {
+        totalCount
+      }
+    }
+  }
+`;
+</CodeSnippet>
+<p>
+All the code I've shown, from the <code className="jarombek-inline-code">RepositoryCount</code> component
+to the <strong>axios</strong> client, executes a GraphQL query and renders the result in a web browser.
+</p>
+<p>
+For additional perspective, shown below is the GraphQL query executed from an HTTP UI client.  In this case I'm
+using <a href="https://insomnia.rest/">Insomnia</a>, but you can use Postman or any other client for HTTP requests.
+The important point is that GraphQL queries aren't doing anything too complex, they are simply HTTP requests.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-31-21-graphql-query.png"/>
+</figure>
+<SubTitle title="Most Total Commits Component">Most Total Commits Component</SubTitle>
+<p>
+Let's briefly look at one more component.  The <code className="jarombek-inline-code">TotalCommits</code> component
+displays the five repositories with the most code commits in my GitHub account.  <code className="jarombek-inline-code">TotalCommits</code>
+ has a <a href="https://github.com/AJarombek/graphql-react-prototype/blob/master/src/components/items/TotalCommits.js">
+TotalCommits.js</a> file for the React component code and a <a href="https://github.com/AJarombek/
+graphql-react-prototype/blob/master/src/components/items/TotalCommits.less">TotalCommits.less</a> file for the
+stylesheet code.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-31-21-total-commits-component.png"/>
+</figure>
+<p>
+<code className="jarombek-inline-code">TotalCommits</code> is a bit more complex because it needs to manipulate the
+data received from the GraphQL API, and then display the data in a list.
+</p>
+<CodeSnippet language="JavaScript">
+import React, { useEffect, useState } from 'react';
+import { getTotalCommits } from '../../datasource/GraphQL';
+
+const TotalCommits = () => {
+  const [repoCommits, setRepoCommits] = useState([]);
+  const [error, setError] = useState(null);
+
+  const generateMostTotalCommits = (repositories) => {
+    const repositoriesByCommits = [];
+
+    for (const repository of repositories) {
+      repositoriesByCommits.push({
+        name: repository.node.name,
+        commits: repository.node.ref?.target?.history?.totalCount ?? 0,
+      });
+    }
+
+    repositoriesByCommits.sort((a, b) => b.commits - a.commits);
+
+    setRepoCommits(repositoriesByCommits.slice(0, 5));
+    setError(null);
+  };
+
+  useEffect(() => {
+    async function getGraphQLResult() {
+      const result = await getTotalCommits('AJarombek');
+
+      if (result.data.data) {
+        generateMostTotalCommits(result.data.data.user.repositories.edges);
+      } else {
+        setError(result.data.errors[0].message);
+      }
+    }
+
+    getGraphQLResult();
+  }, []);
+
+  return (
+    &lt;div className="items total-commits">
+      {error
+        ? (
+          &lt;div className="error">
+            &lt;h6>{error}&lt;/h6>
+          &lt;/div>
+        )
+        : (
+          &lt;>
+            &lt;h2>Most Total Commits&lt;/h2>
+            { repoCommits.map((repository) => (
+              &lt;div className="commits" key={repository.name}>
+                &lt;p>{repository.name}&lt;/p>
+                &lt;p>{repository.commits}&lt;/p>
+              &lt;/div>
+            ))}
+          &lt;/>
+        )}
+    &lt;/div>
+  );
+};
+
+export default TotalCommits;
+</CodeSnippet>
+<p>
+In many ways, <code className="jarombek-inline-code">TotalCommits</code> is structured the same way as
+<code className="jarombek-inline-code">RepositoryCount</code>.  It renders either an error message or data from the
+GitHub API. It utilizes <code className="jarombek-inline-code">useState()</code> and
+<code className="jarombek-inline-code">useEffect()</code> React hooks to retrieve and store the API data after the
+components initial render. There are two main things that differentiate <code className="jarombek-inline-code">TotalCommits</code>
+from <code className="jarombek-inline-code">RepositoryCount</code>. First, it restructures and sorts the data retrieved
+from the API in a separate function called <code className="jarombek-inline-code">generateMostTotalCommits()</code>. After
+this function runs, an array of five JavaScript objects are stored in a <code className="jarombek-inline-code">repoCommits</code>
+variable, representing the five repositories in my GitHub account with the most commits.  Second, the component renders
+each of these repositories in their own HTML <code className="jarombek-inline-code">&lt;div&gt;</code> element,
+displaying the repository name and the number of commits.
+</p>
+<p>
+<code className="jarombek-inline-code">TotalCommits</code> invokes a <code className="jarombek-inline-code">getTotalCommits</code>
+function to retrieve the repository information from the GitHub GraphQL API.  This function exists in the
+<a href="https://github.com/AJarombek/graphql-react-prototype/blob/master/src/datasource/GraphQL.js#L92-L115">GraphQL.js</a>
+file. The GraphQL query for this component is shown below, invoked from the Insomnia HTTP UI Client.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-31-21-graphql-query-2.png"/>
+</figure>
+<p>
+All the components in my GraphQL React prototype follow a similar structure to <code className="jarombek-inline-code">TotalCommits</code>
+and <code className="jarombek-inline-code">RepositoryCount</code>. The rest can be viewed on
+<a href="https://github.com/AJarombek/graphql-react-prototype/tree/master/src/components/items">GitHub</a>.
+</p>
+<SectionTitle title="Application Infrastructure">Application Infrastructure</SectionTitle>
+<p>
+The GraphQL React prototype uses Kubernetes infrastructure hosted on AWS.  This infrastructure is built with Terraform,
+and has the following structure:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-31-21-infrastructure.png"/>
+</figure>
+<p>
+There are three Terraform modules for the infrastructure: <code className="jarombek-inline-code">acm</code> for ACM
+certificates, <code className="jarombek-inline-code">ecr</code> for ECR repositories containing Docker images, and
+<code className="jarombek-inline-code">k8s</code> for the Kubernetes infrastructure.  They exist in
+<a href="https://github.com/AJarombek/graphql-react-prototype/tree/master/infra/acm">acm</a>,
+<a href="https://github.com/AJarombek/graphql-react-prototype/tree/master/infra/ecr">ecr</a>, and
+<a href="https://github.com/AJarombek/graphql-react-prototype/tree/master/infra/k8s">k8s</a> directories, respectively.
+The Terraform infrastructure is built and torn down in Jenkins pipelines, specifically
+<a href="https://github.com/AJarombek/global-jenkins-jobs/tree/master/prototypes/graphql-react-prototype/
+create-acm-infrastructure">create-acm-infrastructure</a>, <a href="https://github.com/AJarombek/global-jenkins-jobs/
+tree/master/prototypes/graphql-react-prototype/create-ecr-infrastructure">create-ecr-infrastructure</a>,
+<a href="https://github.com/AJarombek/global-jenkins-jobs/tree/master/prototypes/graphql-react-prototype/
+create-k8s-infrastructure">create-k8s-infrastructure</a>, <a href="https://github.com/AJarombek/global-jenkins-jobs/
+tree/master/prototypes/graphql-react-prototype/destroy-acm-infrastructure">destroy-acm-infrastructure</a>,
+<a href="https://github.com/AJarombek/global-jenkins-jobs/tree/master/prototypes/graphql-react-prototype/
+destroy-ecr-infrastructure">destroy-ecr-infrastructure</a>, and <a href="https://github.com/AJarombek/
+global-jenkins-jobs/tree/master/prototypes/graphql-react-prototype/destroy-k8s-infrastructure">destroy-k8s-infrastructure</a>.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-31-21-jenkins-pipelines.png"/>
+</figure>
+<p>
+The Kubernetes infrastructure for the GraphQL React prototype is built with two Docker images.  Their Dockerfiles are
+defined in the GitHub repository.  The first image is a base image, containing all the npm dependencies needed by the
+React application.  This Docker image is defined in a <a href="https://github.com/AJarombek/graphql-react-prototype/
+blob/master/base.dockerfile">base.dockerfile</a> file.
+</p>
+<CodeSnippet language="Dockerfile">
+FROM node:14.4.0
+
+COPY . app
+
+WORKDIR app
+RUN npm install
+</CodeSnippet>
+<p>
+The second image is an application image.  It builds the React application and creates an nginx proxy to route traffic
+entering the container to the application.  This Docker image is defined in a
+<a href="https://github.com/AJarombek/graphql-react-prototype/blob/master/app.dockerfile">app.dockerfile</a> file.
+</p>
+<CodeSnippet language="Dockerfile">
+FROM 739088120071.dkr.ecr.us-east-1.amazonaws.com/graphql-react-prototype-base:latest AS base
+
+WORKDIR app
+RUN npm run build
+
+FROM nginx AS host
+
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d
+
+COPY --from=base /app/dist /usr/share/nginx/html
+</CodeSnippet>
+<p>
+The nginx proxy has the following configuration, defined in a <a href="https://github.com/AJarombek/
+graphql-react-prototype/blob/master/nginx.conf">nginx.conf</a> file.
+</p>
+<CodeSnippet language="Nginx">
+server {
+    listen 80;
+
+    location / {
+        root /usr/share/nginx/html;
+        try_files $uri /index.html;
+    }
+}
+</CodeSnippet>
+<p>
+I don't discuss the infrastructure any further in this article, but I have lots of articles on
+<a href="https://jarombek.com/blog?query=Terraform&page=1">Terraform</a>,
+<a href="https://jarombek.com/blog?query=AWS&page=1">AWS</a>,
+<a href="https://jarombek.com/blog?query=Kubernetes&page=1">Kubernetes</a>,
+<a href="https://jarombek.com/blog?query=Docker&page=1">Docker</a>, and
+<a href="https://jarombek.com/blog?query=Jenkins&page=1">Jenkins</a> if you want to learn more about the underlying
+ technologies.
+</p>
+<SectionTitle title="Application Test Code">Application Test Code</SectionTitle>
+<p>
+The GraphQL React prototype has unit tests and snapshot tests with full code coverage.  Tests exist in the
+<a href="https://github.com/AJarombek/graphql-react-prototype/tree/master/test">test</a> directory and are written with
+<a href="https://jarombek.com/blog?query=Jest&page=1">Jest</a>.  I wrote an
+<a href="https://jarombek.com/blog/feb-5-2020-react-jest-enzyme">article</a> about writing integration, unit, and
+snapshot tests for React with Jest if you want to learn more.
+</p>
+<p>
+Jest unit and snapshot tests for the GraphQL React prototype are run in Jenkins on a daily schedule.  The Jenkins pipeline code for these
+ tests exists in my <a href="https://github.com/AJarombek/global-jenkins-jobs/tree/master/prototypes/graphql-react-prototype/
+graphql-react-prototype-test">global-jenkins-jobs</a> repository.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-31-21-jenkins-test-pipeline.png"/>
+</figure>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Creating this GraphQL React prototype was a great exercise and helped me learn how to use GraphQL in a frontend
+application.  However, I likely won't repeat the technology choice of using an HTTP client library instead of a GraphQL
+client library for front-ends dealing extensively with GraphQL APIs.  In many ways, I made things more difficult for
+myself by using <strong>axios</strong> instead of a GraphQL library.  I have <a href="https://github.com/AJarombek/
+apollo-client-server-prototype">another prototype application</a> which uses
+the <strong>apollo</strong> GraphQL client library with React, and it made integrating GraphQL with React quite a bit
+easier.
+</p>
+<p>
+All of the application code discussed in this article is available on <a href="https://github.com/AJarombek/
+graphql-react-prototype">GitHub</a>.
+</p>
+</div>

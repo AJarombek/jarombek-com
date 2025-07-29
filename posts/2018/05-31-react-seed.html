@@ -1,0 +1,302 @@
+<div>
+<p>
+Since mid March a lot of my free time work has been dedicated to building React.js apps.  In fact, I built
+this website in the past month and a half with the MERN stack - MongoDB, Express, React and Node.js.
+Before I started building this website I built a sample prototype application using two key technologies -
+React and Webpack.  The knowledge I learned from this prototype helped jump start my work on the website.
+This discovery looks at the first technology used in the prototype application - React.  I will
+look at the Webpack portion of the prototype in my <a href="https://jarombek.com/blog/jun-4-2018-webpack-seed">next discovery post</a>.
+</p>
+<p>
+React is a library for generating views.  A view is the UI of an application, and for a web application
+it is rendered HTML.  In a traditional web application, the client side JavaScript code manipulates the HTML view
+through the Document Object Model (DOM) API.  When using React on the client side,
+views are interacted with through a construct called the "Virtual DOM."
+</p>
+<Definition word="Virtual DOM">
+The Virtual DOM is a layer of abstraction used over the Document Object Model (DOM) in React.  The Virtual DOM is
+kept in memory and is altered using the React library.  A React developer never interacts with
+the DOM API itself.  They only communicate with the Virtual DOM to change the UI.  Behind the scenes,
+React makes sure the Virtual DOM's virtual representation of the UI matches the state of the DOM<sup>1</sup>.
+</Definition>
+<p>
+The biggest difference between the Virtual DOM and the DOM is that the Virtual DOM implements a declarative API
+while the DOM's API is imperative.  In other words, one programmer tells the DOM API how the view needs to
+change while another programmer tells the Virtual DOM what needs to change about the view.  Imperative is
+how something needs to be done to accomplish a task.  Declarative is what task should be accomplished.
+</p>
+<p>
+A more in depth analysis of imperative and declarative paradigms is beyond the scope of this discovery post,
+but in the context of the Virtual DOM a
+developer doesn't need to know how the DOM API works in order to update views.  All a React developer
+needs to tell the Virtual DOM is what they want the view to be.  React is declarative - it asks the developer for
+what needs to be accomplished and internally it takes care of how its done.
+</p>
+<p>
+Reacts declarative approach makes it easy and quick to create views without the learning curve of the DOM API.
+However, the Virtual DOM does have some drawbacks.  First off its memory intensive since the UI
+is kept in memory throughout the applications lifecycle<sup>2</sup>.  With the DOM API you do not have
+this additional overhead.  Also you don't have the expressiveness and speed of the DOM API with the Virtual DOM
+(A major misconception is that React is faster than the traditional DOM - this is false<sup>3,4</sup>).  With
+the DOM API you know based on your code exactly how the DOM will respond, while with React you have to hope the
+Virtual DOM makes the correct choice for you.
+</p>
+<p>
+Despite the drawbacks using a declarative approach makes creating views a breeze for JavaScript developers.
+  React allows developers to think of view elements as a simple construct - the JavaScript object!  Views in React
+are made up of many building blocks called React Elements.
+</p>
+<Definition word="React Element">
+A JavaScript object that represents the smallest building block of the UI.  In a web environment a React element
+represents an HTML element (also referred to as a DOM node).  It can also represent a React component.
+While a React element can be created directly as a JavaScript object with
+<code className="jarombek-inline-code">React.createElement()</code>, doing this for an entire UI is very
+verbose.  Often React elements are created in JSX, which uses an HTML style syntax.
+</Definition>
+<Definition word="React Component">
+Components in React are a form of encapsulation over React elements.  Components promote code reuse, containing a
+piece of the UI that can be used multiple times throughout an application.  Components also have lifecycles
+and can contain <code className="jarombek-inline-code">props</code> (values passed to the component from other
+components) and <code className="jarombek-inline-code">state</code> (data specific to the component instance).
+<code className="jarombek-inline-code">props</code> and <code className="jarombek-inline-code">state</code> are what
+allow components to be dynamic, living entities.
+</Definition>
+<Definition word="JSX">
+JSX is an extension of the JavaScript language created by Facebook for React.  It follows HTML-like syntax to
+create hierarchies of React elements.  For example, a React element in JavaScript is created like so:
+<code className="jarombek-inline-code">React.createElement("p", null, "Hi There!")</code>.  The same element is
+created in JSX with the following syntax: <code className="jarombek-inline-code">&lt;p&gt;Hi There!&lt;/p&gt;</code>
+</Definition>
+<p>
+With these concepts in mind, let's go over the React seed project I built!  Here is what the final product looks like:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/5-31-18-seed.png"/>
+</figure>
+<SectionTitle title="Building the Application">Building the Application</SectionTitle>
+<p>
+The first step of a React application is to build an HTML template for React.js to latch onto.
+</p>
+<CodeSnippet language="HTML">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;title&gt;React.js Webpack Seed&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id="react-container"&gt;&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</CodeSnippet>
+<p>
+This HTML document contains a body with a single <code className="jarombek-inline-code">div</code> element.  React will
+begin rendering further HTML elements dynamically inside this element.
+</p>
+<p>
+You may be wondering where the <code className="jarombek-inline-code">&lt;script&gt;</code> tag is for the JavaScript.  Webpack
+actually handles bundling the JavaScript and including it in the HTML document, so we don't have to worry about
+it!  I will discuss the Webpack aspects of this project in my next discovery post.
+</p>
+<p>
+To hook up React with this HTML element the <code className="jarombek-inline-code">render()</code> function is called.
+The following code sample sets up the entire React application.
+</p>
+<CodeSnippet language="JavaScript">
+import React from 'react';
+import {render} from 'react-dom';
+import App from './App';
+
+window.React = React;
+
+render(
+    &lt;App /&gt;,
+    document.getElementById('react-container')
+);
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">render()</code> function takes two parameters.  The first is the React
+element that will be rendered - which in this case is a React component I created called
+<code className="jarombek-inline-code">App</code>.  The <code className="jarombek-inline-code">App</code> component holds
+the UI and state for the entire application.
+</p>
+<p>
+The second parameter is the container in which the React element is rendered.  This is the only DOM API call
+made in the application.  <code className="jarombek-inline-code">document.getElementById('react-container')
+</code> finds the HTML element with the given id in the previously shown HTML file.
+</p>
+<p>
+Once the <code className="jarombek-inline-code">render()</code> function is called, the React application is successfully
+initialized.  It is time to build the <code className="jarombek-inline-code">App</code> component.
+</p>
+<SectionTitle title="App Component"><code className="jarombek-header-code">App</code> Component</SectionTitle>
+<p>
+There are a couple of different ways to build a component in React.  For the <code className="jarombek-inline-code">App
+</code> component I used a class based approach.  Later you will see the other two components in the application using a
+functional approach.
+</p>
+<p>
+Why did I choose the class based approach over the functional one?  A class based component has access to lifecycle
+methods and component state.  On the other hand a functional component is stateless and only has one function -
+therefore there is no way to redefine the lifecycle methods.
+</p>
+<p>
+Since the <code className="jarombek-inline-code">App</code> component needs to hold the state of my entire application, I
+need to use a class based component.   A class based component extends the <code className="jarombek-inline-code">
+React.Component</code> class using ES6 class syntax.
+</p>
+<CodeSnippet language="JavaScript">
+class App extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            technologies: [
+            {
+                id: "375e6c2b-d799-47ef-848d-84b42bef7a29",
+                name: "JavaScript",
+                picture: "./assets/js.png",
+                release_date: moment('1995-12-04')
+            },
+            {
+                id: "75bb50f5-9067-4a30-964f-a3f0d42b5ca4",
+                name: "Webpack",
+                picture: "./assets/webpack.png",
+                release_date: moment('2012-03-10')
+            },
+            {
+                id: "ed13c757-27cd-4cc1-b4ac-de449ee9cbae",
+                name: "React",
+                picture: "./assets/react.png",
+                release_date: moment('2013-03-01')
+            },
+            {
+                id: "d9f08c13-f59f-45bb-b8e9-0bd0114b0adf",
+                name: "Sass",
+                picture: "./assets/sass.png",
+                release_date: moment('2006-11-28')
+            }
+            ]
+        }
+    }
+
+    render() {
+        const {technologies} = this.state;
+        return (
+            &lt;div&gt;
+                &lt;div className="title-container"&gt;
+                    &lt;p className="title"&gt;React Webpack Seed&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;p className="sub-title"&gt;Technologies used&lt;/p&gt;
+                &lt;TechnologyList techList={technologies} /&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+</CodeSnippet>
+<p>
+The application displays a list of different technologies.  In the code above
+these technologies are assigned to <code className="jarombek-inline-code">this.state</code>.  This variable
+holds the state for the component.
+</p>
+<p>
+Another major piece of this component is the <code className="jarombek-inline-code">render()</code> function.  The
+return value of this function is what is rendered in the HTML.  The returned value is a hierarchy of React
+Elements in the form of JSX.  I also deconstructed the <code className="jarombek-inline-code">technologies</code> array
+from the state and passed it as a prop to the <code className="jarombek-inline-code">TechnologyList</code> component.
+Remember that props are simply values passed from one component to another.  The
+<code className="jarombek-inline-code">TechnologyList</code> component orchestrates the UI display for all the
+technologies.  Let's look at that now.
+</p>
+<SectionTitle title="TechnologyList Component"><code className="jarombek-header-code">TechnologyList</code> Component</SectionTitle>
+<CodeSnippet language="JavaScript">
+import React from 'react';
+import Technology from './Technology';
+import PropTypes from 'prop-types';
+
+const TechnologyList = ({ techList=[] }) =&gt;
+    &lt;div className="technology-list"&gt;
+        { (techList.length === 0) ?
+            &lt;p&gt;No Data&lt;/p&gt; :
+            techList.map(technology =&gt;
+                &lt;Technology key={technology.id} {...technology} /&gt;
+            )
+        }
+    &lt;/div&gt;;
+</CodeSnippet>
+<CodeSnippet language="JavaScript">
+TechnologyList.propTypes = {
+    techList: PropTypes.array
+};
+
+export default TechnologyList;
+</CodeSnippet>
+<p>
+Unlike the main application component which holds state, <code className="jarombek-inline-code">TechnologyList</code>
+is a stateless functional component.  Keeping only one component stateful makes an application easier to manage
+since no child components will cause unexpected changes to the application state.
+</p>
+<p>
+An easy way to reason about stateless functional components is that the entire function is a
+<code className="jarombek-inline-code">render()</code> function.  Whatever the function returns will be rendered to HTML.
+</p>
+<p>
+The functional component takes one parameter - the props passed to the component.  I destructured the props in the
+function parameter definition itself.  The syntax <code className="jarombek-inline-code">techList=[]</code>
+defines a prop called <code className="jarombek-inline-code">techList</code> with an empty array default value.
+</p>
+<p>
+In the JSX for this component I incorporated some JavaScript code to check if the technology list is populated.
+Depending on whether or not its populated, different React elements are rendered.  If there are objects in the
+list, a <code className="jarombek-inline-code">Technology</code> component is rendered for each one.  This shows
+the dynamic nature of React and JSX - depending on the state and props passed into a component different UIs
+are displayed.
+</p>
+<p>
+Finally I defined the <code className="jarombek-inline-code">propTypes</code> variable on the
+<code className="jarombek-inline-code">TechnologyList</code> component.  This is used for property validation.  If a
+prop type is passed in to the component that doesn't match the type defined in <code className="jarombek-inline-code">
+propTypes</code>, a warning is issued.  This is extremely helpful for catching bugs early and unit testing<sup>5</sup>.
+</p>
+<SectionTitle title="Technology Component"><code className="jarombek-header-code">Technology</code> Component</SectionTitle>
+<p>
+The last component displays information about the technology.  It is a functional stateless component.  You can
+use all the concepts I went over in this discovery post to understand what is happening here.
+</p>
+<CodeSnippet language="JavaScript">
+import React from 'react';
+import PropTypes from 'prop-types';
+import moment from 'moment';
+
+const Technology = ({ name, release_date, picture }) =&gt;
+    &lt;div className="technology"&gt;
+        &lt;figure&gt;
+            &lt;img src={ require(`${picture}`) } /&gt;
+        &lt;/figure&gt;
+        &lt;p className="tech-name"&gt;{name}&lt;/p&gt;
+        &lt;p className="tech-release-date"&gt;
+            {moment(release_date).format('MMMM Do, YYYY')}
+        &lt;/p&gt;
+    &lt;/div&gt;;
+
+Technology.propTypes = {
+    name: PropTypes.string.isRequired,
+    release_date: PropTypes.instanceOf(Date).isRequired,
+    picture: PropTypes.string.isRequired
+};
+
+export default Technology;
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+That is all the JavaScript React code needed to create the UI for my seed project.  I have enjoyed working in React
+so far.  Using functional techniques and pure JavaScript to create modular front-end code definitely makes React
+stand out.  I am still early on in the React discovery process, but considering I have a website in production
+written with the library I will continue to learn!
+</p>
+<p>
+You can find all the code along with Sass styling & Jest unit testing on 
+<a href="https://github.com/AJarombek/react-webpack-seed">Github</a>.  Next time I will go over the
+<a href="https://jarombek.com/blog/jun-4-2018-webpack-seed">Webpack</a> portion of the project!
+</p>
+</div>

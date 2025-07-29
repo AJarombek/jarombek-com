@@ -1,0 +1,197 @@
+<div>
+<p>
+While reading a book on Groovy recently I came across two different definitions that apply to
+the languages type system.  The first states that Groovy is an optionally typed language.
+Optional typing in Groovy allows certain variables defined without a type (using the
+<code className="jarombek-inline-code">def</code> keyword) and others with a type similar to Java.
+The second definition given to Groovy's type system is that it is dynamically typed.  In the
+past I always associated dynamic typing with not having to explicitly declare types in code (in
+languages like Python and JavaScript).  So how can Groovy have dynamic typing along with
+optional type declarations?  To answer these questions I had to dig
+deeper into programming languages type system and sharpen up my definitions of dynamic and
+static typing.
+</p>
+<SectionTitle title="Dynamic & Static Typing">Dynamic & Static Typing</SectionTitle>
+<p>
+As previously mentioned, I used to associate dynamic typing with a lack of type definitions.  I
+likely made this association because languages that don't declare types in code are often
+dynamically typed - such as JavaScript and Python.  While both JavaScript and Python are
+dynamically typed, the meaning of dynamic typing is less about existence of type definitions and
+more about when types are enforced.
+</p>
+<ComparisonTable title="Dynamic Vs. Static Typing">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Dynamic Typing
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A language is dynamically typed when types are enforced at runtime.  Dynamic typing is a form
+of type safety - making sure there are no discrepancies between expected types and actual
+types in the language<sup>1</sup>.  Dynamic typed languages enforce type safety dynamically
+at runtime.  Dynamically typed languages often syntactically lack type definitions<sup>2</sup>.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Static Typing
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A language that is statically typed enforces types at compile time and runtime.  The ability
+to enforce types at compile time allows a language to safely fail the compilation stage when
+type definitions mismatch their values.  Knowing types early on gives the compiler enough
+knowledge to optimize code even further based on the type<sup>3</sup>.  Languages that are
+statically typed are generally categorized as safer and faster, albeit with less flexibility
+and more up front work when building code due to syntactic type definitions.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+Quickly before moving further, here is a refresher of what I mean by types and type safety:
+</p>
+<Definition word="Type">
+A type consists of certain characteristics that describe a piece of data<sup>4</sup>.  The
+characteristics alter how the compiler/interpreter handles the data's value<sup>5</sup>.  Developers
+can perform different operations with a value depending of the characteristics defined in its type.
+Examples of data types are integers and objects (<code className="jarombek-inline-code">int</code> in
+Java and instances of <code className="jarombek-inline-code">Object</code> in Groovy/Java).
+</Definition>
+<Definition word="Type Safety">
+Type safety defines the handling of type errors and type mismatches in a programming language.
+Enforcement of type safety can occur at compile time or runtime.  An example of a compile time
+type safety check in a statically typed language is failing the compilation stage if an
+object defined as type <code className="jarombek-inline-code">Integer</code> is given a value of type
+<code className="jarombek-inline-code">String</code>.  Type safety in a dynamic programming language
+is handled at runtime, which is arguably a less elegant solution then failing before the code gets
+a chance to execute.
+</Definition>
+<p>
+Since Groovy is dynamically typed, it enforces type safety at runtime instead of compile time.
+In some of the definitions I've seen about dynamic typing, dynamically typed languages are said
+to lack type definitions.  However, in Groovy we know that type definitions are available for use
+similar to Java.  The difference between using type definitions in Groovy and Java is enforcement
+at runtime in Groovy and enforcement at both compile time and runtime in Java.  This makes Groovy
+dynamically typed and Java statically typed.
+</p>
+<p>
+The following code and comments show the unique behavior of dynamically typed Groovy:
+</p>
+<CodeSnippet language="Groovy">
+// The following code will compile yet fail at runtime since casting an
+// ArrayList to an Integer is not valid
+Integer hello = ['h', 'e', 'l', 'l', 'o']
+println hello
+
+// Interestingly the same code will pass if you use a String type,
+// casting an ArrayList to a String
+String helloString = ['h', 'e', 'l', 'l', 'o']
+println helloString
+</CodeSnippet>
+<p>
+Groovy's ability to use type definitions leads to the definition of optionally typed.
+</p>
+<SectionTitle title="Optionally Typed">Optionally Typed</SectionTitle>
+<p>
+As explored in my <a href="https://jarombek.com/blog/jul-2-2018-groovy-basics-pt1">first Groovy
+discovery</a> the <code className="jarombek-inline-code">def</code> keyword actually just assigns a
+value to type <code className="jarombek-inline-code">Object</code>.
+<code className="jarombek-inline-code">def</code> does not define a value without a type - the type is
+just not explicitly declared.  Everything in Groovy is an object, so everything has a type at
+runtime<sup>6</sup>.
+</p>
+<p>
+The phrase "optionally typed" comes from the fact that syntactically declaring types in code is
+optional in Groovy.  Developers can use the <code className="jarombek-inline-code">def</code>
+keyword, allowing for implicit type declarations.  Let's officially define optional typing and
+show some example Groovy code.
+</p>
+<Definition word="Optionally Typed">
+Optional typing is the syntactic ability to leave out type definitions.  All values still have
+types, however they can be implicitly assigned.
+</Definition>
+<CodeSnippet language="Groovy">
+// When a type is not specified, the type is Object.
+// It does not mean there is no type
+def hiWorld = "Hello World"
+
+assert hiWorld instanceof Object
+assert hiWorld instanceof String
+</CodeSnippet>
+<SectionTitle title="Other Type Definitions">Other Type Definitions</SectionTitle>
+<p>
+If you are like me you probably also heard the terms strong and weak typing (loosely typing)
+before.  I've often heard strong typing interchanged with static typing (and weak typing
+interchanged with dynamic typing).  Unfortunately these definitions are incorrect, along with many
+of the textbooks and blog entries you hear the terms used in.  Even I have used the terms
+incorrectly numerous times.
+</p>
+<p>
+There is no real correct definition for strict and weak typing.  It is often agreed upon that
+the terms should not be used due to the confusion they cause<sup>7</sup>.  I won't go into the
+many definitions here, but you can read more about the history of the terms and their various uses
+<a href="https://en.wikipedia.org/wiki/Strong_and_weak_typing">elsewhere</a>.
+</p>
+<SectionTitle title="Duck Typing">Duck Typing</SectionTitle>
+<p>
+A common use of dynamically typed languages is duck typing.
+</p>
+<Definition word="Duck Typing">
+The general phrase that applies to duck typing is "If it walks like a duck and it quacks like a
+duck, then it must be a duck<sup>8</sup>."  At its core this phrase is a conditional statement.
+If a value
+is able to quack, then the value must be a duck.  In other words, if a values type definition has
+a method <code className="jarombek-inline-code">quack()</code>, then we can safely assume that it is
+an instance of <code className="jarombek-inline-code">Duck</code> or another compatible object with a
+<code className="jarombek-inline-code">quack()</code> method.  Bringing it all together, if an object
+has the <code className="jarombek-inline-code">quack()</code> method it can be treated as a duck
+without even checking the type definition at all.
+</Definition>
+<p>
+The following code takes advantage of Groovy's dynamic type system and duck typing.  The value
+passed to <code className="jarombek-inline-code">outputAll()</code> can be of any type with the
+assumption that its type definition has a <code className="jarombek-inline-code">each()</code> method.
+</p>
+<CodeSnippet language="Groovy">
+def static outputAll(item) {
+  def str = "["
+  item.each {
+    str += "${it}"
+  }
+  str += "]"
+  return str
+}
+
+def outputList = outputAll([1,2,3,4,5])
+def outputMap = outputAll([name:'Andy', age:'23'])
+
+println outputMap
+println outputList
+</CodeSnippet>
+<CodeSnippet>
+[name=Andyage=23]
+[12345]
+</CodeSnippet>
+<SectionTitle title="Changing Groovy's Type System">Changing Groovy's Type System</SectionTitle>
+<p>
+Groovy is unique because it allows for static typing with the use of annotations.  I explored the
+<code className="jarombek-inline-code">@TypeChecked</code> annotation in my
+<a href="https://jarombek.com/blog/jul-4-2018-groovy-basics-pt2">second Groovy discovery</a> and
+its ability to enable static typing on methods.  Groovy can even take things to the next level
+with the <code className="jarombek-inline-code">@CompileStatic</code> annotation.  This annotation
+takes away even more of Groovy's dynamic language features.  These annotations deserve an article
+of their own and I still don't understand them fully, but they seem to give even more flexibility
+to the Groovy programmer.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+It turns out I really didn't know my definitions of dynamic and static typing at all.  A future
+discovery can explore the differences between dynamic programming languages
+and static programming languages (these topics are different than static and dynamic 
+<strong>typing</strong> but related). I can also look into static typing with Groovy.  I'm really
+happy with the new knowledge I gained from the research for this post and look forward to reading
+more about Groovy soon.
+</p>
+</div>

@@ -1,0 +1,194 @@
+<div>
+<Note type="info">
+This is part of a series of articles on SaintsXCTF Version 2.0. The first article in the series provides an
+<a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">overview of the application</a>.  You
+<strong>DO NOT</strong> need to read prior articles in the series to fully understand this article.
+</Note>
+<p>
+In the first version of my <a href="https://saintsxctf.com/">SaintsXCTF application</a>, one underdeveloped aspect of
+the technology stack was the MySQL database infrastructure.  The only way to access the production database
+was to create a bastion host and interact with it via the command line.  This bastion host was a server that was only
+accessible from my IP address and could only interact with my MySQL database.  All other network ports were closed.
+</p>
+<p>
+While this was an okay start, I really wanted a user interface to interact with the MySQL database with similar
+functionality to a local MySQL IDE, such as DataGrip.  After researching different options, I decided to use phpMyAdmin,
+a MySQL administrative client that can run on a web server.
+</p>
+<p>
+My approach is to run phpMyAdmin on a container within a Kubernetes deployment.  This way, I can create and destroy the phpMyAdmin 
+ client quickly depending on my needs.
+</p>
+<p>
+In this article, I'll give an overview of phpMyAdmin and share the infrastructure needed to create it.
+</p>
+<SubTitle title="SaintsXCTF Version 2.0 Articles">SaintsXCTF Version 2.0 Articles</SubTitle>
+<ul>
+<li><a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">Architectural Overview</a></li>
+<li><a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">AWS Infrastructure</a></li>
+<li><a href="https://jarombek.com/blog/oct-25-2021-saints-xctf-v2-k8s-infrastructure">Kubernetes Infrastructure</a></li>
+<li><a href="https://jarombek.com/blog/nov-1-2021-saints-xctf-v2-react-web-app">React Web Application Overview</a></li>
+<li><a href="https://jarombek.com/blog/nov-15-2021-react-typescript">Web Application React and TypeScript</a></li>
+<li><a href="https://jarombek.com/blog/dec-3-2021-redux-react">Web Application Redux State Configuration</a></li>
+<li><a href="https://jarombek.com/blog/aug-11-2021-cypress-typescript">Web Application Cypress E2E Tests</a></li>
+<li><a href="https://jarombek.com/blog/jun-30-2021-react-jss">Web Application JSS Modular Design</a></li>
+<li><a href="https://jarombek.com/blog/dec-24-2021-flask-python-api">Flask Python API</a></li>
+<li><a href="https://jarombek.com/blog/jan-10-2022-flask-api-testing">Flask API Testing</a></li>
+<li><a href="https://jarombek.com/blog/feb-5-2022-function-api">Function API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/feb-18-2022-auth-api">Auth API Using API Gateway & Lambda</a></li>
+<li><strong>Database Client on Kubernetes</strong></li>
+</ul>
+<SectionTitle title="phpMyAdmin Overview">phpMyAdmin Overview</SectionTitle>
+<p>
+phpMyAdmin is a web application that allows administrators to view MySQL databases, tables, and more.  Administrators
+can also execute queries and other SQL statements in the web application UI.  In many ways, phpMyAdmin operates the same
+as a desktop SQL IDE.
+</p>
+<p>
+When loading the webpage for phpMyAdmin, users are presented with the following screen.
+</p>
+<InlineImage filename="3-27-22-phpmyadmin.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+From here, database connection details are entered.  If phpMyAdmin is successful in connecting to the database, the
+following webpage is displayed.
+</p>
+<InlineImage filename="3-27-22-homepage.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Multiple options are presented on this page, such as viewing schemas within the database or writing SQL statements.
+SQL statements can be entered into a text box and executed, with results shown in the UI.
+</p>
+<InlineImage filename="3-27-22-write-query.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<InlineImage filename="3-27-22-query-result.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<SectionTitle title="Kubernetes Infrastructure">Kubernetes Infrastructure</SectionTitle>
+<p>
+All the infrastructure for the phpMyAdmin database client is written as code using Terraform.  The phpMyAdmin server is
+a container running within a Kubernetes cluster.  My Kubernetes cluster is hosted using AWS EKS, with the cluster
+infrastructure existing in an <a href="https://github.com/AJarombek/global-aws-infrastructure/tree/master/eks">eks</a>
+module within my <a href="https://github.com/AJarombek/global-aws-infrastructure">global-aws-infrastructure</a>
+repository.
+</p>
+<p>
+My phpMyAdmin server infrastructure has its own Terraform module named <a href="https://github.com/AJarombek/
+saints-xctf-infrastructure/tree/master/database-client">database-client</a>, which exists in my
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure">saints-xctf-infrastructure</a> repository.  This
+diagram shows all the infrastructure components.
+</p>
+<InlineImage filename="3-27-22-infra-diagram.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Most of the infrastructure code exists within a <a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/
+master/database-client/main.tf">main.tf</a> file.  The most important resource for the web server, the Kubernetes
+Deployment object, has the following setup.
+</p>
+<CodeSnippet language="HCL">
+resource "kubernetes_deployment" "deployment" {
+  metadata {
+    name = "saints-xctf-database-client-deployment"
+    namespace = "saints-xctf"
+
+    labels = {
+      version = local.version
+      environment = "all"
+      application = "saints-xctf-database-client"
+    }
+  }
+
+  spec {
+    replicas = 1
+    min_ready_seconds = 10
+
+    strategy {
+      type = "RollingUpdate"
+
+      rolling_update {
+        max_surge = "1"
+        max_unavailable = "0"
+      }
+    }
+
+    selector {
+      match_labels = {
+        version = local.version
+        environment = "all"
+        application = "saints-xctf-database-client"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          version = local.version
+          environment = "all"
+          application = "saints-xctf-database-client"
+        }
+      }
+
+      spec {
+        affinity {
+          node_affinity {
+            required_during_scheduling_ignored_during_execution {
+              node_selector_term {
+                match_expressions {
+                  key = "workload"
+                  operator = "In"
+                  values = ["development-tests"]
+                }
+              }
+            }
+          }
+        }
+
+        container {
+          name = "saints-xctf-database-client"
+          image = "phpmyadmin/phpmyadmin:latest"
+
+          readiness_probe {
+            period_seconds = 5
+            initial_delay_seconds = 20
+
+            http_get {
+              path = "/"
+              port = 80
+            }
+          }
+
+          env {
+            name = "PMA_ARBITRARY"
+            value = "1"
+          }
+
+          port {
+            container_port = 80
+            protocol = "TCP"
+          }
+        }
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+The Kubernetes Deployment runs a <code className="jarombek-inline-code">phpmyadmin/phpmyadmin:latest</code> container,
+which starts a phpMyAdmin web server.  Importantly, a <code className="jarombek-inline-code">PMA_ARBITRARY</code>
+environment variable on the container is given a value of <code className="jarombek-inline-code">1</code>.  This
+determines that any arbitrary MySQL database can be accessed from phpMyAdmin<sup>1</sup>.  The alternative is to
+make phpMyAdmin purpose-built for a single MySQL database.
+</p>
+<p>
+The remainder of the infrastructure deals with networking and setting up a domain name for the phpMyAdmin server.  You
+can view it in the <a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/database-client/main.tf">
+main.tf</a> file, and read more about how this setup works in my <a href="https://jarombek.com/blog/
+oct-25-2021-saints-xctf-v2-k8s-infrastructure">SaintsXCTF Kubernetes Infrastructure</a> article.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Creating a phpMyAdmin server on Kubernetes is a quick way to administer a MySQL database.  It can be spun up and down at
+a moments notice, and provides similar functionality to a desktop IDE application.  All the code discussed in this
+article is available on <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/database-client">
+GitHub</a>.
+</p>
+</div>

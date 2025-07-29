@@ -1,0 +1,2826 @@
+/**
+ * Script for the MongoDB Shell.
+ * @author Andrew Jarombek
+ * @since 1/9/2022
+ */
+
+connection = new Mongo();
+db = connection.getDB("jarombekcom");
+
+content = [
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Over the last six months, I’ve ued Apache Airflow extensively at work.  Airflow is a platform and framework for building and automating data pipelines",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"1",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Airflow data pipelines are written in Python and interoperate with many different technologies, such as databases, cloud platforms, containers, and more.  Often, Airflow is used in  the realms of data analytics and machine learning. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" While Airflow data pipelines are written in Python, the software they automate and schedule do not need to be Python related.  Nonetheless, the fact that Airflow's language is Python makes data pipelines highly configurable and customizable. Since Python is very popular and simpler to learn compared to other languages, most engineers will be able to work with Airflow easily. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" There are three main objectives in this article: introducing the basic concepts of Airflow, creating an Airflow development environment, and exploring basic Airflow pipelines.  The code discussed in this article is available on ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"GitHub",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"sectiontitle",
+        "attributes":{
+            "title":"Airflow Concepts"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"Airflow Concepts",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"definition",
+        "attributes":{
+            "word":"Airflow"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Airflow is a platform and framework for building, automating, and scheduling data pipelines",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"2",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Data pipelines in Airflow are known as workflows or Directed Acyclic Graphs (DAGs).  Airflow DAGs are configured as code using Python, and can be run ad hoc or on a schedule.  The Airflow platform creates an execution and scheduling environment for DAGs, which are viewable from a web interface. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The main objective of Airflow is to run DAGs either manually or based on a schedule. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"definition",
+        "attributes":{
+            "word":"Airflow DAG"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" A Directed Acyclic Graph (DAG), also referred to as a data pipeline or workflow, is a graph of tasks which is run manually or based on a schedule.  Since DAGs are acyclic, the graph of tasks in a DAG can’t contain any cycles, but can branch and converge as needed.  Airflow DAGs are written and configured in Python.  DAGs contain information such as a list of tasks, the execution order (graph) of the tasks, an execution schedule, and additional metadata. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" An Airflow DAG, as seen from the Airflow UI, is shown below.  This DAG contains three tasks. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-dag.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"definition",
+        "attributes":{
+            "word":"Airflow Task"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" In Airflow, tasks are the smallest unit of execution",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"3",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Tasks are units within a DAG, with upstream and downstream dependencies.  These upstream and downstream dependencies are other tasks in the DAG.  Tasks can perform simple operations such as running a Python function or Bash script, or more complex operations like running a Docker container.  There are many different types of tasks, which are created using Airflow Operators.  Operators are templates for building tasks; for example, a ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"PythonOperator",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is used to create a task that runs a Python function",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"4",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The Airflow platform consists of multiple components; most importantly, Airflow consists of a web server, scheduler, and metastore. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"comparisontable",
+        "attributes":{
+            "title":"Airflow Components"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"comparisontableentry",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"h5",
+                        "attributes":{
+                            "className":"jarombek-cte-title"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":" Web Server ",
+                                "children":null
+                            }
+                        ]
+                    },
+                    {
+                        "el":"div",
+                        "attributes":{
+                            "className":"jarombek-cte-body"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"p",
+                                "attributes":null,
+                                "value":null,
+                                "children":[
+                                    {
+                                        "el":"#text",
+                                        "attributes":null,
+                                        "value":" In Airflow, the web server is the UI in which users can view and trigger DAGs. The web server is also helpful for viewing DAG run results and debugging DAGs by looking through execution logs. ",
+                                        "children":null
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"comparisontableentry",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"h5",
+                        "attributes":{
+                            "className":"jarombek-cte-title"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":" Scheduler ",
+                                "children":null
+                            }
+                        ]
+                    },
+                    {
+                        "el":"div",
+                        "attributes":{
+                            "className":"jarombek-cte-body"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"p",
+                                "attributes":null,
+                                "value":null,
+                                "children":[
+                                    {
+                                        "el":"#text",
+                                        "attributes":null,
+                                        "value":" The Airflow scheduler is a constantly running program that monitors all DAGs in the Airflow environment",
+                                        "children":null
+                                    },
+                                    {
+                                        "el":"sup",
+                                        "attributes":null,
+                                        "value":"5",
+                                        "children":null
+                                    },
+                                    {
+                                        "el":"#text",
+                                        "attributes":null,
+                                        "value":". Python DAG files exist in a specific directory in the Airflow environment, and the scheduler is responsible for parsing these DAG files and storing information about them within the Airflow metastore.  The scheduler also checks if DAGs and tasks within DAGs are eligible for execution.  When tasks are eligible for execution, the scheduler places them in a queued state, and then executes them",
+                                        "children":null
+                                    },
+                                    {
+                                        "el":"sup",
+                                        "attributes":null,
+                                        "value":"6",
+                                        "children":null
+                                    },
+                                    {
+                                        "el":"#text",
+                                        "attributes":null,
+                                        "value":".  In many ways, the scheduler is the heart of the Airflow platform. ",
+                                        "children":null
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "el":"comparisontableentry",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"h5",
+                        "attributes":{
+                            "className":"jarombek-cte-title"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"#text",
+                                "attributes":null,
+                                "value":" Metastore ",
+                                "children":null
+                            }
+                        ]
+                    },
+                    {
+                        "el":"div",
+                        "attributes":{
+                            "className":"jarombek-cte-body"
+                        },
+                        "value":null,
+                        "children":[
+                            {
+                                "el":"p",
+                                "attributes":null,
+                                "value":null,
+                                "children":[
+                                    {
+                                        "el":"#text",
+                                        "attributes":null,
+                                        "value":" The Airflow metastore holds metadata about an Airflow environment, including configuration details and DAG information. Everything that happens within the Airflow environment also exists in the metastore, including DAG run information. The metastore is a relational database, commonly MySQL or PostgreSQL.  ",
+                                        "children":null
+                                    },
+                                    {
+                                        "el":"a",
+                                        "attributes":{
+                                            "href":"https://www.astronomer.io/guides/\nairflow-database"
+                                        },
+                                        "value":null,
+                                        "children":[
+                                            {
+                                                "el":"#text",
+                                                "attributes":null,
+                                                "value":"This article",
+                                                "children":null
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "el":"#text",
+                                        "attributes":null,
+                                        "value":" provides a good high-level overview of the data stored in the metastore. ",
+                                        "children":null
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "el":"sectiontitle",
+        "attributes":{
+            "title":"Airflow Webserver Tour"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"Airflow Webserver Tour",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" After signing into the Airflow UI, the initial page displays all the DAGs in the Airflow environment. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-home.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" This list of DAGs displays basic information about each DAG, such as their execution schedules, and the results of recent runs.  It also gives options to toggle DAGs on and off (the switch to the left of the DAG name) and run DAGs (the play button in the \"Actions\" column).  Clicking on a DAG shows the following view: ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-graph-view.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Airflow DAGs have multiple views; the view shown above is called the graph view.  The graph view shows the DAG and the result of the previous run.  In this case, both tasks ran successfully, as denoted by both tasks being outlined in green.  Hovering over a task supplies more information about it, and clicking on the task provides options such as viewing the logs or re-running the task. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-graph-view-hover.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-graph-view-click.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Clicking on the \"Log\" button displays the logs for the task run, which is very useful for debugging. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-log-view.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Another useful page is the DAGs tree view.  This page shows the results of all the prior DAG runs.  In the image below, the last two runs of the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"hello_world",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" DAG are shown, both of which were successful. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-tree-view.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Airflow provides many ways to view DAGs and environment configurations, but the pages shown above are the ones I’ve found most useful these past six months. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"sectiontitle",
+        "attributes":{
+            "title":"Airflow Development Environment"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"Airflow Development Environment",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" While it is possible to run Airflow on the host machine of your development environment, a more elegant approach is to use Docker.  With Docker, you have an Airflow environment that works across different operating systems and is started with a single command.  No Airflow dependencies are needed on your host machine with this approach.  Since Airflow often has a complex setup with multiple containers, I use Docker Compose to orchestrate them. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" I’ve created multiple Airflow development environments of varying degrees of complexity.  The major difference between these environments comes down to the executor, which is the component of Airflow that runs scheduled tasks.  The three development environments I created, which can be found in my ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":" data-analytics-prototypes",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" repository, utilize ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/tree/\nmaster/Airflow/sequential-executor"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"sequential",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/\ntree/master/Airflow/local-executor"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"local",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", and ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/\ntree/master/Airflow/celery-executor"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"celery",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" executors. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The simplest executor is the sequential executor, which is not recommended for production usage.  Even for development use it can become a bottleneck because it runs tasks sequentially, one at a time.  However, when you are just getting started, the sequential executor is likely sufficient. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The configuration for the sequential executor local environment consists of a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/\ndata-analytics-prototypes/blob/master/Airflow/sequential-executor/Dockerfile"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"Dockerfile",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/blob/master/Airflow/sequential-executor/\ndocker-compose.yml"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"docker-compose.yml",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file.  The contents of these files are shown below. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"Dockerfile"
+        },
+        "value":"# Dockerfile\n\nFROM apache/airflow:2.2.0-python3.8\n\nRUN airflow db init \\\n    && airflow users create --username admin --password admin --firstname Anonymous --lastname Admin --role Admin --email admin@example.org\n",
+        "children":null
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"YAML"
+        },
+        "value":"# docker-compose.yml\n\nversion: '3.8'\n\nx-environment: &airflow_environment\n  - AIRFLOW__CORE__EXECUTOR=SequentialExecutor\n  - AIRFLOW__CORE__LOAD_EXAMPLES=False\n  - AIRFLOW__CORE__STORE_DAG_CODE=True\n  - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True\n  - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True\n  - _PIP_ADDITIONAL_REQUIREMENTS=apache-airflow-providers-postgres==2.3.0\n\nservices:\n  airflow:\n    build:\n      dockerfile: Dockerfile\n      context: .\n    environment: *airflow_environment\n    ports:\n      - \"8080:8080\"\n    volumes:\n      - logs:/opt/airflow/logs\n      - ../dags:/opt/airflow/dags\n    networks:\n      - airflow-net\n    entrypoint: /bin/bash\n    command: -c 'airflow webserver & airflow scheduler'\n\nvolumes:\n  logs:\n\nnetworks:\n  airflow-net:\n    driver: bridge\n",
+        "children":null
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The Docker Compose file runs a container based on the Dockerfile.  With this setup, a simple ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"docker-compose up",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" command from the command line will start the Airflow server. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Let’s go over these files in a bit more detail.  The ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"Dockerfile",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" uses an official Airflow image, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"apache/airflow:2.2.0-python3.8",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", as its base image.  The ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"RUN",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" command initializes the Airflow metastore database (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"airflow db init",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":") and creates a user that can sign into the Airflow webserver (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"airflow users create",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":").  For the sequential executor, the Airflow metastore uses SQLite as its database engine. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"docker-compose.yml",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file runs a single ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"airflow",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" service using the ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"Dockerfile",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", as specified by ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"dockerfile: Dockerfile",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  The ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"airflow",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" service starts a container, executing a  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"airflow webserver & airflow scheduler",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" command.  This command starts the Airflow webserver in the background and the Airflow scheduler in the foreground.  The Airflow webserver is exposed on port ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"8080",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", and accessible locally at ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"http://localhost:8080/",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" There are two volumes attached to the container.  Volume number one is a location to hold Airflow logs, specified by ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"logs:/opt/airflow/logs",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Volume number two is a location in my local filesystem holding Airflow DAGs, specified by ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"../dags:/opt/airflow/dags",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  The relative path from my ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow/\nsequential-executor"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"docker-compose.yml",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" file to my ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/\ntree/master/Airflow/dags"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"dags",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" directory is ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"../dags",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  This ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"dags",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" directory is mounted on the container within ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"/opt/airflow/dags",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", a directory that the Airflow scheduler reads DAGs from. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The Docker Compose setup also includes environment variables that configure Airflow.  These environment variables are defined under ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"x-environment: &airflow_environment",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and are attached to the container with the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"environment: *airflow_environment",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" configuration. ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"AIRFLOW__CORE__EXECUTOR",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" sets the type of executor that Airflow uses. Setting ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"AIRFLOW__CORE__LOAD_EXAMPLES=False",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" tells Airflow to exclude example DAGs from the Airflow environment; Airflow loads example DAGs for reference by default.  Setting ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"AIRFLOW__CORE__STORE_DAG_CODE=True",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" stores DAG files in the Airflow metastore and setting ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" serializes the DAGs when storing them in the metastore.  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" allows users to view the Airflow configuration from the web server. ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"_PIP_ADDITIONAL_REQUIREMENTS",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is used to install additional Python dependencies in the Airflow environment.  In my case, I install a single additional dependency, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"apache-airflow-providers-postgres",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  This library supplies Airflow operators (templates for Airflow tasks) that work with a PostgreSQL database. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Development environments using the local executor and the celery executor build upon the Docker configuration for the sequential executor.  The local executor operates on a single machine, similar to the sequential executor.  However, unlike the sequential executor which runs only one task at a time, the local executor runs multiple tasks in parallel",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"7",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  The celery executor not only runs tasks in parallel, but can also distribute tasks across multiple machines. The ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/blob/master/Airflow/\nlocal-executor/docker-compose.yml"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"local executor environment",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and the ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/\ndata-analytics-prototypes/blob/master/Airflow/celery-executor/docker-compose.yml"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"celery executor environment",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Docker Compose files are available on GitHub. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"sectiontitle",
+        "attributes":{
+            "title":"Basic Airflow Pipelines"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"Basic Airflow Pipelines",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Let’s shift our attention to building pipelines (DAGs) in Airflow.  All the DAGs in my Airflow environment exist in a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow/dags"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"dags",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" directory.  To follow along, you can run a ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"docker-compose up",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" command from the ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow/sequential-executor"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":" Airflow/sequential-executor",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" directory of my repository and navigate to ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"http://localhost:8080/",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" in a web browser. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" To get started, here is a ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/blob/master/Airflow/\ndags/hello_world.py"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"\"Hello World\" style DAG",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" that contains two simple tasks. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"Python"
+        },
+        "value":"from datetime import datetime, timedelta\n\nfrom airflow import DAG\nfrom airflow.operators.bash import BashOperator\nfrom airflow.operators.python import PythonOperator\nfrom airflow.utils.dates import days_ago\n\n\ndefault_args = {\n    'owner': 'airflow',\n    'depends_on_past': False\n}\n\n\ndef task():\n    print(f\"The current time is {datetime.now().strftime('%b. %d, %Y %-I:%M %p UTC')}\")\n\n\nwith DAG(\n    dag_id=\"hello_world\",\n    description=\"A hello world DAG which shows the basic execution flow of Airflow\",\n    default_args=default_args,\n    dagrun_timeout=timedelta(hours=2),\n    start_date=days_ago(1),\n    schedule_interval=None,\n    default_view=\"graph\",\n    tags=[\"sample\", \"python\", \"bash\"]\n) as dag:\n    bash_task = BashOperator(task_id='bash_task', bash_command='echo \"Hello from Airflow!\"')\n    python_task = PythonOperator(task_id='python_task', python_callable=task)\n\n    bash_task >> python_task\n",
+        "children":null
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-hello-world-dag.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Airflow contains a ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"DAG",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" class, which is used to create a DAG.  One way to initialize a DAG is the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"with DAG(...) as dag:",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" syntax, as shown in the code above. Nested inside the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"with",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" statement, Airflow Tasks are defined which are part of the DAG.  The DAG above has two tasks: ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"bash_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"python_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"bash_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" runs a Bash script, and ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"python_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" runs a Python function.  The order in which these tasks are run is defined with the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"bash_task >> python_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" operator syntax.  This line says that ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"bash_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" runs first, followed by ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"python_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  More details about the order between tasks (task relationships) can be found in the ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://airflow.apache.org/docs/apache-airflow/stable/concepts/\ntasks.html#relationships"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"Airflow documentation",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"bash_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is created with ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"BashOperator()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"BashOperator()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" takes a ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"bash_command",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" argument containing a command to run in a Bash shell.  The command, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"echo \"Hello from Airflow!\"'",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" prints \"Hello from Airflow!\" to the Airflow logs.  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"python_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is created with ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"PythonOperator()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"PythonOperator()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" takes a ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"python_callable",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" argument, which is a Python function.  The Python function, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"task()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", prints out the current time to the Airflow logs. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"DAG()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" initializer takes arguments which configure the DAG.  The DAG is given the name ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"hello_world",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"dag_id=\"hello_world\"",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"), provided a description (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"description=\"...\"",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"), and given default arguments (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"default_args=default_args",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":").  Default arguments are  passed along to all the tasks within a DAG",
+                "children":null
+            },
+            {
+                "el":"sup",
+                "attributes":null,
+                "value":"8",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  Similar to DAGs, tasks take arguments to alter their configuration. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The DAG is also given a timeout of two hours (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"dagrun_timeout=timedelta(hours=2)",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":").  If the DAG runs for more than two hours before completing, the DAG is stopped and marked as a failure.  The DAG is not given a schedule interval, meaning that it does not get triggered on any specified time (",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"schedule_interval=None",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":").  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"default_view=\"graph\"",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" means that when clicking on the DAG in the Airflow web server, the graph view is shown by default (as shown in the image above). ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"tags=[\"sample\", \"python\", \"bash\"]",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" attaches three tags to the DAG.  Tags are searchable in the DAG list page of the web server, allowing you to easily find data pipelines as the number of DAGs grows.  For example, the following screenshot shows the result of me filtering by the \"python\" tag. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-tag-search.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Now let’s look at a slightly more complex DAG.  A ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"branch",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" DAG is shown below. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"codesnippet",
+        "attributes":{
+            "language":"Python"
+        },
+        "value":"from datetime import timedelta, datetime\n\nfrom airflow import DAG\nfrom airflow.operators.python import PythonOperator, BranchPythonOperator\nfrom airflow.utils.dates import days_ago\n\n\ndef branch():\n    if datetime.now().weekday() >= 5:\n        return 'weekend_task'\n    else:\n        return 'weekday_task'\n\n\ndef weekend():\n    print(\n        \"Schedule:\\n\"\n        \"8 AM - 12 PM: Run & Workout\\n\"\n        \"12 PM - 10 PM: Code & Relax\"\n    )\n\n\ndef weekday():\n    print(\n        \"Schedule:\\n\"\n        \"6 AM - 9 AM: Run & Workout\\n\"\n        \"9 AM - 5 PM: Work\\n\"\n        \"5 PM - 10 PM: Code & Relax\"\n    )\n\n\ndefault_args = {\n    'owner': 'airflow',\n    'depends_on_past': False\n}\n\n\nwith DAG(\n    dag_id=\"branch\",\n    description=\"A DAG that branches\",\n    default_args=default_args,\n    dagrun_timeout=timedelta(hours=2),\n    start_date=days_ago(1),\n    schedule_interval=\"@daily\",\n    default_view=\"graph\",\n    is_paused_upon_creation=False,\n    tags=[\"sample\", \"branch\", \"python\"]\n) as dag:\n    branch_task = BranchPythonOperator(task_id='branch', python_callable=branch)\n    weekend_task = PythonOperator(task_id='weekend_task', python_callable=weekend)\n    weekday_task = PythonOperator(task_id='weekday_task', python_callable=weekday)\n\n    branch_task >> [weekend_task, weekday_task]\n",
+        "children":null
+    },
+    {
+        "el":"inlineimage",
+        "attributes":{
+            "filename":"1-17-22-airflow-branch-dag.png",
+            "paddingtop":"true",
+            "paddingbottom":"true"
+        },
+        "value":null,
+        "children":[
+
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" This DAG contains three tasks, all of which run Python functions.  The DAG is configured similar to the ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"hello_world",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" DAG, except that there is now a schedule interval.  The interval ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"\"@daily\"",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" says that the DAG is automatically triggered every day.  Airflow provides different types of schedule intervals; specifically, there are preset, cron, and frequency intervals. ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"@daily",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is a preset interval; other examples of preset intervals include ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"@hourly",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"@weekly",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", and ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"@monthly",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  I have example DAGs of ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/\ndata-analytics-prototypes/blob/master/Airflow/dags/scheduled_preset.py"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"preset",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/\nAJarombek/data-analytics-prototypes/blob/master/Airflow/dags/scheduled_cron.py"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"cron",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":", and ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/blob/master/Airflow/dags/scheduled_frequency.py"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":" frequency",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" intervals in my GitHub repository. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" The other major difference between the ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"hello_world",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" DAG and the ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"branch",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" DAG is that the tasks in ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"branch",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" follow a branching pattern.  That is, a task in the DAG has two downstream tasks, creating a branch in the task dependency tree.  In the ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"branch",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" DAG, the ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"branch_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" task has two downstream tasks: ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"weekend_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" and ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"weekday_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  This relationship is defined by the line ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"branch_task >> [weekend_task, weekday_task]",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" I also introduced a new operator in this DAG: ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"BranchPythonOperator()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"BranchPythonOperator()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" runs a Python function that returns the name of a single task or a list of tasks.  The tasks returned by the Python function are triggered as downstream dependencies of the current task.  ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"BranchPythonOperator()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" provides flexibility to DAGs, allowing tasks to be triggered conditionally. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" In my ",
+                "children":null
+            },
+            {
+                "el":"strong",
+                "attributes":null,
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"branch",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" DAG, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"BranchPythonOperator()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" takes a ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"python_callable",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" argument with the value of a ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"branch()",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" function.  This function returns the task name ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"weekend_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" if the current day is a weekend, otherwise it returns the task name ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"weekday_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":".  In other words, ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"weekend_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is triggered on weekends, while ",
+                "children":null
+            },
+            {
+                "el":"code",
+                "attributes":{
+                    "className":"jarombek-inline-code"
+                },
+                "value":"weekday_task",
+                "children":null
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" is triggered on weekdays. ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Airflow provides too many options for configuring workflows to discuss in a single article, let alone an entire book. The ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://airflow.apache.org/docs/apache-airflow/stable/index.html"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"Airflow documentation",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" has a lot of useful information for working with Airflow.  If you are looking to truly master Airflow, I recommend reading the book ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://www.manning.com/books/data-pipelines-with-apache-airflow"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"Data Pipelines with Apache Airflow",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"sectiontitle",
+        "attributes":{
+            "title":"Conclusions"
+        },
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":"Conclusions",
+                "children":null
+            }
+        ]
+    },
+    {
+        "el":"p",
+        "attributes":null,
+        "value":null,
+        "children":[
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":" Airflow is a useful platform for building data pipelines.  It’s been production-tested, handling data workloads at large companies in the software engineering industry.  All the code shown in this article is available on ",
+                "children":null
+            },
+            {
+                "el":"a",
+                "attributes":{
+                    "href":"https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow"
+                },
+                "value":null,
+                "children":[
+                    {
+                        "el":"#text",
+                        "attributes":null,
+                        "value":"GitHub",
+                        "children":null
+                    }
+                ]
+            },
+            {
+                "el":"#text",
+                "attributes":null,
+                "value":". ",
+                "children":null
+            }
+        ]
+    }
+];
+
+preview = content.slice(0, 2);
+
+postName = "jan-17-2022-airflow";
+postDate = new Date('2022-01-17T12:00:00');
+existingPost = db.posts.findOne({name: postName});
+
+postViews = (existingPost) ? existingPost.views : 0;
+
+db.posts.remove({name: postName});
+db.posts_content.remove({name: postName});
+
+db.posts.insertOne({
+    name: postName,
+    title: "Learning the Basics of Apache Airflow",
+    description: `There are three main objectives to this article: introducing the basic concepts of Airflow, creating 
+        an Airflow development environment, and exploring basic Airflow pipelines.`,
+    date: postDate,
+    type: "Discovery",
+    views: postViews,
+    tags: [
+        {
+            name: "Airflow",
+            picture: "https://asset.jarombek.com/logos/airflow.png",
+            color: "airflow"
+        },
+        {
+            name: "Python",
+            picture: "https://asset.jarombek.com/logos/python.png",
+            color: "python"
+        }
+    ],
+    preview,
+    previewString: JSON.stringify(preview),
+    sources: [
+        {
+            startName: "Bas Harenslak & Julian de Ruiter, ",
+            endName: " (Shelter Island, NY: Manning, 2021), 3",
+            linkName: "Data Pipelines with Apache Airflow",
+            link: "https://www.manning.com/books/data-pipelines-with-apache-airflow"
+        },
+        {
+            startName: "\"Apache Airflow Documentation\", ",
+            endName: "",
+            linkName: "https://airflow.apache.org/docs/apache-airflow/stable/index.html",
+            link: "https://airflow.apache.org/docs/apache-airflow/stable/index.html"
+        },
+        {
+            startName: "\"Tasks\", ",
+            endName: "",
+            linkName: "https://airflow.apache.org/docs/apache-airflow/stable/concepts/tasks.html",
+            link: "https://airflow.apache.org/docs/apache-airflow/stable/concepts/tasks.html"
+        },
+        {
+            startName: "\"Operators\", ",
+            endName: "",
+            linkName: "https://airflow.apache.org/docs/apache-airflow/stable/concepts/operators.html",
+            link: "https://airflow.apache.org/docs/apache-airflow/stable/concepts/operators.html"
+        },
+        {
+            startName: "\"Scheduler\", ",
+            endName: "",
+            linkName: "https://airflow.apache.org/docs/apache-airflow/stable/concepts/scheduler.html",
+            link: "https://airflow.apache.org/docs/apache-airflow/stable/concepts/scheduler.html"
+        },
+        {
+            startName: "",
+            endName: ", 286",
+            linkName: "Harenslak.",
+            link: "https://www.manning.com/books/data-pipelines-with-apache-airflow"
+        },
+        {
+            startName: "",
+            endName: ", 284",
+            linkName: "Harenslak.",
+            link: "https://www.manning.com/books/data-pipelines-with-apache-airflow"
+        },
+        {
+            startName: "\"Tutorial: Default Arguments\", ",
+            endName: "",
+            linkName: "https://airflow.apache.org/docs/apache-airflow/stable/tutorial.html#default-arguments",
+            link: "https://airflow.apache.org/docs/apache-airflow/stable/tutorial.html#default-arguments"
+        }
+    ]
+});
+
+db.posts_content.insertOne({
+    name: postName,
+    date: postDate,
+    content,
+    contentString: JSON.stringify(content)
+});

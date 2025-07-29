@@ -1,0 +1,257 @@
+<div>
+<p>
+In my <a href="https://jarombek.com/blog/may-28-2019-haskell-pt6">last Haskell Article</a> I discussed
+functors, which provide a generic way to map functions over values.  In this article I'm exploring
+applicatives, which build on top of functors.  After discussing applicatives in Haskell, I'll try
+implementing them in Java.
+</p>
+<SectionTitle title="Applicative Basics">Applicative Basics</SectionTitle>
+<p>
+As I mentioned, applicatives take the concepts of functors and builds upon them.  Applicatives are so
+closely related to functors that they are often referred to as applicative functors<sup>1</sup>.
+Functors provide the ability to map a function across every value in a type.  Remember that the
+functor type class defines a single function <code className="jarombek-inline-code">fmap</code> like so:
+</p>
+<CodeSnippet language="Haskell">
+class Functor f where
+  fmap :: (a -> b) -> f a -> f b
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">fmap</code> takes a function of type <code className="jarombek-inline-code">
+(a -> b)</code> and applies it to a value of type <code className="jarombek-inline-code">f a</code>, resulting
+in a value of type <code className="jarombek-inline-code">f b</code>.  While <code className="jarombek-inline-code">
+fmap</code> has many use cases, it also has a limitation - its first argument is a function that can only
+have a single argument of its own (<code className="jarombek-inline-code">a</code>).  Applicatives alleviate
+this problem.
+</p>
+<Definition word="Applicative">
+An applicative (also known as an applicative functor) allows a function that takes any number of
+arguments to be mapped over the values in a type.  Applicatives in Haskell are defined by an
+<code className="jarombek-inline-code">Applicative</code> type class, which extends the
+<code className="jarombek-inline-code">Functor</code> type class.
+</Definition>
+<p>
+The <code className="jarombek-inline-code">Applicative</code> type class defines at least two functions -
+<code className="jarombek-inline-code">pure</code> and <code className="jarombek-inline-code">(&lt;*&gt;)</code><sup>2</sup>.
+</p>
+<CodeSnippet language="Haskell">
+class Functor f => Applicative f where
+  pure :: a -> f a
+  (<*>) :: f (a -> b) -> f a -> f b
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">pure</code> takes a value of any type and transforms it into a value
+whose type is an <code className="jarombek-inline-code">Applicative</code>.  The
+<code className="jarombek-inline-code">Applicative</code> type is a container holding the original value.  For
+example, when making <code className="jarombek-inline-code">Maybe</code> an instance of
+<code className="jarombek-inline-code">Applicative</code>, <code className="jarombek-inline-code">pure</code> is defined
+as <code className="jarombek-inline-code">pure x = Just x</code>.  In this context <code className="jarombek-inline-code">
+pure</code> wraps any value inside a <code className="jarombek-inline-code">Just</code> container value.
+</p>
+<p>
+<code className="jarombek-inline-code">(&lt;*&gt;)</code> (pronounced "ap" or "apply"<sup>3</sup>) is a
+generalized function application where the function and arguments are functors.  Function application
+is simply applying a function to an argument, so <code className="jarombek-inline-code">(&lt;*&gt;)</code> applies
+the function <code className="jarombek-inline-code">f (a -> b)</code> to the argument <code className="jarombek-inline-code">f a</code>.
+</p>
+<p>
+With these two building blocks, applicative functors are created which allow a function of variable argument
+length to be mapped over the values in a type.  The following code defines the <code className="jarombek-inline-code">
+Maybe</code> type as an instance of <code className="jarombek-inline-code">Applicative</code>.
+</p>
+<CodeSnippet language="Haskell">
+instance Applicative Maybe where
+  -- pure :: a -> Maybe a
+  pure x = Just x
+
+  -- (<*>) :: Maybe (a -> b) -> Maybe a -> Maybe b
+  Nothing <*> _ = Nothing
+  (Just g) <*> mx = fmap g mx
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">pure</code> wraps a value in the <code className="jarombek-inline-code">Just</code>
+constructor function.  <code className="jarombek-inline-code">Just</code> is a constructor function for the
+<code className="jarombek-inline-code">Maybe</code> type, which is an instance of <code className="jarombek-inline-code">
+Applicative</code> and <code className="jarombek-inline-code">Functor</code>.  <code className="jarombek-inline-code">Just
+</code> represents success in the <code className="jarombek-inline-code">Maybe</code> type while
+<code className="jarombek-inline-code">Nothing</code> represents failure.
+</p>
+<p>
+<code className="jarombek-inline-code">&lt;*&gt;</code> (apply) maps a <code className="jarombek-inline-code">Maybe</code>
+value to a <code className="jarombek-inline-code">Maybe</code> function.  If the function is equal to
+<code className="jarombek-inline-code">Nothing</code>, the apply function propagates the failure by returning
+<code className="jarombek-inline-code">Nothing</code>.  If the function is wrapped inside
+<code className="jarombek-inline-code">Just</code>, <code className="jarombek-inline-code">fmap</code> is called with
+the function and value as arguments.  Here are some basic examples that utilize the
+<code className="jarombek-inline-code">pure</code> and <code className="jarombek-inline-code">(&lt;*&gt;)</code>
+functions with the <code className="jarombek-inline-code">Maybe</code> type.
+</p>
+<CodeSnippet language="Haskell">
+
+-- Testing the pure function defined in the Applicative type class
+print $ (pure :: a -> Maybe a) 1 -- Just 1
+print $ (pure :: a -> Maybe a) (Just 1 :: Maybe Int) -- Just (Just 1)
+
+let pure_maybe = pure :: a -> Maybe a
+print $ pure_maybe 1 -- Just 1
+print $ pure_maybe 12.31 -- Just 12.31
+print $ pure_maybe (Just 2) -- Just (Just 2)
+
+-- Testing pure combined with <*> for a Functor with a single argument
+print $ pure (+1) <*> Just 1 -- Just 2
+print $ pure (*3) <*> Just 2 -- Just 6
+print $ pure (+1) <*> Nothing -- Nothing
+
+-- Testing pure combined with <*> for a Functor with two arguments
+print $ pure (+) <*> Just 1 <*> Just 3 -- Just 4
+print $ pure (+) <*> Nothing <*> Just 3 -- Nothing
+print $ pure (+) <*> Just 3 <*> Nothing -- Nothing
+</CodeSnippet>
+<p>
+Another cool implementation of the <code className="jarombek-inline-code">Applicative</code> type class involves lists.
+</p>
+<CodeSnippet language="Haskell">
+instance Applicative [] where
+  -- pure :: a -> [a]
+  pure x = [x]
+
+  -- (<*>) :: Maybe [a -> b] -> [a] -> [b]
+  fs <*> xs = [f x | f <- fs, x <- xs]
+
+main :: IO ()
+main = do
+  -- Testing Applicative List []
+  let pure_list = pure :: a -> [a]
+  print $ pure_list 1 -- [1]
+  print $ pure_list "Andy" -- ["Andy"]
+  print $ pure_list (Just 1) -- [Just 1]
+  print $ pure_list (+1) <*> [1,2,3] -- [2,3,4]
+  print $ [(+1), (*10)] <*> [1,2,3] -- [2,3,4,10,20,30]
+</CodeSnippet>
+<SectionTitle title="Why is the Applicative Type Class Needed">Why is the Applicative Type Class Needed?</SectionTitle>
+<p>
+Applicatives are an enhancement on top of functors.  While <code className="jarombek-inline-code">fmap</code> functions
+can perform the same tasks as applicatives, their implementation is cumbersome and doesn't scale<sup>4</sup>.
+</p>
+<p>
+The two functions defined in the <code className="jarombek-inline-code">Applicative</code> type class can be
+used to create <code className="jarombek-inline-code">fmap</code> functions with any number of arguments.  For
+example, I created the following functor type classes where <code className="jarombek-inline-code">fmap</code>
+maps a function with zero, one, and two arguments to every value in a type:
+</p>
+<CodeSnippet language="Haskell">
+
+-- Type class for a functor with zero arguments.  Simply wraps a value in a type that is an instance of Functor.
+class Functor0 f where
+  fmap0 :: a -> f a
+
+-- Type class for a functor with a single argument.  This is equivalent to the normal fmap function and Functor type.
+class Functor1 f where
+  fmap1 :: (a -> b) -> f a -> f b
+
+-- Type class for a functor with two arguments.
+class Functor2 f where
+  fmap2 :: (a -> b -> c) -> f a -> f b -> f c
+</CodeSnippet>
+<p>
+I made the <code className="jarombek-inline-code">Maybe</code> type an instance of <code className="jarombek-inline-code">
+Functor0</code>, <code className="jarombek-inline-code">Functor1</code>, and <code className="jarombek-inline-code">
+Functor2</code> using <code className="jarombek-inline-code">pure</code> and <code className="jarombek-inline-code">(&lt;*&gt;)</code>.
+</p>
+<CodeSnippet language="Haskell">
+
+-- Make Maybe an instance of a functor that maps a function with zero arguments.
+instance Functor0 Maybe where
+  -- fmap0 :: a -> f a
+  -- fmap0 x = Just x
+  fmap0 x = pure x
+
+-- Make Maybe an instance of a functor that maps a function with one argument.
+instance Functor1 Maybe where
+  -- fmap1 :: (a -> b) -> f a -> f b
+  -- fmap1 f x = fmap f x
+  fmap1 f x = pure f <*> x
+
+-- Make Maybe an instance of a functor that maps a function with two arguments.
+instance Functor2 Maybe where
+  -- fmap2 :: (a -> b -> c) -> f a -> f b -> f c
+  fmap2 f x y = pure f <*> x <*> y
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">fmap0</code> is functionally equivalent to <code className="jarombek-inline-code">
+pure</code>, wrapping a value in a functor type.  <code className="jarombek-inline-code">fmap1</code> is
+equivalent to the <code className="jarombek-inline-code">fmap</code> function in the <code className="jarombek-inline-code">
+Functor</code> type class.  <code className="jarombek-inline-code">fmap2</code> takes two values and applies
+them to a function which takes two arguments.  The functionality of these three functions can be seen in
+the following examples:
+</p>
+<CodeSnippet language="Haskell">
+print $ (fmap0 :: a -> Maybe a) 1 -- Just 1
+print $ fmap1 (+1) (Just 1) -- Just 2
+print $ fmap1 (+1) Nothing -- Nothing
+print $ fmap2 (+) (Just 2) (Just 2) -- Just 4
+print $ fmap2 (+) Nothing (Just 2) -- Nothing
+print $ fmap2 (+) (Just 2) Nothing -- Nothing
+</CodeSnippet>
+<p>
+Instead of defining functor type classes for every number of arguments, we can simply chain any number of
+<code className="jarombek-inline-code">(&lt;*&gt;)</code> functions as seen in <code className="jarombek-inline-code">
+fmap2</code>.  For this reason, the <code className="jarombek-inline-code">Applicative</code> type class is
+used instead of different versions of the <code className="jarombek-inline-code">fmap</code> function.
+</p>
+<SectionTitle title="Applicatives in Java">Applicatives in Java</SectionTitle>
+<p>
+Unlike Functors, Applicatives can't be expressed in Java<sup>5</sup>.  This is because Java types lack
+Higher-Kinded polymorphism while Haskell types have Higher-Kinded polymorphism.  In Haskell terms,
+Higher-Kinded types apply to type constructors<sup>6</sup>.
+</p>
+<Definition word="Kind">
+A Kind is the type of a type constructor<sup>7</sup>.  Haskell is a language whose type system is made up
+of kinds.  The most basic kind is denoted as <code className="jarombek-inline-code">*</code>.  This basic
+kind is called “type”<sup>8</sup>.  A more complex kind that represents a type constructor with a single
+argument is represented as <code className="jarombek-inline-code">* -> *</code>.  For example,
+<code className="jarombek-inline-code">data Maybe a  =  Nothing | Just a</code> is a single argument type constructor.
+</Definition>
+<Definition word="Higher-Kinded Types">
+A Higher-Kinded Type is a type that takes another type as an argument and constructs a new type<sup>9</sup>.
+In the same way a higher-order function takes functions as arguments and returns a function, higher-kinded
+types take type constructors as arguments and return a new type<sup>10</sup>.  An example of a
+higher-kinded type is <code className="jarombek-inline-code">(* -> *) -> * -> *</code>.  In Haskell this could
+be represented as <code className="jarombek-inline-code">data HKT f a = HKT (f a)</code><sup>11</sup>.
+</Definition>
+<p>
+If you want to check out the kinds of type constructors in Haskell you can use the
+<code className="jarombek-inline-code">:k</code> command in GHCI.
+</p>
+<CodeSnippet language="Bash">
+ghci
+
+:k Maybe
+# Maybe :: * -> *
+
+:k []
+# [] :: * -> *
+
+:k Either
+# Either :: * -> * -> *
+
+:k Functor
+# Functor :: (* -> *) -> Constraint
+
+:k Applicative
+# Applicative :: (* -> *) -> Constraint
+</CodeSnippet>
+<p>
+In my research I've seen evidence that Applicatives can be expressed in C#.  Perhaps that will be the topic
+of a future article.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Applicatives are a complex topic in functional programming and I'm still trying to wrap my brain around all
+their intricacies.  If you are reading this article to assist your own understanding of applicatives, I
+recommend reading many different articles on the topic along with writing code samples yourself.  Each
+article will add a piece to the puzzle in understanding applicatives.  In my next Haskell article I'll
+discuss monads!  All the code from this article is available on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2019/08-Aug/08-03-haskell-pt7">GitHub</a>.
+</p>
+</div>

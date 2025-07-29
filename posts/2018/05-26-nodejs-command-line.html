@@ -1,0 +1,264 @@
+<div>
+<p>
+Recently while working on my website I made a command line tool in Node.js.  The tool took in an
+HTML file and tokenized its contents into a JSON file.  Writing command line tools with Node.js sounds 
+complicated at first but is actually incredibly simple!  This discovery post introduces a simple command
+line tool for generating random numbers - written in Node.js.
+</p>
+<p>
+One of the great things about the Node.js and the npm ecosystem is all the community built npm modules.  
+For command line tools there are many different modules to choose from.  In this
+discovery post I use <a href="https://github.com/tj/commander.js/">commander.js</a>.  I
+chose this module over all the others because it has no dependencies!  Less dependencies generally means more
+reliable code and less unused code.
+</p>
+<p>
+The first step for building the application is initializing the projects package.json file and setting up a 
+<code className="jarombek-inline-code">bin</code> field.
+</p>
+<CodeSnippet language="Bash">
+yarn init
+</CodeSnippet>
+<CodeSnippet language="JSON">
+{
+    "name": "5-26-NodeJS-Command-Line",
+    "version": "1.0.0",
+    "description": "Node.JS Command Line Prototype Application",
+    "main": "index.js",
+    "author": "Andrew Jarombek",
+    "license": "MIT",
+    "bin": {
+        "random": "./index.js"
+    }
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">bin</code> is an object of key value pairs.  The key is the
+name of a command and the value is the file that executes when the command is called.  Npm takes the
+key value pairs in <code className="jarombek-inline-code">bin</code> and adds the executable files (the values) to
+the systems <code className="jarombek-inline-code">PATH</code> variable<sup>1</sup>.  In Unix systems
+<code className="jarombek-inline-code">PATH</code> declares a list of directories for
+executable programs<sup>2</sup>.  In order to install this executable globally the following command is run:
+</p>
+<CodeSnippet language="Bash">
+npm install -g
+</CodeSnippet>
+<p>
+Now the executable is referenced globally throughout the filesystem by running
+<code className="jarombek-inline-code">random</code> in Bash.  Finally the commander.js
+dependency is added. Now JavaScript development can start!
+</p>
+<CodeSnippet language="Bash">
+yarn add commander
+</CodeSnippet>
+<p>
+Commander.js introduces a really nice API for building command line apps.  The API uses chained 
+methods to declare the applications functionality.  Let's go through the Node.js application piece by piece before
+displaying the entire application in full.
+</p>
+<p>
+The first line of the script must be a shebang line, otherwise the command line application won't work.
+</p>
+<CodeSnippet language="JavaScript">
+#!/usr/bin/env node --harmony
+</CodeSnippet>
+<Definition word="Shebang Line">
+<p>
+A shebang line is written to determine which interpreter is used on an executable file<sup>3</sup>.  The syntax
+consists of the <code className="jarombek-inline-code">#!</code> symbols followed by a path to an interpreter script.  The shebang
+line is used on Unix operating systems, but in different OS environments other methods are used.  For example, on
+Windows the interpreter is simply implied by the file name extension.
+</p>
+<p>
+Shebang lines are commonly used with the format <code className="jarombek-inline-code">#!/usr/bin/env</code> followed by
+the interpreter name.  This sequence uses the Unix <code className="jarombek-inline-code">env</code> command to look
+for the interpreter name in the systems <code className="jarombek-inline-code">PATH</code> variable<sup>4</sup>.
+</p>
+</Definition>
+<p>
+While the shebang line is only needed for Unix systems, its always included for cross compatibility.
+Windows OS simply ignores it<sup>5</sup>.  Also note the shebang line isn't valid JavaScript -
+<code className="jarombek-inline-code">#</code> is not a comment in JavaScript.  The JavaScript interpreter
+actually ignores this line when executing the program.
+</p>
+<p>
+I also used the <code className="jarombek-inline-code">--harmony</code> flag when specifying the
+<code className="jarombek-inline-code">node</code> interpreter.  This flag enables the use of ES6+ features.
+</p>
+<p>
+Now comes the main body of the application.  I import the commander.js module and declare the command line program:
+</p>
+<CodeSnippet language="JavaScript">
+const program = require('commander');
+
+// Help message to be displayed when using the --help option
+const helpMessage = `
+  Examples:
+    "Return a random floating point number between 0 and 1"
+    random 0 1 -t float
+
+    "Return a random integer number between 1 and 10"
+    random 1 10 -t int
+`;
+
+// Declare the command line program
+program
+    .version('1.0')
+    .arguments('&lt;start&gt; &lt;end&gt;')
+    .option('-t, --type &lt;type&gt;', 'Type of Number')
+    .action((start, end) =&gt; {
+        ...
+    })
+    .on('--help', () =&gt; {
+        console.log(helpMessage)
+    })
+    .parse(process.argv);
+</CodeSnippet>
+<p>
+The application is broken down into pieces - each piece being a chained method call.  The first method call is
+to <code className="jarombek-inline-code">version()</code>, which specifies a version number that is displayed
+when using the <code className="jarombek-inline-code">random --version</code> command.
+</p>
+<p>
+The seconds method call is to <code className="jarombek-inline-code">arguments()</code>, which specifies mandatory
+arguments users must enter when writing a command.  Two arguments are specified here -
+<code className="jarombek-inline-code">&lt;start&gt;</code> and <code className="jarombek-inline-code">&lt;end&gt;</code>.
+Remember that the command line app is for generating random numbers.  The <code className="jarombek-inline-code">
+start</code> argument specifies a lower bound the random number, and
+<code className="jarombek-inline-code">end</code> specifies an upper bound.  Later in the method chain I
+accessed these two arguments with the <code className="jarombek-inline-code">start</code> and
+<code className="jarombek-inline-code">end</code> variables respectively.
+</p>
+<p>
+Unlike <code className="jarombek-inline-code">arguments()</code> which specifies mandatory parameters,
+<code className="jarombek-inline-code">option()</code> specifies optional flags for the
+command.  Optional flags provides additional functionality for an application.  The code above specifies a flag
+declared with either <code className="jarombek-inline-code">-t</code> or
+<code className="jarombek-inline-code">--type</code> followed by a
+<code className="jarombek-inline-code">&lt;type&gt;</code> argument.  Its used to specify whether the random
+number is an integer or a floating point number.
+</p>
+<p>
+Optional flags are also accessed as variables in the <code className="jarombek-inline-code">action()</code>
+method.  The <code className="jarombek-inline-code">&lt;type&gt;</code> argument is stored in the
+<code className="jarombek-inline-code">program.type</code> variable.
+I will go over <code className="jarombek-inline-code">action()</code> in just a bit.
+</p>
+<p>
+The methods <code className="jarombek-inline-code">on()</code> and <code className="jarombek-inline-code">parse()</code> specify text to display when calling <code className="jarombek-inline-code">
+random --help</code> and to explicitly bind the programs arguments to the command line arguments
+(<code className="jarombek-inline-code">process.argv</code>).
+</p>
+<p>
+<code className="jarombek-inline-code">action()</code> contains logic to perform based on the
+command line arguments.  This is the meat of the application.
+</p>
+<CodeSnippet language="JavaScript">
+.action((start, end) => {
+
+    // Log out the arguments and optional options
+    console.log(`Start: ${start}`);
+    console.log(`End: ${end}`);
+    console.log(`Type: ${program.type}`);
+
+    // Generate the random number
+    const range = end - start;
+
+    const random = Math.random();
+    const randomInRange = random * range;
+    const randomInRangeFromStart = randomInRange + start;
+
+    // Round the random number if the int option is specified
+    if (program.type && (program.type.toLowerCase() === 'int' ||
+        program.type.toLowerCase() === 'integer')) {
+
+        console.log(Math.round(randomInRangeFromStart));
+    } else {
+        console.log(randomInRangeFromStart);
+    }
+
+})
+</CodeSnippet>
+<p>
+The code here is straightforward.  Return a random integer or floating point number within the bounds
+specified in the command line arguments.  That is all!
+</p>
+<p>
+The program is executed like so:
+</p>
+<CodeSnippet language="Bash">
+random --help
+
+random 0 1
+
+# Start: 0
+# End: 1
+# Type: undefined
+# 0.407353929118857040
+
+random 1 10 -t int
+
+# Start: 0
+# End: 10
+# Type: int
+# 4
+</CodeSnippet>
+<p>
+Easy!  The command line application I built for my website has a bit more complexity, but even that is simple
+and easy to understand.  You can check out the code for my app on
+<a href="https://github.com/AJarombek/html-tokenizer">GitHub</a>.
+</p>
+<p>
+There are many different languages command line applications can be built in.
+JavaScript running in the Node.js environment is one of them! Here is the full code for the application:
+</p>
+<CodeSnippet language="JavaScript">
+#!/usr/bin/env node --harmony
+
+const program = require('commander');
+
+// Help message to be displayed when using the --help option
+const helpMessage = `
+  Examples:
+    "Return a random floating point number between 0 and 1"
+    random 0 1 -t float
+
+    "Return a random integer number between 1 and 10"
+    random 1 10 -t int
+`;
+
+// Declare the command line program
+program
+    .version('1.0')
+    .arguments('&lt;start&gt; &lt;end&gt;')
+    .option('-t, --type &lt;type&gt;', 'Type of Number')
+    .action((start, end) =&gt; {
+
+    // Log out the arguments and optional options
+    console.log(`Start: ${start}`);
+    console.log(`End: ${end}`);
+    console.log(`Type: ${program.type}`);
+
+    // Generate the random number
+    const range = end - start;
+
+    const random = Math.random();
+    const randomInRange = random * range;
+    const randomInRangeFromStart = randomInRange + start;
+
+    // Round the random number if the int option is specified
+    if (program.type && (program.type.toLowerCase() === 'int' ||
+        program.type.toLowerCase() === 'integer')) {
+
+        console.log(Math.round(randomInRangeFromStart));
+    } else {
+        console.log(randomInRangeFromStart);
+    }
+
+    })
+    .on('--help', () =&gt; {
+        console.log(helpMessage)
+    })
+    .parse(process.argv);
+</CodeSnippet>
+</div>

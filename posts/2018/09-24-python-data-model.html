@@ -1,0 +1,232 @@
+<div>
+<p>
+This summer I started a trend of picking a different programming language each season to explore.
+The language of the summer was <a href="https://jarombek.com/blog/jul-2-2018-groovy-basics-pt1">
+Groovy</a>, which was selected because I used Groovy at work.  For the fall I’ve decided to
+deep dive into Python.  Python was the first language I learned, beginning with
+<a href="https://jarombek.com/resume">CS101</a> my freshman year of college.
+</p>
+<p>
+Python is well documented as a beginner friendly language.  It is taught at most colleges to
+<a href="https://jarombek.com/blog/sep-20-2018-intro-programming">introduce programming</a>.
+The ease of learning Python does come at a price.  Very few master the language since they
+feel there is no need to<sup>1</sup>.  The goal of dissecting Python this fall is to
+truly understand everything the core language has to offer.  To begin, I will explore Python’s data
+model.
+</p>
+<SectionTitle title="Data Model for Objects">Data Model for Objects</SectionTitle>
+<p>
+The Python data model is a meta-object protocol.  I previously discussed meta-object protocols in
+relation to <a href="https://jarombek.com/blog/sep-14-2018-groovy-dynamic">Groovy</a>.  Another
+example of a meta-object protocol is <a href="https://jarombek.com/blog/jul-1-2018-java-reflection">
+Java’s reflection API</a>.
+</p>
+<Definition word="Meta-Object Protocol">
+A meta-object protocol (MOP) is an API for a programming languages object system<sup>2</sup>.  Functions
+of a MOP include <a href="https://jarombek.com/blog/jul-1-2018-java-reflection#type-introspection">type introspection</a>
+and <a href="https://jarombek.com/blog/jul-1-2018-java-reflection#reflection">reflection</a> of objects at runtime.  This means
+you can observe and modify aspects of an object or program at runtime through the MOP.  A MOP is also
+used for method dispatch, sometimes as an internal function and other times exposed in the protocols
+API.  Languages often expose MOP methods for use in class definitions.
+</Definition>
+<p>
+Python exposes many MOP methods for use on objects.  The MOP API allows developers to create objects
+that interact with existing language features such as object construction, built-in functions, and
+operators<sup>3</sup>.  Python refers to these methods as "special methods".  You have likely seen
+them in Python code on a regular basis - they begin and end with two underscores (ex.
+<code className="jarombek-inline-code">__init__()</code>).
+</p>
+<SectionTitle title="Using Special Methods">Using Special Methods</SectionTitle>
+<p>
+I used Python's special methods in the past, but never knew they were part of the Python
+data model (aka the MOP).  I decided to test out some special methods in two classes.
+</p>
+<p>
+The first class represents a town with a name, population, date founded, and list of districts:
+</p>
+<CodeSnippet language="Python">
+class Town:
+
+    def __init__(self, name, founded, population=0, districts=list()):
+        self.name = name
+        self.founded = founded
+        self.population = population
+        self.districts = districts
+
+    def __repr__(self):
+        return 'Town of %s: Founded in %r with a Population of %r' % \
+            (self.name, self.founded, self.population)
+
+    def __len__(self):
+        return datetime.now().year - self.founded
+
+    def __getitem__(self, item):
+        return self.districts[item]
+
+    def __eq__(self, other):
+        return self.name == other.name \
+            and self.founded == other.founded \
+            and self.population == other.population \
+            and self.districts == other.districts
+</CodeSnippet>
+<p>
+I use five special methods in the <code className="jarombek-inline-code">Town</code> class definition
+- <code className="jarombek-inline-code">__init__()</code>, <code className="jarombek-inline-code">
+__repr__()</code>, <code className="jarombek-inline-code">__len__()</code>,
+<code className="jarombek-inline-code">__getitem__()</code>, and <code className="jarombek-inline-code">
+__eq__()</code>.  <code className="jarombek-inline-code">__init__()</code> is pretty self explanatory,
+it initializes a new object.  When an object constructor is called, <code className="jarombek-inline-code">
+__init__()</code> is invoked behind the scenes.
+</p>
+<CodeSnippet language="Python">
+
+greenwich = Town('Greenwich', 1640, 62396, ['Riverside', 'Cos Cob', 'Old Greenwich', 'Greenwich'])
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">__repr__()</code> is used to return a string representation of
+an object, <code className="jarombek-inline-code">__len__()</code> to get the length of an object,
+<code className="jarombek-inline-code">__getitem__()</code> to get an item at an index in an object,
+and <code className="jarombek-inline-code">__eq__()</code> to determine equality between two objects.
+</p>
+<CodeSnippet language="Python">
+# Calls to len() invoke the __len__() special method
+assert len(greenwich) == 378
+
+# Indexing an object invokes the __getitem__() special method
+assert greenwich[0] == 'Riverside'
+assert greenwich[-2] == 'Old Greenwich'
+
+# Implementing __getitem__() also allows for iteration over an object
+for district in greenwich:
+    assert district in ['Riverside', 'Cos Cob', 'Old Greenwich', 'Greenwich']
+
+# Create a second town of Rye
+rye = Town('Rye', 1660, 45928, ['Port Chester', 'Rye'])
+
+# Test out the __eq__() special method
+assert (greenwich == rye) is False
+
+greenwich_clone = deepcopy(greenwich)
+assert (greenwich == greenwich_clone) is True
+</CodeSnippet>
+<p>
+Its important to note that none of the special methods I defined are invoked directly.  All of them
+are indirectly invoked through language operators or built-in functions.  For example, the
+<code className="jarombek-inline-code">__len__()</code> special method is indirectly invoked when the
+built-in <code className="jarombek-inline-code">len()</code> function is called.
+</p>
+<p>
+The Python data model creates a standard API across all objects<sup>4</sup>.  Any object
+that implements <code className="jarombek-inline-code">__getitem__()</code> can use the languages
+indexing syntax.  To get the length of any object in Python, developers know they need to use the
+built-in <code className="jarombek-inline-code">len()</code> function.  This is a vast improvement over
+Java, where arrays use a <code className="jarombek-inline-code">length</code> property,
+<code className="jarombek-inline-code">ArrayList</code> uses a <code className="jarombek-inline-code">size()
+</code> method, and strings use a <code className="jarombek-inline-code">length()</code> method.  I had to
+search through the Java documentation just to make sure I correctly remembered all these methods
+(and Java is the language I’ve used the most!).
+</p>
+<p>
+Now I am beginning to appreciate Python’s MOP and how predictable it makes the language.  If you are
+interested, below is another class that uses special methods.  All the code from this article is
+also on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/09-Sep/
+9-24-python-data-model">GitHub</a>.
+</p>
+<CodeSnippet language="Python">
+class Run:
+
+    def __init__(self, miles=0, minutes=0, seconds=0):
+        """
+        Construct a Run instance
+        :param miles: the miles run.  This parameter defaults to 0 if no argument is passed
+        :param minutes: the minutes spent running. This parameter defaults to 0 if no argument
+        is passed
+        :param seconds: the seconds spent running. This parameter defaults to 0 if no argument
+        is passed
+        """
+        miles = miles if miles >= 0 else 0
+        minutes = minutes if minutes >= 0 else 0
+        seconds = seconds if seconds >= 0 else 0
+
+        self.miles = miles
+        self.minutes = minutes
+        self.minutes += seconds // 60
+        self.seconds = seconds % 60
+
+    def __repr__(self):
+        """
+        Special method used to get the string representation of an object.  It is invoked by
+        both print() and str() among others.  This method is also a fallback from the __str__()
+        special method
+        :return: a String representation of the Run object
+        """
+        seconds = str(self.seconds) if self.seconds >= 10 else '0%r' % self.seconds
+        return '%r miles in %r:%s' % (self.miles, self.minutes, seconds)
+
+    def __bool__(self):
+        """
+        A special method used to check if the object is truthy or falsy.  An object is falsy if
+        all the miles, minutes, and seconds properties equal 0.  Otherwise, it is truthy.
+        :return: True if the object is truthy, False otherwise
+        """
+        return self.miles > 0 or self.minutes > 0 or self.seconds > 0
+
+    def __add__(self, other):
+        """
+        A special method used with the addition operator (+).  This method is invoked if two
+        Run objects are added together.
+        :param other: another object to add to this object
+        :return: a new Run object with the two previous Run objects properties added together
+        """
+        miles = self.miles + other.miles
+        seconds = self.seconds + other.seconds
+        minutes = seconds // 60
+        seconds = seconds % 60
+        minutes += self.minutes + other.minutes
+
+        return Run(miles, minutes, seconds)
+
+    def __lshift__(self, other):
+        """
+        A special method used with the left shift operator (<<).  This method is invoked if a
+        Run object is left shifted with another object.  NOTE: This method breaks the convention
+        of using the left shift operator for a bitwise operation.
+        :param other: another object to left shift with this object (should be a number)
+        :return: a new Run object with the other object added to the miles run of the current
+        Run object.
+        """
+        new_mileage = self.miles + other
+        new_mileage = new_mileage if new_mileage > 0 else 0
+
+        return Run(new_mileage, self.minutes, self.seconds)
+</CodeSnippet>
+<CodeSnippet language="Python">
+shaker = Run(2.3, 16, 13)
+
+# Calls to print() and str() invoke the __repr__() special method
+print('Shaker: %s' % shaker)
+assert str(shaker) == '2.3 miles in 16:13'
+
+palmer_hill_run = Run(4.3, 30, 12)
+
+# Calls to bool() invoke the __bool__() special method
+assert bool(shaker)
+assert bool(palmer_hill_run)
+
+empty_run = Run()
+assert not bool(empty_run)
+
+extra_mile = Run(1, 6, 55)
+
+# Adding two Run objects together invokes the __add__() special method
+long_shaker = shaker + extra_mile
+assert str(long_shaker) == '3.3 miles in 23:08'
+
+invalid_run = Run(-10, -6, 109)
+assert str(invalid_run) == '0 miles in 1:49'
+
+# Applying the left shift operator to a Run invokes the __lshift__() special method
+valid_run = invalid_run << 0.15
+assert str(valid_run) == '0.15 miles in 1:49'
+</CodeSnippet>
+</div>

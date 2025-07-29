@@ -1,15 +1,1 @@
-yarn-error.log
-.idea/modules.xml
-.idea/*
-.idea/vcs.xml
-node_modules/*
-dist/*
-coverage/*
-src/client/assets/*.ttf
-src/client/assets/*.otf
-aws.sh
-client-stats.json
-server-stats.json
-**/__snapshots__
-.nyc_output
-cypress/screenshots
+.idea

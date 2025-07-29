@@ -1,0 +1,308 @@
+<div>
+<p>
+I was recently told that my next project at work would be a .NET application using C# in the backend.
+C# has been on my radar for a while now, since it supports wide ranging applications such as .NET apps
+and Xamarin.  While C# supports multiple programming paradigms, its mostly used for object oriented
+programming.  C# is commonly referred to as a descendant of Java and C++<sup>1</sup>, which is great
+for me since Java is my strongest language and I'm <a href="https://jarombek.com/blog/
+jan-3-2019-cpp-first-impressions">learning C++</a> in parallel with C#.
+</p>
+<p>
+C# is <a href="https://jarombek.com/blog/jul-15-2018-groovy-optional-typing#dynamic-&-static-typing">
+statically typed</a> with strict type rules (type coercion is rare)<sup>2</sup>.  Programs in C# consist
+of executable and library files (with the <strong>.exe</strong> and <strong>.dll</strong> file extensions,
+respectively).  C# is a compiled language, just like its ancestors C++ and Java.
+</p>
+<p>
+This article explores my initial reactions to the C# language after writing about 300 lines of code.
+Much of the article consists of language features I find cool and unique.  I also compare C# to other
+languages I use such as Java.
+</p>
+<SectionTitle title="Similarities to Java">Similarities to Java</SectionTitle>
+<p>
+The first thing I noticed when writing C# is how similar its syntax looks to Java.  For example, the
+first class I wrote represents a song.
+</p>
+<CodeSnippet language="C#">
+using System;
+
+namespace Application
+{
+  internal class Song
+  {
+    private string artist;
+    private string name;
+    private DateTime releaseDate;
+    private string bestLyric;
+
+    public Song(string artist, string name, DateTime releaseDate, string bestLyric)
+    {
+      this.artist = artist;
+      this.name = name;
+      this.releaseDate = releaseDate;
+      this.bestLyric = bestLyric;
+    }
+
+    // Override object.ToString()
+    public override string ToString()
+    {
+      return base.ToString() + ": " + artist + " - " + name;
+    }
+  }
+}
+</CodeSnippet>
+<p>
+While namespaces are an influence of C++, the rest of the object looks like a Java POJO.  It even
+overrides the <code className="jarombek-inline-code">ToString()</code> method from the <code className="jarombek-inline-code">object</code>
+superclass, which is the same as Java besides for some letter case differences.
+</p>
+<p>
+The main method also looks like Java.
+</p>
+<CodeSnippet language="C#">
+using System;
+using System.Diagnostics;
+
+namespace Application
+{
+  internal class Execute
+  {
+    // Same main method as Java
+    public static void Main(string[] args)
+    {
+      var bound2 = new Song("Kanye West", "Bound 2", DateTime.Parse("08/28/2013"), "the entire song");
+
+      Debug.Assert(bound2.ToString().Equals("ConsoleApplication.Song: Kanye West - Bound 2"));
+    }
+  }
+}
+</CodeSnippet>
+<p>
+While you can write C# code just like Java, there are a bunch of unique features to the language as
+well.  One of the differences I noticed early on was the shortened getter/setter syntax, which is
+much more elegant than Java.
+</p>
+<CodeSnippet language="C#">
+class Run
+{
+  public Run(string title, double? distance, Dictionary&lt;string, int&gt; time, DateTime date)
+  {
+    this.Title = title;
+    this.Distance = distance;
+    this.Time = time;
+    this.Date = date;
+  }
+
+  // Shorter property syntax
+  public string Title { get; private set; }
+  public double? Distance { get; private set; }
+  public Dictionary&lt;string, int&gt; Time { get; private set; }
+  public DateTime Date { get; private set; }
+}
+</CodeSnippet>
+<p>
+The Java equivalent to this code includes a long list of getter and setter methods.  Java developers
+often use libraries such as Lombok to shorten getter/setter syntax, but a <a href="https://jarombek.com/
+blog/dec-7-2017-native-getter-setter">native solution</a> is preferred.
+</p>
+<SectionTitle title="Interesting Features">Interesting Features</SectionTitle>
+<p>
+One of the newer features in C# is tuples, which are a great way to represent an arbitrary amount
+of data.  Tuples are one of my favorite Python features, so I'm glad to see other languages using them.
+</p>
+<CodeSnippet language="C#">
+// C# has support for tuples
+var name = ("Andrew", "Jarombek");
+
+// ...and tuples with named items
+var info = (name: "Andy", age: 23);
+
+// While strings are reference types in C#, testing them for equality uses the value type '==' syntax
+Assert(name.Item1 == "Andrew" && name.Item2 == "Jarombek");
+Assert(info.name == "Andy" && info.age == 23);
+</CodeSnippet>
+<p>
+In C# you can create variable identifiers with the same name as a reserved keyword.  I don't think any 
+other languages I use have this feature.
+</p>
+<CodeSnippet language="C#">
+// You can create an identifier with a keyword if its prefixed with '@'
+var @int = 5;
+
+Assert(@int == 5);
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">@</code> token isn't part of the identifier, and can be
+removed if the name isn't a reserved keyword<sup>3</sup>.
+</p>
+<p>
+C# also provides two different behaviors for numeric overflows.  Depending on whether the code block
+is checked or unchecked, numeric overflows throw an exception or wrap the value, respectively.
+</p>
+<CodeSnippet language="C#">
+
+// My C# execution config throws an OverflowException by default for number overflows.  Use an 'unchecked'
+// block to change this behavior.
+Assert(unchecked(int.MaxValue + 1) == int.MinValue);
+
+// Wrap the value around if a number overflows its max or min value.
+unchecked
+{
+  var minValue = int.MaxValue + 1;
+  var maxValue = int.MinValue - 1;
+
+  Assert(maxValue == int.MaxValue && minValue == int.MinValue);
+
+  // If you want an OverflowException to be thrown when a number overflows (or a compile time error),
+  // use a 'checked' block
+  Assert(checked(5 + 5 == 10));
+
+  // This code won't compile
+  // checked(int.MaxValue + 1);
+}
+</CodeSnippet>
+<p>
+C# provides string interpolation syntax and multi-line strings, both of which are common in modern
+languages such as JavaScript, Swift, and Groovy.  These features are notably absent in Java and C++.
+</p>
+<CodeSnippet language="C#">
+// Strings prefixed with '@' do not have escape sequences
+var url1 = "https:\\\\jarombek.com";
+var url2 = @"https:\\jarombek.com";
+
+// Strings prefixed with '$' are interpolated strings
+var url3 = $"https:\\\\{name.Item2.ToLower()}.com";
+var url4 = $@"https:\\{name.Item2.ToLower()}.com";
+
+foreach (var url in new string[] {url1, url2, url3, url4})
+{
+  Assert(url == @"https:\\jarombek.com");
+}
+
+var multiLine = @"
+  Hi there.
+  My name is Andy.
+";
+</CodeSnippet>
+<p>
+C# adds more features to arrays from C++ and Java.  For example, C# provides two types of multi-dimensional
+arrays: rectangular and jagged.  Rectangular arrays must be the same length in each dimension, while
+jagged arrays can be different lengths in the inner dimension.  While C# has explicit syntax to enforce
+rectangular arrays, <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/01-Jan/
+01-02-csharp-first-impressions/basics/MultiArrays.java">Java has no such enforcement</a>.
+</p>
+<CodeSnippet language="C#">
+// C# supports both rectangular multidimensional arrays ...
+// (rectangular arrays sizes are strictly enforced)
+int[,] rectangularArray =
+{
+  {1, 2},
+  {3, 4}
+};
+
+// and jagged multidimensional arrays
+int[][] jaggedArray =
+{
+  new int[] {1, 2},
+  new int[] {3, 4, 5},
+};
+
+Assert(!rectangularArray.Equals(jaggedArray));
+Assert(rectangularArray[1,1] == jaggedArray[1][1]);
+Assert(jaggedArray[1][2] == 5);
+</CodeSnippet>
+<p>
+By default, variables are passed to functions by value in C# such that value-types are passed as a copy
+of the value and reference-types are passed as a copy of the reference.  Pass by value behavior can be
+changed to pass by reference with the <code className="jarombek-inline-code">ref</code> keyword.  In C++
+this behavior requires the use of pointers.
+</p>
+<CodeSnippet language="C#">
+// Increment an integer (pass by value).
+static int Inc(int num)
+{
+  return num++;
+}
+
+// Increment an integer (pass by reference).
+static int IncRef(ref int num)
+{
+  return num++;
+}
+
+public static void Main(params string[] args)
+{
+  var num = 26;
+
+  // Inc() doesn't mutate num, and returns the new value
+  var num2 = Inc(num);
+
+  Assert(num == 26);
+  Assert(num2 == 27);
+
+  // IncRef() mutates num
+  var num3 = IncRef(ref num);
+
+  Assert(num == 27);
+  Assert(num3 == 27);
+}
+</CodeSnippet>
+<p>
+Function parameters can also use the <code className="jarombek-inline-code">out</code> keyword to
+declare an output parameter.  Output parameters are used to return multiple values from a function.
+Although I think tuples are a more elegant solution, output variables are also a viable option.
+The only other language I can think of that uses output parameters is <a href="https://github.com/AJarombek/
+jarombek-com-sources/blob/master/2019/01-Jan/01-02-csharp-first-impressions/basics/output-parameter.sql">PL/SQL</a>.
+</p>
+<CodeSnippet language="C#">
+// Information about the class using output parameters
+static void Info(out string author, out DateTime date)
+{
+  author = "Andrew Jarombek";
+  date = DateTime.Parse("12/23/2018");
+}
+
+// 'params' keyword allows for a variable number of arguments
+public static void Main(params string[] args)
+{
+  // Call a method with output arguments.  Use a discard '_' to ignore certain output arguments.
+  Info(out string author, out _);
+
+  Assert(author == "Andrew Jarombek");
+}
+
+</CodeSnippet>
+<p>
+C# also has operator level support for dealing with <code className="jarombek-inline-code">null</code> values.
+The null-coalescing and null-conditional operators present in C# are some of the most useful operators
+found in modern languages (<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/
+01-Jan/01-02-csharp-first-impressions/basics/null.swift">Swift</a> and <a href="https://github.com/
+AJarombek/jarombek-com-sources/tree/master/2019/01-Jan/01-02-csharp-first-impressions/basics/null.php">PHP</a>
+also have these operators).
+</p>
+<CodeSnippet language="C#">
+int? age = null;
+
+// Null coalescing operator
+double ageDouble = age ?? 0.0;
+Assert(ageDouble == 0.0);
+
+// Null conditional operator and null coalescing operator
+string ageStr = age?.ToString() ?? "Unknown";
+Assert(ageStr == "Unknown");
+
+string username = null;
+
+// Avoid NullReferenceException with null conditional operator
+var upperUsername = username?.ToUpper();
+
+Assert(upperUsername == null);
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+While C# is influenced by Java and C++, it also includes many modern operations that I appreciate
+about languages such as Python, Swift, and Groovy.  I'm excited to learn more of what C# has
+to offer in the future.  All the code from this post is available on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/01-Jan/01-02-csharp-first-impressions">GitHub</a>.
+</p>
+</div>

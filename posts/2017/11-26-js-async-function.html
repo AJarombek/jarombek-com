@@ -1,0 +1,115 @@
+<div>
+<p>
+In previous posts I looked at <a href="https://jarombek.com/blog/nov-21-2017-js-promises">Promises</a>
+and <a href="https://jarombek.com/blog/nov-25-2017-generators">Generators</a> in JavaScript.  I mentioned
+these two new ES6 features are especially powerful when combined.  I do think that Promises on
+their own are very useful, however I am not yet sold on Generators.
+</p>
+<p>
+By combining Promises and Generators, we can create a function that handles asynchronous tasks
+(let's call it <code className="jarombek-inline-code">async</code>).  This function takes one parameter -
+a generator function.  Each <code className="jarombek-inline-code">yield</code> statement in the generator
+returns a promise, which calls the generators iterator once resolved.  Therefore each
+asynchronous task in the <code className="jarombek-inline-code">async</code> function moves
+on to the next task in sequential order.  Let's look at some pseudocode:
+</p>
+<CodeSnippet language="JavaScript">
+function async(generator) {
+    var iterator = generator();
+    await(iterator.next())
+
+    function await(promise) {
+        promise.then(function() {
+            await(iterator.next());
+        })
+    }
+}
+</CodeSnippet>
+<p>
+This code lacks error handling and other technicalities present in production code,
+but displays the basic idea of the <code className="jarombek-inline-code">async</code> function.  The following
+pseudocode uses <code className="jarombek-inline-code">async()</code> to execute HTTP GET requests.
+</p>
+<CodeSnippet language="JavaScript">
+async(function *tasks() {
+    yield httpGet("www.example.com/search/1");
+    yield httpGet("www.example.com/search/2");
+    yield httpGet("www.example.com/search/3");
+})
+</CodeSnippet>
+<p>
+With the reusable <code className="jarombek-inline-code">async</code> function, asynchronous code is
+very simple!  Even better, its written in a synchronous manner with no promises or dreaded
+callbacks to deal with!  All of the <code className="jarombek-inline-code">Promise</code> code is abstracted away.
+So why am I only showing pseudocode and not the real thing?  The reason is because ECMAScript 2017 (or following
+the old naming convention ES8) implemented this pattern using the new <code className="jarombek-inline-code">async</code>
+and <code className="jarombek-inline-code">await</code> keywords<sup>1</sup>.
+</p>
+<p>
+In my discovery on <a href="https://jarombek.com/blog/nov-21-2017-js-promises">promises</a> I created a google search API for cat posts.  Let's refactor this example
+using an ES2017 <code className="jarombek-inline-code">async</code> function.  I
+used Node 9 for the refactor to avoid transpiling my code with Babel.  One thing that Node 9
+(the newest version of Node.js as of November 2017) does not support by default is ES6 modules.  As a workaround,
+the <code className="jarombek-inline-code">--experimental-modules</code> flag can be used
+to enable ES6 modules<sup>2</sup>.  To notify Node.js that files are modules, the .mjs file extension is used.
+These files are hilariously referred to as Micheal Jackson Scripts.  Hopefully the .mjs files are just for
+the experimental version and not here to stay - I would miss those .js files (and it doesn't seem like an elegant solution)!
+</p>
+<p>
+Now let's get to the code.  The first module creates a promise for a request to the google search API<sup>3</sup>.
+The second module imports the first module and uses the ES2017 <code className="jarombek-inline-code">async</code> function:
+</p>
+<CodeSnippet language="JavaScript">
+import {default as https} from 'https';
+
+export function search(query = 'cat') {
+
+    const url = 'https://www.googleapis.com/customsearch/v1?key=AIzaSyA2QIPJoGYMx_DuQH6wDqNG3AHXG7bcb94' +
+                '&cx=005720647135116730303:chkg-pnyocg&q=' + query + '&prettyPrint=false';
+
+    return new Promise(function (resolve, reject) {
+
+        https.get(url, res => {
+            res.setEncoding('utf-8');
+            let response = '';
+
+            res.on('data', data => {
+                response += data;
+            });
+
+            res.on('end', () => {
+                resolve(JSON.parse(response));
+            });
+        });
+    });
+}
+</CodeSnippet>
+<CodeSnippet language="JavaScript">
+import * as http from './meowHttp';
+
+(async function search() {
+    let catResult = await http.search();
+    print(catResult);
+
+    let meowResult = await http.search('meow');
+    print(meowResult);
+})();
+</CodeSnippet>
+<p>
+You may have noticed that the <code className="jarombek-inline-code">async</code> and
+<code className="jarombek-inline-code">await</code> keywords are simply syntactic sugar for our
+<code className="jarombek-inline-code">async()</code> and <code className="jarombek-inline-code">await()</code>
+functions.  This is a truly elegant solution that allows asynchronous code to be written in an easily
+understandable synchronous manner.  Executing this code results in the following:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/11-26-17-results.png">
+</figure>
+<p>
+The ES2017 <code className="jarombek-inline-code">async</code> function is very powerful!
+Although you never need to fully understand the details of combined Promises
+and Generators when using <code className="jarombek-inline-code">async</code> functions, it is still good to know what is going on behind the scenes!
+All the code from this discovery is on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/
+master/2017/11-Nov/11-26-JS-Async-Function">GitHub</a>.
+</p>
+</div>

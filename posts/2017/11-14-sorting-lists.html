@@ -1,0 +1,181 @@
+<div>
+<p>
+In this discovery I look at sorting lists in different programming languages for
+non-trivial objects.  The languages I use are my core languages: Java, JavaScript,
+Swift, Python, PHP, and C.  I've used all these languages in larger projects and
+wish to stay proficient in them.  Throughout this article I show snippets of code in each language, but
+you can also check out the full code on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/
+master/2017/11-Nov/11-14-Sorting-Lists">GitHub</a>. Let's get started!
+</p>
+<SectionTitle title="Java">Java</SectionTitle>
+<CodeSnippet language="Java">
+List&lt;Person&gt; list = Arrays.asList(new Person("Andrew", "Jar."),
+                                    new Person("Thomas", "Cau."),
+                                    new Person("Joe", "Smi."),
+                                    new Person("Ben", "Fis."));
+
+list = list.stream()
+    .sorted(Comparator.comparing(Person::getLast))
+    .collect(toList());
+</CodeSnippet>
+<p>
+You may have expected the Java code to be messy and verbose with iterators and complex
+comparison functions.  With Java 8 it is short and concise thanks to streams and the comparator API.
+Also using the short-hand lambda syntax (method reference) I was able to
+write <code className="jarombek-inline-code">Person::getLast</code> instead of
+<code className="jarombek-inline-code">(p) -> p.getLast()</code>.  Most of the code in the full
+example is for creating the Person POJO.
+</p>
+<SectionTitle title="JavaScript">JavaScript</SectionTitle>
+<CodeSnippet language="JavaScript">
+let people = [
+    {first: "Andrew", last: "Jar."},
+    {first: "Thomas", last: "Cau."},
+    {first: "Joe", last: "Smi."},
+    {first: "Ben", last: "Fis."}
+];
+
+console.info(people);
+
+people.sort(function(a, b) {
+    return a.last > b.last ? 1 : 0;
+});
+
+console.info(people);
+</CodeSnippet>
+<p>
+The JavaScript version is even simpler.  I just passed a call back function to
+<code className="jarombek-inline-code">sort()</code> and it uses the callback when making comparisons.
+</p>
+<p>
+One thing that was strange when executing this code is that both <code className="jarombek-inline-code">
+console.info()</code> invocations produced the sorted array even though the first
+<code className="jarombek-inline-code">console.info()</code> occurs before people is sorted.  This
+is because console functions are asynchronous in some environments. Therefore we may not get the
+results at the time we expect.  You can't always trust <code className="jarombek-inline-code">console</code>!
+</p>
+<SectionTitle title="Swift">Swift</SectionTitle>
+<CodeSnippet language="Swift">
+struct Person {
+    let first: String
+    let last: String
+}
+
+var list = [
+    Person(first: "Andrew", last: "Jar."), Person(first: "Thomas", last: "Cau."),
+    Person(first: "Joe", last: "Smi."), Person(first: "Ben", last: "Fis.")
+]
+
+list.sort {
+    $0.last < $1.last
+}
+</CodeSnippet>
+<p>
+I really like the Swift implementation for sorting.  In general I prefer using classes over structs in
+Swift (just a personal preference!), but in a simple case like this one a struct makes perfect sense.
+</p>
+<p>
+If you don't know much Swift the sorting operation may look a bit confusing.  The
+<code className="jarombek-inline-code">sort()</code> method on the Array type is passed a Swift
+closure (not to be confused with a <a href="https://jarombek.com/blog/nov-9-2017-js-closure-modules">
+closure in JavaScript</a>), which is basically a callback function.  Since the Swift compiler knows that the
+<code className="jarombek-inline-code">sort()</code> function takes a closure you can use parameter
+shorthands which are represented as <code className="jarombek-inline-code">$1</code> and
+<code className="jarombek-inline-code">$2</code> (<code className="jarombek-inline-code">$1</code> being the first
+parameter, <code className="jarombek-inline-code">$2</code> being the second, etc.)<sup>1</sup>.  I also utilized
+trailing closure syntax which can be used when the closure is the last parameter of a function.
+Trailing closure syntax enables the removal of a function invocations parenthesis, and
+you can see <code className="jarombek-inline-code">sort()</code> uses no parenthesis<sup>2</sup>!  All these
+tricks are fun to look into and allow for very concise Swift code.
+</p>
+<SectionTitle title="PHP">PHP</SectionTitle>
+<CodeSnippet language="PHP">
+$array = array(new Person('Andrew', 'Jar.'), new Person("Thomas", "Cau."),
+                new Person("Joe", "Smi."), new Person("Ben", "Fis."));
+
+function comparator($a, $b) {
+    return $a->last < $b->last ? -1 : 1;
+}
+
+uasort($array, 'comparator');
+</CodeSnippet>
+<p>
+The PHP solution may be my least favorite.  I created the <code className="jarombek-inline-code">People</code>
+object and an array of <code className="jarombek-inline-code">People</code>.
+<code className="jarombek-inline-code">uasort()</code> is used for user defined comparisons where argument
+one is the array and argument two is the string name of the comparison function.  Why can't
+I treat the comparison function as a first class citizen and pass it as the second
+<code className="jarombek-inline-code">uasort()</code> argument?  This code feels ugly.
+</p>
+<SectionTitle title="Python">Python</SectionTitle>
+<CodeSnippet language="Python">
+people = [{"first":"Andrew", "last":"Jar."},
+    {"first":"Thomas", "last":"Cau."},
+    {"first":"Joe", "last":"Smi."},
+    {"first":"Ben", "last":"Fis."}]
+
+def last(item):
+    return item["last"]
+
+# reverse optional argument can be removed
+people.sort(key=last, reverse=False)
+</CodeSnippet>
+<p>
+As you probably guessed, the winner for most concise comparison sort goes to Python.  Thanks to
+optional arguments, the <code className="jarombek-inline-code">sort()</code> function is really sleek!
+</p>
+<SectionTitle title="C">C</SectionTitle>
+<CodeSnippet language="C">
+typedef struct {
+    char first[20];
+    char last[20];
+} person;
+
+int main() {
+    person andrew;
+    strcpy(andrew.first, "Andrew");
+    strcpy(andrew.last, "Jar.");
+
+    person thomas;
+    strcpy(thomas.first, "Thomas");
+    strcpy(thomas.last, "Cau.");
+
+    person joe;
+    strcpy(joe.first, "Joe");
+    strcpy(joe.last, "Smi.");
+
+    person ben;
+    strcpy(ben.first, "Ben");
+    strcpy(ben.last, "Fis.");
+
+    person people[] = {andrew, thomas, joe, ben};
+
+    // Get the length of the people array
+    int size = sizeof(people) / sizeof(people[0]);
+
+    for (int i = 0; i < size; i++) {
+        printf("%d - %s %s \n", i + 1, people[i].first, people[i].last);
+    }
+    printf("\n");
+
+    qsort(people, size, sizeof(people[0]), compare);
+
+    for (int i = 0; i < size; i++) {
+        printf("%d - %s %s \n", i + 1, people[i].first, people[i].last);
+    }
+}
+
+static int compare(const void *a, const void *b) {
+    person *pA = (person *) a;
+    person *pB = (person *) b;
+
+    return strcmp(pA->last, pB->last);
+}
+</CodeSnippet>
+<p>
+As you also likely guessed, the C code is by far the most involved.  The structs do make the sorting easier
+(I originally tried sorting lists of lists of lists, but the pointers got out of control and I couldn't figure
+it out!).  I utilized the standard libraries <code className="jarombek-inline-code">qsort()</code>
+function and passed in a comparison function<sup>3</sup>.
+</p>
+</div>

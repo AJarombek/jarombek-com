@@ -1,0 +1,68 @@
+<div>
+<p>
+One JavaScript feature I've used before but never fully understood is strict mode.
+Strict mode restricts certain features and leniencies in the language<sup>1</sup>.
+It protects the developer from things that happen implicitly in JavaScript (that only an
+experienced dev would be aware of).  In a <a href="https://jarombek.com/blog/nov-11-2017-js-this">
+previous discovery</a> I looked at how strict mode disallows <code className="jarombek-inline-code">this</code>
+from containing the global scope variable.  What else does strict mode have to offer?
+</p>
+<p>
+Certain things that silently fail in JavaScript throw errors when executed in strict mode.  This
+includes setting properties to primitives and assigning values to keywords.
+</p>
+<CodeSnippet language="JavaScript">
+try {
+    undefined = "defined!";
+} catch(e) {
+    console.error('Strict mode disallows assigning values to keywords');
+}
+
+try {
+    false.not = true;
+} catch(e) {
+    console.error('Strict mode disallows setting properties for primitive values');
+}
+</CodeSnippet>
+<p>
+Strict mode also disallows duplicate parameter names for functions.  In previous JavaScript versions it restricted
+duplicate property names on objects, but this restriction was lifted in ES6 (either a bug or poor design choice).
+</p>
+<CodeSnippet language="JavaScript">
+// Strict mode does not throw an error for duplicate property names
+var andy = {
+    name: "Andy J",
+    name: "whoops",
+    /* Strict mode disallows duplicate parameter names for functions
+    func: function(a, b, a) {
+        console.info(a + b + c);
+    }*/
+};
+</CodeSnippet>
+<p>
+Strict mode also stops variable creation when assigning a
+value to an undeclared variable without a <code className="jarombek-inline-code">var</code>,
+<code className="jarombek-inline-code">let</code>, or <code className="jarombek-inline-code">const</code> keyword.
+</p>
+<CodeSnippet language="JavaScript">
+try {
+    hey = "hello"
+} catch(e) {
+    console.error('Strict mode disallows assigning to undeclared variables');
+    console.error(e);
+}
+</CodeSnippet>
+<p>
+Without strict mode forgetting the <code className="jarombek-inline-code">var</code> or
+<code className="jarombek-inline-code">let</code> variable is "forgiving."  If
+the variable is not defined, JavaScript creates a new global variable with the name provided.
+In my opinion this should be considered a syntax mistake by the developer
+and throw an error.  That is exactly what happens in strict mode.
+</p>
+<p>
+Strict mode includes other features that can come in useful (such as throwing errors when trying
+to assign values to immutable properties) but the ones I went over have the largest impact on my code.
+You can find the code used in this discovery on <a href="https://github.com/AJarombek/jarombek-com-sources/
+blob/master/2017/11-Nov/11-15-JS-Strict-Mode/strict-mode.js">GitHub</a>.
+</p>
+</div>

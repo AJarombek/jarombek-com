@@ -1,0 +1,888 @@
+<div>
+<p>
+<a href="https://jarombek.com/blog/sep-15-2019-elasticsearch#elasticsearch">Elasticsearch</a> is a
+search and analytics engine.  It's also a NoSQL database that holds JSON documents.  These documents
+are stored in an <a href="https://jarombek.com/blog/oct-18-2019-elasticsearch-analyzer#inverted-index">
+inverted index</a> and are queried with JSON syntax.  In my <a href="https://jarombek.com/blog/
+oct-18-2019-elasticsearch-analyzer">previous article</a> I explored analyzers and the process of storing
+documents in an inverted index.  This article focuses on querying documents with JSON.
+</p>
+<SectionTitle title="Components of Analyzers">Basic Queries</SectionTitle>
+<p>
+I wrote twenty queries based on the knowledge I gained reading <a href="https://www.packtpub.com/
+big-data-and-business-intelligence/learning-elastic-stack-60">“Learning Elastic Stack 6.0"</a> by Pranav
+Shukla.  All twenty queries search an index called <code className="jarombek-inline-code">race</code>, which contains
+races I ran along with upcoming races I'm planning to run.  The documents in this index are listed below:
+</p>
+<CodeSnippet language="JSON" scroll="Y">
+{
+  "name": "NYRR Night at the Races #1",
+  "location": "New York, NY",
+  "facility": "The Armory",
+  "date": "2019-12-19",
+  "exercise": "run",
+  "category": "Indoor Track",
+  "miles": 1,
+  "registered": true,
+  "result": {
+    "url": "https://results.armorytrack.com/meets/3985/athletes/2887619",
+    "position": 28,
+    "time": "4:54",
+    "pace": "4:54"
+  }
+},
+{
+  "name": "Ocean Breeze Miles Mania",
+  "location": "New York, NY",
+  "facility": "Ocean Breeze Athletic Complex",
+  "date": "2020-01-02",
+  "exercise": "run",
+  "category": "Indoor Track",
+  "miles": 2,
+  "registered": true,
+  "result": {}
+},
+{
+  "name": "NYRR Night at the Races #2",
+  "location": "New York, NY",
+  "facility": "The Armory",
+  "date": "2020-01-09",
+  "exercise": "run",
+  "category": "Indoor Track",
+  "miles": 1.86,
+  "meters": 3000,
+  "registered": false,
+  "result": {}
+},
+{
+  "name": "Boston Buildup",
+  "location": "Ridgefield, CT",
+  "facility": "Scotland Elementary School",
+  "date": "2020-01-19",
+  "exercise": "run",
+  "category": "Road",
+  "miles": 9.32,
+  "kilometers": 15,
+  "registered": false,
+  "result": {}
+},
+{
+  "name": "NYRR Night at the Races #3",
+  "location": "New York, NY",
+  "facility": "The Armory",
+  "date": "2020-01-23",
+  "exercise": "run",
+  "category": "Indoor Track",
+  "miles": 3.11,
+  "meters": 5000,
+  "registered": false,
+  "result": {}
+},
+{
+  "name": "Freezer 5K",
+  "location": "Yorktown Heights, NY",
+  "facility": "Yorktown Heights",
+  "date": "2020-02-09",
+  "exercise": "run",
+  "category": "Road/Trail",
+  "miles": 3.11,
+  "kilometers": 5,
+  "registered": false,
+  "result": {}
+},
+{
+  "name": "Ocean Breeze Miles Mania",
+  "location": "New York, NY",
+  "facility": "Ocean Breeze Athletic Complex",
+  "date": "2020-02-13",
+  "exercise": "run",
+  "category": "Indoor Track",
+  "miles": 1,
+  "registered": false,
+  "result": {}
+},
+{
+  "name": "Ocean Breeze Miles Mania",
+  "location": "New York, NY",
+  "facility": "Ocean Breeze Athletic Complex",
+  "date": "2020-02-27",
+  "exercise": "run",
+  "category": "Indoor Track",
+  "miles": 2,
+  "registered": false,
+  "result": {}
+},
+{
+  "name": "NYRR Night at the Races #4",
+  "location": "New York, NY",
+  "facility": "The Armory",
+  "date": "2020-03-05",
+  "exercise": "run",
+  "category": "Indoor Track",
+  "miles": 1,
+  "registered": true,
+  "result": {}
+}
+</CodeSnippet>
+<p>
+These documents follow the following field mapping:
+</p>
+<CodeSnippet language="JSON">
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 5,
+      "number_of_replicas": 2
+    }
+  },
+  "mappings": {
+    "properties": {
+      "name": {
+        "type": "text"
+      },
+      "location": {
+        "type": "text"
+      },
+      "facility": {
+        "type": "text"
+      },
+      "date": {
+        "type": "date",
+        "format": "yyyy-MM-dd"
+      },
+      "exercise": {
+        "type": "keyword",
+        "ignore_above": 256
+      },
+      "category": {
+        "type": "text",
+        "fields": {
+          "raw": {
+            "type": "keyword"
+          }
+        }
+      },
+      "miles": {
+        "type": "double"
+      },
+      "meters": {
+        "type": "double"
+      },
+      "kilometers": {
+        "type": "double"
+      },
+      "registered": {
+        "type": "boolean"
+      },
+      "result": {
+        "type": "nested",
+        "properties": {
+          "url": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "position": {
+            "type": "integer"
+          },
+          "time": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "pace": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Let's begin working through some Elasticsearch queries!
+</p>
+<SectionTitle title="Get All">1) Get All</SectionTitle>
+<p>
+The most basic query you can perform against an Elasticsearch index is one that matches all documents.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match_all": {}
+  }
+}
+</CodeSnippet>
+<p>
+Result (Abbreviated for space):
+</p>
+<CodeSnippet>
+{
+  "hits" : [{
+    "_score" : 1.0,
+    "_source" : {
+      "name" : "NYRR Night at the Races #1",
+      ...
+    },
+    {
+    "_score" : 1.0,
+    "_source" : {
+      "name" : "NYRR Night at the Races #2",
+      ...
+    },
+    ...
+  }]
+}
+</CodeSnippet>
+<SectionTitle title="Range Query">2) Range Query</SectionTitle>
+<p>
+Range queries narrow down the resulting documents.  In the following example, the length of the race
+must be between 1 and 2 miles.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "range": {
+      "miles": {
+        "gte": 1,
+        "lte": 2
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+{
+  "hits" : [
+  {
+    "_score" : 1.0,
+    "_source" : {
+      "name" : "NYRR Night at the Races #2",
+      "miles" : 1.86,
+      ...
+    }
+  },
+  {
+    "_score" : 1.0,
+    "_source" : {
+      "name" : "NYRR Night at the Races #4",
+      "miles" : 1,
+      ...
+    }
+  },
+  {
+    "_score" : 1.0,
+    "_source" : {
+      "name" : "Ocean Breeze Miles Mania",
+      "miles" : 1,
+      ...
+    }
+  },
+  {
+    "_score" : 1.0,
+    "_source" : {
+      "name" : "Ocean Breeze Miles Mania",
+      "miles" : 2,
+      ...
+    }
+  },
+  {
+    "_score" : 1.0,
+    "_source" : {
+      "name" : "Ocean Breeze Miles Mania",
+      "miles" : 2,
+      ...
+    }
+  },
+  {
+    "_score" : 1.0,
+    "_source" : {
+      "name" : "NYRR Night at the Races #1",
+      "miles" : 1,
+      ...
+    }
+  }
+  ]
+}
+</CodeSnippet>
+<SectionTitle title="Date Range Query">3) Date Range Query</SectionTitle>
+<p>
+Range queries can also work with date types.  Date types have a special keyword
+<code className="jarombek-inline-code">now</code> that is used in range queries.
+<code className="jarombek-inline-code">now</code> represents the current date, and time can be added
+or deleted from <code className="jarombek-inline-code">now</code><sup>1</sup>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "range": {
+      "date": {
+        "gte": "now-15d",
+        "lte": "now+15d"
+      }
+    }
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Exists Query">4) Exists Query</SectionTitle>
+<p>
+An exists query simply checks if a field exists in a JSON document.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "exists": {
+      "field": "meters"
+    }
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Term Query">5) Term Query</SectionTitle>
+<p>
+A term query checks if a string exactly matches the value of a keyword field in a document.  The following
+query checks if the <code className="jarombek-inline-code">category</code> field has a value of
+<strong>"Road"</strong>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "term": {
+      "category.raw": "Road"
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+{
+  "hits" : [{
+    "_score" : 0.2876821,
+    "_source" : {
+      "name" : "Boston Buildup",
+      "category" : "Road",
+      ...
+    }
+  }]
+}
+</CodeSnippet>
+<SectionTitle title="Term Query Constant Score">6) Term Query Constant Score</SectionTitle>
+<p>
+You may have noticed that the prior query result gave the resulting document a score.  This is helpful
+for text searches, since it determines which results are most relevant.  However, for term searches there
+ isn't much benefit, because every document contains the exact same term.  The following query is the same
+ as the last one, except it gives the documents returned a constant score.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "constant_score": {
+      "filter": {
+        "term": {
+          "category.raw": "Road"
+        }
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+{
+  "hits" : [{
+    "_score" : 1.0,
+    "_source" : {
+      "name" : "Boston Buildup",
+      "category" : "Road",
+      ...
+    }
+  }]
+}
+</CodeSnippet>
+<SectionTitle title="Match Query Text Field">7) Match Query Text Field</SectionTitle>
+<p>
+Match queries perform full text searches.  The following example performs a text search on the
+<code className="jarombek-inline-code">category</code> field, returning any document containing the word
+<strong>"Road"</strong> in that field.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match": {
+      "category": "Road"
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+{
+  "hits" : [
+    {
+      "_score" : 0.6931472,
+      "_source" : {
+        "name" : "Freezer 5K",
+        "category" : "Road/Trail",
+        ...
+      }
+    },
+    {
+      "_score" : 0.2876821,
+      "_source" : {
+        "name" : "Boston Buildup",
+        "category" : "Road",
+        ...
+      }
+    }
+  ]
+}
+</CodeSnippet>
+<SectionTitle title="Match Query Keyword Field">8) Match Query Keyword Field</SectionTitle>
+<p>
+It's also possible to perform a full text search on a keyword field.  However, this is simply equivalent
+to a term query.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match": {
+      "category.raw": "Road"
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+{
+"hits" : [{
+  "_score" : 0.2876821,
+  "_source" : {
+    "name" : "Boston Buildup",
+    "category" : "Road",
+    ...
+  }
+}]
+}
+</CodeSnippet>
+<SectionTitle title="Match Query with Two Words">9) Match Query with Two Words</SectionTitle>
+<p>
+When a full text search is performed with multiple words in the query, resulting documents must contain at
+least one of the words.  You can imagine the query containing <strong>OR</strong> operators between each word.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match": {
+      "category": "Road Trail"
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+{
+  "hits" : [
+    {
+      "_score" : 1.3862944,
+      "_source" : {
+        "name" : "Freezer 5K",
+        "category" : "Road/Trail",
+        ...
+      }
+    },
+    {
+      "_score" : 0.2876821,
+      "_source" : {
+        "name" : "Boston Buildup",
+        "category" : "Road",
+        ...
+      }
+    }
+  ]
+}
+</CodeSnippet>
+<SectionTitle title="Match Query with AND Operator">10) Match Query with AND Operator</SectionTitle>
+<p>
+Match queries also support explicit <code className="jarombek-inline-code">or</code> and
+<code className="jarombek-inline-code">and</code> operators.  The following query uses an
+<code className="jarombek-inline-code">and</code> operator:
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match": {
+      "category": {
+        "query": "Road Trail",
+        "operator": "and"
+      }
+    }
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Match Query with OR Operator">11) Match Query with OR Operator</SectionTitle>
+<p>
+The following query uses an <code className="jarombek-inline-code">or</code> operator.  It's equivalent
+to query #9, which implicitly OR'd the words in the query.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match": {
+      "category": {
+        "query": "Road Trail",
+        "operator": "or"
+      }
+    }
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Minimum Should Match Query">12) Minimum Should Match Query</SectionTitle>
+<p>
+Text searches provide a <code className="jarombek-inline-code">minimum_should_match</code> parameter that
+specifies the number of terms in the query that must match terms in a field.  The following query requires
+documents to have a <code className="jarombek-inline-code">name</code> field containing two of the words
+in <strong>["NYRR", "#1", "#2", "#3"]</strong>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match": {
+      "name": {
+        "query": "NYRR #1 #2 #3",
+        "minimum_should_match": 2
+      }
+    }
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Fuzzy Match Query">13) Fuzzy Match Query</SectionTitle>
+<p>
+Text searches also provide a <code className="jarombek-inline-code">fuzziness</code> parameter which allows
+terms in queries to be near matches to terms in documents.  For example, the query term <strong>"NYCRR"</strong>
+can match the document term <strong>"NYRR"</strong> if the fuzziness is one or more.  It's important to note
+that fuzzy matches are an expensive operation in Elasticsearch<sup>2</sup>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match": {
+      "name": {
+        "query": "NYCRR",
+        "fuzziness": 1
+      }
+    }
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Match Phrase Query">14) Match Phrase Query</SectionTitle>
+<p>
+Match phrase queries require that an entire phrase exists in a document.  The following query
+ matches all documents with a <code className="jarombek-inline-code">location</code> field whose value
+ends with <strong>"York, NY"</strong>.  It matches all races in New York, NY.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match_phrase": {
+      "location": {
+        "query": "York NY"
+      }
+    }
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Slop Match Phrase Query">15) Slop Match Phrase Query</SectionTitle>
+<p>
+When using match phrase queries, leniency towards missing words is possible with the
+<code className="jarombek-inline-code">slop</code> parameter.  For example, the following query matches
+documents even if their <code className="jarombek-inline-code">name</code> field contains two terms missing
+in the phrase query.  The missing terms are <strong>"at"</strong> and <strong>"the"</strong>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "match_phrase": {
+      "name": {
+        "query": "NYRR Night Races #4",
+        "slop": 2
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+  {
+  "hits" : [{
+    "_score" : 0.6606808,
+    "_source" : {
+      "name" : "NYRR Night at the Races #4",
+      ...
+    }
+  }]
+}
+</CodeSnippet>
+<SectionTitle title="Multiple Field Match Query">16) Multiple Field Match Query</SectionTitle>
+<p>
+Match queries can be performed on more than one field.  The following query searches for the words
+<strong>"Freezer"</strong> and <strong>"Ocean"</strong> in the <code className="jarombek-inline-code">name</code>
+and <code className="jarombek-inline-code">facility</code> fields.  It also boosts the score of the document
+if the term is found in the <code className="jarombek-inline-code">name</code> field.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "multi_match": {
+      "query": "Freezer Ocean",
+      "fields": ["name^3", "facility"]
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+{
+  "hits" : [
+    {
+      "_score" : 2.4077747,
+      "_source" : {
+        "name" : "Freezer 5K",
+        "facility" : "Yorktown Heights",
+        ...
+      }
+    },
+    {
+      "_score" : 1.8299087,
+      "_source" : {
+        "name" : "Ocean Breeze Miles Mania",
+        "facility" : "Ocean Breeze Athletic Complex",
+        ...
+      }
+    },
+    {
+      "_score" : 0.5469647,
+      "_source" : {
+        "name" : "Ocean Breeze Miles Mania",
+        "facility" : "Ocean Breeze Athletic Complex",
+        ...
+      }
+    },
+    {
+      "_score" : 0.5469647,
+      "_source" : {
+        "name" : "Ocean Breeze Miles Mania",
+        "facility" : "Ocean Breeze Athletic Complex",
+        ...
+      }
+    }
+  ]
+}
+</CodeSnippet>
+<SectionTitle title="Bool Must Query">17) Bool Must Query</SectionTitle>
+<p>
+Bool queries allow for complex document querying.  They are the SQL equivalents of the
+<code className="jarombek-inline-code">WHERE</code> clause along with <code className="jarombek-inline-code">AND</code>
+and <code className="jarombek-inline-code">OR</code> operands<sup>3</sup>.  The following query uses a
+<code className="jarombek-inline-code">must</code> clause, which contains a list of queries that a document
+must match to be returned.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "category.raw": {
+              "value": "Indoor Track"
+            }
+          }
+        },
+        {
+          "term": {
+            "miles": {
+              "value": 1
+            }
+          }
+        },
+        {
+          "match": {
+            "facility": "Armory"
+          }
+        },
+        {
+          "range": {
+            "date": {
+              "gte": "2020-03-01",
+              "lte": "2020-03-31",
+              "format": "yyyy-MM-dd"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+{
+  "hits" : [{
+    "_score" : 2.2670627,
+    "_source" : {
+      "name" : "NYRR Night at the Races #4",
+      "facility" : "The Armory",
+      "date" : "2020-03-05",
+      "category" : "Indoor Track",
+      "miles" : 1,
+      ...
+    }
+  }]
+}
+</CodeSnippet>
+<SectionTitle title="Bool Filter Query">18) Bool Filter Query</SectionTitle>
+<p>
+When using bool queries, the <code className="jarombek-inline-code">filter</code> clause is equivalent to
+ the <code className="jarombek-inline-code">must</code> clause except that it doesn't score the returned
+documents.  All documents are given a score of zero.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "category.raw": {
+              "value": "Indoor Track"
+            }
+          }
+        },
+        {
+          "term": {
+            "miles": {
+              "value": 1
+            }
+          }
+        },
+        {
+          "match": {
+            "facility": "Armory"
+          }
+        }
+      ]
+    }
+  }
+}
+</CodeSnippet>
+<p>
+Result:
+</p>
+<CodeSnippet>
+{
+  "hits" : [{
+    "_score" : 0.0,
+    "_source" : {
+      "name" : "NYRR Night at the Races #4",
+      "facility" : "The Armory",
+      "date" : "2020-03-05",
+      "category" : "Indoor Track",
+      "miles" : 1,
+      ...
+    }
+  }]
+}
+</CodeSnippet>
+<SectionTitle title="Bool Must and Should Query">19) Bool Must and Should Query</SectionTitle>
+<p>
+While <code className="jarombek-inline-code">must</code> is equivalent to a SQL
+<code className="jarombek-inline-code">AND</code>, <code className="jarombek-inline-code">should</code>
+ is equivalent to a SQL <code className="jarombek-inline-code">OR</code>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "miles": {
+              "value": 1
+            }
+          }
+        }
+      ],
+      "should": [
+        {
+          "match": {
+            "facility": "Armory"
+          }
+        },
+        {
+          "range": {
+            "date": {
+              "gte": "2020-01-01",
+              "lte": "2020-12-31",
+              "format": "yyyy-MM-dd"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Bool Must and Must Not Query">20) Bool Must and Must Not Query</SectionTitle>
+<p>
+Bool queries can also contain subqueries that should not match a document in order for it to be returned.
+This is accomplished with the <code className="jarombek-inline-code">must_not</code> clause.
+</p>
+<CodeSnippet language="JSON">
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "facility": "Armory"
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "term": {
+            "miles": {
+              "value": 1
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+This article discussed some of the building blocks for querying Elasticsearch.  In my next
+Elasticsearch article, I'll wrap up the Elasticsearch portion of the ELK stack by discussing
+data aggregations.  All the code from this article is available on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2019/12-Dec/12-28-elasticsearch-queries">GitHub</a>.
+</p>
+</div>

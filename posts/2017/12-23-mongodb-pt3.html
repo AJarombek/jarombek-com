@@ -1,0 +1,86 @@
+<div>
+<p>
+One of the really powerful things about a document database like MongoDB is the ability to store arrays
+of values in a document.  Arrays can even store sub-documents, allowing for many levels of
+nested data.
+</p>
+<p>
+An example use case of an array in a document database is a user with multiple addresses.  In a
+relational database, this address information would be stored in a separate table.  To get a users addresses, the addresses table would be
+joined with the users table.  In MongoDB, a user and their addresses can be stored in one document,
+making data access and updates quick and easy (with no expensive <code className="jarombek-inline-code">JOIN</code> operations).
+</p>
+<p>
+Now let's look at some array operations in the MongoDB shell.  I created a document
+called <code className="jarombek-inline-code">user</code> which holds running log information.  This
+info consists of an array of exercise logs, an array of planned exercises, and the users personal records.
+</p>
+<p>
+Accessing data from nested objects and arrays is easy.  For example, each user has a <code className="jarombek-inline-code">plan</code> array that contains
+exercise plans.  Each item in the <code className="jarombek-inline-code">plan</code> array contains two properties - a date and a distance in miles.  If I'm only interested in
+the miles and not the date, I can use the following dot notation - <code className="jarombek-inline-code">plan.miles</code>.
+</p>
+<CodeSnippet language="JavaScript">
+db.user.find({}, {'plan.miles': 1}).pretty()
+</CodeSnippet>
+<p>
+If I only want the first item in the <code className="jarombek-inline-code">plan</code> array,
+I can use the <code className="jarombek-inline-code">$slice</code> operator.  <code className="jarombek-inline-code">
+$slice</code> determines the number of items to return from an array.
+</p>
+<CodeSnippet language="JavaScript">
+db.user.find({}, {_id: 1, plan: {$slice: 1}}).pretty()
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">$slice</code> is given a value of 1 which returns the
+first element in the array.  If <code className="jarombek-inline-code">$slice</code> is given a
+negative value it returns items from the end of the array.
+</p>
+<p>
+Indexes are easily added to nested properties using dot notation:
+</p>
+<CodeSnippet language="JavaScript">
+db.user.createIndex({'plan.date': 1})
+</CodeSnippet>
+<p>
+There are numerous operators for updating arrays, including <code className="jarombek-inline-code">$push</code>,
+<code className="jarombek-inline-code">$pop</code>, and <code className="jarombek-inline-code">$addToSet</code>.
+<code className="jarombek-inline-code">$pop</code> removes an item from an array, while both
+<code className="jarombek-inline-code">$push</code> and <code className="jarombek-inline-code">$addToSet</code> add
+an item to an array.  With <code className="jarombek-inline-code">$addToSet</code>, a new
+item is only added if it does not already exist in the array.  This is a better
+option if duplicates should be avoided.
+</p>
+<CodeSnippet language="JavaScript">
+// Delete the first element of the plan array
+db.user.update({}, {$pop: {'plan': -1}})
+
+// Add an element to the array if it does not already exist
+db.user.update({}, {$addToSet: {'plan': {date: new Date("2017-12-27"), miles: 2}}})
+</CodeSnippet>
+<p>
+One important operator for updating in MongoDB is <code className="jarombek-inline-code">findAndModify()</code>.
+This command both updates and returns the newly altered document atomically<sup>1</sup>.  All
+updates in MongoDB are performed atomically (an update is never half completed and
+no database connection ever sees an update in progress).  However, when calling the
+<code className="jarombek-inline-code">update()</code> and <code className="jarombek-inline-code">find()</code>
+operations separately, there is a chance that another update is performed in between the execution of
+both commands.  <code className="jarombek-inline-code">findAndModify()</code> eliminates this problem so you know
+any changes reflected in the document are from the update just performed. The following query adds
+another sub-document to the plan array and also returns the newly updated document.
+</p>
+<CodeSnippet language="JavaScript">
+db.user.findAndModify({
+    query: {},
+    update: {
+        $addToSet: {'plan': {date: new Date("2017-12-28"), miles: 4.1}}
+    },
+    'new': true
+})
+</CodeSnippet>
+<p>
+These code samples begin to expose the power of arrays and sub-documents in MongoDB.  A multi-table RDBMS structure
+is easily compressed into a single document with MongoDB.  All the code samples from this post are on
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2017/12-Dec/12-23-MongoDB-Pt3/dbscripts.js">GitHub</a>.
+</p>
+</div>

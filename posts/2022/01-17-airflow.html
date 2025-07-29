@@ -1,0 +1,461 @@
+<div>
+<p>
+Over the last six months, I’ve ued Apache Airflow extensively at work.  Airflow is a platform and framework for
+building and automating data pipelines<sup>1</sup>.  Airflow data pipelines are written in Python and interoperate with
+many different technologies, such as databases, cloud platforms, containers, and more.  Often, Airflow is used in
+ the realms of data analytics and machine learning.
+</p>
+<p>
+While Airflow data pipelines are written in Python, the software they automate and schedule do not need to be Python
+related.  Nonetheless, the fact that Airflow's language is Python makes data pipelines highly configurable and customizable.
+Since Python is very popular and simpler to learn compared to other languages, most engineers will be able to work with
+Airflow easily.
+</p>
+<p>
+There are three main objectives in this article: introducing the basic concepts of Airflow, creating an Airflow
+development environment, and exploring basic Airflow pipelines.  The code discussed in this article is available on
+<a href="https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow">GitHub</a>.
+</p>
+<SectionTitle title="Airflow Concepts">Airflow Concepts</SectionTitle>
+<Definition word="Airflow">
+Airflow is a platform and framework for building, automating, and scheduling data pipelines<sup>2</sup>.  Data
+pipelines in Airflow are known as workflows or Directed Acyclic Graphs (DAGs).  Airflow DAGs are configured as code
+using Python, and can be run ad hoc or on a schedule.  The Airflow platform creates an execution and scheduling
+environment for DAGs, which are viewable from a web interface.
+</Definition>
+<p>
+The main objective of Airflow is to run DAGs either manually or based on a schedule.
+</p>
+<Definition word="Airflow DAG">
+A Directed Acyclic Graph (DAG), also referred to as a data pipeline or workflow, is a graph of tasks
+which is run manually or based on a schedule.  Since DAGs are acyclic, the graph of tasks in a DAG can’t contain any cycles, but
+can branch and converge as needed.  Airflow DAGs are written and configured in Python.  DAGs contain information such
+as a list of tasks, the execution order (graph) of the tasks, an execution schedule, and additional metadata.
+</Definition>
+<p>
+An Airflow DAG, as seen from the Airflow UI, is shown below.  This DAG contains three tasks.
+</p>
+<InlineImage filename="1-17-22-airflow-dag.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<Definition word="Airflow Task">
+In Airflow, tasks are the smallest unit of execution<sup>3</sup>.  Tasks are units within a DAG, with upstream and
+downstream dependencies.  These upstream and downstream dependencies are other tasks in the DAG.  Tasks can perform simple operations such as running a Python function or
+Bash script, or more complex operations like running a Docker container.  There are many different types of tasks,
+which are created using Airflow Operators.  Operators are templates for building tasks; for example, a
+<code className="jarombek-inline-code">PythonOperator</code> is used to create a task that runs a Python
+function<sup>4</sup>.
+</Definition>
+<p>
+The Airflow platform consists of multiple components; most importantly, Airflow consists of a web server, scheduler,
+and metastore.
+</p>
+<ComparisonTable title="Airflow Components">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Web Server
+</h5>
+<div className="jarombek-cte-body">
+<p>
+In Airflow, the web server is the UI in which users can view and trigger DAGs. The web server is also helpful for
+viewing DAG run results and debugging DAGs by looking through execution logs.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Scheduler
+</h5>
+<div className="jarombek-cte-body">
+<p>
+The Airflow scheduler is a constantly running program that monitors all DAGs in the Airflow environment<sup>5</sup>.
+Python DAG files exist in a specific directory in the Airflow environment, and the scheduler is responsible for parsing
+these DAG files and storing information about them within the Airflow metastore.  The scheduler also checks if DAGs and
+tasks within DAGs are eligible for execution.  When tasks are eligible for execution, the scheduler places them in a
+queued state, and then executes them<sup>6</sup>.  In many ways, the scheduler is the heart of the Airflow platform.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Metastore
+</h5>
+<div className="jarombek-cte-body">
+<p>
+The Airflow metastore holds metadata about an Airflow environment, including configuration details and DAG information.
+Everything that happens within the Airflow environment also exists in the metastore, including DAG run information.
+The metastore is a relational database, commonly MySQL or PostgreSQL.  <a href="https://www.astronomer.io/guides/
+airflow-database">This article</a> provides a good high-level overview of the data stored in the metastore.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<SectionTitle title="Airflow Webserver Tour">Airflow Webserver Tour</SectionTitle>
+<p>
+After signing into the Airflow UI, the initial page displays all the DAGs in the Airflow environment.
+</p>
+<InlineImage filename="1-17-22-airflow-home.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+This list of DAGs displays basic information about each DAG, such as their execution schedules, and the results of
+recent runs.  It also gives options to toggle DAGs on and off (the switch to the left of the DAG name) and run DAGs
+(the play button in the "Actions" column).  Clicking on a DAG shows the following view:
+</p>
+<InlineImage filename="1-17-22-airflow-graph-view.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Airflow DAGs have multiple views; the view shown above is called the graph view.  The graph view shows the DAG and the
+result of the previous run.  In this case, both tasks ran successfully, as denoted by both tasks being outlined in
+green.  Hovering over a task supplies more information about it, and clicking on the task provides options such as
+viewing the logs or re-running the task.
+</p>
+<InlineImage filename="1-17-22-airflow-graph-view-hover.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<InlineImage filename="1-17-22-airflow-graph-view-click.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Clicking on the "Log" button displays the logs for the task run, which is very useful for debugging.
+</p>
+<InlineImage filename="1-17-22-airflow-log-view.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Another useful page is the DAGs tree view.  This page shows the results of all the prior DAG runs.  In the image below,
+the last two runs of the <code className="jarombek-inline-code">hello_world</code> DAG are shown, both of which were
+successful.
+</p>
+<InlineImage filename="1-17-22-airflow-tree-view.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Airflow provides many ways to view DAGs and environment configurations, but the pages shown above are the ones I’ve
+found most useful these past six months.
+</p>
+<SectionTitle title="Airflow Development Environment">Airflow Development Environment</SectionTitle>
+<p>
+While it is possible to run Airflow on the host machine of your development environment, a more elegant approach is to
+use Docker.  With Docker, you have an Airflow environment that works across different operating systems and is started
+with a single command.  No Airflow dependencies are needed on your host machine with this approach.  Since Airflow
+often has a complex setup with multiple containers, I use Docker Compose to orchestrate them.
+</p>
+<p>
+I’ve created multiple Airflow development environments of varying degrees of complexity.  The major difference between
+these environments comes down to the executor, which is the component of Airflow that runs scheduled tasks.  The three
+development environments I created, which can be found in my <a href="https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow">
+data-analytics-prototypes</a> repository, utilize <a href="https://github.com/AJarombek/data-analytics-prototypes/tree/
+master/Airflow/sequential-executor">sequential</a>, <a href="https://github.com/AJarombek/data-analytics-prototypes/
+tree/master/Airflow/local-executor">local</a>, and <a href="https://github.com/AJarombek/data-analytics-prototypes/
+tree/master/Airflow/celery-executor">celery</a> executors.
+</p>
+<p>
+The simplest executor is the sequential executor, which is not recommended for production usage.  Even for development
+use it can become a bottleneck because it runs tasks sequentially, one at a time.  However, when you are just getting
+started, the sequential executor is likely sufficient.
+</p>
+<p>
+The configuration for the sequential executor local environment consists of a <a href="https://github.com/AJarombek/
+data-analytics-prototypes/blob/master/Airflow/sequential-executor/Dockerfile">Dockerfile</a> and a
+<a href="https://github.com/AJarombek/data-analytics-prototypes/blob/master/Airflow/sequential-executor/
+docker-compose.yml">docker-compose.yml</a> file.  The contents of these files are shown below.
+</p>
+<CodeSnippet language="Dockerfile">
+# Dockerfile
+
+FROM apache/airflow:2.2.0-python3.8
+
+RUN airflow db init \
+    && airflow users create --username admin --password admin --firstname Anonymous --lastname Admin --role Admin --email admin@example.org
+</CodeSnippet>
+<CodeSnippet language="YAML">
+# docker-compose.yml
+
+version: '3.8'
+
+x-environment: &airflow_environment
+  - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+  - AIRFLOW__CORE__LOAD_EXAMPLES=False
+  - AIRFLOW__CORE__STORE_DAG_CODE=True
+  - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True
+  - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+  - _PIP_ADDITIONAL_REQUIREMENTS=apache-airflow-providers-postgres==2.3.0
+
+services:
+  airflow:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    environment: *airflow_environment
+    ports:
+      - "8080:8080"
+    volumes:
+      - logs:/opt/airflow/logs
+      - ../dags:/opt/airflow/dags
+    networks:
+      - airflow-net
+    entrypoint: /bin/bash
+    command: -c 'airflow webserver & airflow scheduler'
+
+volumes:
+  logs:
+
+networks:
+  airflow-net:
+    driver: bridge
+</CodeSnippet>
+<p>
+The Docker Compose file runs a container based on the Dockerfile.  With this setup, a simple
+<code className="jarombek-inline-code">docker-compose up</code> command from the command line will start the Airflow
+server.
+</p>
+<p>
+Let’s go over these files in a bit more detail.  The <strong>Dockerfile</strong> uses an official Airflow image,
+<code className="jarombek-inline-code">apache/airflow:2.2.0-python3.8</code>, as its base image.  The
+<code className="jarombek-inline-code">RUN</code> command initializes the Airflow metastore database
+(<code className="jarombek-inline-code">airflow db init</code>) and creates a user that can sign into the Airflow
+webserver (<code className="jarombek-inline-code">airflow users create</code>).  For the sequential executor, the
+Airflow metastore uses SQLite as its database engine.
+</p>
+<p>
+The <strong>docker-compose.yml</strong> file runs a single <code className="jarombek-inline-code">airflow</code> service
+using the <strong>Dockerfile</strong>, as specified by <code className="jarombek-inline-code">dockerfile: Dockerfile
+</code>.  The <code className="jarombek-inline-code">airflow</code> service starts a container, executing a
+ <code className="jarombek-inline-code">airflow webserver & airflow scheduler</code> command.  This command starts the
+Airflow webserver in the background and the Airflow scheduler in the foreground.  The Airflow webserver is exposed on
+port <strong>8080</strong>, and accessible locally at <strong>http://localhost:8080/</strong>.
+</p>
+<p>
+There are two volumes attached to the container.  Volume number one is a location to hold Airflow logs, specified by
+<code className="jarombek-inline-code">logs:/opt/airflow/logs</code>.  Volume number two is a location in my local filesystem
+holding Airflow DAGs, specified by <code className="jarombek-inline-code">../dags:/opt/airflow/dags</code>.  The
+relative path from my <a href="https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow/
+sequential-executor">docker-compose.yml</a> file to my <a href="https://github.com/AJarombek/data-analytics-prototypes/
+tree/master/Airflow/dags">dags</a> directory is <strong>../dags</strong>.  This <strong>dags</strong> directory is
+mounted on the container within <strong>/opt/airflow/dags</strong>, a directory that the Airflow scheduler reads
+DAGs from.
+</p>
+<p>
+The Docker Compose setup also includes environment variables that configure Airflow.  These environment variables are
+defined under <code className="jarombek-inline-code">x-environment: &airflow_environment</code> and are attached to the
+container with the <code className="jarombek-inline-code">environment: *airflow_environment</code> configuration.
+<code className="jarombek-inline-code">AIRFLOW__CORE__EXECUTOR</code> sets the type of executor that Airflow uses.
+Setting <code className="jarombek-inline-code">AIRFLOW__CORE__LOAD_EXAMPLES=False</code> tells Airflow to exclude
+example DAGs from the Airflow environment; Airflow loads example DAGs for reference by default.  Setting
+<code className="jarombek-inline-code">AIRFLOW__CORE__STORE_DAG_CODE=True</code> stores DAG files in the Airflow
+metastore and setting <code className="jarombek-inline-code">AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True</code> serializes
+the DAGs when storing them in the metastore.  <code className="jarombek-inline-code">
+AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True</code> allows users to view the Airflow configuration from the web server.
+<code className="jarombek-inline-code">_PIP_ADDITIONAL_REQUIREMENTS</code> is used to install additional Python
+dependencies in the Airflow environment.  In my case, I install a single additional dependency,
+<code className="jarombek-inline-code">apache-airflow-providers-postgres</code>.  This library supplies Airflow
+operators (templates for Airflow tasks) that work with a PostgreSQL database.
+</p>
+<p>
+Development environments using the local executor and the celery executor build upon the Docker configuration for the
+sequential executor.  The local executor operates on a single machine, similar to the sequential executor.  However,
+unlike the sequential executor which runs only one task at a time, the local executor runs multiple tasks in
+parallel<sup>7</sup>.  The celery executor not only runs tasks in parallel, but can also distribute tasks across
+multiple machines. The <a href="https://github.com/AJarombek/data-analytics-prototypes/blob/master/Airflow/
+local-executor/docker-compose.yml">local executor environment</a> and the <a href="https://github.com/AJarombek/
+data-analytics-prototypes/blob/master/Airflow/celery-executor/docker-compose.yml">celery executor environment</a> Docker
+Compose files are available on GitHub.
+</p>
+<SectionTitle title="Basic Airflow Pipelines">Basic Airflow Pipelines</SectionTitle>
+<p>
+Let’s shift our attention to building pipelines (DAGs) in Airflow.  All the DAGs in my Airflow environment exist in a
+<a href="https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow/dags">dags</a> directory.  To follow
+along, you can run a <code className="jarombek-inline-code">docker-compose up</code> command from the
+<a href="https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow/sequential-executor">
+Airflow/sequential-executor</a> directory of my repository and navigate to <strong>http://localhost:8080/</strong> in a
+web browser.
+</p>
+<p>
+To get started, here is a <a href="https://github.com/AJarombek/data-analytics-prototypes/blob/master/Airflow/
+dags/hello_world.py">"Hello World" style DAG</a> that contains two simple tasks.
+</p>
+<CodeSnippet language="Python">
+from datetime import datetime, timedelta
+
+from airflow import DAG
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
+from airflow.utils.dates import days_ago
+
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False
+}
+
+
+def task():
+    print(f"The current time is {datetime.now().strftime('%b. %d, %Y %-I:%M %p UTC')}")
+
+
+with DAG(
+    dag_id="hello_world",
+    description="A hello world DAG which shows the basic execution flow of Airflow",
+    default_args=default_args,
+    dagrun_timeout=timedelta(hours=2),
+    start_date=days_ago(1),
+    schedule_interval=None,
+    default_view="graph",
+    tags=["sample", "python", "bash"]
+) as dag:
+    bash_task = BashOperator(task_id='bash_task', bash_command='echo "Hello from Airflow!"')
+    python_task = PythonOperator(task_id='python_task', python_callable=task)
+
+    bash_task >> python_task
+</CodeSnippet>
+<InlineImage filename="1-17-22-airflow-hello-world-dag.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Airflow contains a <code className="jarombek-inline-code">DAG</code> class, which is used to create a DAG.  One way to
+initialize a DAG is the <code className="jarombek-inline-code">with DAG(...) as dag:</code> syntax, as shown in
+the code above. Nested inside the <code className="jarombek-inline-code">with</code> statement, Airflow Tasks are defined which
+are part of the DAG.  The DAG above has two tasks: <code className="jarombek-inline-code">bash_task</code> and
+<code className="jarombek-inline-code">python_task</code>.  <code className="jarombek-inline-code">bash_task</code> runs
+a Bash script, and <code className="jarombek-inline-code">python_task</code> runs a Python function.  The order in which
+these tasks are run is defined with the <code className="jarombek-inline-code">bash_task >> python_task</code> operator
+syntax.  This line says that <code className="jarombek-inline-code">bash_task</code> runs first, followed by
+<code className="jarombek-inline-code">python_task</code>.  More details about the order between tasks (task
+relationships) can be found in the <a href="https://airflow.apache.org/docs/apache-airflow/stable/concepts/
+tasks.html#relationships">Airflow documentation</a>.
+</p>
+<p>
+<code className="jarombek-inline-code">bash_task</code> is created with <code className="jarombek-inline-code">
+BashOperator()</code>.  <code className="jarombek-inline-code">BashOperator()</code> takes a
+<code className="jarombek-inline-code">bash_command</code> argument containing a command to run in a Bash shell.  The
+command, <code className="jarombek-inline-code">echo "Hello from Airflow!"'</code> prints "Hello from Airflow!" to the
+Airflow logs.  <code className="jarombek-inline-code">python_task</code> is created with
+<code className="jarombek-inline-code">PythonOperator()</code>.  <code className="jarombek-inline-code">PythonOperator()
+</code> takes a <code className="jarombek-inline-code">python_callable</code> argument, which is a Python function.  The
+Python function, <code className="jarombek-inline-code">task()</code>, prints out the current time to the Airflow logs.
+</p>
+<p>
+The <code className="jarombek-inline-code">DAG()</code> initializer takes arguments which configure the DAG.  The DAG
+is given the name <strong>hello_world</strong> (<code className="jarombek-inline-code">dag_id="hello_world"</code>),
+provided a description (<code className="jarombek-inline-code">description="..."</code>), and given default
+arguments (<code className="jarombek-inline-code">default_args=default_args</code>).  Default arguments are
+ passed along to all the tasks within a DAG<sup>8</sup>.  Similar to DAGs, tasks take arguments to alter their
+configuration.
+</p>
+<p>
+The DAG is also given a timeout of two hours (<code className="jarombek-inline-code">dagrun_timeout=timedelta(hours=2)
+</code>).  If the DAG runs for more than two hours before completing, the DAG is stopped and marked as a failure.  The DAG is not given a schedule
+interval, meaning that it does not get triggered on any specified time (<code className="jarombek-inline-code">
+schedule_interval=None</code>).  <code className="jarombek-inline-code">default_view="graph"</code> means that when
+clicking on the DAG in the Airflow web server, the graph view is shown by default (as shown in the image above).
+<code className="jarombek-inline-code">tags=["sample", "python", "bash"]</code> attaches three tags to the DAG.  Tags
+are searchable in the DAG list page of the web server, allowing you to easily find data pipelines as the number of DAGs
+grows.  For example, the following screenshot shows the result of me filtering by the "python" tag.
+</p>
+<InlineImage filename="1-17-22-airflow-tag-search.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Now let’s look at a slightly more complex DAG.  A <strong>branch</strong> DAG is shown below.
+</p>
+<CodeSnippet language="Python">
+from datetime import timedelta, datetime
+
+from airflow import DAG
+from airflow.operators.python import PythonOperator, BranchPythonOperator
+from airflow.utils.dates import days_ago
+
+
+def branch():
+    if datetime.now().weekday() >= 5:
+        return 'weekend_task'
+    else:
+        return 'weekday_task'
+
+
+def weekend():
+    print(
+        "Schedule:\n"
+        "8 AM - 12 PM: Run & Workout\n"
+        "12 PM - 10 PM: Code & Relax"
+    )
+
+
+def weekday():
+    print(
+        "Schedule:\n"
+        "6 AM - 9 AM: Run & Workout\n"
+        "9 AM - 5 PM: Work\n"
+        "5 PM - 10 PM: Code & Relax"
+    )
+
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False
+}
+
+
+with DAG(
+    dag_id="branch",
+    description="A DAG that branches",
+    default_args=default_args,
+    dagrun_timeout=timedelta(hours=2),
+    start_date=days_ago(1),
+    schedule_interval="@daily",
+    default_view="graph",
+    is_paused_upon_creation=False,
+    tags=["sample", "branch", "python"]
+) as dag:
+    branch_task = BranchPythonOperator(task_id='branch', python_callable=branch)
+    weekend_task = PythonOperator(task_id='weekend_task', python_callable=weekend)
+    weekday_task = PythonOperator(task_id='weekday_task', python_callable=weekday)
+
+    branch_task >> [weekend_task, weekday_task]
+</CodeSnippet>
+<InlineImage filename="1-17-22-airflow-branch-dag.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+This DAG contains three tasks, all of which run Python functions.  The DAG is configured similar to the
+<strong>hello_world</strong> DAG, except that there is now a schedule interval.  The interval
+<code className="jarombek-inline-code">"@daily"</code> says that the DAG is automatically triggered every day.  Airflow
+provides different types of schedule intervals; specifically, there are preset, cron, and frequency intervals.
+<code className="jarombek-inline-code">@daily</code> is a preset interval; other examples of preset intervals include
+<code className="jarombek-inline-code">@hourly</code>, <code className="jarombek-inline-code">@weekly</code>, and
+<code className="jarombek-inline-code">@monthly</code>.  I have example DAGs of <a href="https://github.com/AJarombek/
+data-analytics-prototypes/blob/master/Airflow/dags/scheduled_preset.py">preset</a>, <a href="https://github.com/
+AJarombek/data-analytics-prototypes/blob/master/Airflow/dags/scheduled_cron.py">cron</a>, and
+<a href="https://github.com/AJarombek/data-analytics-prototypes/blob/master/Airflow/dags/scheduled_frequency.py">
+frequency</a> intervals in my GitHub repository.
+</p>
+<p>
+The other major difference between the <strong>hello_world</strong> DAG and the <strong>branch</strong> DAG is that the
+tasks in <strong>branch</strong> follow a branching pattern.  That is, a task in the DAG has two downstream tasks,
+creating a branch in the task dependency tree.  In the <strong>branch</strong> DAG, the
+<code className="jarombek-inline-code">branch_task</code> task has two downstream tasks:
+<code className="jarombek-inline-code">weekend_task</code> and <code className="jarombek-inline-code">
+weekday_task</code>.  This relationship is defined by the line <code className="jarombek-inline-code">
+branch_task >> [weekend_task, weekday_task]</code>.
+</p>
+<p>
+I also introduced a new operator in this DAG: <code className="jarombek-inline-code">BranchPythonOperator()</code>.
+<code className="jarombek-inline-code">BranchPythonOperator()</code> runs a Python function that returns the name of a
+single task or a list of tasks.  The tasks returned by the Python function are triggered as downstream dependencies of
+the current task.  <code className="jarombek-inline-code">BranchPythonOperator()</code> provides flexibility to DAGs,
+allowing tasks to be triggered conditionally.
+</p>
+<p>
+In my <strong>branch</strong> DAG, <code className="jarombek-inline-code">BranchPythonOperator()</code> takes a
+<code className="jarombek-inline-code">python_callable</code> argument with the value of a
+<code className="jarombek-inline-code">branch()</code> function.  This function returns the task name
+<code className="jarombek-inline-code">weekend_task</code> if the current day is a weekend, otherwise it returns the
+task name <code className="jarombek-inline-code">weekday_task</code>.  In other words,
+<code className="jarombek-inline-code">weekend_task</code> is triggered on weekends, while
+<code className="jarombek-inline-code">weekday_task</code> is triggered on weekdays.
+</p>
+<p>
+Airflow provides too many options for configuring workflows to discuss in a single article, let alone an entire book.
+The <a href="https://airflow.apache.org/docs/apache-airflow/stable/index.html">Airflow documentation</a> has a lot of
+useful information for working with Airflow.  If you are looking to truly master Airflow, I recommend reading the book
+<a href="https://www.manning.com/books/data-pipelines-with-apache-airflow">Data Pipelines with Apache Airflow</a>.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Airflow is a useful platform for building data pipelines.  It’s been production-tested, handling data workloads at
+large companies in the software engineering industry.  All the code shown in this article is available on
+<a href="https://github.com/AJarombek/data-analytics-prototypes/tree/master/Airflow">GitHub</a>.
+</p>
+</div>

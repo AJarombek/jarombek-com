@@ -1,0 +1,34 @@
+<div>
+<p>
+Today I upgraded my iOS app <a href="https://github.com/AJarombek/saints-xctf-ios">SaintsXCTF</a>
+from Swift 3 to Swift 4.  The process was extremely easy, with many of the automated
+conversions consisting of API changes and String struct upgrades.  However there was one change
+that had me confused - many of my functions were given an <code className="jarombek-inline-code">@objc</code>
+annotation.  So what is this mysterious annotation and why was it added to so many of my methods?
+</p>
+<CodeSnippet language="Swift">
+@objc func womensXC(_ sender: UIView) {
+    os_log("Go to Women's Cross Country Page", log: logTag, type: .debug)
+    loadGroup(withGroupname: "wmensxc")
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">@objc</code> annotation allows for functions to interact with
+Objective-C code<sup>1</sup>.  Since many of Apple's APIs are built in Objective-C, a lot of my functions
+were actually interacting with non-Swift code without me even knowing!  This communication between
+Swift and Objective-C is called Interoperability and it enables usage of Objective-C code in Swift and vice versa<sup>2</sup>.
+</p>
+<p>
+Why is Swift 4 enforcing the <code className="jarombek-inline-code">@objc</code> annotation when Swift
+3 didn't?  It turns out the Swift 3 compiler inferred the <code className="jarombek-inline-code">
+@objc</code> annotation for you, so you didn't have to manually write it<sup>3</sup>. This changed in Swift 4.
+</p>
+<p>
+One of the reasons listed for enforcing the <code className="jarombek-inline-code">@objc</code> annotation in Swift 4
+is that it was never obvious if the annotation would be inferred by the compiler in Swift 3.  I would
+argue that having to use <code className="jarombek-inline-code">@objc</code> in my code is more of a burden than a feature.  Now I
+am dependent on an IDE, since I often don't know if I'm interacting with an Apple API written in Objective-C.
+Some of my favorite languages are the ones where code can be written easily in a text editor (one of Java's
+weak points for me is that I'm tied to an IDE), and Swift has now taken a step further away from simplicity.
+</p>
+</div>

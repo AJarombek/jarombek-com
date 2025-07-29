@@ -1,0 +1,539 @@
+<div>
+<p>
+During software development, it's important to test logic and perform static code analysis to ensure programs meet
+certain standards.  Build tools and CI/CD platforms help developers automate these tasks.  There are many different
+build tools, such as Make, <a href="https://jarombek.com/blog?query=Bazel&page=1">Bazel</a>,
+ and <a href="https://jarombek.com/blog?query=Please&page=1">Please</a>, along with many CI/CD platforms, such as
+<a href="https://jarombek.com/blog?query=Jenkins&page=1">Jenkins</a>,
+<a href="https://jarombek.com/blog?query=TravisCI&page=1">TravisCI</a>,
+ and <a href="https://jarombek.com/blog?query=GitHub%20Actions&page=1">GitHub Actions</a> (to name a few). Due to a
+ wide variety of choices, it can be overwhelming for engineers to pick the best option for their codebase.
+</p>
+<p>
+Although I've experimented a bit with TravisCI in the past, most of my CI/CD work up until now has been on Jenkins.
+Outside of language or platform specific build tools (such as CMake or Webpack), I haven't used many language-agnostic
+build tools in my code up to this point.  While designing my <a href="https://github.com/AJarombek/go-programming">
+go-programming</a> repository, which contains Go programming language code samples, I decided to work with a
+new build tool and CI/CD platform.
+</p>
+<p>
+For the build tool, I decided to use <a href="https://please.build/">Please Build</a>, a language agnostic build platform
+ derived from Google's internal Blaze build tool, which was ported to the open source community as Bazel<sup>1</sup>.  For the
+ CI/CD platform, I decided to use <a href="https://github.com/features/actions">GitHub Actions</a>, which is built into
+GitHub.  In this article, I'll discuss the basics of Please Build and GitHub Actions, along with how I integrated both
+into my <a href="https://github.com/AJarombek/go-programming">go-programming</a> repository.
+</p>
+<SectionTitle title="Repository Overview">Repository Overview</SectionTitle>
+<p>
+The <a href="https://github.com/AJarombek/go-programming">go-programming</a> repository consists of many subdirectories
+containing Go code.  This Go code contains unit tests that I ensure are successful and libraries that I build and compile
+into machine specific binaries.  For example, the <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2/
+goroutines">goroutines</a> subdirectory contains unit tests, such as <a href="https://github.com/AJarombek/
+go-programming/blob/v1.1.2/goroutines/basics_test.go">basics_test.go</a>, along with libraries, such as
+<a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/goroutines/goroutine_example/goroutine_example.go">
+goroutine_example.go</a>.
+</p>
+<p>
+I use the GoLand IDE by Jetbrains for Go development.  One of the great features of Jetbrains IDEs, GoLand included, are
+ run configurations.  Run configurations enable an easy way to run or test Go code through the GoLand UI<sup>2</sup>.
+Run configurations can optionally run on a Docker container, and configurations can be saved and committed to a
+repository in XML files.
+</p>
+<p>
+In the <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2">go-programming</a> repository, run
+configurations are stored in a <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2/.run">.run</a>
+directory.  These run configurations execute on Docker containers, which are defined in a
+<a href="https://github.com/AJarombek/go-programming/tree/v1.1.2/base">base</a> directory.  Currently, all my run
+configurations execute on docker containers derived from a base <strong>Dockerfile</strong>, which is specified in
+<a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/base/Dockerfile">base/Dockerfile</a>, with the
+following setup.
+</p>
+<CodeSnippet language="Dockerfile">
+FROM golang:1.18.3-alpine3.16
+
+RUN apk add gcc libc-dev linux-headers
+
+RUN curl https://get.please.build > please.sh && \
+    bash ./please.sh
+
+ENV PATH="${PATH}:/root/.please/bin"
+
+STOPSIGNAL SIGTERM
+</CodeSnippet>
+<p>
+Most importantly, the base Dockerfile installs Please Build from the URL <strong>
+https://get.please.build</strong> and appends its installation directory onto the <code className="jarombek-inline-code">
+PATH</code> environment variable.  Go is installed and configured in the <code className="jarombek-inline-code">golang</code>
+image, which is specified as the base image using the <code className="jarombek-inline-code">
+FROM golang:1.18.3-alpine3.16</code> command.
+</p>
+<p>
+Each subdirectory in the repository has its own Dockerfile, using <a href="https://github.com/AJarombek/go-programming/
+blob/v1.1.2/base/Dockerfile">base/Dockerfile</a> as its base image. Subdirectory Dockerfiles contain commands
+needed to execute the code within the subdirectory.  For example, the <a href="https://github.com/AJarombek/
+go-programming/tree/v1.1.2/goroutines">goroutines</a> subdirectory contains the following <a href="https://github.com/
+AJarombek/go-programming/blob/v1.1.2/goroutines/Dockerfile">Dockerfile</a>
+</p>
+<CodeSnippet language="Dockerfile">
+FROM ajarombek/go-alpine-linux-programming:latest
+
+WORKDIR src
+COPY . .
+
+ENTRYPOINT ["go", "test", "-v", "."]
+</CodeSnippet>
+<p>
+This Dockerfile uses the base image <code className="jarombek-inline-code">ajarombek/go-alpine-linux-programming:latest
+</code>, which is available on <a href="https://hub.docker.com/repository/docker/ajarombek/go-alpine-linux-programming">
+DockerHub</a>.  It copies files from my repository onto the containers filesystem and runs the command
+<code className="jarombek-inline-code">go test -v .</code>, which executes all the Go tests.
+</p>
+<p>
+This Dockerfile is also used in a run configuration for the repository.  GoLand run configurations are XML files, and
+in my repository they specify a docker container to run.  For the
+<a href="https://github.com/AJarombek/go-programming/tree/v1.1.2/goroutines">goroutines</a> subdirectory, I created a
+<a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/.run/goroutines.run.xml">goroutines.run.xml</a> run
+configuration which starts a Docker container.
+</p>
+<CodeSnippet language="XML">
+&lt;component name="ProjectRunConfigurationManager">
+    &lt;configuration default="false" name="goroutines" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+        &lt;deployment type="dockerfile">
+            &lt;settings>
+                &lt;option name="containerName" value="go_programming_goroutines" />
+                &lt;option name="sourceFilePath" value="goroutines/Dockerfile" />
+            &lt;/settings>
+        &lt;/deployment>
+        &lt;method v="2" />
+    &lt;/configuration>
+&lt;/component>
+</CodeSnippet>
+<p>
+This run configuration specifies the creation of a Docker image named <code className="jarombek-inline-code">
+go_programming_goroutines</code> created using the Dockerfile <code className="jarombek-inline-code">
+goroutines/Dockerfile</code>. Putting all the pieces together, the following image shows what it looks like to trigger
+the run configuration and view its console log.
+</p>
+<InlineImage filename="11-15-22-goland-run-config.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+Run configurations are great for manually executing tests or running code.  However, for CI/CD purposes, operations
+like executing tests, compiling code, and packaging binaries should be automated.  This is where Please Build and
+GitHub Actions can help.
+</p>
+<SectionTitle title="Please Build Setup">Please Build Setup</SectionTitle>
+<Definition word="Please Build">
+Please Build is a language agnostic build system derived from Bazel and Blaze, which are open source and proprietary
+build systems originating at Google.  Like Bazel and Blaze, Please Build uses the Starlark programming language for its
+build files.  Build files, commonly named <strong>BUILD</strong>, contain build targets, which are units of deployable
+code<sup>3</sup>.  Build targets are written using rules, which appear as Python functions.  Rules are configurable
+using arguments and they determine what occurs when a build target is run.  Builds are run in isolation from
+application source code; they are given a separate <strong>plz-out</strong> directory to run it.  Build results are
+also cached, which makes subsequent builds on unchanged code very fast.
+</Definition>
+<Definition word="Starlark Programming Language">
+Starlark is a programming language that is syntactically similar to and inspired by Python<sup>4</sup>.  Starlark is
+used in <strong>BUILD</strong> files for the Blaze and Bazel build tools, along with their derivatives such as Please
+Build.  Starlark has different language rules than Python despite its syntactic similarities;  Starlark is neither a
+superset or subset of Python.
+</Definition>
+<p>
+When configuring Please Build in a repository, a <code className="jarombek-inline-code">plz init</code> command is run
+from the root of the codebase.  This command creates a <a href="https://github.com/AJarombek/go-programming/blob/
+v1.1.2/.plzconfig">.plzconfig</a> file in the repository, which configures the execution of Please
+commands<sup>5</sup>.  This is how <a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/.plzconfig">
+.plzconfig</a> appears in my <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2">go-programming</a>
+repository.
+</p>
+<CodeSnippet language="TOML">
+[please]
+version = 16.22.1
+
+[build]
+PassEnv = PATH
+path = $PATH:/usr/local/bin:/usr/bin:/bin
+
+[buildenv]
+test-env = plz
+</CodeSnippet>
+<p>
+<a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/.plzconfig">.plzconfig</a> lists out different build
+options to use in the repository<sup>6</sup>.  <code className="jarombek-inline-code">version = 16.22.1</code> sets the
+version of Please Build to use while performing builds.  <code className="jarombek-inline-code">PassEnv = PATH</code>
+takes the <code className="jarombek-inline-code">PATH</code> environment variable and makes it accessible while Please
+Build rules are executed.  <code className="jarombek-inline-code">path = $PATH:/usr/local/bin:/usr/bin:/bin</code>
+ takes this <code className="jarombek-inline-code">PATH</code> environment variable and appends
+ <code className="jarombek-inline-code">/usr/local/bin:/usr/bin:/bin</code> to it.  Finally,
+<code className="jarombek-inline-code">test-env = plz</code> creates a new environment variable named
+<code className="jarombek-inline-code">TEST_ENV</code> and assigns it a value of <code className="jarombek-inline-code">
+plz</code>.  <code className="jarombek-inline-code">TEST_ENV</code> is accessible while running Please Build commands.
+These are just a few of the configuration options available with Please Build; a full list of options are available in
+the <a href="https://please.build/config.html">Please Build documentation</a>.
+</p>
+<p>
+As previously mentioned, Please Build consists of <strong>BUILD</strong> files written in Starlark.  In my
+<a href="https://github.com/AJarombek/go-programming/tree/v1.1.2">go-programming</a> repository, the root directory
+contains a <a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/BUILD">BUILD</a> file with the following
+contents.
+</p>
+<CodeSnippet language="Starlark">
+package(default_visibility = ["PUBLIC"])
+
+go_toolchain(
+    name = "go_download",
+    version = "1.18",
+)
+
+go_module(
+    name = "testify",
+    module = "github.com/stretchr/testify",
+    install = ["..."],
+    version = "v1.7.0",
+    deps = [
+        ":go_difflib",
+        ":go_yaml",
+        ":go_spew",
+        ":objx",
+    ],
+)
+
+go_module(
+    name = "go_difflib",
+    module = "github.com/pmezard/go-difflib",
+    install = ["..."],
+    version = "v1.0.0",
+    deps = [":go_download"],
+)
+
+go_module(
+    name = "go_yaml",
+    module = "gopkg.in/yaml.v3",
+    install = ["..."],
+    version = "v3.0.0-20200313102051-9f266ea9e77c",
+    deps = [":go_download"],
+)
+
+go_module(
+    name = "go_spew",
+    module = "github.com/davecgh/go-spew",
+    install = ["..."],
+    version = "v1.1.0",
+    deps = [":go_download"],
+)
+
+go_module(
+    name = "objx",
+    module = "github.com/stretchr/objx",
+    install = ["..."],
+    version = "v0.1.0",
+    deps = [":go_download"],
+)
+</CodeSnippet>
+<p>
+On the first line of code, <code className="jarombek-inline-code">package()</code>, a Please Build built-in function,
+sets configuration details for all the ensuing rules<sup>6</sup>.  In my code, it sets the visibility of all the rules
+in the file to <code className="jarombek-inline-code">PUBLIC</code>, which makes them accessible to all the other rules
+in the repository<sup>7</sup>.
+</p>
+<p>
+The next rule, <code className="jarombek-inline-code">go_toolchain()</code>, downloads Go for other
+<code className="jarombek-inline-code">go_</code> prefixed rules to use.  Based on my configurations,
+<code className="jarombek-inline-code">go_toolchain()</code> downloads version 1.18 of Go.  The
+<code className="jarombek-inline-code">name</code> argument of <code className="jarombek-inline-code">
+go_toolchain()</code> defines a unique name for the rule that can be used as a dependency for other rules.
+<code className="jarombek-inline-code">name</code> is considered a common argument, and exists on every rule in Please
+Build<sup>8</sup>.
+</p>
+<p>
+The first <code className="jarombek-inline-code">go_module()</code> rule, named <code className="jarombek-inline-code">
+testify</code>, downloads and installs a Go module that is used by other <code className="jarombek-inline-code">go_
+</code> prefixed rules.  This Go module contains assertion functions which I use in unit tests.   The full path of the
+module is <code className="jarombek-inline-code">github.com/stretchr/testify</code> and the version I install is
+<code className="jarombek-inline-code">v1.7.0</code>.  <code className="jarombek-inline-code">testify</code> depends on
+four Go modules itself, which are defined in the <code className="jarombek-inline-code">deps</code> argument.  Each
+dependency has its own <code className="jarombek-inline-code">go_module()</code> rule in the <strong>BUILD</strong>
+file. The colon (<code className="jarombek-inline-code">:</code>) before each dependency name informs Please Build that
+the dependency is another rule declared in the same package.
+</p>
+<p>
+With that in mind, notice how the rules in this <strong>BUILD</strong> file define a dependency tree.
+<code className="jarombek-inline-code">testify</code> is dependent on four dependencies,
+<code className="jarombek-inline-code">go_difflib</code>, <code className="jarombek-inline-code">go_yaml</code>,
+<code className="jarombek-inline-code">go_spew</code>, <code className="jarombek-inline-code">objx</code>, which in turn
+are all dependent on <code className="jarombek-inline-code">go_download</code>.  This is often the case in Please Build,
+where rules build on each other to create a functional build system for an application.
+</p>
+<p>
+Rules in the root <a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/BUILD">BUILD</a> file create a
+foundation for other rules in the repository.  Let's take a look at another <strong>BUILD</strong> file.
+<a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/unit-testing/BUILD">unit-testing/BUILD</a> defines
+rules that run unit tests for a Go program.  The <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2/
+unit-testing">unit-testing</a> directory contains code samples I created based on my learnings from chapter 11 of
+<a href="https://www.gopl.io/">The Go Programming Language</a>.  The <strong>BUILD</strong> file contains two rules.
+</p>
+<CodeSnippet language="Starlark">
+go_library(
+    name = "license_plates",
+    srcs = ["license_plates.go"],
+    deps = ["//:go_download"],
+    labels = ["unit_testing"],
+)
+
+go_test(
+    name = "test",
+    srcs = ["license_plates_test.go"],
+    deps = [":license_plates"],
+    labels = [
+        "unit_testing",
+        "test",
+    ],
+)
+</CodeSnippet>
+<p>
+First, <code className="jarombek-inline-code">go_library()</code> defines a rule, named
+<code className="jarombek-inline-code">license_plates</code>, that creates a Go library usable by other Go programs.
+<code className="jarombek-inline-code">license_plates</code> contains a single Go file
+<code className="jarombek-inline-code">license_plates.go</code> and is dependent on
+<code className="jarombek-inline-code">//:go_download</code>, which downloads and installs Go. The
+<code className="jarombek-inline-code">//:</code> prefix to the dependency tells Please Build that
+<code className="jarombek-inline-code">go_download</code> is a rule located in the root of the repository.
+</p>
+<p>
+Second, <code className="jarombek-inline-code">go_test()</code> defines a rule, named
+<code className="jarombek-inline-code">test</code>, to run Go tests.  <code className="jarombek-inline-code">test</code>
+contains a single Go file <code className="jarombek-inline-code">license_plates_test.go</code>, which implements
+multiple unit test cases, and is dependent on the <code className="jarombek-inline-code">license_plates</code> rule.
+</p>
+<p>
+<code className="jarombek-inline-code">test</code> is executed from the command line to verify that all Go tests are
+successful. Running a test rule is done with a <code className="jarombek-inline-code">plz test</code> command; in my
+scenario, <code className="jarombek-inline-code">plz test //unit-testing:test -vvv</code> runs my
+<code className="jarombek-inline-code">test</code> rule.  <code className="jarombek-inline-code">//unit-testing:test
+</code> specifies the path and name of the rule to execute, and <code className="jarombek-inline-code">-vvv</code> sets
+the verbosity level of the console output logs.  Running this command in my repository generates an output similar to
+the following log.
+</p>
+<CodeSnippet>
+...
+//unit-testing:test 5 tests run in 121ms; 5 passed
+    TestValidCountryCode    PASS  0s
+    TestInvalidCountryCode  PASS  0s
+    TestCollected           PASS  0s
+    Collected               PASS  0s
+    CountryCode             PASS  0s
+1 test target and 5 tests run; 5 passed.
+Total time: 15.22s real, 120ms compute.
+</CodeSnippet>
+<p>
+Let's look at a similar example in my <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2/reflection">
+reflection</a> directory, which analyzes how to use reflection to gain runtime information about types in Go programs.
+<strong>reflection</strong> contains zero library files and two unit test files, with the following
+<a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/reflection/BUILD">BUILD</a> configuration.
+</p>
+<CodeSnippet language="Starlark">
+filegroup(
+    name = "test_files",
+    srcs = glob(["*.go"]),
+)
+
+go_test(
+    name = "test",
+    srcs = [":test_files"],
+    deps = [
+        "//:go_download",
+        "//:testify",
+    ],
+    labels = [
+        "reflection",
+        "test"
+    ],
+)
+</CodeSnippet>
+<p>
+Instead of explicitly writing names of Go files in the <code className="jarombek-inline-code">srcs</code> argument of
+the <code className="jarombek-inline-code">go_test()</code> rule, I use a separate
+<code className="jarombek-inline-code">filegroup()</code> rule to collect all the files matching the glob pattern
+<code className="jarombek-inline-code">*.go</code>.  In the end, running these tests is the same as it was in the
+<strong>unit-testing</strong> directory, with a <code className="jarombek-inline-code">
+plz test //reflection:test -vvv</code> command.
+</p>
+<p>
+Let's look at one more example in my <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2/goroutines/
+channel_example">goroutines/channel_example</a> directory.  <strong>channel_example</strong> contains a single Go
+application file, and has the following <a href="https://github.com/AJarombek/go-programming/blob/v1.1.2/goroutines/
+channel_example/BUILD">BUILD</a> configuration.
+</p>
+<CodeSnippet language="Starlark">
+go_binary(
+    name = "binary",
+    srcs = ["channel_example.go"],
+    out = "channel_example",
+    deps = ["//:go_download"],
+    labels = [
+        "goroutines",
+        "binary",
+    ],
+)
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">go_binary()</code> rule creates an executable binary file from compiled Go
+code.  After Go is installed from the <code className="jarombek-inline-code">//:go_download</code> dependency rule, a
+single <code className="jarombek-inline-code">channel_example.go</code> file is compiled.  Running a binary rule is
+done with a <code className="jarombek-inline-code">plz build</code> command; in my scenario,
+<code className="jarombek-inline-code">plz build //goroutines/channel_example:binary -vvv</code> runs the
+<code className="jarombek-inline-code">binary</code> rule.  Running this command in my repository generates an output
+similar to the following log.
+</p>
+<CodeSnippet>
+...
+Build finished; total time 12.67s, incrementality 66.7%. Outputs:
+//goroutines/channel_example:binary:
+  plz-out/bin/goroutines/channel_example/channel_example
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">plz build</code> command created a binary file within a <strong>plz-out/bin
+</strong> directory.  From a command prompt (in my case running Bash), this binary file can be executed.
+</p>
+<CodeSnippet language="Bash">
+./plz-out/bin/goroutines/channel_example/channel_example
+</CodeSnippet>
+<p>
+Every subdirectory in my <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2">go-programming</a> repository
+contains a <strong>BUILD</strong> file with additional rules in case you want to explore more.  One last thing to
+mention is that re-running any Please Build command without altering the source code results in a faster build.  This
+is because stages of builds are cached, similar to layers on images being cached in a Dockerfile build.  For example,
+the previous <code className="jarombek-inline-code">plz build</code> command, <code className="jarombek-inline-code">
+plz build //goroutines/channel_example:binary -vvv</code>, took 12.67 seconds the first time it ran on my machine.
+Running it a second time took just 140 milliseconds.
+</p>
+<CodeSnippet>
+...
+Build finished; total time 140ms, incrementality 100.0%. Outputs:
+//goroutines/channel_example:binary:
+  plz-out/bin/goroutines/channel_example/channel_example
+</CodeSnippet>
+<SectionTitle title="Enabling GitHub Actions">Enabling GitHub Actions</SectionTitle>
+<Definition word="GitHub Actions">
+GitHub Actions is a CI/CD platform integrated with the GitHub version control hosting service.  GitHub Actions allows
+engineers to create workflows that run on virtual machines, containers, or self-hosted infrastructure<sup>10</sup>.
+Workflows, written in YAML, contain one or many jobs that run on a schedule or respond to events within a repository,
+such as code commits or pull request creation.
+</Definition>
+<p>
+GitHub Actions workflows exist in a <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2/.github/workflows">
+.github/workflows</a> directory for GitHub repositories.  In my repository, this directory contains two YAML files, each
+corresponding to a workflow.  Let's look at the first workflow, <a href="https://github.com/AJarombek/go-programming/
+blob/v1.1.2/.github/workflows/go_tests.yml">go_tests.yml</a>, which runs all the Go tests in the
+<a href="https://github.com/AJarombek/go-programming/tree/v1.1.2">go-programming</a> repository.
+</p>
+<CodeSnippet language="YAML">
+name: Go Tests
+
+on:
+  push:
+    branches: ["main", "feature/*"]
+  pull_request:
+    branches: ["main"]
+
+  schedule:
+    - cron: "0 5 * * 1,3,5"
+
+  workflow_dispatch:
+
+jobs:
+  go_tests:
+    runs-on: ubuntu-latest
+    container: ajarombek/go-alpine-linux-programming:latest
+    steps:
+      - run: echo "Job running on a ${{ runner.os }} server"
+
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - run: echo "Checked out branch '${{ github.ref }}' of the ${{ github.repository }} repository"
+
+      - name: Files installed from repository
+        run: ls -ltra
+
+      - name: Run Go tests using Please Build
+        run: plz test //... -i test -vvv
+</CodeSnippet>
+<p>
+This YAML document creates a workflow named <code className="jarombek-inline-code">Go Tests</code>.  The
+<code className="jarombek-inline-code">on</code> dictionary configures events that trigger the workflow along with
+ an additional cron schedule for the workflow to run on.  <code className="jarombek-inline-code">on</code> contains four
+keys, <code className="jarombek-inline-code">push</code>, <code className="jarombek-inline-code">pull_request</code>,
+ <code className="jarombek-inline-code">schedule</code>, and <code className="jarombek-inline-code">workflow_dispatch</code>.
+ <code className="jarombek-inline-code">push</code> triggers the workflow anytime code is pushed
+to the <code className="jarombek-inline-code">main</code> branch or any branch matching the
+<code className="jarombek-inline-code">feature/*</code> pattern.  <code className="jarombek-inline-code">
+pull_request</code> triggers the workflow anytime a pull request is made that merges code into the
+<code className="jarombek-inline-code">main</code>  branch.  <code className="jarombek-inline-code">schedule</code> sets
+a cron schedule for the workflow to run on, in my case 5:00 AM every Monday, Wednesday, and Friday.  Finally,
+<code className="jarombek-inline-code">workflow_dispatch</code> enables manual triggers of the pipeline from the GitHub
+UI or API<sup>11</sup>.
+</p>
+<p>
+The <code className="jarombek-inline-code">jobs</code> dictionary configures one or many jobs within a workflow.  My
+workflow contains a single job named <code className="jarombek-inline-code">go_tests</code>.  The
+<code className="jarombek-inline-code">runs-on</code> key-value pair determines the machine and operating system to run
+on, in my case an Ubuntu distribution of Linux (<code className="jarombek-inline-code">ubuntu-latest</code>).  On top of
+Ubuntu, my job runs in a Docker container, with the image name and tag specified under the
+ <code className="jarombek-inline-code">container</code> key-value pair.  The value under <code className="jarombek-inline-code">container</code>, <code className="jarombek-inline-code">
+ajarombek/go-alpine-linux-programming:latest</code>, is a Docker image stored on <a href="https://hub.docker.com/
+repository/docker/ajarombek/go-alpine-linux-programming">DockerHub</a> and defined in a <a href="https://github.com/
+AJarombek/go-programming/blob/v1.1.2/base/Dockerfile">Dockerfile</a> in my repository.
+</p>
+<p>
+<code className="jarombek-inline-code">steps</code> is a list of steps within a job.  Steps with a
+<code className="jarombek-inline-code">run</code> key execute its corresponding value from the shell as a command
+line program<sup>12</sup>.  <code className="jarombek-inline-code">name</code> keys give steps a name that are displayed
+in the GitHub UI and <code className="jarombek-inline-code">uses</code> keys run actions for a step<sup>13</sup>.
+</p>
+<p>
+Actions are a unit of execution within GitHub Actions.  They are programs, often written in JavaScript, that perform
+commonly repeated tasks<sup>14</sup>.  In my case, I use a <code className="jarombek-inline-code">
+actions/checkout@v3</code> action, which is <a href="https://github.com/actions/checkout">maintained by GitHub</a>.
+ <code className="jarombek-inline-code">actions/checkout@v3</code> is used to checkout a GitHub repository.
+</p>
+<p>
+As a whole, my <code className="jarombek-inline-code">Go Tests</code> workflow runs on a custom Docker container,
+performs a checkout of my <a href="https://github.com/AJarombek/go-programming/tree/v1.1.2">go-programming</a>
+repository, and runs a <code className="jarombek-inline-code">plz test //... -i test -vvv</code> command, which
+executes all Go tests in my code.  The <code className="jarombek-inline-code">-i test</code> flag in the
+<code className="jarombek-inline-code">plz test</code> command runs every Please Build rule that has a label of value
+<code className="jarombek-inline-code">test</code>.
+</p>
+<p>
+Results of GitHub actions are viewable in repositories on GitHub.  One way to view actions is to click on the "Actions"
+tab at the top of a repository page.
+</p>
+<InlineImage filename="11-15-22-actions-tab.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+In the list of workflow results under the "Actions" tab, clicking on one of them navigates to the following page, which
+ gives an overview of the workflow run and the results of individual jobs.
+</p>
+<InlineImage filename="11-15-22-workflow-result.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+My "Go Tests" workflow contains a single <code className="jarombek-inline-code">go_tests</code> job, and clicking on it
+displays the execution logs.
+</p>
+<InlineImage filename="11-15-22-job-result.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<InlineImage filename="11-15-22-job-result-logs.png" paddingTop="true" paddingBottom="true">
+</InlineImage>
+<p>
+GitHub Actions send an email when workflows fail, which is a great way to stay alerted on the status of a codebase.  I
+only demonstrated the basics of GitHub Actions in this article, and there is a lot more for me to learn, but GitHub Actions is a very
+promising CI/CD framework that I intend to use extensively in the future.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Combining the "Please Build" build system and GitHub Actions CI/CD platform was a great way to test Go code in
+both my development environment and on GitHub's hosted platform.  I plan to expand my usage of both technologies into
+other projects and learn more advanced features.  All the code discussed in this article is available in my
+<a href="https://github.com/AJarombek/go-programming/tree/v1.1.2">go-programming</a> repository on GitHub.
+</p>
+</div>

@@ -1,0 +1,404 @@
+<div>
+<Note type="info">
+This is part of a series of articles on SaintsXCTF Version 2.0. The first article in the series provides an
+<a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">overview of the application</a>.
+</Note>
+<p>
+The infrastructure for my website <a href="https://saintsxctf.com/">saintsxctf.com</a> is hosted on
+<a href="https://jarombek.com/blog?query=AWS&page=1">AWS</a>.  SaintsXCTF
+had AWS infrastructure prior to version 2.0, but it was redesigned and rewritten for the new version.  This article
+outlines the infrastructure and walks through <a href="https://jarombek.com/blog?query=Terraform&page=1">Terraform</a>
+code which configures and builds the infrastructure.
+</p>
+<SubTitle title="SaintsXCTF Version 2.0 Articles">SaintsXCTF Version 2.0 Articles</SubTitle>
+<ul>
+<li><a href="https://jarombek.com/blog/jun-14-2021-saints-xctf-v2-overview">Architectural Overview</a></li>
+<li><strong>AWS Infrastructure</strong></li>
+<li><a href="https://jarombek.com/blog/oct-25-2021-saints-xctf-v2-k8s-infrastructure">Kubernetes Infrastructure</a></li>
+<li><a href="https://jarombek.com/blog/nov-1-2021-saints-xctf-v2-react-web-app">React Web Application Overview</a></li>
+<li><a href="https://jarombek.com/blog/nov-15-2021-react-typescript">Web Application React and TypeScript</a></li>
+<li><a href="https://jarombek.com/blog/dec-3-2021-redux-react">Web Application Redux State Configuration</a></li>
+<li><a href="https://jarombek.com/blog/aug-11-2021-cypress-typescript">Web Application Cypress E2E Tests</a></li>
+<li><a href="https://jarombek.com/blog/jun-30-2021-react-jss">Web Application JSS Modular Design</a></li>
+<li><a href="https://jarombek.com/blog/dec-24-2021-flask-python-api">Flask Python API</a></li>
+<li><a href="https://jarombek.com/blog/jan-10-2022-flask-api-testing">Flask API Testing</a></li>
+<li><a href="https://jarombek.com/blog/feb-5-2022-function-api">Function API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/feb-18-2022-auth-api">Auth API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/mar-27-2022-mysql-client-kubernetes">Database Client on Kubernetes</a></li>
+</ul>
+<SectionTitle title="Initial Architecture">Infrastructure Overview</SectionTitle>
+<p>
+SaintsXCTF application infrastructure can be grouped into two categories - AWS and Kubernetes.  This article only
+discusses the AWS infrastructure, which has a green background in the diagram below.  The Kubernetes infrastructure,
+which has a red background in the diagram, is discussed in the <a href="https://jarombek.com/blog/
+oct-25-2021-saints-xctf-v2-k8s-infrastructure">next article</a>.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-21-aws-architecture.png"/>
+</figure>
+<p>
+In Terraform code, the SaintsXCTF AWS infrastructure is logically grouped into modules.  These modules include (but are
+not limited to) a load balancer to the Kubernetes infrastructure, an application asset S3 bucket, a user asset S3
+bucket, an authentication REST API, an AWS Lambda function REST API, and a MySQL RDS database.  The other Terraform
+modules in the <a href="https://github.com/AJarombek/saints-xctf-infrastructure">SaintsXCTF infrastructure repository</a>
+perform smaller tasks such as debugging, database backups, and configuring SSL/TLS certificates.  These are not
+discussed in this article.
+</p>
+<SectionTitle title="Development and Production Infrastructure">Development and Production Infrastructure</SectionTitle>
+<p>
+While designing the SaintsXCTF version 2.0 infrastructure, I put a major emphasis on creating separate production and
+development environments.  Since the initial website version was live during development of version 2.0, I needed a
+separate non-production configuration to use for testing.  Besides for the domain names and AWS resource names, the infrastructure
+between the production and development environments is identical.  This allows for predictable behavior
+when building the production environment once the development environment is fully tested.  I plan to continue using
+the development environment for testing new infrastructure changes going forward.
+</p>
+<p>
+Under normal circumstances, the development environment isn't running in order to save money.  However, recreating it
+ only requires some <code className="jarombek-inline-code">terraform apply</code> commands invoked from
+<a href="https://github.com/AJarombek/global-jenkins-jobs/tree/master/saints-xctf/infrastructure">Jenkins jobs</a>.
+When the development environment is running, the web application, main API, authentication API, and function API are accessible from
+<strong>dev.saintsxctf.com</strong>, <strong>dev.api.saintsxctf.com</strong>, <strong>dev.auth.saintsxctf.com</strong>,
+and <strong>dev.fn.saintsxctf.com</strong>.  Their respective production equivalents are accessible from
+<strong>saintsxctf.com</strong>, <strong>api.saintsxctf.com</strong>, <strong>auth.saintsxctf.com</strong>, and
+<strong>fn.saintsxctf.com</strong>.
+</p>
+<p>
+As previously mentioned, the SaintsXCTF AWS Terraform infrastructure is logically grouped into modules.  All these
+modules are directories at the top level of the
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure">saints-xctf-infrastructure</a> repository.  Most
+ modules are configured differently for development and production environments.  For example, the
+authentication API module has the following directory structure.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-21-terraform-module.png"/>
+</figure>
+<p>
+There are three environmental configurations in this module - one for resources shared across all environments
+ (<strong>all</strong>), one for development (<strong>dev</strong>), and one for production (<strong>prod</strong>).
+ These environmental configurations invoke the submodules, which in the case
+of the authentication API are <code className="jarombek-inline-code">api-gateway</code>,
+<code className="jarombek-inline-code">lambda</code>, and <code className="jarombek-inline-code">secrets-manager</code>.
+For example, inside <strong>saints-xctf-com-auth/env/prod</strong> is a
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/saints-xctf-com-auth/env/prod/main.tf">main.tf</a>
+file which provisions the production infrastructure through the submodules.
+</p>
+<CodeSnippet language="HCL">
+# main.tf
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+terraform {
+  required_version = ">= 0.15.0"
+
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = ">= 3.42.0"
+    }
+  }
+
+  backend "s3" {
+    bucket = "andrew-jarombek-terraform-state"
+    encrypt = true
+    key = "saints-xctf-infrastructure/saints-xctf-com-auth/env/prod"
+    region = "us-east-1"
+  }
+}
+
+module "lambda" {
+  source = "../../modules/lambda"
+  prod = true
+}
+
+module "api-gateway" {
+  source = "../../modules/api-gateway"
+  prod = true
+
+  authenticate-lambda-name = module.lambda.authenticate-function-name
+  authenticate-lambda-invoke-arn = module.lambda.authenticate-function-invoke-arn
+  token-lambda-name = module.lambda.token-function-name
+  token-lambda-invoke-arn = module.lambda.token-function-invoke-arn
+}
+
+module "secrets-manager" {
+  source = "../../modules/secrets-manager"
+  prod = true
+
+  rotation-lambda-arn = module.lambda.rotate-function-arn
+
+  secret_rotation_depends_on = [
+    module.lambda.rotate-function-arn,
+    module.lambda.rotate-secrets-manager-permission-id,
+    module.lambda.rotate-log-group-id
+  ]
+}
+</CodeSnippet>
+<p>
+The Terraform submodules are invoked with certain input variables, including a
+<code className="jarombek-inline-code">prod</code> flag.  This variable determines whether the infrastructure needs to
+be built in the production environment (<code className="jarombek-inline-code">true</code>) or the development
+environment (<code className="jarombek-inline-code">false</code>). Most of the modules I talk about in the upcoming
+segments follow this environment/submodule pattern.
+</p>
+<SectionTitle title="Load Balancer to EKS">Load Balancer to EKS</SectionTitle>
+<p>
+The Terraform module which creates an AWS Application Load Balancer to route traffic to
+<a href="https://jarombek.com/blog?query=aws%20eks&page=1">AWS EKS</a> is unique compared to the other modules
+discussed in this article.  Instead of using the AWS Terraform provider to build the infrastructure, the load balancer
+is created by the Kubernetes Terraform provider.  Specifically, the EKS cluster has an
+<a href="https://jarombek.com/blog/sep-28-2020-eks#alb-ingress-controller-and-external-dns">ALB Ingress Controller</a>
+(now known as an <a href="https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/">AWS Load Balancer
+Controller</a>) running in a Kubernetes pod.  This ingress controller is capable of building load balancers that route traffic to
+Kubernetes services. Using the Kubernetes Terraform provider, a Kubernetes <code className="jarombek-inline-code">Ingress</code>
+object is created with certain annotations, resulting in the ingress controller provisioning load balancer
+infrastructure in AWS.
+</p>
+<p>
+In the context of SaintsXCTF, both the web application and main API are hosted on Kubernetes.  The load balancer
+created by the ingress controller routes traffic to Kubernetes for both the <strong>saintsxctf.com</strong> and
+<strong>api.saintsxctf.com</strong> domains.  The Terraform module for the load balancer and Kubernetes Ingress object
+exists in the <a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/saints-xctf-com-ingress">
+saints-xctf-com-ingress</a> directory in the <a href="https://github.com/AJarombek/saints-xctf-infrastructure">
+saints-xctf-infrastructure</a> repository.  I will provide more details about this code in my
+ <a href="https://jarombek.com/blog/oct-25-2021-saints-xctf-v2-k8s-infrastructure">upcoming article</a> on
+SaintsXCTF Kubernetes infrastructure.
+</p>
+<SectionTitle title="Application Asset S3 Bucket">Application Asset S3 Bucket</SectionTitle>
+<p>
+SaintsXCTF contains images and videos which are hosted in an S3 bucket behind a CloudFront distribution. I refer to
+this bucket as the "application asset S3 bucket", and it is accessible from <strong>asset.saintsxctf.com</strong>.  I
+wrote an <a href="https://jarombek.com/blog/feb-15-2020-s3-react">article</a> about hosting static websites on S3 and
+CloudFront, and the concept is similar for <strong>asset.saintsxctf.com</strong>. S3 holds the images and videos as
+objects, and the CloudFront CDN speeds up the retrieval of these assets.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-21-saints-xctf-com-asset.png"/>
+</figure>
+<p>
+The Terraform module for the application asset S3 bucket exists in the
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/saints-xctf-com-asset">
+saints-xctf-com-asset</a> directory in the <a href="https://github.com/AJarombek/saints-xctf-infrastructure">
+saints-xctf-infrastructure</a> repository.  In this module there is just one production environment configuration.
+There is no separate development configuration since the assets are the same for both development and production
+environments.  Also, during development, there is no harm in adding additional assets that aren't yet accessible on
+the production website.
+</p>
+<p>
+At a high level, the <strong>asset.saintsxctf.com</strong> module contains a
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/saints-xctf-com-asset/main.tf">main.tf</a>
+file with the following resources.
+</p>
+<CodeSnippet language="HCL">
+#-----------------------
+# Existing AWS Resources
+#-----------------------
+
+data "aws_acm_certificate" "wildcard-saintsxctf-com-cert" {
+  domain = "*.saintsxctf.com"
+}
+
+data "aws_acm_certificate" "wildcard-asset-saintsxctf-com-cert" {
+  domain = "*.asset.saintsxctf.com"
+}
+
+data "aws_route53_zone" "saintsxctf" {
+  name = "saintsxctf.com."
+}
+
+#--------------------------------------
+# New AWS Resources for S3 & CloudFront
+#--------------------------------------
+
+resource "aws_s3_bucket" "asset-saintsxctf" {...}
+
+resource "aws_cloudfront_distribution" "asset-saintsxctf-distribution" {...}
+
+resource "aws_cloudfront_origin_access_identity" "origin-access-identity" {...}
+
+resource "aws_cloudfront_distribution" "www-asset-saintsxctf-distribution" {...}
+
+resource "aws_route53_record" "asset-saintsxctf-a" {...}
+
+resource "aws_route53_record" "www-asset-saintsxctf-a" {...}
+
+#-------------------
+# S3 Bucket Contents
+#-------------------
+
+resource "aws_s3_bucket_object" "saintsxctf-png" {...}
+</CodeSnippet>
+<p>
+First, existing ACM certificates are retrieved so that HTTPS requests to <strong>asset.saintsxctf.com</strong> are
+secured by SSL/TLS certificates. These certificates are used in the
+<code className="jarombek-inline-code">aws_cloudfront_distribution</code> resources for building CloudFront
+distributions.  Next, the existing <strong>saintsxctf.com</strong> Route53 zone is retrieved for use in creating DNS A
+records for <strong>asset.saintsxctf.com</strong> and <strong>www.asset.saintsxctf.com</strong>.
+</p>
+<p>
+Next comes the new AWS resources.  The S3 bucket containing SaintsXCTF assets is created with the
+<code className="jarombek-inline-code">aws_s3_bucket</code> resource. There are two CloudFront distributions created
+for the S3 bucket - one for <strong>asset.saintsxctf.com</strong> and another for
+<strong>www.asset.saintsxctf.com</strong>. These are created with the
+<code className="jarombek-inline-code">aws_cloudfront_distribution</code> resource. Each CloudFront distribution
+also gets a Route53 A record, created by the <code className="jarombek-inline-code">aws_route53_record</code>
+resources. The final resources are the S3 bucket objects, which are images and videos. These are created with
+<code className="jarombek-inline-code">aws_s3_bucket_object</code> resources.
+</p>
+<SectionTitle title="User Asset S3 Bucket">User Asset S3 Bucket</SectionTitle>
+<p>
+Similarly to how the <strong>asset.saintsxctf.com</strong> S3 bucket contains application assets for the SaintsXCTF
+website, the <strong>uasset.saintsxctf.com</strong> S3 bucket contains user assets. These assets include profile
+pictures and group pictures. The Terraform module for the user asset S3 bucket is nearly identical to the application
+asset S3 bucket. One main difference is user assets (S3 objects) are not declared as resources in the Terraform code.
+Instead, they are uploaded by users through the website. I will discuss this process in a future article when going
+over the SaintsXCTF Lambda Function API.
+</p>
+<p>
+The Terraform module for the application user asset S3 bucket exists in the
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/saints-xctf-com-uasset">saints-xctf-com-uasset</a>
+directory in the <a href="https://github.com/AJarombek/saints-xctf-infrastructure">saints-xctf-infrastructure</a>
+repository.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-21-saints-xctf-com-uasset.png"/>
+</figure>
+<SectionTitle title="Authentication REST API">Authentication REST API</SectionTitle>
+<p>
+The SaintsXCTF application has four AWS Lambda functions related to authentication, two of which are exposed through a
+REST API by API Gateway.  The premise of the authentication API is to use
+ <a href="https://jarombek.com/blog/mar-11-2018-jwt">JWTs</a> to authenticate users of the application.  With a proper
+ JWT, users can make API calls and operate within the website and mobile applications.
+</p>
+<p>
+The Terraform module for the authentication API exists in the
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/saints-xctf-com-auth">saints-xctf-com-auth</a>
+directory in the <a href="https://github.com/AJarombek/saints-xctf-infrastructure">saints-xctf-infrastructure</a>
+repository.  The authentication API also has a separate
+<a href="https://github.com/AJarombek/saints-xctf-auth">saints-xctf-auth</a> repository for the AWS Lambda function
+source code.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-21-saints-xctf-com-auth.png"/>
+</figure>
+<p>
+The infrastructure diagram above shows the four authentication-based AWS Lambda functions. They are
+<code className="jarombek-inline-code">SaintsXCTFAuthenticate</code>, <code className="jarombek-inline-code">SaintsXCTFToken</code>,
+<code className="jarombek-inline-code">SaintsXCTFAuthorizer</code>, and <code className="jarombek-inline-code">SaintsXCTFRotate</code>.
+<code className="jarombek-inline-code">SaintsXCTFAuthenticate</code> and <code className="jarombek-inline-code">SaintsXCTFToken</code>
+are exposed through the authentication API, while <code className="jarombek-inline-code">SaintsXCTFAuthorizer</code> and
+<code className="jarombek-inline-code">SaintsXCTFRotate</code> are only for internal use.
+</p>
+<p>
+All four AWS Lambda functions are written in Python.  Their general use is as follows:
+</p>
+<ol>
+<li>
+Upon sign in, the <strong>https://auth.saintsxctf.com/token</strong> endpoint is invoked, which calls the
+<code className="jarombek-inline-code">SaintsXCTFToken</code> function. The user's credentials are passed with this
+request and the response contains a JWT if the credentials are valid.
+</li>
+<li>
+Every time an API call that requires authentication is made to <strong>https://api.saintsxctf.com</strong>, the
+<strong>https://auth.saintsxctf.com/authenticate</strong> endpoint is invoked by the API.  This
+endpoint calls the <code className="jarombek-inline-code">SaintsXCTFAuthenticate</code> function. The JWT token received from
+<strong>https://auth.saintsxctf.com/token</strong> is passed in the request body of
+<strong>https://auth.saintsxctf.com/authenticate</strong>, and if the JWT is valid the endpoint returns
+<code className="jarombek-inline-code">true</code>. Otherwise, it returns <code className="jarombek-inline-code">false</code>.
+The SaintsXCTF API handles the response from <strong>https://auth.saintsxctf.com/authenticate</strong> by proceeding
+with the user's request if the response is <code className="jarombek-inline-code">true</code>. Otherwise, it returns an HTTP
+403 Forbidden error code.
+</li>
+<li>
+When requests are made to the <strong>https://fn.saintsxctf.com</strong> API Gateway REST API which require
+authorization, they use the <code className="jarombek-inline-code">SaintsXCTFAuthorizer</code> as a lambda authorizer.
+The JWT token received from <strong>https://auth.saintsxctf.com/token</strong> is passed in the
+<code className="jarombek-inline-code">Authorization</code> request header to <strong>https://fn.saintsxctf.com</strong>.
+If the authorizer function determines that the JWT is valid, it gives the API Gateway endpoint permission to call its
+corresponding AWS Lambda function.  If the JWT is invalid, invoking the AWS Lambda function is forbidden.
+</li>
+<li>
+The JWT tokens created by the <code className="jarombek-inline-code">SaintsXCTFToken</code> AWS Lambda function are
+signed using an RS256 (RSA Signature with SHA-256) algorithm<sup>1</sup>. To perform this signing, a public key and private key
+are stored in AWS SecretsManager. For additional security, these public and private keys are rotated on a regular
+basis with the <code className="jarombek-inline-code">SaintsXCTFRotate</code> AWS Lambda function. This limits the
+damage if an unwanted user gains access to the public and private keys, since their ability to sign tokens only
+lasts until the next rotation.
+</li>
+</ol>
+<p>
+In a future article I will discuss all the authentication functions in more detail and step through their code.
+</p>
+<SectionTitle title="Function REST API">Function REST API</SectionTitle>
+<p>
+The SaintsXCTF application has another REST API created with API Gateway and AWS Lambda called the "Function REST API".
+This API is accessible from <strong>https://fn.saintsxctf.com</strong>. It includes endpoints for sending emails and
+uploading pictures.  The AWS Lambda functions used by the REST API endpoints are written in Python and JavaScript.
+</p>
+<p>
+The Terraform module for the function API exists in the
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/saints-xctf-com-fn">saints-xctf-com-fn</a>
+directory in the <a href="https://github.com/AJarombek/saints-xctf-infrastructure">saints-xctf-infrastructure</a>
+repository.  The function API also has a separate
+<a href="https://github.com/AJarombek/saints-xctf-functions">saints-xctf-functions</a> repository for the AWS Lambda
+function source code.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-21-saints-xctf-com-fn.png"/>
+</figure>
+<p>
+As with the authentication API, a future article will be dedicated to the function API.
+</p>
+<SectionTitle title="MySQL RDS Database">MySQL RDS Database</SectionTitle>
+<p>
+One main piece of infrastructure that didn't change in SaintsXCTF version 2.0 is the RDS MySQL database.  This
+database holds all the persistent data used by the application, such as user information and exercise logs.
+</p>
+<p>
+The Terraform module for the RDS MySQL database exists in the
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/database">database</a>
+directory in the <a href="https://github.com/AJarombek/saints-xctf-infrastructure">saints-xctf-infrastructure</a>
+repository.  I also have a private repository which holds SQL scripts for database deployments.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-21-saints-xctf-database.png"/>
+</figure>
+<p>
+At a high level, the <strong>database</strong> module contains a
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/blob/master/database/modules/rds/main.tf">main.tf</a>
+file with the following resources.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_security_group" "saints-xctf-database-security" {...}
+
+resource "aws_db_instance" "saints-xctf-mysql-database" {...}
+
+resource "aws_db_subnet_group" "saints-xctf-mysql-database-subnet" {...}
+
+resource "aws_cloudwatch_metric_alarm" "saints-xctf-mysql-database-storage-low-alarm" {...}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">aws_db_instance</code> is the main AWS resource that creates the RDS MySQL
+database.  <code className="jarombek-inline-code">aws_security_group</code> provides other subnets in the SaintsXCTF
+VPC access to make connections to the database, while <code className="jarombek-inline-code">aws_db_subnet_group</code>
+specifies two subnets that the database exists within.  Since both subnets are housed in different AWS AZs
+(Availability Zones), this configuration makes the database highly available. High availability provides protection
+ in case one Availability Zone goes down. Finally, the
+ <code className="jarombek-inline-code">aws_cloudwatch_metric_alarm</code> resource creates a CloudWatch
+alarm in case the RDS instance runs low on storage.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+In many ways, an application is only as good as the foundation it is built upon.  The AWS infrastructure for SaintsXCTF
+keeps the application running with little downtime, which is key for a good user experience.  It is also
+ modularized, allowing me to easily add new modules and drop old ones. This enables future application updates to
+be smaller in scope than version 2.0, which completely rewrote the entire codebase.
+</p>
+<p>
+In my <a href="https://jarombek.com/blog/oct-25-2021-saints-xctf-v2-k8s-infrastructure">next SaintsXCTF article</a> I'll
+discuss the other crucial piece of infrastructure for the application: Kubernetes on EKS.  All the AWS infrastructure
+code for SaintsXCTF can be found on <a href="https://github.com/AJarombek/saints-xctf-infrastructure">GitHub</a>.
+</p>
+</div>

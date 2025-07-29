@@ -1,0 +1,859 @@
+<div>
+<p>
+I recently built a new <a href="https://jarombek.com/blog/sep-28-2020-eks">Jenkins server hosted using Kubernetes on EKS</a>.
+My main use of the Jenkins server is to automate application and infrastructure tests, deployments, and
+miscellaneous tasks.  I get email notifications if these jobs fail, so I know when there is an issue
+with my software.
+</p>
+<p>
+Many of my Jenkins jobs work with the AWS CLI and Terraform to interact with and manipulate my cloud
+infrastructure.  I believe these jobs may be useful as templates for others wishing to achieve similar
+results.
+</p>
+<SectionTitle title="Cost Detection">Cost Detection</SectionTitle>
+<p>
+One issue I often faced with my AWS account was inadvertently keeping infrastructure running, using
+energy and costing me money.  To help safeguard against this, I decided to create a Jenkins job which
+would run on a daily schedule, checking the costs incurred on my account. If the daily costs are under
+a certain amount, the job passes.  If the costs hit a certain threshold, the job throws a warning, and
+if the costs are way too high it fails.
+</p>
+<p>
+The Jenkins pipeline is named <code className="jarombek-inline-code">cost-detection</code>.  The full
+Jenkinsfile is listed below, with the code also available on <a href="https://github.com/AJarombek/
+global-jenkins-jobs/tree/master/global-aws/cost-detection">GitHub</a>.
+</p>
+<CodeSnippet language="Groovy">
+@Library(['global-jenkins-library@master']) _
+
+pipeline {
+  agent {
+    label 'master'
+  }
+  triggers {
+    cron('H 7 * * *')
+  }
+  options {
+    ansiColor('xterm')
+    timeout(time: 1, unit: 'HOURS')
+    buildDiscarder(
+      logRotator(daysToKeepStr: '10', numToKeepStr: '5')
+    )
+  }
+  stages {
+    stage("Clean Workspace") {
+      steps {
+        script {
+          cleanWs()
+        }
+      }
+    }
+    stage("Checkout Repository") {
+      steps {
+        script {
+          checkoutRepo()
+        }
+      }
+    }
+    stage("Setup Environment") {
+      steps {
+        script {
+          setupEnvironment()
+        }
+      }
+    }
+    stage("Detect AWS Costs") {
+      steps {
+        script {
+          detectAWSCosts()
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        postScript()
+      }
+    }
+  }
+}
+
+def checkoutRepo() {
+  dir('repos/global-aws-infrastructure') {
+    git.basicClone('global-aws-infrastructure', 'master')
+  }
+}
+
+def setupEnvironment() {
+  infrastructuresteps.setupEnvironment('repos/global-aws-infrastructure/scripts')
+}
+
+def detectAWSCosts() {
+  dir('repos/global-aws-infrastructure/scripts') {
+    String cost_string = sh (
+      script: "pipenv run python costDetection.py",
+      returnStdout: true
+    )
+
+    println cost_string
+    float cost = cost_string as float
+
+    if (cost <= 8.5) {
+      currentBuild.result = "SUCCESS"
+    } else if (cost > 8.5 && cost <= 9.5) {
+      currentBuild.result = "UNSTABLE"
+    } else {
+      currentBuild.result = "FAILURE"
+    }
+
+    env.AVG_COST = cost_string
+  }
+}
+
+def postScript() {
+  def bodyTitle = "Detect AWS Costs"
+  def bodyContent = "3-Day Cost Average: $env.AVG_COST"
+  def jobName = env.JOB_NAME
+  def buildStatus = currentBuild.result
+  def buildNumber = env.BUILD_NUMBER
+  def buildUrl = env.BUILD_URL
+
+  genericsteps.postScript(bodyTitle, bodyContent, jobName, buildStatus, buildNumber, buildUrl)
+}
+</CodeSnippet>
+<p>
+The first thing to notice is that the Jenkins job imports a shared library named <strong>global-jenkins-library</strong>.
+Functions from this library are used throughout the Jenkinsfile, such as <code className="jarombek-inline-code">git.basicClone()</code>,
+<code className="jarombek-inline-code">infrastructuresteps.setupEnvironment()</code>, and
+<code className="jarombek-inline-code">genericsteps.postScript()</code>.  The code for these functions is in my
+<a href="https://github.com/AJarombek/global-jenkins-library">global-jenkins-library</a> repository.
+</p>
+<p>
+The job runs on my master Jenkins agent (the Jenkins server's container) and is triggered every morning
+sometime between 7 and 8 AM UTC.  The job has three stages - <code className="jarombek-inline-code">checkoutRepo</code>,
+<code className="jarombek-inline-code">setupEnvironment</code>, and <code className="jarombek-inline-code">detectAWSCosts</code>.
+These stages checkout the repository, create a Python virtual environment from a Pipfile, and run a Python
+script which performs the AWS account cost detection, respectively.  In the <code className="jarombek-inline-code">detectAWSCosts</code>
+stage you can also see the cost ranges and their respective build results.
+</p>
+<p>
+Once all the stages are completed, the <code className="jarombek-inline-code">postScript</code> function
+is called.  This function cleans the Jenkins workspace and sends me an email notification with the job
+results.
+</p>
+<p>
+The most important part of the Jenkins job is the Python script which calculates the average cost of
+my AWS infrastructure over the past three days.  The script uses <strong>boto3</strong>, an AWS SDK for
+Python.  Specifically, it uses the cost explorer API to get cost and usage statistics.
+</p>
+<CodeSnippet language="Python">
+from datetime import datetime, timedelta
+from typing import List
+from functools import reduce
+
+import boto3
+from boto3_type_annotations.ce import Client as CEClient
+
+
+def main():
+  cost_explorer: CEClient = boto3.client('ce')
+
+  end = datetime.now()
+  start = end - timedelta(days=3)
+
+  cost_statistics: dict = cost_explorer.get_cost_and_usage(
+    TimePeriod={
+      'Start': start.strftime('%Y-%m-%d'),
+      'End': end.strftime('%Y-%m-%d')
+    },
+    Granularity='DAILY',
+    Metrics=['AmortizedCost']
+  )
+
+  costs: List[float] = [
+    float(cost.get('Total').get('AmortizedCost').get('Amount'))
+    for cost in cost_statistics.get('ResultsByTime')
+  ]
+
+  avg_cost = reduce(lambda x, y: x + y, costs) / 3
+  avg_cost = round(avg_cost, 2)
+  print(avg_cost)
+
+
+if __name__ == '__main__':
+  exit(main())
+</CodeSnippet>
+<SectionTitle title="Scheduling RDS Databases">Scheduling RDS Databases</SectionTitle>
+<p>
+My <a href="https://www.saintsxctf.com/">SaintsXCTF application</a> uses an <a href="https://jarombek.com/
+blog?query=AWS%20RDS&page=1">Amazon RDS</a> database, running MySQL, to hold application data.  The
+application has a production environment and a development environment.  Both environments have their own
+RDS database instance.  When my development environment is running, I try to cut costs by shutting down
+its RDS database at night.  I created a Jenkins job called <code className="jarombek-inline-code">scheduling-dev-database</code>.
+The full Jenkinsfile is listed below, with the code also available on <a href="https://github.com/AJarombek/
+global-jenkins-jobs/tree/master/saints-xctf/infrastructure/scheduling-dev-database">GitHub</a>.
+</p>
+<CodeSnippet language="Groovy">
+@Library(['global-jenkins-library@master']) _
+
+pipeline {
+  agent {
+    label 'master'
+  }
+  parameters {
+    choice(
+      name: 'action',
+      choices: ['start', 'stop'],
+      description: 'Whether to start or stop the database.'
+    )
+  }
+  options {
+    ansiColor('xterm')
+    timeout(time: 1, unit: 'HOURS')
+    timestamps()
+    buildDiscarder(
+      logRotator(daysToKeepStr: '10', numToKeepStr: '5')
+    )
+  }
+  triggers {
+    parameterizedCron('''
+      15 11 * * * %action=start
+      45 1 * * * %action=stop
+    ''')
+  }
+  stages {
+    stage("Clean Workspace") {
+      steps {
+        script {
+          cleanWs()
+        }
+      }
+    }
+    stage("Schedule Database") {
+      steps {
+        script {
+          if (params.action == 'stop') {
+            sh '''
+              export AWS_DEFAULT_REGION=us-east-1
+              aws rds stop-db-instance --db-instance-identifier saints-xctf-mysql-database-dev
+            '''
+          } else {
+            sh '''
+              export AWS_DEFAULT_REGION=us-east-1
+              aws rds start-db-instance --db-instance-identifier saints-xctf-mysql-database-dev
+            '''
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        postScript()
+      }
+    }
+  }
+}
+
+def postScript() {
+  def bodyTitle = "Schedule SaintsXCTF Development Database."
+  def bodyContent = "Action: ${params.action.capitalize()}"
+  def jobName = env.JOB_NAME
+  def buildStatus = currentBuild.result
+  def buildNumber = env.BUILD_NUMBER
+  def buildUrl = env.BUILD_URL
+
+  genericsteps.postScript(bodyTitle, bodyContent, jobName, buildStatus, buildNumber, buildUrl)
+}
+</CodeSnippet>
+<p>
+The job takes in a parameter named <code className="jarombek-inline-code">action</code>, which determines
+whether the RDS database is stopped or started.  It also runs on a schedule, utilizing the Parameterized
+Scheduler plugin<sup>1</sup>.  This plugin allows the database to be stopped every night and started
+ up again every morning.
+</p>
+<p>
+The AWS CLI is utilized to start or stop the database, depending on the action specified.  Just like
+the cost detection job, the results are emailed to me after all the stages are completed.
+</p>
+<SectionTitle title="Create & Destroy Infrastructure">Create & Destroy Infrastructure</SectionTitle>
+<p>
+Most of my AWS Infrastructure is written as code using Terraform.  I decided to write Jenkins jobs for
+all my Terraform modules which create and destroy infrastructure.  This has two benefits.  The first
+benefit is that the creation and deletion of infrastructure is automated, so I don't need to manually
+type out Terraform CLI commands.  The second benefit is that the Jenkins job code is a form of documentation
+for how to build certain infrastructure modules, similarly to how a Dockerfile is documentation for how
+to host an application on a server.  With the Jenkins jobs in place, I can refer to their Jenkinsfiles
+in case I forget the steps for building infrastructure in the future.
+</p>
+<p>
+Let's go over an example.   I created a Jenkins job called <code className="jarombek-inline-code">create-database</code>
+to build an applications RDS infrastructure and a Jenkins job called <code className="jarombek-inline-code">destroy-database</code>
+to tear down an applications RDS infrastructure.  The full Jenkinsfile for <code className="jarombek-inline-code">create-database</code>
+is listed below, with the code also available on <a href="https://github.com/AJarombek/global-jenkins-jobs/
+tree/master/saints-xctf/infrastructure/create-database">GitHub</a>.
+</p>
+<CodeSnippet language="Groovy">
+@Library(['global-jenkins-library@master']) _
+
+pipeline {
+  agent {
+    label 'master'
+  }
+  parameters {
+    booleanParam(
+      name: 'autoApply',
+      defaultValue: true,
+      description: "Whether the Terraform infrastructure should be automatically approved."
+    )
+    choice(
+      name: 'environment',
+      choices: ['dev'],
+      description: 'Environment to create the database.'
+    )
+  }
+  options {
+    ansiColor('xterm')
+    timeout(time: 1, unit: 'HOURS')
+    buildDiscarder(
+      logRotator(daysToKeepStr: '10', numToKeepStr: '5')
+    )
+  }
+  stages {
+    stage("Clean Workspace") {
+      steps {
+        script {
+          cleanWs()
+        }
+      }
+    }
+    stage("Checkout Repository") {
+      steps {
+        script {
+          checkoutRepo()
+        }
+      }
+    }
+    stage("Terraform Init") {
+      steps {
+        script {
+          terraformInit()
+        }
+      }
+    }
+    stage("Terraform Validate") {
+      steps {
+        script {
+          terraformValidate()
+        }
+      }
+    }
+    stage("Terraform Plan") {
+      steps {
+        script {
+          terraformPlan()
+        }
+      }
+    }
+    stage("Terraform Apply") {
+      when {
+        allOf {
+          environment name: 'TERRAFORM_NO_CHANGES', value: 'false'
+          environment name: 'TERRAFORM_PLAN_ERRORS', value: 'false'
+        }
+      }
+      steps {
+        script {
+          terraformApply()
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        postScript()
+      }
+    }
+  }
+}
+
+// Stage functions
+def checkoutRepo() {
+  def name = "saints-xctf-infrastructure"
+  def branch = "master"
+
+  genericsteps.checkoutRepo(name, branch)
+}
+
+def terraformInit() {
+  INFRA_DIR = "repos/saints-xctf-infrastructure/database/env/$params.environment"
+  terraform.terraformInit(INFRA_DIR)
+}
+
+def terraformValidate() {
+  terraform.terraformValidate(INFRA_DIR)
+}
+
+def terraformPlan() {
+  withCredentials([
+    usernamePassword(
+      credentialsId: 'saintsxctf-rds-dev',
+      passwordVariable: 'password',
+      usernameVariable: 'username'
+    )
+  ]) {
+    terraform.terraformPlan(
+      INFRA_DIR,
+      "terraform plan -var 'username=${username}' -var 'password=${password}' -detailed-exitcode -out=terraform.tfplan"
+    )
+  }
+}
+
+def terraformApply() {
+  terraform.terraformApply(INFRA_DIR, params.autoApply)
+}
+
+def postScript() {
+  def bodyTitle = "Create saints-xctf-infrastructure $params.environment Database."
+  def bodyContent = ""
+  def jobName = env.JOB_NAME
+  def buildStatus = currentBuild.result
+  def buildNumber = env.BUILD_NUMBER
+  def buildUrl = env.BUILD_URL
+
+  genericsteps.postScript(bodyTitle, bodyContent, jobName, buildStatus, buildNumber, buildUrl)
+}
+</CodeSnippet>
+<p>
+The Jenkins job takes two parameters - <code className="jarombek-inline-code">autoApply</code> and
+<code className="jarombek-inline-code">environment</code>.  If <code className="jarombek-inline-code">autoApply</code>
+is false, then manual intervention is needed to approve the Terraform plan which builds AWS infrastructure.
+<code className="jarombek-inline-code">environment</code> provides a choice of environments to create
+the RDS database in.  I then have a series of stages which checkout the repository containing the
+RDS Terraform scripts and attempt to apply them.  The Terraform module that is checked out comes from my
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/database">saints-xctf-infrastructure</a>
+repository.
+</p>
+<p>
+The Terraform stages utilize some reusable functions I've created.  These functions, which initialize a
+Terraform module, validate it, generate a plan for the changes, and apply the changes, are listed below.
+</p>
+<CodeSnippet language="Groovy">
+/**
+ * Initialize the Terraform configuration in a given directory.
+ * @param directory The directory containing Terraform files.
+ */
+def terraformInit(String directory) {
+    dir(directory) {
+        sh """
+            terraform --version
+            terraform init
+        """
+    }
+}
+
+/**
+ * Validate the Terraform files in a directory for syntax issues.
+ * @param directory The directory containing Terraform files.
+ */
+def terraformValidate(String directory) {
+    dir(directory) {
+        sh "terraform validate"
+    }
+}
+
+/**
+ * Create a plan of the infrastructure that Terraform will create.
+ * @param directory The directory containing Terraform files.
+ * @param script Optional custom Terraform plan script.  Useful when the plan includes variables.
+ */
+def terraformPlan(String directory, String script = 'terraform plan -detailed-exitcode -out=terraform.tfplan') {
+    env.TERRAFORM_NO_CHANGES = 'false'
+    env.TERRAFORM_PLAN_ERRORS = 'false'
+
+    dir(directory) {
+        def result = sh(
+            script: script,
+            returnStatus: true
+        )
+
+        // The result is 0 if the plan found no changes, 1 if there are errors with the plan,
+        // and 2 if the plan is successful and changes will be made.
+        switch (result) {
+            case 0:
+                currentBuild.result = 'SUCCESS'
+                env.TERRAFORM_NO_CHANGES = 'true'
+                break
+            case 1:
+                currentBuild.result = 'UNSTABLE'
+                env.TERRAFORM_PLAN_ERRORS = 'true'
+                break
+            case 2:
+                println 'The "terraform plan" Response Was Valid.'
+                break
+            default:
+                println 'Unexpected Terraform exit code.'
+                currentBuild.result = 'FAILURE'
+        }
+    }
+}
+
+/**
+ * Apply/create the infrastructure defined in Terraform configuration files.
+ * @param directory The directory containing Terraform files.
+ * @param autoApply Whether to automatically create the infrastructure or prompt the user to confirm/deny creation.
+ */
+def terraformApply(String directory, boolean autoApply) {
+    if (!autoApply) {
+        timeout(time: 15, unit: 'MINUTES') {
+            input message: 'Confirm Plan', ok: 'Apply'
+        }
+    }
+
+    dir(directory) {
+        sh "terraform apply -auto-approve terraform.tfplan"
+    }
+}
+</CodeSnippet>
+<p>
+Once the database infrastructure is created with Terraform, the <code className="jarombek-inline-code">destroy-database</code>
+Jenkins job can be run to tear it down.  The Jenkinsfile is listed below and is also available on
+<a href="https://github.com/AJarombek/global-jenkins-jobs/tree/master/saints-xctf/infrastructure/
+destroy-database">GitHub</a>.
+</p>
+<CodeSnippet language="Groovy">
+@Library(['global-jenkins-library@master']) _
+
+pipeline {
+    agent {
+        label 'master'
+    }
+    parameters {
+        booleanParam(
+            name: 'autoDestroy',
+            defaultValue: true,
+            description: "Whether the Terraform infrastructure should be automatically destroyed."
+        )
+        choice(
+            name: 'environment',
+            choices: ['dev'],
+            description: 'Environment to destroy the database.'
+        )
+    }
+    options {
+        ansiColor('xterm')
+        timeout(time: 1, unit: 'HOURS')
+        buildDiscarder(
+            logRotator(daysToKeepStr: '10', numToKeepStr: '5')
+        )
+    }
+    stages {
+        stage("Clean Workspace") {
+            steps {
+                script {
+                    cleanWs()
+                }
+            }
+        }
+        stage("Checkout Repository") {
+            steps {
+                script {
+                    checkoutRepo()
+                }
+            }
+        }
+        stage("Terraform Init") {
+            steps {
+                script {
+                    terraformInit()
+                }
+            }
+        }
+        stage("Terraform Plan") {
+            steps {
+                script {
+                    terraformPlanDestroy()
+                }
+            }
+        }
+        stage("Terraform Destroy") {
+            when {
+                allOf {
+                    environment name: 'TERRAFORM_NO_CHANGES', value: 'false'
+                    environment name: 'TERRAFORM_PLAN_ERRORS', value: 'false'
+                }
+            }
+            steps {
+                script {
+                    terraformDestroy()
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                postScript()
+            }
+        }
+    }
+}
+
+// Stage functions
+def checkoutRepo() {
+    def name = "saints-xctf-infrastructure"
+    def branch = "master"
+
+    genericsteps.checkoutRepo(name, branch)
+}
+
+def terraformInit() {
+    INFRA_DIR = "repos/saints-xctf-infrastructure/database/env/$params.environment"
+    terraform.terraformInit(INFRA_DIR)
+}
+
+def terraformPlanDestroy() {
+    terraform.terraformPlanDestroy(INFRA_DIR)
+}
+
+def terraformDestroy() {
+    terraform.terraformDestroy(INFRA_DIR, params.autoDestroy)
+}
+
+def postScript() {
+    def bodyTitle = "Destroy saints-xctf-infrastructure $params.environment Database."
+    def bodyContent = ""
+    def jobName = env.JOB_NAME
+    def buildStatus = currentBuild.result
+    def buildNumber = env.BUILD_NUMBER
+    def buildUrl = env.BUILD_URL
+
+    genericsteps.postScript(bodyTitle, bodyContent, jobName, buildStatus, buildNumber, buildUrl)
+}
+</CodeSnippet>
+<p>
+Just like the <code className="jarombek-inline-code">create-database</code> job,
+<code className="jarombek-inline-code">destroy-database</code> utilizes reusable Groovy scripts for
+destroying Terraform infrastructure.
+</p>
+<CodeSnippet language="Groovy">
+/**
+ * Create a plan of the infrastructure that Terraform will destroy.
+ * @param directory The directory containing Terraform files.
+ */
+def terraformPlanDestroy(String directory) {
+    env.TERRAFORM_NO_CHANGES = 'false'
+    env.TERRAFORM_PLAN_ERRORS = 'false'
+
+    dir(directory) {
+        def result = sh(
+            script: 'terraform plan -destroy -detailed-exitcode',
+            returnStatus: true
+        )
+
+        // The result is 0 if the plan found no changes, 1 if there are errors with the plan,
+        // and 2 if the plan is successful and changes will be made.
+        switch (result) {
+            case 0:
+                currentBuild.result = 'SUCCESS'
+                env.TERRAFORM_NO_CHANGES = 'true'
+                break
+            case 1:
+                currentBuild.result = 'UNSTABLE'
+                env.TERRAFORM_PLAN_ERRORS = 'true'
+                break
+            case 2:
+                println 'The "terraform plan" Response Was Valid.'
+                break
+            default:
+                println 'Unexpected Terraform exit code.'
+                currentBuild.result = 'FAILURE'
+        }
+    }
+}
+
+/**
+ * Destroy the infrastructure that Terraform files in the specified directory are managing.
+ * @param directory The directory containing Terraform files.
+ * @param autoDestroy Whether to automatically destroy the infrastructure or
+ * prompt the user to confirm/deny destruction.
+ */
+def terraformDestroy(String directory, boolean autoDestroy) {
+    if (!autoDestroy) {
+        timeout(time: 15, unit: 'MINUTES') {
+            input message: 'Confirm Plan', ok: 'Apply'
+        }
+    }
+
+    dir(directory) {
+        sh "terraform destroy -auto-approve"
+    }
+}
+</CodeSnippet>
+<SectionTitle title="Push Images to ECR">Push Images to ECR</SectionTitle>
+<p>
+The last Jenkins job to discuss takes a Dockerfile, creates an image, and pushes it to an AWS ECR
+repository.  Specifically, this image is for one of my prototype applications which uses GraphQL.  The
+full Jenkinsfile is listed below, with the code also available on <a href="https://github.com/AJarombek/
+global-jenkins-jobs/tree/master/prototypes/graphql-react-prototype/push-app-image">GitHub</a>.
+</p>
+<CodeSnippet language="Groovy">
+@Library(['global-jenkins-library@master']) _
+
+pipeline {
+    agent {
+        label 'master'
+    }
+    parameters {
+        string(
+            name: 'label',
+            defaultValue: '1.0.0',
+            description: 'Label/Version of the Docker image to push to DockerHub'
+        )
+        booleanParam(
+            name: 'isLatest',
+            defaultValue: true,
+            description: "Whether this Docker image should also be pushed with the 'latest' label"
+        )
+    }
+    options {
+        ansiColor('xterm')
+        timeout(time: 1, unit: 'HOURS')
+        buildDiscarder(
+            logRotator(daysToKeepStr: '10', numToKeepStr: '5')
+        )
+    }
+    stages {
+        stage("Clean Workspace") {
+            steps {
+                script {
+                    cleanWs()
+                }
+            }
+        }
+        stage("Checkout Repository") {
+            steps {
+                script {
+                    checkoutRepo()
+                }
+            }
+        }
+        stage("Build Docker Image") {
+            steps {
+                script {
+                    buildImage()
+                }
+            }
+        }
+        stage("Push Docker Image") {
+            steps {
+                script {
+                    pushImage()
+                }
+            }
+        }
+        stage("Cleanup Docker Environment") {
+            steps {
+                script {
+                    cleanupDockerEnvironment()
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                postScript()
+            }
+        }
+    }
+}
+
+def checkoutRepo() {
+    def name = "graphql-react-prototype"
+    def branch = "master"
+
+    genericsteps.checkoutRepo(name, branch)
+}
+
+def buildImage() {
+    dir("repos/graphql-react-prototype") {
+        sh """
+            sudo docker image build \
+                -f app.dockerfile \
+                -t graphql-react-prototype-app:latest \
+                --network=host .
+        """
+    }
+}
+
+def pushImage() {
+    def repoUrl = "739088120071.dkr.ecr.us-east-1.amazonaws.com"
+    def imageName = "graphql-react-prototype-app"
+    def imageLabel = params.label
+    def isLatest = params.isLatest
+
+    sh """
+        aws ecr get-login-password --region us-east-1 | sudo docker login -u AWS --password-stdin $repoUrl
+
+        sudo docker image tag $imageName:latest $repoUrl/$imageName:$imageLabel
+        sudo docker push $repoUrl/$imageName:$imageLabel
+    """
+
+    if (isLatest) {
+        sh """
+            sudo docker image tag $imageName:latest $repoUrl/$imageName:latest
+            sudo docker push $repoUrl/$imageName:latest
+        """
+    }
+}
+
+def cleanupDockerEnvironment() {
+    def imageName = "graphql-react-prototype-app"
+    def repoUrl = "739088120071.dkr.ecr.us-east-1.amazonaws.com"
+
+    sh """
+        sudo docker image rm $imageName:latest
+        sudo docker image rm $repoUrl/$imageName:$params.label
+    """
+
+    if (params.isLatest) {
+        sh """
+            sudo docker image rm $repoUrl/$imageName:latest
+        """
+    }
+
+    sh "sudo docker image ls"
+}
+
+def postScript() {
+    def bodyTitle = "Push graphql-react-prototype-app Docker image to ECR."
+    def bodyContent = ""
+    def jobName = env.JOB_NAME
+    def buildStatus = currentBuild.result
+    def buildNumber = env.BUILD_NUMBER
+    def buildUrl = env.BUILD_URL
+
+    genericsteps.postScript(bodyTitle, bodyContent, jobName, buildStatus, buildNumber, buildUrl)
+}
+</CodeSnippet>
+<p>
+The Jenkins job takes two parameters which are used for labeling the Docker image.  <code className="jarombek-inline-code">label</code>
+defines the numbered version of the image and <code className="jarombek-inline-code">isLatest</code>
+determines if this image should also be labelled with <strong>latest</strong>.  The stages of the pipeline
+checkout the repository containing the Dockerfile, build the image, and push it to an ECR repository.
+It also performs some cleanup work, such as deleting the Docker image after it's pushed.  Finally, just like my
+other Jenkins jobs, it sends me an email with the results.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Jenkins jobs and other CI/CD scripts are great ways to automate deployments, testing, and infrastructure.
+I use Jenkins extensively to help my AWS cloud workloads.  You can view more of my Jenkins jobs in the
+<a href="https://github.com/AJarombek/global-jenkins-jobs">global-jenkins-jobs</a> repository and my
+reusable Jenkins function library in the <a href="https://github.com/AJarombek/global-jenkins-library">global-jenkins-library</a>
+repository.
+</p>
+</div>

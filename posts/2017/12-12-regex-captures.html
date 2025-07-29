@@ -1,0 +1,63 @@
+<div>
+<p>
+Regular expressions are commonly used in my code.  However, there are still certain aspects of
+them that remain a mystery to me.  Today I'm exploring one new aspect of regular expressions
+- captures.  Although JavaScript is used in this post, the following concepts apply to many languages with
+regex capabilities (including my main language Java).  Let's dig in.
+</p>
+<p>
+Captures help save pieces of a regular expression for later use.  For example, if a regex matches emails,
+I can capture the two main pieces of an email - the local-part and the domain.  The following code saves
+the day, month, and year from a date.
+</p>
+<CodeSnippet language="JavaScript">
+let date = "02/26/1995";
+
+let pattern = /(\d{1,2})\/(\d{2})\/(\d{4})/;
+let captures = date.match(pattern);
+
+console.info(captures); // ["02/26/1995", "02", "26", "1995"]
+
+// The captures are accessed from the array produced by match()
+console.info(`Month: ${captures[1]}, Day: ${captures[2]}, Year: ${captures[3]}`);
+</CodeSnippet>
+<p>
+The grouping syntax <code className="jarombek-inline-code">(...)</code> is used to define a capture.  The
+value matched to a capture is saved to an array when the <code className="jarombek-inline-code">match()</code>
+function is called.
+</p>
+<p>
+If I want to use grouping but don't need to capture pieces of a regular expression, the syntax
+<code className="jarombek-inline-code">(?: ...)</code> specifies that a group shouldn't create a capture.
+This results in less work for the languages engine to perform<sup>1</sup>.
+</p>
+<CodeSnippet language="JavaScript">
+let pattern2 = /(?:\d{1,2})\/(?:\d{2})\/(?:\d{4})/;
+let captures2 = date.match(pattern2);
+console.info(captures2); // ["02/26/1995"]
+</CodeSnippet>
+<p>
+One final thing to explore with captures is backreferences.  Backreferences refer to previous captures
+created in the same regular expression<sup>2</sup>.  In the following code I used backreferences to check if the month and
+day in a date are equal.  The <code className="jarombek-inline-code">\1</code> token refers to the contents of
+the first capture (the month).  The contents of <code className="jarombek-inline-code">\1</code> is defined at runtime.  Backreferences
+make regular expressions even more dynamic!
+</p>
+<CodeSnippet language="JavaScript">
+let date = "02/26/1995";
+let date2 = "02/02/2017";
+
+let sameDayMonthPattern = /(\d{1,2})\/\1\/\d{4}/;
+
+let fails = sameDayMonthPattern.test(date);
+let succeeds = sameDayMonthPattern.test(date2);
+
+console.info(fails); // false
+console.info(succeeds); // true
+</CodeSnippet>
+<p>
+You can find the full code from this discovery on
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2017/12-Dec/
+12-12-Regex-Captures/captures.js">GitHub</a>.
+</p>
+</div>

@@ -1,0 +1,776 @@
+<div>
+<p>
+Cypress is an end to end (e2e) testing framework written in JavaScript for front-end applications.  Cypress tests run
+in a Chrome web browser or a headless browser, navigating through and interacting with web pages.  It's
+reasonable to compare Cypress to other test automation frameworks such as Selenium or Puppeteer; however, unlike those frameworks, Cypress was created
+specifically for writing end to end tests.  Because of its test first design, Cypress provides lots of features that
+make writing end to end tests easy.  It is currently my preferred end to end testing tool.
+</p>
+<p>
+While Cypress tests can be written in JavaScript, as is the case with my <a href="https://github.com/AJarombek/
+jarombek-com/tree/v2.0.4/cypress/integration">jarombek.com</a> application, Cypress also has TypeScript support.  Nowadays,
+I write most of my front-end applications in TypeScript due to its type safety.  In my experience, TypeScript helps
+reduce the number of bugs and type mismatch mistakes in JavaScript code.  For applications written in TypeScript, it is
+great to be able to write Cypress tests in TypeScript as well.  This helps keep the programming language uniform
+across the front-end application code and test code.
+</p>
+<p>
+In this article, I discuss the basics of Cypress and how I use it to test my front-end applications.  All the Cypress
+ code I show is written in TypeScript.  The Cypress test code comes from two of my application repositories:
+<a href="https://github.com/AJarombek/apollo-client-server-prototype/tree/master/client/cypress">apollo-client-server-prototype</a>
+and <a href="https://github.com/AJarombek/saints-xctf-web/tree/v2.0.4/cypress">saints-xctf-web</a>.
+</p>
+<SectionTitle title="What is End to End Testing">What is End to End Testing?</SectionTitle>
+<Definition word="End to End Testing">
+End to end (E2E) testing is the practice of writing tests for an application from one end to another, from beginning to
+end.  In essence, these tests cover the entire execution flow of an application in a production-like environment.  In
+the case of a front-end application, this means testing the application by interacting with the UI as an actual user
+would. Because these tests are executed in a production-like environment, all the API calls used by the front-end code
+are invoked as part of the tests.  This results in the application being executed from end to end - from the front-end
+to the back-end and database.
+</Definition>
+<p>
+With Cypress, end to end tests are run in a web browser.  Tests navigate to a web page and make assertions about the
+content shown.  Then, they can interact with the page and make further assertions about what changed in the UI, check
+what network calls were made, and more.
+</p>
+<SectionTitle title="Cypress Basics">Cypress Basics</SectionTitle>
+<p>
+Cypress is installed using its <a href="https://www.npmjs.com/package/cypress">cypress</a> npm package.  Cypress is
+pretty easy to configure within an application.  For example, my <a href="https://saintsxctf.com">saintsxctf.com</a>
+application uses Cypress and is configured to use it with TypeScript.  For starters, its repository
+<a href="https://github.com/AJarombek/saints-xctf-web">saints-xctf-web</a> is written as an npm package, with
+<code className="jarombek-inline-code">cypress</code> defined as a dev dependency in its <a href="https://github.com/
+AJarombek/saints-xctf-web/blob/v2.0.4/package.json#L77">package.json</a> file.  Next, a <a href="https://github.com/
+AJarombek/saints-xctf-web/blob/v2.0.4/cypress.json">cypress.json</a> file exists in the root directory of the npm
+package.  This is the main configuration file for Cypress, with the contents of my configuration file shown below.
+</p>
+<CodeSnippet language="JSON">
+{
+  "baseUrl": "http://localhost:8090",
+  "ignoreTestFiles": ["*.md"],
+  "env": {
+    ...
+  }
+}
+</CodeSnippet>
+<p>
+Although the fields of the configuration file are optional, they do help simplify tests and configure the settings of
+Cypress to fit your needs<sup>1</sup>.  In my configuration file, <code className="jarombek-inline-code">baseUrl</code>
+configures the default base URL to use for all my tests, so that I don't need to copy-paste it across all my test cases.
+<code className="jarombek-inline-code">ignoreTestFiles</code> configures the Cypress test runner to ignore any Markdown
+files in the test directory, in my case which are used for documentation purposes.  Finally,
+<code className="jarombek-inline-code">env</code> sets environment variables which are accessible to the Cypress test
+code.  Cypress has many additional <a href="https://docs.cypress.io/guides/references/configuration#Options">
+configuration options</a> listed in their documentation.
+</p>
+<p>
+The actual Cypress test code is written in a <a href="https://github.com/AJarombek/saints-xctf-web/tree/v2.0.4/cypress">cypress</a>
+directory located in the root of the npm package.  The <strong>cypress</strong> folder and its subdirectories are
+created as a scaffold automatically when Cypress first runs in the project, so there is no need to create these
+manually.  Inside <strong>cypress</strong> are four subdirectories - <strong>fixtures</strong>, <strong>integration</strong>,
+<strong>plugins</strong>, and <strong>support</strong> - along with a <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/tsconfig.json">tsconfig.json</a> file to configure TypeScript.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-cypress-directory.png"/>
+</figure>
+<p>
+The <strong>integration</strong> directory holds the Cypress end to end tests.  In my case, these tests are TypeScript
+files with <strong>.e2e.test.ts</strong> file extensions.  For example, the Cypress tests for the home page of my
+<a href="https://saintsxctf.com">saintsxctf.com</a> website are located in a <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/integration/Home.e2e.test.ts">Home.e2e.test.ts</a> file.
+</p>
+<p>
+The <strong>fixtures</strong> directory contains static assets used by the tests.  The majority of the files in my
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/cypress/fixtures">fixtures</a> directory are JSON
+files representing mocked API responses.  In certain end to end tests, it's preferable to use fixed API responses
+instead of ones from an actual live API.  This is often due to the unpredictability of API data, and a need to test
+specific repeatable scenarios.  It's also due to the requirement of testing failure scenarios on the website, such as
+when an API returns an unexpected error code.  These scenarios are easily achieved by mocking the API responses with
+the JSON files found in the <strong>fixtures</strong> directory.  The other static assets found in my
+<strong>fixtures</strong> directory are pictures, which are used for testing profile picture and group picture
+uploading on my website.
+</p>
+<p>
+The <strong>plugins</strong> directory contains a single <a href="https://github.com/AJarombek/saints-xctf-web/blob/
+v2.0.4/cypress/plugins/index.js">index.js</a> JavaScript file that runs in Node.js before the Cypress tests
+begin<sup>2</sup>.  This file is used to configure first-party and third-party tooling which extends the functionality
+of Cypress.  For example, my plugins file configures a <a href="https://docs.cypress.io/guides/tooling/
+code-coverage#E2E-code-coverage">code coverage plugin</a> to generate code coverage reports for my end to end
+tests<sup>3</sup>.  Code coverage reports require an additional <code className="jarombek-inline-code">@cypress/code-coverage</code>
+dev dependency in the <a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/package.json#L51">package.json</a>
+file.
+</p>
+<p>
+The <strong>support</strong> directory contains custom commands used throughout Cypress tests.  Custom
+commands contain reusable code, making the Cypress tests more concise and <a href="https://jarombek.com/blog/
+jun-17-2019-terraform-module#dry-principal">DRY</a>.  The <a href="https://github.com/AJarombek/saints-xctf-web/blob/
+v2.0.4/cypress/support/index.ts">index.ts</a> file in the <strong>support</strong> directory is run automatically before
+ every Cypress test file, so that the custom commands don't need to be manually imported into all the test
+ files<sup>4</sup>.  There is a whole section of this article dedicated to writing custom commands in Cypress.
+</p>
+<p>
+The <a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/cypress/tsconfig.json">tsconfig.json</a> file in
+the <strong>cypress</strong> folder creates and configures a TypeScript project for the Cypress tests, separate from the
+TypeScript project for the source code.  The most important property of the JSON configuration is
+<code className="jarombek-inline-code">compilerOptions.types</code>, specifying that only type definitions
+specific to Cypress should be used in the test code<sup>5</sup>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": "../node_modules",
+    "target": "ES5",
+    "lib": ["ES5", "DOM"],
+    "types": ["cypress", "cypress-file-upload"]
+  },
+  "include": ["**/*.ts"]
+}
+</CodeSnippet>
+<p>
+There are two main ways to run Cypress tests: in a web browser and in a headless browser.  Inside my <a href="https://github.com/
+AJarombek/saints-xctf-web/blob/v2.0.4/package.json#L120-L122">package.json</a> file, I specify multiple custom commands
+for running Cypress tests.  The first command, <code className="jarombek-inline-code">cypress open</code> (aliased as
+<code className="jarombek-inline-code">cy:open</code>), opens the Cypress test runner and allows test files
+ to be run in a web browser.  The test runner is shown below.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-cypress-test-runner.png"/>
+</figure>
+<p>
+The test runner lists all the end to end test files, referred to as <strong>specs</strong>, which exist in the
+<strong>integration</strong> directory.  Clicking any of the file names opens a web browser and begins running
+the tests.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-cypress-browser.png"/>
+</figure>
+<p>
+In the screenshot above, all three tests passed.  While the tests run, the Cypress commands that execute are displayed
+on the left hand side of the browser.  On the right hand side, the current state of the website in the test is shown.
+This is great for seeing tests execute on the UI, and allows for easy debugging if tests are failing.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-cypress-executed-test.png"/>
+</figure>
+<p>
+The other way to run tests is with a headless browser.  Headless browsers provide an execution environment similar to a
+web browser, except they run from a command line<sup>6</sup>.  Executing Cypress tests in headless browsers is great
+for CI/CD pipelines which run tests in an automated fashion.  The
+<code className="jarombek-inline-code">cypress run --headless</code> command (aliased as
+<code className="jarombek-inline-code">cy:headless</code>) runs all the Cypress tests in a headless browser.
+</p>
+<p>
+In the remainder of this article, I walk you through Cypress test cases and reusable Cypress functions.  All these
+examples are used in the end to end tests for my <a href="https://saintsxctf.com">saintsxctf.com</a> website.
+</p>
+<SectionTitle title="Cypress Test Examples">Cypress Test Examples</SectionTitle>
+<p>
+Let's start with some basic examples which test the SaintsXCTF home page.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-home-page.png"/>
+</figure>
+<p>
+Cypress test code is built on top of the <a href="https://mochajs.org/">Mocha testing framework</a> and the
+<a href="https://www.chaijs.com/">Chai assertion library</a>.  Therefore, engineers familiar with these libraries will
+recognize the coding syntax right away.  Cypress test specs often have a similar layout to the following specification
+for my website's home page.
+</p>
+<CodeSnippet language="TypeScript">
+describe('Home E2E Tests', () => {
+  beforeEach(() => {
+    cy.visit('/');
+  });
+
+  it('loads the home page as expected', () => {
+    cy.get('.sxctf-home').contains('Cross Country and Track & Field Team Exercise Logs').should('exist');
+  });
+
+  ...
+});
+</CodeSnippet>
+<p>
+The home page's end to end test spec is located in a <a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/
+cypress/integration/Home.e2e.test.ts">Home.e2e.test.ts</a> file.  The <code className="jarombek-inline-code">describe()</code>
+function gives a name to the test suite with its first argument and defines all the test cases along with pre-test and
+post-test hook methods with its second argument.  In my example, the test suite is named "Home E2E Tests".
+<code className="jarombek-inline-code">beforeEach()</code> is a pre-test hook which executes before every test case.
+<code className="jarombek-inline-code">beforeEach()</code> executes one built-in Cypress command,
+<code className="jarombek-inline-code">cy.visit('/');</code>, which navigates the browser to the home page of my
+website before each test.
+</p>
+<p>
+The final piece of code in the snippet above is an <code className="jarombek-inline-code">it()</code> function, which 
+defines a test case.  The test is given the name "loads the home page as expected" and executes a few Cypress commands.  
+Most Cypress tests utilize function chaining, and this basic example is no different.  First, the call to 
+<code className="jarombek-inline-code">cy.get('.sxctf-home')</code> gets any HTML elements with the class 
+<code className="jarombek-inline-code">sxctf-home</code>.  The result could be zero, one, or many HTML elements.  Next, 
+the result of this function is chained with <code className="jarombek-inline-code">
+.contains('Cross Country and Track & Field Team Exercise Logs')</code>.  The <code className="jarombek-inline-code">
+contains()</code> function narrows down the HTML elements retrieved with the  <code className="jarombek-inline-code">
+cy.get()</code> call to only those elements that contain the text "Cross Country and Track & Field Team Exercise Logs".  
+Finally, the result of this function is chained with <code className="jarombek-inline-code">.should('exist')</code>.  
+This ensures that at least one HTML element exists with a <code className="jarombek-inline-code">sxctf-home</code> class 
+and the text "Cross Country and Track & Field Team Exercise Logs".  If no elements match these two requirements, the
+Cypress test fails.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-home-title-test.png"/>
+</figure>
+<p>
+Let's look at a few more basic tests used on my application's home page.
+</p>
+<CodeSnippet language="TypeScript">
+it("'about' header button navigates down to the 'about' section", () => {
+  cy.get('.aboutButton').click();
+  cy.url().should('include', '/#about');
+});
+</CodeSnippet>
+<p>
+This test takes an action, clicking on an HTML element with an <code className="jarombek-inline-code">aboutButton</code>
+class.  The test then asserts that the URL of the webpage has changed to <strong>/#about</strong>, signaling that the
+user was navigated down the page to the "About" section.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-home-about-test.png"/>
+</figure>
+<p>
+The website under test is mobile-responsive, and I have a separate file for mobile end to end tests called
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/cypress/integration/Home.mobile.e2e.test.ts">
+Home.mobile.e2e.test.ts</a>.
+</p>
+<CodeSnippet language="TypeScript">
+describe('Home Mobile E2E Tests', () => {
+  beforeEach(() => {
+    cy.viewport(400, 800);
+    cy.visit('/');
+  });
+
+  it("'About' navbar dropdown link navigates down to the 'About' section", () => {
+    cy.url().should('equal', `${Cypress.config('baseUrl')}/`);
+    cy.get('.sxctf-nav-hamburger').click();
+    cy.get('.aj-nav-list-item').contains('About').click();
+    cy.url().should('equal', `${Cypress.config('baseUrl')}/#about`);
+  });
+
+  ...
+});
+</CodeSnippet>
+<p>
+The mobile home page test suite has a <code className="jarombek-inline-code">beforeEach()</code> hook function similar
+to the one in <a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/cypress/integration/Home.e2e.test.ts">
+Home.e2e.test.ts</a>, except this time it also changes the viewport to a mobile phone screen size.  This is achieved
+with the Cypress command <code className="jarombek-inline-code">cy.viewport(400, 800)</code> which changes the viewport
+width to 400px and the viewport height to 800px.
+</p>
+<p>
+The test shown in this code snippet is logically equivalent to the "About" section test discussed prior.  This time, a
+mobile dropdown is clicked to navigate to the "About" section instead of a button in the website header.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-home-about-mobile-test.png"/>
+</figure>
+<SectionTitle title="Advanced Cypress Test Examples">Advanced Cypress Test Examples</SectionTitle>
+<p>
+Now let's look at some of the advanced Cypress tests written in my end to end test suite.  Don't worry too much about
+the tiny code details; instead, focus on the big picture of what Cypress is capable of.
+</p>
+<SubTitle title="Create New Exercise Log">Create New Exercise Log</SubTitle>
+<p>
+Let's look at a test that creates a new exercise log.  This test exists in a <a href="https://github.com/
+AJarombek/saints-xctf-web/blob/v2.0.4/cypress/integration/NewLog.e2e.test.ts#L69-L109">NewLog.e2e.test.ts</a> file.
+</p>
+<CodeSnippet language="TypeScript">
+it('able to create a new running exercise log', () => {
+  cy.route('POST', '/api/v2/logs/').as('createLog');
+
+  const formattedDate = moment().format('YYYY-MM-DD');
+  const finalFormattedDate = moment().format('MMM. Do, YYYY');
+
+  cy.visit('/log/new');
+  cy.get('.sxctf-image-input input[name="name"]').type('Test Run');
+  cy.get('.sxctf-image-input input[name="location"]').type('New York, NY');
+  cy.get('.sxctf-image-input input[name="date"]').type(formattedDate);
+  cy.get('.sxctf-image-input input[name="distance"]').type('5');
+  cy.get('.sxctf-image-input input[name="time"]').type('3625');
+  cy.get('textarea').type('Running Log Generated from E2E Tests');
+  cy.get('button').contains('Create').click();
+
+  cy.wait('@createLog');
+
+  cy.getDataCy('alert').should('exist');
+  cy.getDataCy('alert').should('contain.text', 'Exercise log created!');
+
+  // The success message should disappear after 4 seconds.
+  cy.wait(4000);
+  cy.getDataCy('alert').should('not.exist');
+
+  cy.get('.dashboardButton').click();
+  cy.url().should('equal', `${Cypress.config('baseUrl')}/dashboard`);
+
+  cy.get('#logFeed .exerciseLog').should('have.length', 10);
+  cy.get('#logFeed .exerciseLog').eq(0).findDataCy('exerciseLogUser').should('contain.text', 'Andy Jarombek');
+  cy.get('#logFeed .exerciseLog').eq(0).findDataCy('exerciseLogTitle').should('contain.text', 'Test Run');
+  cy.get('#logFeed .exerciseLog').eq(0).findDataCy('exerciseLogDate').should('contain.text', finalFormattedDate);
+  cy.get('#logFeed .exerciseLog').eq(0).findDataCy('exerciseLogType').should('contain.text', 'RUN');
+  cy.get('#logFeed .exerciseLog').eq(0).findDataCy('exerciseLogLocation').should('contain.text', 'New York, NY');
+  cy.get('#logFeed .exerciseLog').eq(0).findDataCy('exerciseLogDistance').should('contain.text', '5 miles');
+  cy.get('#logFeed .exerciseLog').eq(0).findDataCy('exerciseLogTimePace').should('contain.text', '36:25 (7:17/mi)');
+  cy.get('#logFeed .exerciseLog').eq(0).should('have.class', 'average');
+  cy.get('#logFeed .exerciseLog')
+    .eq(0)
+    .findDataCy('exerciseLogDescription')
+    .should('contain.text', 'Running Log Generated from E2E Tests');
+});
+</CodeSnippet>
+<p>
+The test starts by filling out an exercise log creation form with the help of the Cypress
+<code className="jarombek-inline-code">type()</code> commands.  This code snippet also demonstrates how other JavaScript
+libraries, such as the moment.js date/time library, can be used in Cypress tests.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-create-log-test.png"/>
+</figure>
+<p>
+<code className="jarombek-inline-code">cy.get('button').contains('Create').click()</code> clicks a button which makes
+an API call to create a new exercise log.  The Cypress test waits for this API call to complete with the
+<code className="jarombek-inline-code">cy.wait('@createLog')</code> command.  <code className="jarombek-inline-code">
+@createLog</code> is an alias for a HTTP route.  It is defined at the beginning of the test with the
+<code className="jarombek-inline-code">cy.route('POST', '/api/v2/logs/').as('createLog')</code> command.  After the
+exercise log is created, the Cypress test navigates back to the dashboard page of the website and makes sure the new
+exercise log appears.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-create-log-test-2.png"/>
+</figure>
+<SubTitle title="Monthly Exercise Calendar">Monthly Exercise Calendar</SubTitle>
+<p>
+Another advanced Cypress test is one for a monthly calendar tab on a user's profile page.  This test exists in a
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/cypress/integration/NewLog.e2e.test.ts#L69-L109">
+NewLog.e2e.test.ts</a> file.
+</p>
+<CodeSnippet language="TypeScript">
+it('has a tab with a calendar of monthly exercise logs', () => {
+  cy.visit('/profile/andy');
+  cy.profileMockAPICalls();
+
+  cy.createRangeViewRoute('rangeViewCurrentMonthRoute', currentMonthRangeItems, 0, 'month', true);
+  cy.get('.tabs p').contains('Monthly Calendar').click();
+  cy.wait('@rangeViewCurrentMonthRoute');
+
+  const calendarMonth = moment().format('MMMM YYYY');
+
+  cy.getDataCy('currentMonth').should('contain.text', calendarMonth);
+  cy.calendarWeekCheck(0, [null, 5.39, 5.83, 8.64, 5.96, 8.75, 9.12], 43.69);
+  cy.calendarWeekCheck(1, [2.89, 5.89, 5.94, 11.96, 5.97, '8.80', 14.01], 55.46);
+  cy.calendarWeekCheck(2, [2.94, 4.55, 6.28, 6.52, 6.58, '12.00', null], 38.87);
+  cy.calendarWeekCheck(3, [null, null, null, null, null, null, null], '0.00');
+  cy.calendarWeekCheck(4, [null, null, null, null, null, null, null], '0.00');
+  cy.calendarWeekCheck(5, [null, null, null, null, null, null, null], '0.00');
+
+  // Go to the previous month.
+  cy.createRangeViewRoute('rangeViewPreviousMonthRoute', prevMonthRangeItems, 1, 'month', true);
+  cy.getDataCy('prevMonth').click();
+  cy.wait('@rangeViewPreviousMonthRoute');
+
+  const prevCalendarMonth = moment().subtract(1, 'month').format('MMMM YYYY');
+
+  cy.getDataCy('currentMonth').should('contain.text', prevCalendarMonth);
+  cy.calendarWeekCheck(0, [null, 5.42, 5.36, '5.40', 6.51, 6.01, 12.23], 40.93);
+  cy.calendarWeekCheck(1, [2.82, 5.42, 5.38, '5.40', 7.11, '6.00', 13.27], '45.40');
+  cy.calendarWeekCheck(2, [2.86, 5.44, 5.43, '5.40', 5.43, 11.27, 13.21], 49.04);
+  cy.calendarWeekCheck(3, [5.38, 2.83, 5.36, '5.40', 6.49, 6.02, 7.02], '38.50');
+  cy.calendarWeekCheck(4, [null, 5.39, 5.83, 8.64, 5.96, 8.75, 9.12], 43.69);
+  cy.calendarWeekCheck(5, [2.89, 5.89, 5.94, 11.96, 5.97, '8.80', 14.01], 55.46);
+
+  // Return to the current month.
+  cy.getDataCy('nextMonth').click();
+
+  cy.getDataCy('currentMonth').should('contain.text', calendarMonth);
+  cy.calendarWeekCheck(0, [null, 5.39, 5.83, 8.64, 5.96, 8.75, 9.12], 43.69);
+  cy.calendarWeekCheck(1, [2.89, 5.89, 5.94, 11.96, 5.97, '8.80', 14.01], 55.46);
+  cy.calendarWeekCheck(2, [2.94, 4.55, 6.28, 6.52, 6.58, '12.00', null], 38.87);
+  cy.calendarWeekCheck(3, [null, null, null, null, null, null, null], '0.00');
+  cy.calendarWeekCheck(4, [null, null, null, null, null, null, null], '0.00');
+  cy.calendarWeekCheck(5, [null, null, null, null, null, null, null], '0.00');
+});
+</CodeSnippet>
+<p>
+The test navigates to the profile page of user <strong>andy</strong> and clicks on the <strong>Monthly Calendar</strong>
+tab.  From there, the Cypress test asserts that the calendar shows the proper month and exercise mileage statistics.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-monthly-calendar.png"/>
+</figure>
+<p>
+The monthly calendar Cypress test utilizes multiple custom Cypress commands.  These include
+<code className="jarombek-inline-code">cy.profileMockAPICalls()</code> (located in <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/support/profile.ts#L21-L26">profile.ts</a> and <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/support/profile.d.ts#L24-L28">profile.d.ts</a>),
+<code className="jarombek-inline-code">cy.createRangeViewRoute()</code> (located in <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/support/shared.ts#L39-L81">shared.ts</a> and <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/support/shared.d.ts#L29-L47">shared.d.ts</a>),
+<code className="jarombek-inline-code">cy.calendarWeekCheck()</code> (located in <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/support/shared.ts#L115-L155">shared.ts</a> and <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/support/shared.d.ts#L65-L72">shared.d.ts</a>), and
+<code className="jarombek-inline-code">cy.getDataCy()</code> (located in <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/support/commands.ts#L110-L112">commands.ts</a> and <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/support/commands.d.ts#L37-L42">commands.d.ts</a>).  I discuss custom Cypress
+commands in the next section of this article, but this code demonstrates how they can greatly simplify end to end tests.
+</p>
+<p>
+For example, <code className="jarombek-inline-code">cy.calendarWeekCheck()</code> checks the mileage for each day in a
+week on the calendar.  <code className="jarombek-inline-code">cy.calendarWeekCheck(0, [null, 5.39, 5.83, 8.64, 5.96, 8.75, 9.12], 43.69)</code>
+looks at the first week in the calendar, and asserts that the total mileage is <strong>43.69</strong>.  It iterates over
+each day, checking that the first day displays no mileage, the second day displays <strong>5.39</strong> miles, the
+third day displays <strong>5.83</strong> miles, etc.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-monthly-calendar-2.png"/>
+</figure>
+<p>
+This custom Cypress command is called six times for each month.  Since the test changes the month displayed on the
+calendar multiple times, <code className="jarombek-inline-code">cy.calendarWeekCheck()</code> is invoked almost 20
+times.  Placing the logic for testing a week of calendar data in a reusable Cypress command saved many lines of code!
+</p>
+<SubTitle title="API Error Scenario">API Error Scenario</SubTitle>
+<p>
+One final advanced Cypress test checks what happens to the website if an API request fails.  Specifically, it checks
+the scenario where adding a user to a group in the website fails.  This test exists in a <a href="https://github.com/
+AJarombek/saints-xctf-web/blob/v2.0.4/cypress/integration/GroupAdmin.mock.e2e.test.ts#L377-L421">GroupAdmin.mock.e2e.test.ts</a>
+file.
+</p>
+<CodeSnippet language="TypeScript">
+it('shows an error if adding a pending user fails', () => {
+  cy.andyAdminMemberships();
+
+  const groupAlumniMembersRoute = cy.route({
+    method: 'GET',
+    url: '**/api/v2/groups/members/1',
+    response: '@groupAlumniAdminPendingMembers'
+  });
+
+  groupAlumniMembersRoute.as('groupAlumniMembersRoute');
+
+  cy.visit('/admin/group/1');
+
+  cy.alumniGroupAdminMockAPICalls();
+
+  const groupMembersUpdateErrorRoute = cy.route({
+    method: 'PUT',
+    url: '**/api/v2/groups/members/1/Tom',
+    response: {
+      self: '/v2/groups/members/1/Tom',
+      updated: false,
+      group_member: null,
+      error: 'The group membership failed to update.'
+    },
+    status: 500
+  });
+
+  groupMembersUpdateErrorRoute.as('groupMembersUpdateErrorRoute');
+
+  cy.getDataCy('alert').should('not.exist');
+  cy.getDataCy('pendingMember').eq(0).find('.aj-contained-button').should('contain.text', 'Accept').click();
+  cy.getDataCy('acceptDenyModal').find('.aj-contained-button').contains('ACCEPT MEMBERSHIP').click();
+
+  cy.wait('@groupMembersUpdateErrorRoute');
+
+  cy.getDataCy('alert').should('exist');
+  cy.getDataCy('alert').should(
+    'contain.text',
+    'An unexpected error occurred while accepting a users membership request. ' +
+      'Try reloading the page. If this error persists, contact andrew@jarombek.com.'
+  );
+
+  cy.getDataCy('alert').getDataCy('alertCloseIcon').click();
+  cy.getDataCy('alert').should('not.exist');
+});
+</CodeSnippet>
+<p>
+The main objective of this test is to prove that an error message is displayed to the user during an unexpected API
+failure scenario.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-api-error.png"/>
+</figure>
+<p>
+The test starts by navigating to the webpage and mocking the API calls.  This test does not directly call the API, due
+to its specific data requirements.  It also needs to simulate a failed API call.  The failed API call is defined in the
+statement which creates the <code className="jarombek-inline-code">groupMembersUpdateErrorRoute</code> variable.  The
+function call to <code className="jarombek-inline-code">cy.route()</code> defines a custom API response and sets the
+HTTP status code to <strong>500</strong>, which is an error code for an internal server error.  Whenever an HTTP PUT
+request to a URL matching the pattern <strong>**/api/v2/groups/members/1/Tom</strong> is made, Cypress intercepts it and
+returns the custom API response and status code.
+</p>
+<p>
+The API route with the mocked response is given an alias <code className="jarombek-inline-code">
+groupMembersUpdateErrorRoute</code>.  When attempting to accept a user into a group, the test ensures that this mocked
+API call is invoked with the command <code className="jarombek-inline-code">cy.wait('@groupMembersUpdateErrorRoute')</code>.
+This command runs after the <strong>Accept Membership</strong> button is clicked.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-11-21-saintsxctf-api-error-2.png"/>
+</figure>
+<p>
+After the mocked API call is invoked, the test asserts that the webpage displays an alert message explaining the error.
+</p>
+<SectionTitle title="Custom Cypress Commands">Custom Cypress Commands</SectionTitle>
+<p>
+Cypress allows you to easily create custom commands or overwrite existing commands.  This helps make tests more readable
+and promotes the creation of reusable test code.  I use custom Cypress commands extensively in my end to end tests.
+Custom commands are found in the <a href="https://github.com/AJarombek/saints-xctf-web/tree/v2.0.4/cypress/support">support</a>
+subdirectory of my repositories <strong>cypress</strong> directory.
+</p>
+<p>
+<code className="jarombek-inline-code">Cypress.Commands.add()</code> creates a new Cypress command<sup>7</sup>.  The
+following code creates a basic command named <code className="jarombek-inline-code">setUserInLocalStorage</code> which
+puts a JSON string representing a user in the web browser's local storage.  It exists in my
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/cypress/support/commands.ts#L16-L41">commands.ts</a>
+file, which contains custom commands used throughout the end to end tests.
+</p>
+<CodeSnippet language="TypeScript">
+Cypress.Commands.add('setUserInLocalStorage', () => {
+  localStorage.setItem(
+    'user',
+    JSON.stringify({
+      isFetching: false,
+      didInvalidate: false,
+      lastUpdated: 1596919187,
+      activation_code: 'abc123',
+      class_year: 2017,
+      deleted: null,
+      description: 'I sometimes like to run.',
+      email: 'andrew@jarombek.com',
+      favorite_event: 'Shakeout',
+      first: 'Andy',
+      last: 'Jarombek',
+      last_signin: '2020-08-13 12:53:18',
+      location: 'Riverside, CT',
+      member_since: '2016-12-23',
+      password: null,
+      salt: null,
+      subscribed: null,
+      username: 'andy',
+      week_start: 'monday'
+    })
+  );
+});
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">Cypress.Commands.add()</code> takes two arguments: the name of the custom
+command and the function body of the custom command.  Since my Cypress code is written in TypeScript, it also needs a
+type definition for the custom command.  A type definition prevents type errors when using custom commands, and also
+serves as useful documentation.  Each of my TypeScript files containing custom commands has a corresponding <strong>*.d.ts</strong>
+file, containing the type definitions.  For example, my <a href="https://github.com/AJarombek/saints-xctf-web/blob/
+v2.0.4/cypress/support/commands.ts">commands.ts</a> file has a corresponding <a href="https://github.com/AJarombek/
+saints-xctf-web/blob/v2.0.4/cypress/support/commands.d.ts">commands.d.ts</a> file, with the following type definition
+for my custom <code className="jarombek-inline-code">setUserInLocalStorage</code> command.
+</p>
+<CodeSnippet language="TypeScript">
+declare namespace Cypress {
+    interface Chainable {
+        /**
+         * Custom command to put user details in the browser's localStorage.
+         * @example setUserInLocalStorage()
+         */
+        setUserInLocalStorage(): void;
+
+        ...
+    }
+}
+</CodeSnippet>
+<p>
+This code adds the custom command type to the global Cypress <code className="jarombek-inline-code">Chainable</code>
+interface<sup>8</sup>, making it accessible in TypeScript Cypress tests.  In my end to end tests, the
+<code className="jarombek-inline-code">setUserInLocalStorage</code> command is commonly used in pre-test hook functions,
+such as the following code snippet from <a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/cypress/
+integration/Dashboard.e2e.test.ts#L16">Dashboard.e2e.test.ts</a>.
+</p>
+<CodeSnippet language="TypeScript">
+describe('Dashboard E2E Tests', () => {
+  beforeEach(() => {
+    cy.setUserInLocalStorage();
+    ...
+  });
+
+  ...
+}
+</CodeSnippet>
+<p>
+Most of my custom Cypress commands encapsulate other Cypress commands that assert information about HTML elements.  In
+a prior example, I showed a Cypress test which looked at a monthly calendar of exercise data.  One of the custom
+Cypress commands used in that test, <code className="jarombek-inline-code">calendarWeekCheck()</code>, is shown below.
+It exists in a <a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/cypress/support/shared.ts#L115-L155">
+shared.ts</a> file.
+</p>
+<CodeSnippet language="TypeScript">
+Cypress.Commands.add(
+  'calendarWeekCheck',
+  (week: number, miles: (number | string | null)[], totalMiles: number | string) => {
+    cy.getDataCy('week')
+      .eq(week)
+      .findDataCy('day')
+      .eq(0)
+      .should(miles[0] ? 'contain.text' : 'not.contain.text', miles[0] ? `${miles[0]}Miles` : 'Miles');
+    cy.getDataCy('week')
+      .eq(week)
+      .findDataCy('day')
+      .eq(1)
+      .should(miles[1] ? 'contain.text' : 'not.contain.text', miles[1] ? `${miles[1]}Miles` : 'Miles');
+    cy.getDataCy('week')
+      .eq(week)
+      .findDataCy('day')
+      .eq(2)
+      .should(miles[2] ? 'contain.text' : 'not.contain.text', miles[2] ? `${miles[2]}Miles` : 'Miles');
+    cy.getDataCy('week')
+      .eq(week)
+      .findDataCy('day')
+      .eq(3)
+      .should(miles[3] ? 'contain.text' : 'not.contain.text', miles[3] ? `${miles[3]}Miles` : 'Miles');
+    cy.getDataCy('week')
+      .eq(week)
+      .findDataCy('day')
+      .eq(4)
+      .should(miles[4] ? 'contain.text' : 'not.contain.text', miles[4] ? `${miles[4]}Miles` : 'Miles');
+    cy.getDataCy('week')
+      .eq(week)
+      .findDataCy('day')
+      .eq(5)
+      .should(miles[5] ? 'contain.text' : 'not.contain.text', miles[5] ? `${miles[5]}Miles` : 'Miles');
+    cy.getDataCy('week')
+      .eq(week)
+      .findDataCy('day')
+      .eq(6)
+      .should(miles[6] ? 'contain.text' : 'not.contain.text', miles[6] ? `${miles[6]}Miles` : 'Miles');
+    cy.getDataCy('week').eq(week).findDataCy('weekTotal').should('contain.text', `${totalMiles}Miles`);
+  }
+);
+</CodeSnippet>
+<p>
+This command goes through the seven days in the week and checks what text is displayed for each day in the calendar.
+While most of the sub-commands in the <code className="jarombek-inline-code">calendarWeekCheck()</code> command are
+built-in Cypress commands, two are not: <code className="jarombek-inline-code">getDataCy()</code> and
+<code className="jarombek-inline-code">findDataCy()</code>.
+</p>
+<CodeSnippet language="TypeScript">
+Cypress.Commands.add('getDataCy', (value) => {
+  return cy.get(`[data-cypress=${value}]`);
+});
+
+Cypress.Commands.add('findDataCy', { prevSubject: true }, (subject, value) => {
+  return cy.wrap(subject).find(`[data-cypress=${value}]`);
+});
+</CodeSnippet>
+<p>
+Both <code className="jarombek-inline-code">getDataCy()</code> and <code className="jarombek-inline-code">findDataCy()</code>
+retrieve HTML elements with <a href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes">
+data attributes</a> named <code className="jarombek-inline-code">data-cypress</code>.  The value of the data attribute
+is passed to the Cypress commands through a <code className="jarombek-inline-code">value</code> parameter.  One thing
+you may have noticed is that <code className="jarombek-inline-code">getDataCy()</code> and
+<code className="jarombek-inline-code">findDataCy()</code> have return values, while the prior two custom Cypress
+commands did not.  As previously stated, Cypress commands are built to be chained together.  By returning the HTML
+elements with <code className="jarombek-inline-code">data-cypress</code> data attributes, both these custom Cypress
+commands can be chained with regular Cypress commands.  You can see this in the <code className="jarombek-inline-code">
+calendarWeekCheck()</code> command code.
+</p>
+<p>
+The chainable properties of <code className="jarombek-inline-code">getDataCy()</code> and
+<code className="jarombek-inline-code">findDataCy()</code> are made clear by looking at their type definitions in
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/v2.0.4/cypress/support/commands.d.ts#L37-L42">commands.d.ts</a>,
+specifically their return types of <code className="jarombek-inline-code">Chainable&lt;Element&gt;</code>.
+</p>
+<CodeSnippet language="TypeScript">
+/**
+ * Chainable function for getting elements with a data-cypress attribute.
+ * @param value The value of the data attribute on an HTML element.
+ * @example getDataCy('button')
+ */
+getDataCy(value: string): Chainable&lt;Element&gt;;
+
+/**
+ * Child chainable function for finding elements with a data-cypress attribute.
+ * @param value The value of the data attribute on an HTML element.
+ * @example findDataCy('button')
+ */
+findDataCy(value: string): Chainable&lt;Element&gt;;
+</CodeSnippet>
+<p>
+Another thing you may have noticed is that the <code className="jarombek-inline-code">findDataCy</code> command is
+defined with an additional <code className="jarombek-inline-code">{ prevSubject: true }</code> value.
+<code className="jarombek-inline-code">prevSubject</code> configures a command to either be a parent command or a child
+command<sup>9</sup>.  By default, <code className="jarombek-inline-code">prevSubject</code> is assigned the value
+<code className="jarombek-inline-code">false</code>, which means it is a parent command that doesn't take a value from
+a previous command.  In other words, a parent command always appears at the beginning of a Cypress command chain.
+Unlike the previous commands I've shown which implicitly use the default value of <code className="jarombek-inline-code">
+prevSubject</code>, <code className="jarombek-inline-code">findDataCy</code> is explicitly configured to be a child
+command.  This means it is always used in the middle or the end of a Cypress command chain.  Look closely at the
+definition of <code className="jarombek-inline-code">findDataCy</code> and you will see it takes an additional
+<code className="jarombek-inline-code">subject</code> argument, which is the result of a prior Cypress command.  In
+this case, the prior result is a list of HTML elements.
+</p>
+<p>
+As a final custom Cypress command example, I want to show that custom commands don't necessarily have to just use
+built-in commands and other custom commands for their implementations.  The following
+<code className="jarombek-inline-code">setTokenInLocalStorage</code> custom command makes an API call to my applications
+authentication API, and then sets the authentication token response in the browsers local storage and in an environment
+variable.
+</p>
+<CodeSnippet language="TypeScript">
+import axios from 'axios';
+import * as moment from 'moment';
+
+Cypress.Commands.add('setTokenInLocalStorage', () => {
+  const existingToken = Cypress.env('authToken');
+  const existingTokenExpiration = Cypress.env('authTokenExpiration');
+
+  if (existingToken && moment(existingTokenExpiration) > moment()) {
+    cy.log('Using existing token');
+    cy.log(`Existing token expires ${existingTokenExpiration}`);
+    localStorage.setItem('token', existingToken);
+    return;
+  }
+
+  cy.log('Retrieving new auth token');
+
+  const instance = axios.create({
+    baseURL: Cypress.env('authUrl'),
+    timeout: 5000
+  });
+
+  instance
+    .post('/token', {
+      clientId: 'andy',
+      clientSecret: Cypress.env('SXCTF_PASSWORD')
+    })
+    .then((res) => {
+      const token = res.data.result;
+      Cypress.env('authToken', token);
+
+      const tokenExpiration = moment().add('45', 'minutes').format();
+      Cypress.env('authTokenExpiration', tokenExpiration);
+
+      localStorage.setItem('token', token);
+    })
+    .catch((error) => {
+      console.info(error);
+    });
+});
+</CodeSnippet>
+<p>
+All the custom commands shown in this article and many more are available on GitHub in my <a href="https://github.com/
+AJarombek/saints-xctf-web/tree/v2.0.4/cypress/support">saints-xctf-web</a> repository.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Cypress is my go-to end to end testing library.  It works great with both JavaScript and TypeScript, and has an easy to
+learn and extensible API.  The ability to run Cypress tests in a web browser and watch the tests interact with a web
+page is a fantastic feature that makes testing easy, even for newcomers to the front-end engineering space.  All my
+Cypress test code is available in my <a href="https://github.com/AJarombek/apollo-client-server-prototype/tree/master/
+client/cypress">apollo-client-server-prototype</a> and <a href="https://github.com/AJarombek/saints-xctf-web/tree/
+v2.0.4/cypress">saints-xctf-web</a> repositories on GitHub.
+</p>
+</div>

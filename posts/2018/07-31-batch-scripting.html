@@ -1,0 +1,265 @@
+<div>
+<p>
+Recently I worked on a project which required some basic command line scripting.  One of the VMs
+I worked on was a Windows box, and the scripts consisted of Batch files.  Although I'd seen a few
+Batch scripts before in my short software development career (~2.3 years), I never actually got a
+chance to write one myself.  I figured this was the perfect opportunity to take a look at the
+basics of Batch scripting.  With some knowledge of how to write a Batch script, I'll be capable of
+comparing Batch to scripts in PowerShell and Bash.
+</p>
+<SectionTitle title="What is a Batch Script?">What is a Batch Script?</SectionTitle>
+<p>
+Batch scripts are pieces of code written in a command line interface (shell) on the Windows
+operating system.  For someone new to programming like myself, I always thought of Batch as the
+precursor to PowerShell.  This actually forms a pretty good one sentence comparison between
+Batch and PowerShell.  Although you will often hear developers advocating the switch from Batch to
+PowerShell, Batch scripting is far from extinct<sup>1</sup>.
+</p>
+<p>
+Batch scripts first appeared in the DOS family of operating systems and are still used in Microsoft
+operating systems today<sup>2</sup>.  On today's Windows operating systems Batch scripts are
+executed in the cmd.exe CLI<sup>3</sup>.  You can write commands on the command prompt or store a
+text file of commands in a Batch file.  Batch files allow for reusable command sequences.
+</p>
+<SectionTitle title="Batch File Basics">Batch File Basics</SectionTitle>
+<p>
+When running batch files, each line is executed in order.  A batch file is run by simply executing
+the file path in cmd.exe.  Arguments can be passed to the batch file.  For example, the following
+command executes the batch file test.bat with the argument "Hello."  All the program does is print
+the argument to standard output.
+</p>
+<CodeSnippet language="Batch">
+@echo off
+
+echo The first command passed: %1
+</CodeSnippet>
+<CodeSnippet>
+> test.bat Hello
+The first command passed: Hello
+</CodeSnippet>
+<p>
+Interestingly the default behavior of batch scripts is to print out all the commands that were
+executed.  Usually this isn't preferable (except for debugging circumstances) so suppressing print
+statements is accomplished with the <code className="jarombek-inline-code">@echo off</code> command
+<sup>4</sup>.  Arguments are accessed with the <code className="jarombek-inline-code">
+%&lt;arg-number&gt;</code> command, and later on I will use this same syntax to access function
+arguments in Batch.
+</p>
+<p>
+Batch scripts also allow you to interact with strings and integer numbers.  The
+<code className="jarombek-inline-code">set</code> command is used to assign a value to a variable.
+Variables can then be accessed with the <code className="jarombek-inline-code">%variable-name%</code>
+syntax.
+</p>
+<CodeSnippet language="Batch">
+set name=Andrew Jarombek
+echo %name%
+
+:: Extract a substring starting at character 0 and ending at character 6
+set firstName=%name:~0,6%
+echo "%firstName%"
+
+:: Alternative way to get the first name with negative character indexing
+set firstName=%name:~0,-9%
+echo "%firstName%"
+
+:: Extract a substring of all characters beyond position 7
+set lastName=%name:~7%
+echo "%lastName%"
+
+:: String replacement with :substringToRemove=replacementString notation
+set fakeName=%name:Jarombek=Jarbek%
+echo %fakeName%
+
+:: Use /a with numeric values
+set /a age=23
+set /a ten=10
+
+set /a ageInTenYears=%age% + %ten%
+echo "Age in 10 Years:" %ageInTenYears%
+</CodeSnippet>
+<CodeSnippet>
+Andrew Jarombek
+"Andrew"
+"Andrew"
+"Jarombek"
+Andrew Jarbek
+Age in 10 Years: 33
+</CodeSnippet>
+<p>
+Unfortunately, I quickly learned that working directly with floating point arithmetic in Batch is
+much more difficult.  I won't include any examples in this post, however it is an interesting topic
+to explore<sup>5</sup>.
+</p>
+<p>
+Batch also allows you to set inner scopes for a script.  Unfortunately the syntax isn't quite as
+concise as C-like curly brackets (Batch requires a more verbose <code className="jarombek-inline-code">
+setlocal</code> and <code className="jarombek-inline-code">endlocal</code> syntax).
+</p>
+<CodeSnippet language="Batch">
+set /a age=23
+
+setlocal
+set age=24
+echo Age within Local Scope: %age%
+endlocal
+
+echo Age outside of Local Scope: %age%
+</CodeSnippet>
+<CodeSnippet>
+Age within Local Scope: 24
+Age outside of Local Scope: 23
+</CodeSnippet>
+<p>
+You can see that any variables defined in the inner scope are not accessible to the outer scope and
+more importantly don't modify any of the existing outer scope variables.
+</p>
+<p>
+Bash also has support for array data structures.  This is also where I ran into the first major
+"gotcha" of Batch programming.
+</p>
+<CodeSnippet language="Batch">
+set towns[0]=Greenwich
+set towns[1]=New Canaan
+set towns[2]=Darien
+set towns[3]=Wilton
+set towns[4]=Ridgefield
+
+echo %towns[0]%
+
+set numberList=0 1 2 3 4
+
+setlocal enableDelayedExpansion
+
+for %%i in (%numberList%) do (
+  set allTowns=!allTowns! !towns[%%i]!
+)
+
+echo %allTowns%
+
+for %%i in (0 2 4) do (
+  set someTowns=!someTowns! !towns[%%i]!
+)
+
+echo %someTowns%
+</CodeSnippet>
+<CodeSnippet>
+Greenwich
+Greenwich New Canaan Darien Wilton Ridgefield
+Greenwich Darien Ridgefield
+</CodeSnippet>
+<p>
+The code above creates an array of towns in my home state of Connecticut.  It first prints the town
+at index 0 in the array, and then goes on to loop through the array, creating a string of all the
+town names.  The first <code className="jarombek-inline-code">for</code> loop uses an array defined
+elsewhere to loop through.  The second <code className="jarombek-inline-code">for</code> loop is more
+concise and defines an array to loop through inside the <code className="jarombek-inline-code">
+for</code> loop syntax itself.
+</p>
+<p>
+The two points of interest in the code above are <code className="jarombek-inline-code">
+setlocal enableDelayedExpansion</code> and <code className="jarombek-inline-code">
+set allTowns=!allTowns!  !towns[%%i]!</code>.  The exclamation point variable access syntax and
+<code className="jarombek-inline-code">setlocal enableDelayedExpansion</code> are related in an
+unexpected way.
+</p>
+<p>
+The code samples I've shown you so far access values of variables through the
+<code className="jarombek-inline-code">%variable-name%</code> syntax.  In Batch
+<code className="jarombek-inline-code">%variable-name%</code> defines variable expansion.  Variable
+expansion is the act of replacing a variable reference with its actual value.  That means if you
+created a variable <code className="jarombek-inline-code">set age=23</code> and then accessed it with
+<code className="jarombek-inline-code">%age%</code>, the token <code className="jarombek-inline-code">
+%age%</code> actually gets replaced with <code className="jarombek-inline-code">23</code>.  This
+replacement occurs when a line in a Batch script is parsed, not when it's finally executed.
+</p>
+<p>
+Variable expansion with the <code className="jarombek-inline-code">%variable-name%</code> syntax
+only happens once when the line it occurs on is parsed<sup>6</sup>.  The value the
+variable is replaced with never changes.
+</p>
+<p>
+Obviously this causes issues in <code className="jarombek-inline-code">for</code> loops.  With
+<code className="jarombek-inline-code">%variable-name%</code> syntax the value in the
+<code className="jarombek-inline-code">for</code> loop will never change!  This breaks from the
+behavior you come to expect from <code className="jarombek-inline-code">for</code> loops.  Variable
+expansion side effects is one of the most common beginner mistakes with Batch, and I fell victim
+to it<sup>7</sup>.
+</p>
+<p>
+The solution is to use delayed variable expansion by executing <code className="jarombek-inline-code">
+setlocal enableDelayedExpansion</code>.  With delayed variable expansion and the
+<code className="jarombek-inline-code">!variable-name!</code> syntax, variables are expanded each time
+a line is executed.  In the case of <code className="jarombek-inline-code">for</code> loops, this
+occurs on each loop iteration<sup>8</sup>.
+</p>
+<p>
+Another interesting construct you can make in Batch scripts are functions.
+</p>
+<CodeSnippet language="Batch">
+:displayTime
+echo The current time is %TIME%
+exit /b 0
+
+call :displayTime
+</CodeSnippet>
+<CodeSnippet>
+The current time is 15:45:28.41
+</CodeSnippet>
+<p>
+The above function (beginning at <code className="jarombek-inline-code">:displayTime</code> and ending
+at <code className="jarombek-inline-code">exit /b 0</code>) simply prints out the current time.  The
+interesting thing is that while the
+above construct can be treated as a function, it is actually a subprogram inside a Batch script.
+The <code className="jarombek-inline-code">call</code> command invokes one Batch program from another
+<sup>9</sup>.  The <code className="jarombek-inline-code">call</code> command is like having a bunch of
+<code className="jarombek-inline-code">goto</code> statements in your code, jumping around to different
+labels.  <code className="jarombek-inline-code">:displayTime</code> happens to be the label for my
+function.  This behavior in Batch reminds me of my time working with assembly, or if I really wanted
+very poorly designed Java code.  The following more complex function drives this point home.  You
+can follow the execution flow through the <code className="jarombek-inline-code">call</code> and
+<code className="jarombek-inline-code">goto</code> commands, jumping between labels.
+</p>
+<CodeSnippet language="Batch">
+setlocal enableDelayedExpansion
+
+call :stringTimes cat 3
+echo %result%
+goto :eof
+
+:stringTimes - 'A function to multiply a string a certain number of times and return the result'
+  setlocal
+
+  set string=%1
+  set /a count=%2
+  set finalString=%string%
+
+  :stringTimesLoop
+  if %count% gtr 1 (
+    set finalString=%finalString%%string%
+    set /a count=%count% - 1
+    goto :stringTimesLoop
+  )
+
+  endlocal & set result=%finalString%
+  goto :eof
+</CodeSnippet>
+<CodeSnippet>
+catcatcat
+</CodeSnippet>
+<p>
+Obviously we know that <code className="jarombek-inline-code">goto</code> commands are difficult to
+follow in our code.  This behavior in Batch makes me wonder how Bash and PowerShell handle
+functions and script traversal.
+</p>
+<p>
+I felt like I learned a lot about command line scripting the past few days, but obviously I have a
+long way to go.  I just scratched the surface of Batch files, and still seek a greater
+understanding of Bash and PowerShell.  I hope to research them further and compare their features
+in the future.
+</p>
+<p>
+The code is on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/07-jul/
+7-31-batch-scripting">GitHub</a> with even more samples than the ones I covered in this post!
+</p>
+</div>

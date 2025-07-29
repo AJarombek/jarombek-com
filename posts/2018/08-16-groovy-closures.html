@@ -1,0 +1,221 @@
+<div>
+<p>
+The thing that really intrigued me during my Groovy <a href="https://jarombek.com/blog/
+jul-2-2018-groovy-basics-pt1">first</a> <a href="https://jarombek.com/blog/
+jul-4-2018-groovy-basics-pt2">impressions</a> posts were closures.  Closures are Groovy objects with
+similarities to Java lambda functions and JavaScript arrow functions (among others).  While
+enclosed in an object, closures behave like a method which can be invoked and passed arguments.
+Closures can also be assigned to variables and passed as arguments (they are objects after all).
+In this post I will look at the basic behavior of closures and compare them to similar constructs
+in other languages (Java, JavaScript, & Swift).
+</p>
+<SectionTitle title="What is a Groovy Closure?">What is a Groovy Closure?</SectionTitle>
+<p>
+Speaking about closures often causes confusion since its definition varies across languages.  For
+example, in JavaScript a <a href="https://jarombek.com/blog/nov-9-2017-js-closure-modules">closure
+</a> describes the ability of a function to remember its lexical scope (the scope in which it was
+defined in code) even when it’s invoked outside its lexical scope.  JavaScript’s closure definition
+is different than Groovy’s, although in Groovy closures remember their lexical scope as well<sup>1
+</sup>.  To reduce confusion <strong>birthday context</strong> is the Groovy idiom for a JavaScript
+closure.
+</p>
+<p>
+Closures in Groovy are objects containing code to be executed.  Their syntax starts with a curly
+brace and ends with a curly brace (<code className="jarombek-inline-code">{ … }</code>).  Here is a
+very basic closure that prints out a list:
+</p>
+<CodeSnippet language="Groovy">
+def list = ["Tod's Point", "Waveny Park", "GHS", "Mianus River Park", "Rockefeller Park"]
+
+list.each { println it }
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">each()</code> method is invoked on variable
+<code className="jarombek-inline-code">list</code>, looping through each list element.
+<code className="jarombek-inline-code">each()</code> takes in one argument - a closure object which also
+has a single argument.  That single argument represents a list element.  Thanks to some shortened
+Groovy syntax, the parenthesis around the closure argument to <code className="jarombek-inline-code">
+each()</code> are omitted.
+</p>
+<p>
+You may be wondering about the seemingly magical <code className="jarombek-inline-code">it</code> variable
+that is never explicitly defined.  If a closure takes in a single parameter, it does not need to be
+explicitly declared in the code.  Instead the default <code className="jarombek-inline-code">it</code>
+variable is used to access the closure’s argument.  If you want to rewrite this closure with an
+explicit argument variable, you could write <code className="jarombek-inline-code">
+{ item -> println item }</code>
+</p>
+<p>
+When you see the closure <code className="jarombek-inline-code">{ … }</code> syntax in Groovy code
+remember that this only defines the closure.  If you want to run the code inside the closure, it
+must be invoked later on.  Think of a closure definition like a method definition - it is a
+blueprint of what logic will occur when executed.  Closures are invoked like methods with the
+<code className="jarombek-inline-code">closureName()</code> syntax:
+</p>
+<CodeSnippet language="Groovy">
+int number = 1
+
+def timesTen = { number *= 10 }
+
+assert number == 1
+timesTen()
+assert number == 10
+</CodeSnippet>
+<p>
+Look at the assertions before and after the <code className="jarombek-inline-code">timesTen</code>
+closure is invoked.  After the closure is defined the value of <code className="jarombek-inline-code">
+number</code> is still <code className="jarombek-inline-code">1</code> because the code in the closure
+hasn't executed yet.  Once the closure is invoked, the value of
+<code className="jarombek-inline-code">number</code> jumps to <code className="jarombek-inline-code">10
+</code> as expected.
+</p>
+<p>
+It may not come as a surprise that closures can manipulate variables in the scope
+they are defined (lexical scope).  Closures in <a href="https://github.com/AJarombek/
+jarombek-com-sources/blob/master/2018/08-Aug/8-16-groovy-closures/swift/Closures.swift">Swift</a>
+and arrow functions in <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2018/
+08-Aug/8-16-groovy-closures/javascript/arrow.js">JavaScript</a> can do the same thing.  However,
+since Groovy is a JVM language that works closely with Java you may have expected closures to act
+similarly to Java lambda functions.
+</p>
+<p>
+Lambda functions can access variables from their lexical scope, but can not manipulate
+them.  All variables used inside a lambda that are defined in the functions outer scope must be
+effectively final (meaning they can either be explicitly declared final with the
+<code className="jarombek-inline-code">final</code> keyword or be
+<a href="https://jarombek.com/blog/may-23-2018-javascript-immutable">implicitly immutable</a>).
+If this rule is broken Java will not compile.
+</p>
+<p>
+For example this Java code will not compile:
+</p>
+<CodeSnippet language="Java">
+int listTotal = 0;
+list.forEach(item -> {
+  listTotal += item;
+});
+</CodeSnippet>
+<p>
+In Java I always felt this approach made sense, since lambda functions were introduced to facilitate
+functional programming which handles immutable data.  Groovy closures remove this restriction, which
+you can argue either gives developers more flexibility or enables development of fragile code.
+</p>
+<SectionTitle title="Birthday Context & Delegation">Birthday Context & Delegation</SectionTitle>
+<Definition word="Birthday Context">
+A closures ability to remember the lexical scope in which it was defined, even when it is invoked
+in a different scope.  Closures hold a reference to all the items defined in their lexical scope
+throughout their lifetime.
+</Definition>
+<p>
+To demonstrate a closures birthday context here is a simple closure that prints out an
+<code className="jarombek-inline-code">age</code> variable.
+</p>
+<CodeSnippet language="Groovy">
+class BirthdayContext {
+  def age = 0
+  def closure = { println age }
+}
+
+def age = 23
+def birthObject = new BirthdayContext()
+
+assert birthObject.closure.owner == birthObject
+assert birthObject.closure.thisObject == birthObject
+assert birthObject.closure.delegate == birthObject
+
+// Prints 0 for age instead of 23
+birthObject.closure()
+</CodeSnippet>
+<p>
+Note that the birthday context of <code className="jarombek-inline-code">closure</code> is the class
+<code className="jarombek-inline-code">BirthdayContext</code>.  Since the birthday context is maintained
+by the closure throughout its lifetime, the only <code className="jarombek-inline-code">age</code> variable
+it is aware of exists in <code className="jarombek-inline-code">BirthdayContext</code>, equaling
+<code className="jarombek-inline-code">0</code>.
+</p>
+<p>
+I also accessed three different properties on the closure (remember closures are simply objects).
+The first two properties are
+<code className="jarombek-inline-code">owner</code> and <code className="jarombek-inline-code">thisObject
+</code>.  <code className="jarombek-inline-code">thisObject</code> is what the closure
+currently uses as <code className="jarombek-inline-code">this</code> (which may change over the lifetime
+of the closure) and <code className="jarombek-inline-code">owner</code> always refers to the direct
+enclosing class or closure in which the closure was defined<sup>2,3</sup>.  These two properties
+aren't very important to this posts discussion, just note that their values don’t change throughout
+the following examples.
+</p>
+<p>
+The <code className="jarombek-inline-code">delegate</code> property is where things get very
+interesting.  Groovy allows the programmer to determine how outer scope variables are resolved
+inside a closure<sup>4</sup>.  By default closures will resolve variables from the closures lexical scope
+(the <code className="jarombek-inline-code">owner</code> property).  However, a user can create an object and
+assign it to the <code className="jarombek-inline-code">delegate</code> property to change this
+behavior<sup>5</sup>.
+</p>
+<p>
+Changing the <code className="jarombek-inline-code">delegate</code> property will not yet have an
+effect on how variables are resolved (the code below will still print
+<code className="jarombek-inline-code">0</code>).
+</p>
+<CodeSnippet language="Groovy">
+class BirthdayContext {
+  def age = 0
+  def closure = { println age }
+}
+
+def birthObject = new BirthdayContext()
+
+class OtherContext {
+  def age = 21
+}
+
+def otherObject = new OtherContext()
+
+birthObject.closure.delegate = otherObject
+
+assert birthObject.closure.owner == birthObject
+assert birthObject.closure.thisObject == birthObject
+assert birthObject.closure.delegate == otherObject
+
+// Will print 0 for age instead of 21
+birthObject.closure()
+</CodeSnippet>
+<p>
+The reason <code className="jarombek-inline-code">age</code> in <code className="jarombek-inline-code">
+OtherContext</code> was not used is because of the closures delegation strategy.  Delegation
+strategies determine how closures resolve variables.  By default the delegation strategy is set to
+<code className="jarombek-inline-code">OWNER_FIRST</code>, meaning a variable will be searched on the
+<code className="jarombek-inline-code">owner</code> property before it checks the
+<code className="jarombek-inline-code">delegate</code> property.  If we change the delegation strategy
+to <code className="jarombek-inline-code">DELEGATE_FIRST</code>, invoking the closure will finally print
+<code className="jarombek-inline-code">21</code> (not that I really want to relive being 21).
+</p>
+<CodeSnippet language="Groovy">
+birthObject.closure.resolveStrategy = Closure.DELEGATE_FIRST
+
+// Will now print 21 instead of 0
+birthObject.closure()
+</CodeSnippet>
+<p>
+Delegation strategies further differentiate Groovy closures from Java lambda functions.  In Java
+variables in a lambda function will always access free variables from their lexical scope.
+</p>
+<Definition word="Free Variable">
+A variable that is not local to the current scope<sup>6</sup>.  In the case of a method or
+function, a free variable is also not one of the function arguments.  An example of a free
+variable would be a classes instance variable accessed from inside a method.
+</Definition>
+<p>
+The <a href="https://jarombek.com/blog/nov-11-2017-js-this">closest equivalent</a> to Groovy’s
+delegation strategy I can think of is the ability to explicitly define
+<code className="jarombek-inline-code">this</code> in a JavaScript function invocation with
+<code className="jarombek-inline-code">call()</code>, <code className="jarombek-inline-code">apply()</code>
+and <code className="jarombek-inline-code">bind()</code>.
+</p>
+<SectionTitle title="Conclusions">Conclusion</SectionTitle>
+<p>
+I am always fascinated to compare features in a language I am learning to those in languages already
+in my arsenal.  My look at Groovy closures is not yet complete - in my next post I will look at
+using closures in functional programming.
+</p>
+</div>
