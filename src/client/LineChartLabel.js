@@ -20,7 +20,7 @@ import classNames from 'classnames';
  * @constructor
  */
 const LineChartLabel = ({ x, y, value, language, filtered = true, bold = false, fontSize = 11 }) => {
-  return !filtered || value > 10000 ? (
+  return !filtered || value > 7_500 ? (
     <text
       id="jarombek-line-chart-label"
       className={classNames(bold ? 'jarombek-line-chart-label-bold' : null)}

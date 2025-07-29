@@ -29,14 +29,14 @@ class Home extends React.Component {
             </div>
             <p className="jarbek-home-sub-title">Software Engineering Website</p>
             <div className="jarbek-home-buttons">
-              <Link to="/blog" className="jarbek-home-blog-button">
+              <Link to="#features" className="jarbek-home-engineering-button">
                 <Button activeColor="primary" passiveColor="primary">
-                  BLOG
+                  ENGINEERING
                 </Button>
               </Link>
-              <Link to="https://poll.jarombek.io/" target="_blank" className="jarbek-home-polls-button">
+              <Link to="https://capital.jarombek.com/" target="_blank" className="jarbek-home-capital-button">
                 <Button activeColor="secondary" passiveColor="secondary">
-                  POLLS
+                  FINANCE
                 </Button>
               </Link>
             </div>

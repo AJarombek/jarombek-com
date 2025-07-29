@@ -104,7 +104,7 @@ body {
   }
 }
 
-.jarbek-home-blog-button {
+.jarbek-home-engineering-button {
   margin-right: 25px;
 
   @media screen and (max-width: $width-mobile) {
@@ -117,7 +117,7 @@ body {
   }
 }
 
-.jarbek-home-polls-button {
+.jarbek-home-finance-button {
   margin-left: 25px;
 
   @media screen and (max-width: $width-mobile) {
@@ -129,12 +129,12 @@ body {
   }
 }
 
-.jarbek-home-blog-button div {
+.jarbek-home-engineering-button div {
   width: 100%;
   display: inline-flex;
 }
 
-.jarbek-home-blog-button div button {
+.jarbek-home-engineering-button div button {
   margin: 0 auto;
 }
 
