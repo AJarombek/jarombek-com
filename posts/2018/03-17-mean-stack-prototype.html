@@ -1,0 +1,1054 @@
+<div>
+<p>
+Much of my work lately has been in preparation for a personal website that I'm going to build (and
+where this blog post will call home!).  The website is going to contain my resume, blog posts, and more.
+I am really excited to get started building it!
+</p>
+<p>
+However, the first order of business is to decide which technology stack I want to use for the website.
+I've narrowed it down to a full JavaScript stack, from the front-end through the database.  There
+are two remaining tech stacks in competition: the MEAN stack (MongoDB, Express, Angular, &amp; Node.js)
+and the MERN stack (MongoDB, Express, React.js &amp; Node.js).  I started my research for building the website
+by reading JavaScript books and writing plenty of discovery posts about them.  I also explored Node.js and
+MongoDB in depth.  I even made a <a href="https://jarombek.com/blog/dec-30-2017-nodejs-mongodb-api-prototype">blog post</a>
+and <a href="https://github.com/AJarombek/nodejs-mongodb-api-prototype">prototype</a> on both technologies!
+Now its time to pick between the two front end JavaScript frameworks: Angular by Google and React.js by Facebook.
+</p>
+<p>
+This blog post is my journey through creating a prototype with Angular.  I'll describe the prototype
+at a high level and deep dive into code that makes the website function.  All along the way I will give
+my thoughts about Angular and all the other technologies that I learned in the process.  I will conclude
+with my current thoughts on Angular and what I feel React.js needs to bring to the table to defeat it!
+</p>
+<p>
+I had a lot of fun (for the most part!) building with Angular, so let's get started!
+</p>
+<SectionTitle title="The Prototype">The Prototype</SectionTitle>
+<p>
+The MEAN stack prototype is a website that allows its users to upload cat pictures!  Appropriately,
+the website is named MeowPics.
+</p>
+<figure id="meowcat-image">
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/meowcat.png">
+</figure>
+<p>
+The MongoDB, Express, Angular, and Node.js technology stack works as follows:
+</p>
+<figure id="meanstack-image">
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/MEAN-Stack.png">
+</figure>
+<p>
+The first piece of the technology stack for MeowPics that I will go over is the MongoDB document database.
+</p>
+<SectionTitle title="MongoDB Structure">MongoDB Structure</SectionTitle>
+<p>
+I've <a href="https://jarombek.com/blog/dec-15-2017-mongodb-pt1">written</a>
+ <a href="https://jarombek.com/blog/dec-16-2017-mongodb-pt2">many</a>
+ <a href="https://jarombek.com/blog/dec-23-2017-mongodb-pt3">discovery</a>
+ <a href="https://jarombek.com/blog/dec-27-2017-mongodb-pt4">posts</a> on MongoDB in the past, but in
+general terms its a NoSQL document database that stores data in collections of objects.  I used it extensively
+in my Node.js and MongoDB prototype as well.  The biggest reason I want to use MongoDB in my website is that
+it fits the JavaScript web stack since its queries are in JavaScript and objects are BSON (Binary JSON).
+</p>
+<p>
+The MongoDB database for MeowPics has two main collections for users and cat posts.  There is also an
+audit collection that is used for logging purposes when updates, inserts, or deletions are made to documents
+in the user or post collections.
+</p>
+<p>
+Here are some insert statements that show the structure of the user and post collections:
+</p>
+<CodeSnippet language="JavaScript">
+db.user.insertMany([
+    {
+        username: "andy",
+        first: "Andrew",
+        last: "Jarombek",
+        password: "$2a$10$c/DwED6TayK0d3ce5761zOTBBsnCB.JMpcF4l4Zojqti6Adaym9W2",
+        postCount: 4
+    },
+    {
+        username: "tom",
+        first: "Thomas",
+        last: "Caulfield",
+        password: "$2a$10$8Irw8CAvdJr2uBAUYdlinOf8T9dblJiz0mumgNyfiHGBmT9vUweo6",
+        postCount: 2
+    }
+]);
+
+let andy_id = db.user.findOne({username: "andy"})._id;
+let tom_id = db.user.findOne({username: "tom"})._id;
+
+db.post.insertMany([
+    {
+        picture: "russianblue.jpg",
+        name: "Cat Pic",
+        username: "andy",
+        user_id: andy_id,
+        first: "Andrew",
+        last: "Jarombek",
+        date: new Date("2018-02-26"),
+        description: "I love this picture!",
+        up: 1,
+        down: 0
+    },
+    {
+        picture: "toms-cat.jpg",
+        name: "Kitty!",
+        username: "tom",
+        user_id: tom_id,
+        first: "Thomas",
+        last: "Caulfield",
+        date: new Date("2018-02-24"),
+        description: "awww!",
+        up: 5,
+        down: 1
+    }
+]);
+</CodeSnippet>
+<p>
+While these statements are performed on the MongoDB database directly, most of my interactions were done
+through Mongoose.  Mongoose is a Node.js module that allows you to model objects from MongoDB as well as
+perform queries, inserts, updates and more.  It is a really powerful tool that I used in my Node.js
+and MongoDB prototype.  For that prototype I was using version 4 of Mongoose.  I was excited to see
+that in early January Mongoose 5 was released, including large improvements by using Promises by default and
+supporting async functions<sup>1</sup>!  Let's take a look at Mongoose 5 and the rest of the Node.js/Express API.
+</p>
+<SectionTitle title="Nodejs REST API">Node.js REST API</SectionTitle>
+<p>
+The Node.js/Express API defines three main routes and one for developer testing.  The three main routes
+are for users, posts, and authentication.  The users and posts routes define a CRUD API for both
+corresponding MongoDB collections.  Here is the entry point code to the server application:
+</p>
+<CodeSnippet language="JavaScript">
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const helmet = require('helmet');
+
+const Post = require('./model/post');
+const User = require('./model/user');
+const Test = require('./model/test');
+const Audit = require('./model/audit');
+
+const userRouter = require('./route/userRouter')(User, Audit);
+const postRouter = require('./route/postRouter')(Post, User, Audit);
+const authRouter = require('./route/authRouter')(User);
+const testRouter = require('./route/testRouter')(Test);
+
+// Mongoose 5.0 uses native JS Promises by default (less config needed!)
+mongoose.connect('mongodb://127.0.0.1/meowcat');
+
+const app = express();
+
+// Set a larger payload limit for HTTP requests since some image data will be large
+app.use(bodyParser.urlencoded({extended: true, limit: '50mb'}));
+app.use(bodyParser.json({limit: '50mb'}));
+
+// Helps protect our API endpoint from well known web security vulnerabilities
+app.use(helmet({}));
+
+const port = process.env.port || 3000;
+
+app.use('/api/test', testRouter);
+app.use('/api/user', userRouter);
+app.use('/api/post', postRouter);
+app.use('/api/auth', authRouter);
+
+app.get('/', (req, res) => {
+    res.send(JSON.parse('{"title":"Welcome to the Apps API!"}'));
+});
+
+module.exports = app.listen(port, () => {
+    console.info(`Started MeowCat API on port ${port}`);
+});
+</CodeSnippet>
+<p>
+If you've seen an Express application before this should look familiar, although there are a few unique configurations.
+I'm using Mongoose 5, which requires less startup configuration.  I also set the
+<code className="jarombek-inline-code">limit</code> property for <code className="jarombek-inline-code">
+bodyParser</code> because the client sends large cat images to the server.  Now any request
+with a body under 50MB succeeds.
+</p>
+<p>
+I'm also using the helmet module which secures my API by setting certain HTTP headers on requests
+<sup>2</sup>.  All I did to activate helmet was write one line: <code className="jarombek-inline-code">
+app.use(helmet({}))</code>.
+</p>
+<p>
+Let's take a look at the user route in the API.  The first thing to look at is the user model
+which is defined using Mongoose.  The model defines all the properties of an object and
+configures validation rules such as regex matches and length requirements.
+</p>
+<CodeSnippet language="JavaScript">
+const mongoose = require('mongoose');
+
+const UserSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        trim: true,
+        required: true,
+        match: /^[a-zA-Z0-9]+$/,
+        validate: [
+            function (username) {
+                return username.length <= 15;
+            },
+            'Username must be less than 15 characters'
+        ]
+    },
+    first: {...},
+    last: {...},
+    password: {
+        type: String,
+        trim: true,
+        required: true,
+        match: /^[^\s]+$/
+    },
+    postCount: {
+        type: Number,
+        default: 0
+    }
+});
+
+UserSchema.index({username: 1});
+
+module.exports = mongoose.model('User', UserSchema, 'user');
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">UserSchema</code> defines five properties -
+<code className="jarombek-inline-code">username</code>, <code className="jarombek-inline-code">first</code>,
+<code className="jarombek-inline-code">last</code>, <code className="jarombek-inline-code">password</code> &amp;
+<code className="jarombek-inline-code">postCount</code>.  It also configures validation for each property.  Mongoose even
+helps define indexes!  Practically all necessary MongoDB configurations and setup can be done from Mongoose!
+Now I am ready to use this model in my <code className="jarombek-inline-code">userRouter</code>.
+</p>
+<p>
+The <code className="jarombek-inline-code">userRouter</code> defines a CRUD API for the User model.  Here
+is the GET request for all the users in the database.
+</p>
+<CodeSnippet language="JavaScript">
+const userRouter = express.Router();
+
+userRouter.route('/')
+    .get((req, res) => {
+
+        find().catch(error => res.status(500).send(error));
+
+        async function find() {
+            const users = await User.find().exec();
+
+            res.json(users);
+        }
+    });
+</CodeSnippet>
+<p>
+I am utilizing Mongoose 5's support for async functions here.  It is much more concise and
+easy to read this way!  For more on how async functions work you can check out my
+<a href="https://jarombek.com/blog/nov-26-2017-js-async-function">discovery post</a> on the topic.
+This code calls the Mongoose <code className="jarombek-inline-code">find()</code> function on the
+<code className="jarombek-inline-code">User</code> schema.  This function asynchronously returns all of the
+documents in the user collection.
+</p>
+<p>
+Here is another REST endpoint defined on the user route - this time for HTTP DELETE requests.
+</p>
+<CodeSnippet language="JavaScript">
+userRouter.route('/:username')
+    .delete(jwtUtils.checkIfAuthenticated, (req, res) => {
+
+        remove().catch(error => res.status(500).send(error));
+
+        async function remove() {
+            await req.user.remove();
+
+            // Should return null if it was successfully deleted
+            const deleted = await User.findOne({username: req.user.username}).exec();
+
+            // Call the catch() function if the user was not deleted
+            if (deleted !== null) {
+                throw Error('User Still Exists');
+            }
+
+            // Audit the deletion of a user
+            const audit = new Audit({
+                object: req.user._id,
+                type: 'user',
+                message: `Deleted User ${req.user.username}`,
+                source: 'NodeJS MeowCat API'
+            });
+
+            await Audit.create(audit);
+
+            res.status(204).send();
+        }
+    });
+</CodeSnippet>
+<p>
+In this code I used three Mongoose functions: <code className="jarombek-inline-code">remove()</code>,
+<code className="jarombek-inline-code">findOne()</code>, and <code className="jarombek-inline-code">create()</code>.
+<code className="jarombek-inline-code">remove()</code> deletes an instance of
+the Mongoose user schema and <code className="jarombek-inline-code">findOne()</code> tries to find that user
+to make sure it was properly deleted.  Finally I use <code className="jarombek-inline-code">create()</code>
+to insert a new document in the audit collection.  This audit collection holds all the important
+database interaction history.  Let's take a quick look at the
+<code className="jarombek-inline-code">AuditSchema</code> because it is quite unique:
+</p>
+<CodeSnippet language="JavaScript">
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const AuditSchema = new Schema({
+    time: {
+        type: Date,
+        default: Date.now(),
+        expires: 604800 // Expires after a week
+    },
+    object: Schema.Types.ObjectId,
+    type: {
+        type: String,
+        required: true,
+        enum: ['user', 'post']
+    },
+    message: {
+        type: String,
+        required: true
+    },
+    source: String
+}, { capped: { size: 8192, max: 100, autoIndexId: true }});
+
+AuditSchema.index({time: 1});
+AuditSchema.index({object: 1});
+
+module.exports = mongoose.model('Audit', AuditSchema, 'audit');
+</CodeSnippet>
+<p>
+There are two important aspects of this schema.  The first is the <code className="jarombek-inline-code">
+expires</code> property on <code className="jarombek-inline-code">time</code> and the corresponding
+index defined for <code className="jarombek-inline-code">time</code>.  This is how you create
+a time-to-live (TTL) collection in Mongoose.  In MongoDB a TTL collection is one that expires its
+documents after a set amount of time<sup>3</sup>.  In this case the <code className="jarombek-inline-code">
+audit</code> collection expires its documents after a week.  This is a similar behavior to many
+logging frameworks in applications.
+</p>
+<p>
+The second important aspect is the <code className="jarombek-inline-code">capped</code> property at the end
+of the schema definition.  This defines a max number of documents (the <code className="jarombek-inline-code">max</code> property)
+and a max number of bytes (the <code className="jarombek-inline-code">size</code> property) that are allowed in the
+collection<sup>4</sup>.  The <code className="jarombek-inline-code">audit</code> collection allows
+a maximum of 100 documents of no greater than 8192 bytes.
+</p>
+<p>
+Creating complex MongoDB structures in Mongoose shows off the versatility of the module.
+I use Mongoose with all my user and post routes.  One important
+aspect of the post route is the ability to upload a picture with a cat post.  I need to store this
+picture as a file on the server Node.js is running on.  Let's first look at the HTTP POST endpoint
+for posts, where I instruct Node to save the picture data as a file.
+</p>
+<CodeSnippet language="JavaScript">
+const express = require('express');
+const files = require('../utils/files');
+const jwtUtils = require('../utils/jwt');
+
+const postRouter = express.Router();
+
+postRouter.route('/')
+    .post(jwtUtils.checkIfAuthenticated, (req, res) => {
+
+        // pictureData isn't part of the Post Schema, so remove it once we assign it a variable
+        const data = req.body.pictureData;
+        delete req.body.pictureData;
+
+        const post = new Post(req.body);
+
+        if (post.picture &amp;&amp; post.name &amp;&amp; post.picture &amp;&amp; data) {
+
+            // The naming convention for saved files is [username]_[filename].[filetype]
+            post.picture = `${post.username}_${post.picture}`;
+
+            // First save the file to the servers filesystem
+            files.saveFile(post.picture, data);
+
+            // Then insert the post into MongoDB
+            insert().catch(error => res.status(500).send(error));
+
+            async function insert() {...}
+        }
+    });
+</CodeSnippet>
+<p>
+This endpoint extracts picture data from the HTTP request body and sends it to the function
+<code className="jarombek-inline-code">saveFile()</code>. The arguments for this function pass base 64
+encoded picture data and the file name.  Let's take a look at <code className="jarombek-inline-code">saveFile()</code> now:
+</p>
+<CodeSnippet language="JavaScript">
+const fs = require('fs');
+const path = require('path');
+
+exports.saveFile = function saveFile(name, data) {
+
+    // Replace the start of the base 64 encoding - this is not the actual picture file data
+    const base64 = data.replace(/^data:image\/([a-z]+);base64,/, "");
+
+    fs.writeFile(path.join(__dirname, `../pics/${name}`), base64, 'base64', (err) => {
+        console.error(err);
+    });
+};
+</CodeSnippet>
+<p>
+The imported <code className="jarombek-inline-code">fs</code> module allows for interaction with the
+filesystem.  I use the <code className="jarombek-inline-code">writeFile()</code> function to
+create a new file in the filesystem with the base 64 encoded picture data.
+</p>
+<p>
+Besides for adding a new file when uploading a post, I also delete a file when no more posts reference
+it.  You can check out all of the file manipulation functions I created in
+<a href="https://github.com/AJarombek/mean-server-prototype/blob/master/src/utils/files.js">files.js</a>
+and all the endpoints that use these functions in
+<a href="https://github.com/AJarombek/mean-server-prototype/blob/master/src/route/postRouter.js">
+postRouter.js</a>.
+</p>
+<p>
+You may have noticed that I passed <code className="jarombek-inline-code">postRouter.post()</code>
+the argument <code className="jarombek-inline-code">jwtUtils.checkIfAuthenticated</code>.  This is a function
+used for authentication.  Certain endpoints in my REST API
+require the user to be authenticated, such as deleting a user or creating a new post.  When a user
+logs in, they go through the <code className="jarombek-inline-code">authRouter</code> and get an
+authentication token.  This token is included on all further HTTP requests.  I used
+JSON Web Tokens (JWT) for authentication in my application.  JWT's are a huge topic,
+and I wrote an <a href="https://github.com/AJarombek/jarombek-com-submittions/blob/master/Discoveries/
+2018/03-Mar/3-11-JWT/View/jwt.html">article</a> about some of
+the basic concepts.  Check it out if you want more details!
+</p>
+<SectionTitle title="Webpack Not In the Web">Webpack Not In the Web?</SectionTitle>
+<p>
+The MEAN Stack prototype was also my first experience with Webpack!  While Angular CLI is built
+on top of Webpack, you don't have to interact with the underlying Webpack config files to use it.  The
+Node.js server was my first actual time configuring Webpack to bundle an application!
+</p>
+<p>
+Webpack is a module bundler commonly used in JavaScript projects, especially those used in the
+browser<sup>5</sup>.  It builds a dependency graph of a projects modules and bundles those modules
+into a few larger files.  The reason for bundling JavaScript files is
+that HTTP requests from the web browser to the server are expensive.  If JavaScript
+files are bundled into a smaller number of files, the amount of HTTP requests is reduced, thus speeding up the
+web application.  Webpack is quite complex and deserves many discovery posts of its own, but that is the basic idea!
+</p>
+<p>
+While Webpack is mostly used in the front-end, there is nothing stopping you from using it with Node.js.  The
+environment Webpack runs on is changed with the <code className="jarombek-inline-code">target</code> field
+in the Webpack configuration<sup>6</sup>.  Let's take a look at the Webpack configuration file
+<a href="https://github.com/AJarombek/mean-server-prototype/blob/master/src/webpack.config.js">
+webpack.config.js</a> used in my Node.js/Express server:
+</p>
+<CodeSnippet language="JavaScript">
+module.exports = {
+    entry: [
+        'babel-polyfill',
+        './src/app'
+    ],
+    target: "node",
+    node: {
+        __dirname: false,
+        __filename: false
+    },
+    module: {
+        rules: [{
+            test: /\.js?$/,
+            use: "babel-loader",
+            exclude: /node_modules/
+        }]
+    },
+    output: {
+        path: path.join(__dirname, '../build'),
+        filename: "app.js"
+    }
+};
+</CodeSnippet>
+<p>
+First this configuration declares two entry points for
+Webpack to start building its dependency graph.  The entry <code className="jarombek-inline-code">
+babel-polyfill</code> is necessary to use those wonderful async functions seen in my routes.
+I then set the target environment to node.  The <code className="jarombek-inline-code">node</code>
+field is necessary because of a bug where the variable <code className="jarombek-inline-code">
+__dirname</code> contains the incorrect value after being bundled with Webpack<sup>7</sup>.
+</p>
+<p>
+The <code className="jarombek-inline-code">module</code> field defines Webpack loaders.  Loaders
+perform transformations on files during the bundling process.
+The loader used here is for Babel, a compiler that transpiles ES6+ JavaScript code into ES5.
+While less important on the server side since newest versions of Node.js support the newest
+JavaScript features, transpiling into ES5 gives much greater browser
+compatibility for a web application.  I did a full discovery on
+<a href="https://jarombek.com/blog/nov-10-2017-es6-modules-babel">Babel</a> as well!
+</p>
+<p>
+Let's look at the Webpack config for <code className="jarombek-inline-code">babel-loader</code>.  The
+regex defined in the <code className="jarombek-inline-code">test</code> property tells Webpack to
+only use the <code className="jarombek-inline-code">babel-loader</code> on files with the JavaScript
+extension.  The other regex defined in <code className="jarombek-inline-code">exclude</code>
+tells Webpack to not run this loader on the projects module dependencies in the
+<code className="jarombek-inline-code">node_modules</code> folder.
+</p>
+<p>
+Finally, the <code className="jarombek-inline-code">output</code> property defines where the
+completed bundle is located.  I tell Webpack to put it in the build directory with the name app.js.
+And just like that, the Webpack config for the server application is completed!
+</p>
+<p>
+I defined an npm script to start Webpack with this configuration in the projects
+<a href="https://github.com/AJarombek/mean-server-prototype/blob/master/package.json">package.json</a> file.
+</p>
+<CodeSnippet language="JSON">
+...
+"scripts": {
+    "start:dev": "webpack-node-dev --config src/webpack.config.js"
+},
+...
+</CodeSnippet>
+<p>
+While the server side app doesn't really require bundling, it was a really good experience to start
+using Webpack.  Also configuration on the server is much simpler than on the
+front-end, so it was great for a beginner.  I am excited to use Webpack with my upcoming React prototype!
+</p>
+<SectionTitle title="Unit Tests and CI">Unit Tests and CI</SectionTitle>
+<p>
+The MEAN Stack prototype was the first project I made with Continuous Integration (CI).  CI
+integrates code into the main repository on every commit.  With this approach unit tests
+are run every time new code is submitted.  This allows for constant regression testing and makes it
+easier to catch bugs early on.  I wrote a whole discovery about using <a href="https://jarombek.com/blog/mar-9-2018-travisci">TravisCI</a> for
+CI in this project!  It's a game changer, and I will use it in my projects from now on!
+</p>
+<p>
+With CI its important to have good unit tests.  I have a bad habit of slacking on writing
+test code.  While I didn't completely break this bad habit with the MEAN prototype, I did write
+some test code for my REST endpoints!
+</p>
+<p>
+I used the supertest npm module for testing HTTP requests along with the mocha test framework.
+Supertest is a really nice API that made testing my endpoints easy!  Here is the testing suite for my main app endpoint:
+</p>
+<CodeSnippet language="JavaScript">
+const request = require('supertest');
+const app = require('../src/app');
+
+// Tests for the default endpoint '/'
+describe("GET '/'", () => {
+    it('responded with a 200', () => {
+        return request(app).get('/').expect(200);
+    });
+
+    it("returned correct JSON", () => {
+        return request(app)
+            .get('/')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .expect('Content-Length', '36');
+    });
+
+    it("Uses Helmet", () => {
+        return request(app)
+            .get('/files')
+            .expect('X-Content-Type-Options', 'nosniff')
+            .expect('X-DNS-Prefetch-Control', 'off')
+            .expect('X-Download-Options', 'noopen')
+            .expect('X-Frame-Options', 'SAMEORIGIN')
+            .expect('X-XSS-Protection', '1; mode=block')
+    });
+});
+</CodeSnippet>
+<p>
+In the mocha testing framework <code className="jarombek-inline-code">describe()</code> defines a testing
+group and <code className="jarombek-inline-code">it()</code> defines a test
+case<sup>8</sup>.  In the code above I defined a testing group with three test cases.
+The first test case checks to see if an endpoint returns an HTTP 200 OK status.  I use the
+supertest <code className="jarombek-inline-code">get()</code> function to make a GET request to an endpoint
+and use <code className="jarombek-inline-code">expect()</code> to define the anticipated HTTP response.
+</p>
+<p>
+The second and third test cases also use these basic building blocks.  I chain
+<code className="jarombek-inline-code">expect()</code> functions to
+define multiple anticipated responses.  The second test checks that the returned
+content type is JSON and is a certain length.  The last test case makes sure the helmet
+module discussed earlier is properly adding HTTP headers.
+It is really easy to create HTTP endpoint tests with supertest and mocha!
+</p>
+<p>
+I defined one more test suite in <a href="https://github.com/AJarombek/mean-server-prototype/blob/master/test/postRouter.test.js">
+postRouter.test.js</a>.  One of the test cases makes sure an
+endpoint requiring JWT authentication returns a 401 error when no token is present on the request header.
+</p>
+<p>
+That finishes up my discussion of the Node.js/Express backend for my MEAN stack prototype.
+If you want to check out all the code for the Node.js backend its available on
+<a href="https://github.com/AJarombek/mean-server-prototype">GitHub</a>.  Now let's move on to the Angular frontend!
+</p>
+<SectionTitle title="The Angular Front-End">The Angular Front-End</SectionTitle>
+<p>
+The frontend of the MEAN stack uses Angular.  Angular is a full fledged frontend framework, meaning
+the code structure defined by Angular must be followed.  While this gives less flexibility
+to the developer, it makes sure the code stays structured even in the most complex
+applications.  The latest version of Angular at the time of this writing is 5,
+and that is what I used in my prototype.  While you can write Angular applications in JavaScript or
+any language that transpiles to JavaScript, the team at Angular suggests that you use TypeScript.
+TypeScript is a language developed by Microsoft that applies static typing on top of JavaScript.  I wrote a discovery post on
+<a href="https://jarombek.com/blog/mar-8-2018-typescript">TypeScript</a> that explores different details of
+the language and analyzes what I learned about it from this project.
+</p>
+<p>
+I also wrote a discovery post about my
+<a href="https://jarombek.com/blog/jan-6-2018-angular-5-first-impressions">first impressions</a>
+of the Angular framework.  In that post I was a bit critical of
+Angular.  While I think Angular is far from perfect, it was a joy to learn and work
+with.  It does have its issues which I will cover in this blog.  Another note is that this blog
+isn't going to teach beginners how to use Angular.  I expect that
+you have some knowledge about the framework and how it works.  I will go through all the major
+components of my application as well as other cool services, directives, etc.  Let's get started by
+exploring the app component.  This component is the entry point for
+the application and holds all the routes in the single page application (SPA).
+</p>
+<SectionTitle title="App Component">App Component</SectionTitle>
+<p>
+Before looking at the app component directly, its important to observe the code in
+<a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/app.module.ts">
+app.module.ts</a>.  This module contains all the components except for user profiles and cat posts.
+It also defines the routes for the application:
+</p>
+<CodeSnippet language="TypeScript">
+export const routes: Routes = [
+    {path: '', component: HomeComponent},
+    {path: 'user', loadChildren: './profile/profile.module#ProfileModule'},
+    {path: 'about', component: AboutComponent},
+    {path: 'login', component: LoginComponent},
+    {path: 'signup', component: SignupComponent},
+    {path: '**', redirectTo: ''}
+];
+</CodeSnippet>
+<p>
+The user route is unique because it implements lazy loading.  The module
+for the user route is not loaded from the server until the route is traversed.  I discussed
+<a href="https://jarombek.com/blog/jan-27-2018-angular-5-routing">Angular lazy loading</a>
+in a discovery post.
+</p>
+<p>
+You may be wondering why the <code className="jarombek-inline-code">AppComponent</code> is missing in
+these routes.  <code className="jarombek-inline-code">AppComponent</code> is actually the root component
+and is bootstrapped into the module<sup>9</sup>.  Its defined in the
+<code className="jarombek-inline-code">bootstrap</code> property on the
+<code className="jarombek-inline-code">@NgModule</code> definition.  On app launch the
+<code className="jarombek-inline-code">AppComponent</code> is bootstrapped and rendered by default.
+</p>
+<CodeSnippet language="TypeScript">
+@NgModule({
+    ...
+    bootstrap: [AppComponent]
+})
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">AppComponent</code> template defines the navigation bar for
+the website.  Clicking on the navigation bar changes the route.  Based on the <code className="jarombek-inline-code">routes</code>
+variable shown before, different routes display different components on the page.  The
+components are displayed in the <code className="jarombek-inline-code">&lt;router-outlet&gt;</code> element, as
+discussed further in my <a href="https://jarombek.com/blog/jan-27-2018-angular-5-routing">discovery post</a>.
+The code for the app component template is found in
+<a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/app.component.html">app.component.html</a>
+</p>
+<p>
+The navigation bar uses Bootstrap and Sass for styling.  In fact, the entire website UI uses a
+combination of Bootstrap and Sass.  I really loved Sass and how it modularized
+my stylesheets, making them easier to read and work with.  I made a discovery post about
+<a href="https://jarombek.com/blog/mar-10-2018-sass">Sass</a> if you want to learn more.  On the other hand,
+I have mixed feelings about Bootstrap.  While it does have cool components like the navbar I used for this
+website, it also comes with many frustrations.  For one the current state of Bootstrap is a bit of a mess.
+Different versions come with completely different naming conventions.  To make matters worse the documentation
+online is not up to date with the current release.  This made developing with Bootstrap really frustrating.
+</p>
+<p>
+If that was the only issue with Bootstrap I'd suggest to wait for its version to stabilize
+before jumping on board.  However, I also found that many Bootstrap components were not very
+customizable.  Bootstrap seem like more of a prototyping/pet project tool than something worth using in
+production.  I'll demonstrate the lack of customization later.
+</p>
+<p>
+The <a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/
+app.component.ts">app.component.ts</a> code also subscribes to certain services that emit and
+receive messages to and from child components.  This allows for message passing between components.
+I'll go into detail about these services once I look at the child components that subscribe to them.
+</p>
+<p>
+Let's look at the default route of the application which displays the <code className="jarombek-inline-code">HomeComponent</code>.
+</p>
+<SectionTitle title="Home Page">Home Page</SectionTitle>
+<figure id="maincomponent-image">
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/main-component.png">
+</figure>
+<p>
+The code in <code className="jarombek-inline-code">HomeComponent</code> is pretty simple.  It subscribes to
+a service called <code className="jarombek-inline-code">postService</code>.  By calling
+the <code className="jarombek-inline-code">getAll()</code> function in <code className="jarombek-inline-code">
+postService</code> the component gets all the cat posts stored on the server.  These are displayed in the UI.
+</p>
+<CodeSnippet language="TypeScript">
+import { Component } from '@angular/core';
+import {PostService} from "../post.service";
+import {Post} from "../models/post";
+import {environment} from "../../environments/environment";
+
+@Component({
+    selector: 'app-home',
+    templateUrl: './home.component.html',
+    styleUrls: ['./home.component.scss']
+})
+export class HomeComponent {
+    posts: [Post];
+
+    // The private modifier creates a new instance variable
+    constructor(private postService: PostService) {
+
+        // When the Observable getAll() value returns give it to the posts variable
+        postService.getAll().subscribe(data => {
+
+            this.posts = data;
+
+            // Different behavior depending on environment
+            if (environment.evt === 'dev') {
+                this.posts.forEach(post => {
+                    post.date = new Date(post.date);
+                    post.picture = `${post.picture}`;
+                });
+            }
+        });
+    }
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">postService</code> is one of the many services I created
+for this project.  It makes HTTP requests to the posts API.  Here is a look at the service:
+</p>
+<CodeSnippet language="TypeScript">
+import {Injectable} from '@angular/core';
+import {Post} from "./models/post";
+import {HttpClient} from "@angular/common/http";
+import {Observable} from "rxjs/Observable";
+import {HttpService} from "./http.service";
+
+@Injectable()
+export class PostService implements HttpService {
+
+    constructor(private http: HttpClient) {}
+
+    getAll(): Observable<[any]> {
+        return this.http.get<[Post]>(`/api/post`);
+    }
+
+    get(id: number): Observable&lt;any&gt; {
+        return this.http.get&lt;Post&gt;(`/api/post/${id}`);
+    }
+
+    post(post: Post): Observable&lt;any&gt; {
+        return this.http.post&lt;Post&gt;(`/api/post`, post);
+    }
+
+    put(post: Post): Observable&lt;any&gt; {
+        return this.http.put&lt;Post&gt;(`/api/post/${post.id}`, post);
+    }
+
+    delete(id: number): Observable&lt;any&gt; {
+        return this.http.delete&lt;any&gt;(`/api/post/${id}`);
+    }
+}
+</CodeSnippet>
+<p>
+Each function corresponds with a route defined in the Node.js <code className="jarombek-inline-code">postRouter</code>
+API.  The service implements a TypeScript interface.  The code for this interface is found in
+<a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/http.service.ts">
+http.service.ts</a>.  This interface is implemented in all my HTTP request services.
+</p>
+<p>
+The HTML template for <code className="jarombek-inline-code">HomeComponent</code> loops through
+the <code className="jarombek-inline-code">posts</code> array and passes each post to the
+<code className="jarombek-inline-code">CatPictureComponent</code>.  This component displays the
+cat post on the UI.
+</p>
+<CodeSnippet language="HTML">
+&lt;div id="home-container" class="container-fluid mt-3"&gt;
+    &lt;!-- Go through all the cat posts and pass each post to the cat-picture component --&gt;
+    &lt;div class="card-columns"&gt;
+        &lt;div *ngFor="let post of posts"&gt;
+            &lt;cat-picture [post]="post"&gt;&lt;/cat-picture&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</CodeSnippet>
+<SectionTitle title="Cat Posts">Cat Posts</SectionTitle>
+<p>
+<code className="jarombek-inline-code">CatPictureComponent</code> displays details about a cat post and a
+picture in the UI.  It does this with the Bootstrap card component<sup>10</sup>.  The card component
+makes displaying cat posts in a resizable grid extremely easy.  The one problem I
+have is the card components default behavior can't be customized.  By default the cards component
+displays each post from left to right.  This is a problem since old cat posts now show up at
+the top of the page.  Ideally I could change this behavior to populate cards from
+top to bottom instead.  However, Bootstrap does not allow for this customization.
+Bootstrap components aren't quite adequate for the needs of a production level website.
+</p>
+<p>
+Here is the <code className="jarombek-inline-code">CatPictureComponent</code> template.  Take a close look
+at the first <code className="jarombek-inline-code">&lt;p&gt;</code> element, the
+<code className="jarombek-inline-code">(click)</code> event, and the <code className="jarombek-inline-code">
+[routerLink]</code> property.
+</p>
+<CodeSnippet language="HTML">
+&lt;div class="card"&gt;
+    &lt;img class="img-fluid cat-image" src={{post?.picture}} alt={{post?.picture}}&gt;
+    &lt;div class="card-block mx-2"&gt;
+        &lt;h4 class="card-title mt-2"&gt;{{post?.name}}&lt;/h4&gt;
+        &lt;p class="card-text"&gt;
+            &lt;small class="text-muted" (click)="emitUsername()"
+                    [routerLink]="['../../user/profile', post?.username || '']"&gt;
+                {{post?.first + " " + post?.last}}
+            &lt;/small&gt;
+        &lt;/p&gt;
+        &lt;p class="card-text cat-post-date"&gt;
+            &lt;small class="text-muted"&gt;
+                {{post?.date.toDateString()}}
+            &lt;/small&gt;
+        &lt;/p&gt;
+        &lt;p class="card-text cat-post-description"&gt;{{post?.description}}&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</CodeSnippet>
+<p>
+The click event and router are placed on the name of the user who made the post.  This allows users
+to click the name and view the uploader's profile.  Besides for changing the SPA route, the
+<code className="jarombek-inline-code">emitUsername()</code> function is also called.  This function
+creates a message containing the posts username.  The <code className="jarombek-inline-code">
+ProfileComponent</code> will subscribe to this emitted message so it knows
+which users information needs to be loaded.  The code for emitting the message is found in
+<a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/cat-picture/
+cat-picture.component.ts">cat-picture.component.ts</a>
+and the subscriber of the message is found in
+<a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/profile/
+profile.component.ts">profile.component.ts</a>.
+</p>
+<p>
+While I don't mind setting up messaging between components, I wish there was a nicer way to store
+global data for use throughout the application.  This seems to be a weak point
+of the Angular framework, and I am curious how React.js handles the same situation.
+</p>
+<SectionTitle title="Login Page">Login Page</SectionTitle>
+<figure id="logincomponent-image">
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/login-component.png">
+</figure>
+<p>
+The <code className="jarombek-inline-code">LoginComponent</code> is pretty self
+explanatory - it logs in a user!  <code className="jarombek-inline-code">LoginComponent</code> asks for authentication
+from the server and get a JWT in response.  I then store the JWT in <code className="jarombek-inline-code">
+localStorage</code> and send it along with all HTTP requests
+to the server.  For more information on that process you can check out my discovery post on JWT.
+</p>
+<p>
+The <code className="jarombek-inline-code">LoginComponent</code> also uses the Angular forms API to easily
+create and validate form inputs.  I really liked working with the forms API.  It simplified
+what is often the most convoluted part of a web application.  I remember how difficult it was to
+create a simple login and signup form on my first website (which was a LAMP stack website using JQuery
+in the frontend).  The Angular approach to forms is a welcome change!
+</p>
+<p>
+You can check out the code for the login form in
+<a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/login/
+login.component.ts">login.component.ts</a> and
+<a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/login/
+login.component.html">login.component.html</a>.
+A more complex example of the form API is found in
+<a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/signup/
+signup.component.ts">signup.component.ts</a> and
+<a href="https://github.com/AJarombek/mean-client-prototype/blob/master/web-app/src/app/signup/
+signup.component.html">signup.component.html</a>.
+</p>
+<figure id="signupcomponent-image">
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/signup-component.png">
+</figure>
+<p>
+Another cool thing about the forms API is the ease of implementing a custom validator.
+Validators are placed on any form element.  You can check out a custom validator I
+made which checks for whitespace in <a href="https://github.com/AJarombek/mean-client-prototype/blob/
+master/web-app/src/app/shared/no-whitespace.validator.ts">no-whitespace.validator.ts</a>.
+</p>
+<SectionTitle title="Post Page">Post Page</SectionTitle>
+<p>
+The post page is the most complex page in the website.  The component guides the user through a
+multi-part process of uploading a new cat post.  It involves the Angular forms API, picture file
+uploading, and calls to the Node.js posts API.
+</p>
+<p>
+The component lives in three different states.  Each of these states presents a different UI for
+the user.  The first state allows users to upload cat post details in an Angular form.  The
+second state allows them to upload a cat picture.  The third state occurs after the upload
+is successfully made.
+</p>
+<p>
+In order to display these three states, I used Angular's <code className="jarombek-inline-code">
+&lt;ng-template&gt;</code> HTML element.  <code className="jarombek-inline-code">&lt;ng-template&gt;</code> is Angular's implementation
+of HTML's native <code className="jarombek-inline-code">&lt;template&gt;</code> element.  Anything in
+<code className="jarombek-inline-code">&lt;template&gt;</code> is not be rendered when the page first loads, but is added
+to the page later on.  In my case the contents of <code className="jarombek-inline-code">
+&lt;ng-template&gt;</code> are rendered when certain variables in the <code className="jarombek-inline-code">PostComponent</code>
+are set to <code className="jarombek-inline-code">true</code>.
+</p>
+<p>
+One of the challenges I faced with <code className="jarombek-inline-code">PostComponent</code> was
+retrieving the value in an HTML <code className="jarombek-inline-code">&lt;input&gt;</code>
+element before it was removed from the DOM.  This scenario occurred when the first state was destroyed and the second state
+was created.  The solution was to create a spy directive on the
+<code className="jarombek-inline-code">&lt;input&gt;</code> elements<sup>11</sup>.  The spy monitored
+the lifecycle of the <code className="jarombek-inline-code">&lt;input&gt;</code> element.  When the element was
+created or destroyed I performed certain actions, such as initializing
+its value or retrieving its value.  Here is a look at the spy directive:
+</p>
+<CodeSnippet language="TypeScript">
+import {Directive, ElementRef, OnDestroy, OnInit, Renderer2} from '@angular/core';
+import {LifecycleService} from "./lifecycle.service";
+import {Lifecycle} from "../models/lifecycle";
+
+@Directive({
+    selector: '[spy]'
+})
+export class SpyDirective implements OnInit, OnDestroy {
+
+    constructor(private renderer: Renderer2, private el: ElementRef,
+                private lifecycleService: LifecycleService) {}
+
+    /**
+     * The initialization lifecycle for the spied upon element.  Send an appropriate
+     * notification to the lifecycle service for subscribers to consume.
+     */
+    ngOnInit(): void {
+        const status: Lifecycle = this.lifecycleObject("init");
+
+        this.lifecycleService.emitData(status);
+    }
+
+    /**
+     * The destroy lifecycle for the spied upon element.  Send an appropriate
+     * notification to the lifecycle service for subscribers to consume.
+     */
+    ngOnDestroy(): void {
+        const status: Lifecycle = this.lifecycleObject("destroy");
+
+        this.lifecycleService.emitData(status);
+    }
+
+    lifecycleObject(event: string) : Lifecycle {
+        return {
+            id: this.el.nativeElement.id,
+            event: event,
+            value: this.el.nativeElement.value
+        };
+    }
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">lifecycleService</code> allows for message passing between
+the spy directive and the <code className="jarombek-inline-code">PostComponent</code>.
+You can look at this service in <a href="https://github.com/AJarombek/mean-client-prototype/blob/
+master/web-app/src/app/shared/lifecycle.service.ts">lifecycle.service.ts</a>.
+</p>
+<p>
+Once again I think the message passing services are a messy approach for sharing data
+between components.  Maybe there is a better approach out there.  However, the fact you can
+monitor the lifecycle of any HTML element through a directive is really cool!
+</p>
+<SectionTitle title="Unit Testing Angular">Unit Testing Angular</SectionTitle>
+<p>
+I didn't do much unit testing with my Angular application.  However it is set up with TravisCI
+and a testing suite just like the server side Node.js code.  I did write unit tests for a few mock services
+in the project.  These mock services allowed me to work on the front-end code before the Node.js API
+was created.  Mock services were very helpful during early development!
+</p>
+<p>
+Here is an example of unit tests for one of my mock services:
+</p>
+<CodeSnippet language="TypeScript">
+import { TestBed, inject } from '@angular/core/testing';
+import {MockUserService} from "./mock-user.service";
+import {User} from "../models/user";
+
+describe('MockUserService', () => {
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            providers: [MockUserService]
+        });
+    });
+
+    it('service should be created', inject([MockUserService], (service: MockUserService) => {
+        expect(service).toBeTruthy();
+    }));
+
+    it("getAll() should get two users", inject([MockUserService],
+                                        (service: MockUserService) => {
+        service.getAll().subscribe(users => {
+            expect(users.length).toBe(2);
+        });
+    }));
+
+    it("get() should get user 'andy'", inject([MockUserService],
+                                        (service: MockUserService) => {
+        service.get("andy").subscribe(user => {
+            expect(user.username).toBe('andy');
+            expect(user.first).toBe('Andrew');
+            expect(user.last).toBe('Jarombek');
+        });
+    }));
+
+    it("post() should return new user", inject([MockUserService],
+                                        (service: MockUserService) => {
+        service.post(new User("joe", "Joe", "Smith")).subscribe(user => {
+            expect(user.username).toBe('joe');
+            expect(user.first).toBe('Joe');
+            expect(user.last).toBe('Smith');
+        });
+    }));
+
+    ...
+});
+</CodeSnippet>
+<p>
+When Angular CLI sets up components and services, it also generates a spec file that contains
+unit testing code for the component or service.  It only contains one test by default.  This test makes
+sure that the component or service loads properly.  Although I wasn't adding any more tests to the spec
+files, I found it really helpful to maintain the default test for each
+component.  This helped ensure all my components followed the coding conventions of the
+Angular framework.  It even helped me to make design decisions.  For example, when the test code for
+a component became really difficult or impossible to maintain, I'd create
+a new module to hold the component.  This is exactly what happened when I
+separated out the <code className="jarombek-inline-code">CatPictureComponent</code> into its own module.
+</p>
+<p>
+However, in general writing unit tests for Angular was a big pain.  On many occasions the
+unit testing code for a component would fail without any obvious reason.  Also there is no official documentation,
+so you have to hope someone else ran into the same issue and asked about it online.  This was not always the case.
+An easy to use testing suite could give React.js a leg up on Angular.
+</p>
+<SectionTitle title="Future Steps">Future Steps</SectionTitle>
+<p>
+That concludes the discussion on my MEAN Stack prototype.  If you want to check out the frontend code
+it is available on <a href="https://github.com/AJarombek/mean-client-prototype">GitHub</a>.
+</p>
+<p>
+As far as further steps are concerned, I might continue updating this prototype as Angular versions
+advance.  That would be a nice
+way to keep informed about the framework and always have a working prototype to look back on.
+</p>
+<p>
+I may also deploy it to AWS or another cloud service.  Then I could get
+experience pushing an Angular app all the way to production!
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+While I liked the Angular framework, it did have some shortcomings.  Weak points include less than ideal
+cross component data transfer and complex unit testing.  These shortcomings give React some
+room to beat Angular when I pick the front end JavaScript framework/library for
+my website.  Angular also does a lot of things well.  I really enjoyed the forms API and the strict
+framework simplifies frontend development.  TypeScript also really grew on me!  I'm
+excited to work with Angular again in the future and look forward to learning React!
+</p>
+</div>

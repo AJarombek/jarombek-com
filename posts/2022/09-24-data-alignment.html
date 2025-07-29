@@ -1,0 +1,311 @@
+<div>
+<p>
+Data alignment in operating systems is something I’ve been aware of throughout my young career, mostly thanks to my
+love for reading software engineering books.  However, it’s not a concept that I’ve explored in depth.  In this
+article, I’ll discuss the basics of data alignment and how it applies to programming languages like Go.
+</p>
+<SectionTitle title="What is Data Alignment">What is Data Alignment?</SectionTitle>
+<p>
+Data alignment feels like an intimidating topic since alignments differ depending on machine architectures and
+operating systems.  However, data alignment is conceptually equivalent across these different architectures.
+High-level programming languages like Go abstract away much of the complexity as well, making data alignment
+something an application engineer rarely needs to worry about.
+</p>
+<Definition word="Data Alignment">
+<p>
+Data alignment refers to how data is arranged in computer memory.  Computer memory is a device used to store data for
+immediate use.  Computer memory most likely refers to main memory, which in modern computers is Random Access Memory
+(RAM)<sup>1</sup>.  CPUs perform optimally when data in memory is properly aligned<sup>2,3</sup>.  In fact, many
+processors have requirements that force data in memory to be properly aligned, or so-called <strong>naturally aligned</strong>
+<sup>4</sup>.
+</p>
+<p>
+For example, in a processor with a 32-bit architecture (a CPU with a 4 byte word size), data is naturally aligned if it
+ exists at a location in memory that is a multiple of 32<sup>5,6</sup>.  For example, if an integer is stored at the 96th bit in
+memory within a 32-bit architecture, it is properly aligned because <code className="jarombek-inline-code">
+96 / 32 == 3</code>.  Similarly, in a processor with a 64-bit architecture (a CPU with an 8 byte word size), data is
+naturally aligned if it exists at a location in memory that is a multiple of 64.
+</p>
+</Definition>
+<Definition word="Naturally Aligned">
+Data is considered naturally aligned when it is stored at a memory address that is a multiple of its size.  With
+ regards to processors, word size is used to determine natural data alignment.  However, in regards to programming
+language variables, the size of a data type is often used to determine the alignment of data.  For example, in Go, a
+16-bit integer (of type <code className="jarombek-inline-code">int16</code>) should be aligned in memory at a location
+that is a multiple of 16 to be naturally aligned.
+</Definition>
+<p>
+In languages with manual memory management, for example, C and C++, functions to allocate memory such as
+<code className="jarombek-inline-code">malloc()</code> and <code className="jarombek-inline-code">calloc()</code> are
+guaranteed to properly align the memory space that they return<sup>4</sup>.  Manual memory management is when
+memory needs to be explicitly managed by a programmer throughout its lifecycle, from creation to garbage
+collection<sup>7</sup>.  Since Go is a programming language with automatic memory management (it automatically
+allocates memory using <code className="jarombek-inline-code">new()</code> or <code className="jarombek-inline-code">
+make()</code> and automatically garbage collects unused memory), instances where data alignment is top of mind for engineers are
+infrequent.
+</p>
+<SectionTitle title="Data Alignment in Go">Data Alignment in Go</SectionTitle>
+<p>
+Go has three functions for finding the size and alignment of data: <code className="jarombek-inline-code">
+unsafe.Sizeof()</code>, <code className="jarombek-inline-code">unsafe.Alignof()</code>, and
+<code className="jarombek-inline-code">unsafe.Offsetof()</code>.  <code className="jarombek-inline-code">
+unsafe.Sizeof()</code> returns the size of a variable's data type and <code className="jarombek-inline-code">
+unsafe.Alignof()</code> returns the proper alignment of a variable’s data type.  <code className="jarombek-inline-code">
+unsafe.Offsetof()</code> is used specifically for struct fields to determine the offset of a field's memory location
+within a struct.
+</p>
+<p>
+The value returned by <code className="jarombek-inline-code">unsafe.Sizeof()</code> can be machine dependent.  For
+types such as booleans, the return value is always <strong>1</strong>, representing one byte<sup>8</sup>.  However, for
+other data types, such as integers, strings, arrays, etc., the return value is dependent on the word size of a
+computer's CPU architecture.
+</p>
+<CodeSnippet language="Go">
+// Bool
+// Return value: 1
+unsafe.Sizeof(false)
+
+// int (on a 64-bit processor)
+// Return value: 8
+unsafe.Sizeof(1)
+
+// string (on a 64-bit processor)
+// Return value: 16
+unsafe.Sizeof("Andy")
+
+// []T (array) (on a 64-bit processor)
+// Return value: 24
+unsafe.Sizeof([]string{})
+</CodeSnippet>
+<p>
+On a 64-bit architecture, the word size is 8 bytes.  That means that integers, strings, and arrays have sizes of 1
+word, 2 words, and 3 words, respectively.  Sizes represent the fixed size of a data type, so the return value of
+<code className="jarombek-inline-code">unsafe.Sizeof()</code> is consistent no matter how long a string is or how many
+elements an array contains.  For basic types like <code className="jarombek-inline-code">bool</code> and
+<code className="jarombek-inline-code">int</code>, <code className="jarombek-inline-code">unsafe.Alignof()</code>
+returns the same value as <code className="jarombek-inline-code">unsafe.Sizeof()</code>.  For more complex types like
+<code className="jarombek-inline-code">string</code> and <code className="jarombek-inline-code">[]T</code>,
+<code className="jarombek-inline-code">unsafe.Alignof()</code> returns the CPU word size in bytes.
+</p>
+<CodeSnippet language="Go">
+// Bool
+// Return value: 1
+unsafe.Alignof(false)
+
+// int (on a 64-bit processor)
+// Return value: 8
+unsafe.Alignof(1)
+
+// string (on a 64-bit processor)
+// Return value: 8
+unsafe.Alignof("Andy")
+
+// []T (array) (on a 64-bit processor)
+// Return value: 8
+unsafe.Alignof([]string{})
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">unsafe.Alignof()</code> returns the necessary data alignment for its argument’s
+type.  Therefore, it makes sense that larger types return the word size of the computer processor, which is
+equal to the natural alignment in memory.
+</p>
+<p>
+Things get a bit more interesting for data types whose size is less than the word size of a computer’s architecture.
+Data types such as <code className="jarombek-inline-code">bool</code>, whose size is one byte, still must be naturally
+aligned in memory (its location in memory must be a multiple of the word size, such as 8-bytes on a 64-bit
+architecture).  To achieve this, padding is added after the data type in memory to keep it aligned<sup>9</sup>.  In
+the case of <code className="jarombek-inline-code">bool</code> on a 64-bit machine, one byte is used to store the data
+and the next seven bytes are padding.
+</p>
+<p>
+If a boolean actually takes up a full word size in memory, why do
+<code className="jarombek-inline-code">unsafe.Sizeof()</code> and <code className="jarombek-inline-code">
+unsafe.Alignof()</code> return <code className="jarombek-inline-code">1</code>?  The answer is because within a struct, it is
+possible to "pack" data such that multiple pieces of data are stored within a single word size worth of
+memory<sup>10</sup>.  Data packing is commonly used to save space in a data structure.  The side effect of data
+structure packing is the order in which struct fields are defined can alter the amount of memory a struct requires.
+</p>
+<p>
+Let’s look at an example.  The following two structs appear to be equivalent, since they have the same fields defined
+in a different order.
+</p>
+<CodeSnippet language="Go">
+type Sample1 struct {
+	a bool
+	b bool
+	c float64
+}
+
+type Sample2 struct {
+	a bool
+	c float64
+	b bool
+}
+</CodeSnippet>
+<p>
+However, calling <code className="jarombek-inline-code">unsafe.Sizeof()</code> on these structs
+reveals their sizes are different in memory.
+</p>
+<CodeSnippet language="Go">
+one := Sample1{a: true, b: true, c: 1.0}
+two := Sample2{a: true, b: true, c: 1.0}
+
+// Return value (on a 64-bit processor): 16
+unsafe.Sizeof(one)
+
+// Return value (on a 64-bit processor): 24
+unsafe.Sizeof(two)
+</CodeSnippet>
+<p>
+While <code className="jarombek-inline-code">Sample1</code> creates a struct the size of two words (16 bytes),
+<code className="jarombek-inline-code">Sample2</code> creates a struct the size of three words (24 bytes).  This is the
+result of extra padding needed in <code className="jarombek-inline-code">Sample2</code> due to the field order in the
+struct definition.
+</p>
+<p>
+The first two fields in <code className="jarombek-inline-code">Sample1</code>, <code className="jarombek-inline-code">
+a</code> and <code className="jarombek-inline-code">b</code>, are type <code className="jarombek-inline-code">
+bool</code>.  Since the size and alignment of <code className="jarombek-inline-code">bool</code> is one, both
+<code className="jarombek-inline-code">a</code> and <code className="jarombek-inline-code">b</code> can be packed
+together into a single word in memory.  This means the first eight bytes of memory for a struct of type
+<code className="jarombek-inline-code">Sample1</code> consists of <code className="jarombek-inline-code">a</code> and
+<code className="jarombek-inline-code">b</code> in the first two bytes followed by six bytes of padding.  The third
+field in <code className="jarombek-inline-code">Sample1</code>, <code className="jarombek-inline-code">c</code>, is a
+<code className="jarombek-inline-code">float64</code>, which takes up a full eight bytes on a 64-bit machine.  In
+total, the struct takes up 16 bytes (2 words).
+</p>
+<p>
+Next, let's take the case of <code className="jarombek-inline-code">Sample2</code>.  The first field in
+<code className="jarombek-inline-code">Sample2</code>, <code className="jarombek-inline-code">a</code>, is a
+<code className="jarombek-inline-code">bool</code> that is placed in the first byte of memory for the struct.  Since
+the second field is <code className="jarombek-inline-code">c</code>, a <code className="jarombek-inline-code">
+float64</code> that takes up a full eight bytes, seven bytes of padding are added after
+<code className="jarombek-inline-code">a</code>.  The third field is <code className="jarombek-inline-code">b</code>,
+which takes up one byte followed by another seven bytes of padding.  In total, the struct takes up 24 bytes (3 words).
+</p>
+<p>
+Luckily for application engineers, outside of field packing in structs, data alignment in memory is not a concern that
+arises when writing Go programs.  The code examples I showed above can be viewed in more detail in my
+<a href="https://github.com/AJarombek/go-programming">go-programming</a> repository, specifically within
+<a href="https://github.com/AJarombek/go-programming/blob/v1.1.0/low-level-programming/sizeof_test.go">sizeof_test.go</a>
+and <a href="https://github.com/AJarombek/go-programming/blob/v1.1.0/low-level-programming/alignment_offset_test.go">
+alignment_offset_test.go</a>.
+</p>
+<SectionTitle title="Data Alignment in C and C++">Data Alignment in C and C++</SectionTitle>
+<p>
+As I mentioned previously, C and C++ are programming languages with manual memory management, and standard library
+functions such as <code className="jarombek-inline-code">malloc()</code> and <code className="jarombek-inline-code">
+calloc()</code> are guaranteed to properly align allocated memory.  Similar to Go, structs are a common instance where data
+alignment impacts application code.  The struct example I showed in Go with two structs,
+<code className="jarombek-inline-code">Sample1</code> and <code className="jarombek-inline-code">Sample2</code>, is
+implemented in C and C++ below.
+</p>
+<CodeSnippet language="C">
+#include &lt;stdbool.h>
+#include &lt;assert.h>
+#include &lt;stdio.h>
+
+struct Sample1 {
+    bool a;
+    bool b;
+    double c;
+};
+
+struct Sample2 {
+    bool a;
+    double c;
+    bool b;
+};
+
+int main() {
+    struct Sample1 first = {true, false, 1.0};
+    struct Sample2 second = {true, 1.0, false};
+
+	// Return value (on a 64-bit processor): 16
+	sizeof(first);
+
+	// Return value (on a 64-bit processor): 24
+	sizeof(second);
+}
+</CodeSnippet>
+<CodeSnippet language="C++">
+#include &lt;cassert>
+#include &lt;iostream>
+
+using namespace std;
+
+struct Sample1 {
+    bool a;
+    bool b;
+    double c;
+};
+
+struct Sample2 {
+    bool a;
+    double c;
+    bool b;
+};
+
+int main() {
+    auto first = Sample1{true, false, 1.0};
+    auto second = Sample2{true, 1.0, false};
+
+    // Return value (on a 64-bit processor): 16
+    sizeof(first);
+
+    // Return value (on a 64-bit processor): 24
+    sizeof(second);
+}
+</CodeSnippet>
+<p>
+Just like Go, an instance of <code className="jarombek-inline-code">Sample1</code> takes up two word sizes of memory
+while <code className="jarombek-inline-code">Sample2</code> takes up three word sizes of memory.  These code samples
+are available in my <a href="https://github.com/AJarombek/cpp-c-programming">cpp-c-programming</a> repository, within
+<a href="https://github.com/AJarombek/cpp-c-programming/blob/main/c/data-alignment/data_alignment.c">data_alignment.c</a>
+and <a href="https://github.com/AJarombek/cpp-c-programming/blob/main/cpp/data-alignment/data_alignment.cpp">
+data_alignment.cpp</a> files, respectively.
+</p>
+<SubTitle title="Linux System Programming">Linux System Programming</SubTitle>
+<p>
+While writing system programs, specifically in Linux, an engineer has a bit more control over how allocated memory is
+aligned.  POSIX defines a function <code className="jarombek-inline-code">posix_memalign()</code> which allocates
+memory and aligns it at a multiple of its second argument<sup>11,12</sup>.  The first argument of
+<code className="jarombek-inline-code">posix_memalign()</code> is a pointer that will point to the allocated memory
+and the third (and final) argument is the number of bytes to allocate in memory.  The example below allocates 1024
+bytes of memory and aligns it at a multiple of eight.  It frees the newly allocated memory before using it by invoking
+ <code className="jarombek-inline-code">free(buf)</code>.
+</p>
+<CodeSnippet language="C">
+char *buf;
+
+// Allocate 1024 bytes of memory aligned at a multiple of 8.
+int ret = posix_memalign(&buf, 8, 1024);
+
+if (ret) {
+	perror("posix_memalign");
+	return -1;
+}
+
+free(buf);
+</CodeSnippet>
+<p>
+Although I aligned the allocated memory on the 64-bit architecture page size (8 bytes) above, any value that is a
+multiple of two and a multiple of <code className="jarombek-inline-code">sizeof(void *)</code> can be used.  On a
+64-bit architecture, <code className="jarombek-inline-code">sizeof(void *)</code> likely returns
+<code className="jarombek-inline-code">8</code> (the page size).  The full code example is available in an
+ <a href="https://github.com/AJarombek/system-programming-prototypes/blob/main/memory_management/alignment.c">
+alignment.c</a> file and is based on my reading of <a href="https://www.oreilly.com/library/view/
+linux-system-programming/9781449341527/">Linux System Programming</a> by Robert Love.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Although data alignment may not be top of mind for application engineers, it is important to understand how it works and
+its impact on high-level programming languages.  In general, knowing low-level operating system functionality helps
+engineers write better programs in high-level languages, just as knowing data structures and algorithms helps write
+faster and less memory intensive code.  All the code discussed in this article is available in my
+<a href="https://github.com/AJarombek/go-programming/tree/v1.1.0/low-level-programming">go-programming</a>,
+<a href="https://github.com/AJarombek/system-programming-prototypes/tree/main/memory_management">
+system-programming-prototypes</a>, and <a href="https://github.com/AJarombek/cpp-c-programming">cpp-c-programming</a>
+repositories.
+</p>
+</div>

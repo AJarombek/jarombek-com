@@ -1,0 +1,676 @@
+<div>
+<p>
+In a <a href="https://jarombek.com/blog/sep-27-2020-jenkins-ec2">prior article</a>, I discussed a
+<a href="https://jarombek.com/blog?query=Jenkins&page=1">Jenkins</a> server I created on AWS EC2 and
+EFS.  In this article I’ll discuss the second generation of that infrastructure, which uses
+<a href="https://jarombek.com/blog?query=Docker&page=1">Docker</a> containers orchestrated by
+<a href="https://jarombek.com/blog?query=Kubernetes&page=1">Kubernetes</a> on an
+<a href="https://jarombek.com/blog/sep-28-2020-eks">EKS cluster</a>.
+</p>
+<SectionTitle title="Kubernetes Infrastructure with Terraform">Kubernetes Infrastructure with Terraform</SectionTitle>
+<p>
+The Jenkins server infrastructure consists of AWS resources and Kubernetes objects.  On the AWS side,
+there is an Application Load Balancer (ALB) and an ECR repository for the Jenkins Docker image.  On
+the Kubernetes side, there is an Ingress object, <code className="jarombek-inline-code">NodePort</code>
+service, and a Deployment for Pods.  These Kubernetes objects all live on an EKS cluster.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-29-20-k8s-architecture.png"/>
+</figure>
+<p>
+All this infrastructure is written as code in a <code className="jarombek-inline-code">jenkins-kubernetes</code>
+module.  I’ll discuss some important parts of the infrastructure here, with the full code available on
+<a href="https://github.com/AJarombek/global-aws-infrastructure/tree/master/jenkins-kubernetes">GitHub</a>.
+The first important part of the infrastructure is the Amazon Elastic Container Registry (ECR) repository.
+ECR provides the ability to create private repositories for Docker containers.  I created a single repository
+for the Jenkins server Docker image.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_ecr_repository" "jenkins-jarombek-io-repository" {
+  name = "jenkins-jarombek-io"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "jenkins-jarombek-io-container-repository"
+    Application = "jenkins"
+    Environment = "all"
+  }
+}
+</CodeSnippet>
+<p>
+The Kubernetes Deployment object then references this repository for Pod creation.
+</p>
+<CodeSnippet language="HCL">
+resource "kubernetes_deployment" "deployment" {
+  metadata {
+    name = "jenkins-deployment"
+    namespace = local.namespace
+
+    labels = {
+      version = local.version
+      environment = local.env
+      application = "jenkins-server"
+    }
+  }
+
+  spec {
+    replicas = 1
+    min_ready_seconds = 10
+
+    strategy {
+      type = "RollingUpdate"
+
+      rolling_update {
+        max_surge = "1"
+        max_unavailable = "0"
+      }
+    }
+
+    selector {
+      match_labels = {
+        application = "jenkins-server"
+        environment = local.env
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          version = local.version
+          environment = local.env
+          application = "jenkins-server"
+        }
+      }
+
+      spec {
+        container {
+          name = "jenkins-server"
+          image = "${local.account_id}.dkr.ecr.us-east-1.amazonaws.com/jenkins-jarombek-io:${local.short_version}"
+
+          volume_mount {
+            mount_path = "/var/run/docker.sock"
+            name = "dockersock"
+          }
+
+          volume_mount {
+            mount_path = "/usr/bin/docker"
+            name = "dockercli"
+          }
+
+          readiness_probe {
+            period_seconds = 5
+            initial_delay_seconds = 20
+
+            http_get {
+              path = "/login"
+              port = 8080
+            }
+          }
+
+          port {
+            name = "http-port"
+            container_port = 8080
+            protocol = "TCP"
+          }
+
+          port {
+            name = "jnlp-port"
+            container_port = 50000
+          }
+        }
+
+        volume {
+          name = "dockersock"
+
+          host_path {
+            path = "/var/run/docker.sock"
+          }
+        }
+
+        volume {
+          name = "dockercli"
+
+          host_path {
+            path = "/usr/bin/docker"
+          }
+        }
+
+        automount_service_account_token = true
+        service_account_name = "jenkins-server"
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+One thing you may have noticed in this deployment is the Docker socket mounted as a volume on the Pod
+container.  The reason behind mounting it is that I have Jenkins jobs which build Docker images (and often push them
+to ECR repositories).  Since the Jenkins server is already a Docker container, there are two ways to
+use Docker commands within it - to install and run Docker-in-Docker, or expose the Docker socket.
+Running Docker-in-Docker is documented as a bad, bug-ridden approach by Docker developers, making the
+Docker socket approach the obvious choice<sup>1</sup>.
+</p>
+<p>
+The last two Kubernetes objects for the Jenkins server are the Ingress and the Service.  The Ingress
+utilizes an ALB Ingress Controller to create a load balancer on AWS for the Jenkins server.  It also uses
+ ExternalDNS to create a Route53 DNS record for <strong>jenkins.jarombek.io</strong> and
+<strong>www.jenkins.jarombek.io</strong>.  I discussed ALB Ingress Controllers and  ExternalDNS in my
+previous article on <a href="https://jarombek.com/blog/sep-28-2020-eks">AWS EKS</a>.
+</p>
+<CodeSnippet language="HCL">
+resource "kubernetes_ingress" "ingress" {
+  metadata {
+    name = "jenkins-ingress"
+    namespace = local.namespace
+
+    annotations = {
+      "kubernetes.io/ingress.class" = "alb"
+      "external-dns.alpha.kubernetes.io/hostname" = "jenkins.jarombek.io,www.jenkins.jarombek.io"
+      "alb.ingress.kubernetes.io/backend-protocol" = "HTTP"
+      "alb.ingress.kubernetes.io/certificate-arn" = "${local.cert_arn},${local.wildcard_cert_arn}"
+      "alb.ingress.kubernetes.io/healthcheck-path" = "/login"
+      "alb.ingress.kubernetes.io/listen-ports" = "[{\"HTTP\":80}, {\"HTTPS\":443}]"
+      "alb.ingress.kubernetes.io/healthcheck-protocol": "HTTP"
+      "alb.ingress.kubernetes.io/scheme" = "internet-facing"
+      "alb.ingress.kubernetes.io/security-groups" = aws_security_group.jenkins-lb-sg.id
+      "alb.ingress.kubernetes.io/subnets" = "${local.subnet1},${local.subnet2}"
+      "alb.ingress.kubernetes.io/target-type" = "instance"
+      "alb.ingress.kubernetes.io/tags" = "Name=jenkins-load-balancer,Application=jenkins,Environment=${local.env}"
+    }
+
+    labels = {
+      version = local.version
+      environment = local.env
+      application = "jenkins-server"
+    }
+  }
+
+  spec {
+    rule {
+      host = "jenkins.jarombek.io"
+
+      http {
+        path {
+          path = "/*"
+
+          backend {
+            service_name = "jenkins-service"
+            service_port = 80
+          }
+        }
+      }
+    }
+
+    rule {
+      host = "www.jenkins.jarombek.io"
+
+      http {
+        path {
+          path = "/*"
+
+          backend {
+            service_name = "jenkins-service"
+            service_port = 80
+          }
+        }
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">NodePort</code> service reserves a port on the EKS cluster
+nodes for the Jenkins server.
+</p>
+<CodeSnippet language="HCL">
+resource "kubernetes_service" "service" {
+  metadata {
+    name = "jenkins-service"
+    namespace = local.namespace
+
+    labels = {
+      version = local.version
+      environment = local.env
+      application = "jenkins-server"
+    }
+  }
+
+  spec {
+    type = "NodePort"
+
+    port {
+      port = 80
+      target_port = 8080
+      protocol = "TCP"
+    }
+
+    selector = {
+      application = "jenkins-server"
+    }
+  }
+}
+</CodeSnippet>
+<p>
+There is also one additional service for the Java Network Launch Protocol (JNLP) on the Jenkins server,
+which Jenkins uses to create agents<sup>2</sup>.  In my case, I’m using JNLP to create Kubernetes Pod
+agents for my jobs.  The code for the service is on <a href="https://github.com/AJarombek/
+global-aws-infrastructure/blob/master/jenkins-kubernetes/modules/kubernetes/main.tf#L289-L320">GitHub</a>.
+</p>
+<SectionTitle title="Jenkins Dockerfile">Jenkins Dockerfile</SectionTitle>
+<p>
+Let’s take a closer look at the Dockerfile for the Jenkins server image which is stored on Amazon ECR.
+A large portion of my Dockerfile installs technologies on my base Jenkins server, so that they can be
+used for Jenkins jobs that don’t use custom agents.  Below is the Dockerfile with these installations
+omitted.  The <a href="https://github.com/AJarombek/global-aws-infrastructure/blob/master/jenkins-kubernetes/
+docker/Dockerfile">full Dockerfile</a> is available on my GitHub.
+</p>
+<CodeSnippet language="Dockerfile">
+FROM jenkins/jenkins:lts
+
+# Configure the Jenkins server with plugins and seed jobs.
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+COPY jenkins.yaml /usr/share/jenkins/ref/jenkins.yaml
+RUN /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
+
+USER jenkins
+EXPOSE 8080 50000
+</CodeSnippet>
+<p>
+The base image used is the official Jenkins Docker image.  The image exposes port 8080 (the port the
+Jenkins server runs on) and port 50000 (the port for JNLP).  It also copies two files from my repository
+onto the Jenkins image - <strong>plugins.txt</strong> and <strong>jenkins.yaml</strong>.  <strong>plugins.txt</strong>
+is a text file with a list of plugins and corresponding versions.  These plugins are pre-installed on
+the server, allowing the server administrator to bypass the initial plugin installation page when the
+server boots up.
+</p>
+<CodeSnippet>
+ansicolor:latest
+authorize-project:latest
+build-timeout:latest
+cloudbees-folder:latest
+configuration-as-code:latest
+credentials-binding:latest
+email-ext:latest
+...
+</CodeSnippet>
+<p>
+The full <a href="https://github.com/AJarombek/global-aws-infrastructure/blob/master/jenkins-kubernetes/
+docker/plugins.txt">plugins.txt</a> file is on GitHub.
+</p>
+<SectionTitle title="JCasC Plugin">JCasC Plugin</SectionTitle>
+<p>
+<strong>jenkins.yaml</strong> is a Jenkins Configuration as Code (JCasC) Plugin config file.  JCasC
+automates Jenkins server configuration (secrets, security, users, permissions, email, additional plugin
+configuration, etc.)<sup>3</sup>.  This is a huge timesaver, allowing a Jenkins server to be configured
+in a repeatable way in minutes.  In the past, this process could take hours of tinkering with the Jenkins UI.
+</p>
+<p>
+My full JCasC YAML file is on <a href="https://github.com/AJarombek/global-aws-infrastructure/blob/master/
+jenkins-kubernetes/docker/jenkins-template.yaml">GitHub</a>, but I’ll also break it down piece by piece.
+The YAML configuration contains multiple root objects.  The first object in the configuration,
+<code className="jarombek-inline-code">jenkins</code>, specifies some Jenkins server properties.
+</p>
+<CodeSnippet language="YAML">
+jenkins:
+  authorizationStrategy:
+    globalMatrix:
+      permissions:
+        - "Overall/Administer:andy"
+        - "Job/Discover:guest"
+        - "Job/Read:guest"
+        - "Job/Workspace:guest"
+        - "View/Read:guest"
+  clouds:
+    - kubernetes:
+        name: kubernetes
+        serverUrl: ${KUBERNETES_URL}
+        namespace: jenkins
+        jenkinsUrl: "http://jenkins-jnlp-service/"
+        connectTimeout: 5
+        containerCapStr: 10
+        readTimeout: 15
+  numExecutors: 4
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: andy
+          name: andy
+          password: ${JENKINS_PASSWORD}
+        - id: guest
+          name: guest
+          password: guest
+  systemMessage: "Andrew Jarombek's Jenkins Server"
+</CodeSnippet>
+<p>
+In this section I create Jenkins server users (<strong>andy</strong> and <strong>guest</strong>), grant
+them permissions, configure the Kubernetes plugin which allows Pods to be used as Jenkins agents, set
+the maximum number of Jenkins job agent processes (executors), and write a system message for the home
+screen.  In the next section, I configure different credentials for Jenkins jobs to use, ranging from
+GitHub keys to RDS passwords.
+</p>
+<CodeSnippet language="YAML">
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+        - basicSSHUserPrivateKey:
+            scope: GLOBAL
+            id: "ajarombek-github"
+            username: ajarombek-github
+            description: "AJarombek GitHub Key"
+            privateKeySource:
+              directEntry:
+                privateKey: ${SSH_PRIVATE_KEY}
+        - usernamePassword:
+            scope: GLOBAL
+            id: "ajarombek-docker-hub"
+            username: ${DOCKER_HUB_USERNAME}
+            password: ${DOCKER_HUB_PASSWORD}
+            description: "DockerHub Account Credentials"
+        - string:
+            scope: GLOBAL
+            id: "ajarombek-github-access-token"
+            secret: ${GITHUB_ACCESS_TOKEN}
+            description: "AJarombek GitHub Access Token"
+</CodeSnippet>
+<p>
+The next section imports a global library of Groovy functions and reusable Jenkins pipeline scripts to
+be used by Jenkins jobs.  It also configures the Jenkins server to send emails.  Emails are a great way
+to get notified if a Jenkins job fails for an unexpected reason.
+</p>
+<CodeSnippet language="YAML">
+unclassified:
+  globalLibraries:
+    libraries:
+      - name: "global-jenkins-library"
+        allowVersionOverride: true
+        defaultVersion: "master"
+        implicit: false
+        includeInChangesets: true
+        retriever:
+          modernSCM:
+            scm:
+              git:
+                id: "global-jenkins-library"
+                remote: "git@github.com:AJarombek/global-jenkins-library.git"
+                credentialsId: "ajarombek-github"
+  email-ext:
+    mailAccount:
+      smtpHost: smtp.gmail.com
+      smtpPort: 465
+      smtpUsername: andrew@jarombek.com
+      smtpPassword: ${GOOGLE_ACCOUNT_PASSWORD}
+      useSsl: true
+    charset: UTF-8
+    defaultSuffix: "@jarombek.com"
+    defaultContentType: text/html
+    defaultSubject: "$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!"
+    defaultBody: >
+      $PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
+
+      Check console output at $BUILD_URL to view the results.
+    debugMode: true
+  mailer:
+    smtpHost: smtp.gmail.com
+    smtpPort: 465
+    useSsl: true
+    charset: UTF-8
+    defaultSuffix: "@jarombek.com"
+    authentication:
+      username: andrew@jarombek.com
+      password: ${GOOGLE_ACCOUNT_PASSWORD}
+</CodeSnippet>
+<p>
+You may have noticed that the Kubernetes URL and all the credentials have template variable placeholders (ex.
+<code className="jarombek-inline-code">${GOOGLE_ACCOUNT_PASSWORD}</code>).  For the sake of keeping
+sensitive and dynamic information out of my <strong>jenkins.yaml</strong> file, I created a
+<a href="https://github.com/AJarombek/global-aws-infrastructure/blob/master/jenkins-kubernetes/docker/push-image.py">
+Python script</a> which uses <a href="https://jarombek.com/blog/oct-26-2019-unit-test-aws-infrastructure
+#unit-testing-aws-infrastructure">boto3 (an AWS SDK)</a> to grab this information from my AWS account
+(specifically EKS and Secrets Manager).  The Python script takes a file named <strong>jenkins-template.yaml</strong>
+(The JCasC configuration with template variable placeholders), retrieves the secrets and Kubernetes URL
+from AWS, creates a file named <strong>jenkins.yaml</strong> with all the placeholders filled in with
+their final values, and optionally pushes a Docker image with this final JCasC YAML file to my AWS ECR
+repository.  You can view all this code on <a href="https://github.com/AJarombek/global-aws-infrastructure/
+blob/master/jenkins-kubernetes/docker/push-image.py">GitHub</a>.
+</p>
+<p>
+The final section of the JCasC configuration creates seed jobs, taking advantage of the <a href="https://jarombek.com/blog/
+sep-21-2018-jenkins#jenkins-jobs-and-the-dsl-plugin">Job DSL Plugin</a>.  The Job DSL Plugin allows
+Jenkins jobs to be created in Groovy code instead of manually through the UI.
+</p>
+<CodeSnippet language="YAML">
+jobs:
+  - script: >
+      job("single-seed-job") {
+        description("Freestyle Job that builds a single other job")
+        parameters {
+          stringParam("repository", "global-jenkins-jobs", "Repository containing the Job DSL script")
+          stringParam("branch", "master", "Repo branch containing the Job DSL script")
+          stringParam("job_dsl_path", "", "Location of Job DSL script")
+        }
+        concurrentBuild(true)
+        scm {
+          git {
+            branch("\$branch")
+            remote {
+              credentials("ajarombek-github")
+              github("AJarombek/\$repository", "ssh", "github.com")
+            }
+          }
+        }
+        steps {
+          dsl {
+            external("\$job_dsl_path")
+          }
+        }
+      }
+  - script: >
+      job("seed-job") {
+        description("Freestyle Job that builds other jobs")
+        parameters {
+          stringParam("repository", "global-jenkins-jobs", "Repository containing the Job DSL scripts")
+          stringParam("branch", "master", "Repo branch containing the Job DSL scripts")
+        }
+        concurrentBuild(false)
+        scm {
+          git {
+            branch("\$branch")
+            remote {
+              credentials("ajarombek-github")
+              github("AJarombek/\$repository", "ssh", "github.com")
+            }
+          }
+        }
+        steps {
+          dsl {
+            external("**/job_dsl.groovy")
+          }
+        }
+      }
+  - script: >
+      pipelineJob("init") {
+        description("Pipeline Job for initializing the Jenkins server")
+        definition {
+          cpsScm {
+            scm {
+              git {
+                branch("master")
+                remote {
+                  credentials("ajarombek-github")
+                  github("AJarombek/global-jenkins-jobs", "ssh", "github.com")
+                }
+              }
+              scriptPath("bootstrap/init/Jenkinsfile.groovy")
+            }
+          }
+        }
+      }
+  - script: >
+      pipelineJob("set-folders") {
+        description("Pipeline Job for setting the folder structure of the Jenkins server")
+        definition {
+          cpsScm {
+            scm {
+              git {
+                branch("master")
+                remote {
+                  credentials("ajarombek-github")
+                  github("AJarombek/global-jenkins-jobs", "ssh", "github.com")
+                }
+              }
+              scriptPath("bootstrap/set-folders/Jenkinsfile.groovy")
+            }
+          }
+        }
+      }
+</CodeSnippet>
+<p>
+There are four Jenkins jobs specified here.  The first two are jobs that create other jobs.
+<code className="jarombek-inline-code">single-seed-job</code> takes the path to a Job DSL Groovy file
+and creates a job from it.  <code className="jarombek-inline-code">seed-job</code> finds all the Job
+DSL Groovy files in a repository and creates their corresponding jobs.  <code className="jarombek-inline-code">set-folders</code>
+takes advantage of the Job DSL Plugins ability to create folders.  <code className="jarombek-inline-code">init</code>
+sets up the Jenkins server when it's first created.
+</p>
+<SectionTitle title="Initialization Jenkins Job">Initialization Jenkins Job</SectionTitle>
+<p>
+Running the initialization (<code className="jarombek-inline-code">init</code>) Jenkins job is currently
+the only manual process of setting up the Jenkins server.  Luckily it’s a very quick process.  A shortened
+version of the Jenkinsfile is shown below, with the full file on <a href="https://github.com/AJarombek/
+global-jenkins-jobs/blob/master/bootstrap/init/Jenkinsfile.groovy">GitHub</a>.
+</p>
+<CodeSnippet language="Groovy">
+pipeline {
+  agent {
+    label 'master'
+  }
+  options {
+    ansiColor('xterm')
+    timeout(time: 1, unit: 'HOURS')
+    buildDiscarder(
+      logRotator(daysToKeepStr: '10', numToKeepStr: '5')
+    )
+  }
+  stages {
+    stage("Clean Workspace") {
+      steps {
+        script {
+          cleanWs()
+        }
+      }
+    }
+    stage("Init Scripts") {
+      steps {
+        script {
+          sh """
+            # Install additional dependencies not handled by the Dockerfile
+          """
+        }
+      }
+    }
+    stage("Create Jobs") {
+      steps {
+        script {
+          // The first time JOB DSL scripts are built, they will fail and need approval.
+          build(job: 'set-folders', propagate: false, wait: true)
+
+          build(
+            job: 'seed-job',
+            parameters: [
+              string(name: 'repository', value: 'global-jenkins-jobs'),
+              string(name: 'branch', value: 'master')
+            ],
+            propagate: false
+          )
+
+          // Pause the job until the user approves the scripts.
+          timeout(time: 1, unit: 'HOURS') {
+            input message: 'Approve Scripts before continuing...', ok: 'Scripts Approved'
+          }
+
+          // On the Job DSL scripts second run, they should pass.
+          build(job: 'set-folders', propagate: true, wait: true)
+
+          build(
+            job: 'seed-job',
+            parameters: [
+              string(name: 'repository', value: 'global-jenkins-jobs'),
+              string(name: 'branch', value: 'master')
+            ]
+          )
+        }
+      }
+    }
+    stage("Trigger Initial Scheduled Jobs") {
+      steps {
+        script {
+          buildJobs([
+            'global-aws/cost-detection',
+            ...
+          ])
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        email.sendEmail(
+          "Jenkins Server Initialized",
+          "",
+          env.JOB_NAME,
+          currentBuild.result,
+          env.BUILD_NUMBER,
+          env.BUILD_URL
+        )
+
+        cleanWs()
+      }
+    }
+  }
+}
+
+def buildJobs(List&lt;String> jobList) {
+  jobList.each {
+    build(job: it, propagate: false, wait: false)
+  }
+}
+</CodeSnippet>
+<p>
+The initialization job consists of three steps.  The first step installs additional libraries (which
+aren’t installed in the Dockerfile) onto the Jenkins server.  The second step runs a Jenkins job named
+<code className="jarombek-inline-code">seed-job</code>.  This job attempts to create all the jobs configured
+with the Job DSL Plugin in my <a href="https://github.com/AJarombek/global-jenkins-jobs">global-jenkins-jobs</a>
+repository.  Since these scripts need to be manually approved, the <code className="jarombek-inline-code">init</code>
+job pauses while I approve the scripts.  The final step triggers builds for all the jobs which run on a cron schedule.  This
+ ensures they properly run as their schedule dictates.
+</p>
+<SectionTitle title="Future Improvements">Future Improvements</SectionTitle>
+<p>
+While I am very happy with my current Jenkins server setup, there are definitely some improvements I
+can make.  The first would be to automate the build of the <code className="jarombek-inline-code">init</code>
+job and to find a way to safely and automatically approve the Job DSL scripts.  Another thing would be to
+streamline the installation of dependencies on the Jenkins server.  Currently I’m using both the Dockerfile
+and the <code className="jarombek-inline-code">init</code> job as methods for installing dependencies.
+Ideally I would use a single approach.  I’m currently leaning towards having a job that installs dependencies,
+especially considering that in order for changes to the Dockerfile to take effect on the server, an
+entire deployment needs to take place.
+</p>
+<p>
+Alas, the perfect solution would be a one click method to build the entire Jenkins server.  This would
+be an improvement over the current method where I run the Python script (which pushes the Jenkins server’s
+Docker image to ECR), apply the Terraform configuration, and run the
+<code className="jarombek-inline-code">init</code> job.
+</p>
+<p>
+You can check out all the code for my <a href="https://github.com/AJarombek/global-aws-infrastructure/tree/
+master/jenkins-kubernetes">Jenkins server infrastructure</a> and <a href="https://github.com/AJarombek/
+global-jenkins-jobs">Jenkins jobs</a> on GitHub.
+</p>
+</div>

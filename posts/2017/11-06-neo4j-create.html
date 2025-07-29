@@ -1,0 +1,117 @@
+<div>
+<p>
+Lately I've read about graph databases and their place in the NoSQL data storage
+universe. The graph database I've worked with is Neo4j, which is fun and easy to get started with.
+I found the user interface very enjoyable for viewing graphs and executing queries.
+I highly recommend it if you need a graph database solution.
+</p>
+<p>
+Graph databases largest draw is related data storage and the speed at which you can query related data points (or in
+graph terms, nodes/vertices). Relationships are first class citizens, which allows
+related data queries to be executed by traversing relationships themselves.  This is contrasted
+with a typical relational database where you have to find relationships through
+foreign keys or combine two tables with a very slow SQL <code className="jarombek-inline-code">
+JOIN</code> operation<sup>1</sup>. The same slow query in a RDBMS (Relational DataBase Management
+System) is extremely quick in a graph database.
+</p>
+<p>
+One of the first graphs I made in Neo4j represented the county I grew up in -
+<a href="https://i.pinimg.com/736x/32/10/06/3210060e2e11b84a497e7b56dac7fbb8--connecticut-ancestry.jpg">
+Fairfield County CT</a>.  My first task was to create a vertex representing a state - in
+this case Connecticut.  In Cypher (the query language used by Neo4j) that was easy!
+</p>
+<CodeSnippet language="Cypher">
+CREATE (ct:State {name: 'Connecticut'}) RETURN ct
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">CREATE</code> statement builds a vertex and passes it a label
+<code className="jarombek-inline-code">:State</code> and a property <code className="jarombek-inline-code">name</code>
+. The label is used for grouping - in this case all states will have the label
+<code className="jarombek-inline-code">:State</code>. Properties can give vertices names along
+with supplying additional key-&gt;value information.
+</p>
+<p>
+Building multiple vertices at once can be done from a single <code className="jarombek-inline-code">CREATE</code>
+ statement. I utilize this to populate the counties towns and cities:
+</p>
+<CodeSnippet language="Cypher">
+CREATE (:City {name: 'Bridgeport'}),
+  (:City {name: 'Danbury'}),
+  ...
+
+CREATE (:Town {name: 'Bethel'}),
+  (:Town {name: 'Brookfield'}),
+  ...
+</CodeSnippet>
+<p>
+Before I made any relationships, I wanted to simplify things and group together cities and
+towns under one common label. After all towns and cities are both considered settlements.
+</p>
+<CodeSnippet language="Cypher">
+MATCH (s) WHERE s:City OR s:Town SET s:Settlement
+</CodeSnippet>
+<p>
+I introduced some new keywords here, most importantly <code className="jarombek-inline-code">MATCH</code>,
+ which queries the database based on some ASCII Art I pass it. The
+<code className="jarombek-inline-code">(s)</code> token represents a node in the database that I assign
+to variable <code className="jarombek-inline-code">s</code>. This query can be read as "for each vertex in the database
+that is a city or town, give the vertex a new label called Settlement". In Neo4j vertices can have multiple labels, so the
+<code className="jarombek-inline-code">SET</code> operation will not override old labels.
+</p>
+<p>
+Now its time for the fun part: relationships. Lets create a relationship between all the
+settlements and the state of Connecticut:
+</p>
+<CodeSnippet language="Cypher">
+MATCH (ct:State), (s:Settlement) MERGE (ct)<-[:IN]-(s)
+</CodeSnippet>
+<p>
+As you likely guessed, the ASCII art for relationships is <code className="jarombek-inline-code">&lt;-[:IN]-</code>
+where the arrow shows the direction of the relationship. Relationships are given a
+label, in this case <code className="jarombek-inline-code">:IN</code>
+.  Relationships can also have properties just like a vertex. This is what I
+meant by 'relationships are first class entities' - they are treated and queried just
+like a vertex! First class relationships are extremely powerful.
+</p>
+<p>
+You may have noticed the query matches multiple vertices. I looked for
+all vertices where the label is State or Settlement. Then I created the
+relationship "all settlements are in all the states". Since the only state in the database is
+Connecticut, all settlements are given an <code className="jarombek-inline-code">:IN</code> relationship
+to Connecticut.
+</p>
+<p>
+For the final step I created relationships between all the
+neighboring towns. The query is long so I'll just show a snippet (the full code
+for all queries is on <a href="https://github.com/AJarombek/jarombek-com-sources/blob/
+master/2017/11-Nov/11-6-Neo4j-Create/neo4j-create.cql">GitHub</a>):
+</p>
+<CodeSnippet language="Cypher">
+MATCH (greenwich:Settlement {name: 'Greenwich'}),
+  (stamford:Settlement {name: 'Stamford'}),
+  (newcannan:Settlement {name: 'New Cannan'}),
+  (darien:Settlement {name: 'Darien'}),
+  ...
+CREATE (greenwich)-[:NEIGHBORS_OF]->(stamford),
+  (stamford)-[:NEIGHBORS_OF]->(newcannan),
+  (stamford)-[:NEIGHBORS_OF]->(darien),
+  ...
+</CodeSnippet>
+<p>
+This code creates neighbor relationships between towns that share borders. One thing
+that I questioned when writing this code is 'why cant there be bi-directional
+relationships?' It turns out Neo4j does not support
+bi-directional relationships at this time. This is because traversing a relationship takes the same
+amount of time (O(1)) regardless of the direction it is pointing<sup>2</sup>. In a case like
+this where the relationships should be bi-directional, you can
+just ignore the arrow in <code className="jarombek-inline-code">MATCH</code>
+queries. Below you can see the output of the settlements in the Neo4j user interface:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/11-6-17-FairfieldGraphImage.png"/>
+</figure>
+<p>
+I will look further at Neo4j and build off this graph in future discoveries. I hope this post
+helps show how simple it is to build a graph database!
+</p>
+</div>

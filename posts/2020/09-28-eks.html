@@ -1,0 +1,243 @@
+<div>
+<p>
+Recently I made the decision to move my applications to <a href="https://jarombek.com/blog?query=Kubernetes&page=1">Kubernetes</a>,
+specifically hosted in an EKS cluster on AWS.  Before making this decision, my applications
+(<a href="https://www.saintsxctf.com/">saintsxctf.com</a> and <a href="https://jarombek.com/">jarombek.com</a>)
+were hosted using different methods.  <strong>saintsxctf.com</strong> was hosted on autoscaled
+<a href="https://jarombek.com/blog?query=AWS%20EC2&page=1">AWS EC2</a> instances and <strong>jarombek.com</strong>
+was hosted on AWS ECS.  I also had prototypes using different hosting methods and a
+<a href="https://jarombek.com/blog?query=Jenkins&page=1">Jenkins</a> server which was hosted on EC2
+instances.  Moving all these applications to Kubernetes unifies the deployment process and allows me to take
+advantage of <a href="https://jarombek.com/blog/apr-1-2019-docker-pt1">containerization</a> and
+<a href="https://jarombek.com/blog/may-13-2019-kubernetes-pt1">container orchestration</a>.
+</p>
+<p>
+In this article, I'll discuss the process for setting up my EKS cluster with Terraform.  I'll also
+detail my experience deploying ALB Ingress Controller and External DNS pods on the cluster.
+</p>
+<SectionTitle title="EKS Cluster Terraform Infrastructure">EKS Cluster Terraform Infrastructure</SectionTitle>
+<p>
+One thing I've noticed with EKS is that it's very difficult to create Terraform infrastructure for a
+cluster from scratch.  This difficulty is also true for CloudFormation, so it seems to be an EKS specific
+weakness.  Because of this, I decided to use a community made <a href="https://registry.terraform.io/
+modules/terraform-aws-modules/eks/aws/12.1.0">EKS module</a> from the Terraform registry.  I've found
+this module to be very reliable, and because EKS is updated rather frequently, it helps me
+avoid spending time fixing my Terraform configuration.
+</p>
+<p>
+With the community Terraform module, configuration for a cluster is very simple.  Besides calling
+the module, the only resource needed to get the cluster set up is an IAM policy for worker
+nodes in the cluster (depending on your use case, this can be omitted as well).  The following code snippet configures
+ the cluster.
+</p>
+<CodeSnippet language="HCL">
+module "andrew-jarombek-eks-cluster" {
+  source = "terraform-aws-modules/eks/aws"
+  version = "~> 12.1.0"
+
+  create_eks = true
+  cluster_name = local.cluster_name
+  cluster_version = "1.16"
+  vpc_id = data.aws_vpc.application-vpc.id
+  subnets = [
+    data.aws_subnet.kubernetes-grandmas-blanket-public-subnet.id,
+    data.aws_subnet.kubernetes-dotty-public-subnet.id
+  ]
+
+  worker_groups = [
+    {
+      instance_type = "t2.medium"
+      asg_max_size = 2
+      asg_desired_capacity = 1
+    }
+  ]
+}
+
+resource "aws_iam_policy" "worker-pods-policy" {
+  name = "worker-pods"
+  path = "/kubernetes/"
+  policy = file("${path.module}/worker-pods-policy.json")
+}
+
+resource "aws_iam_role_policy_attachment" "worker-pods-role-policy" {
+  policy_arn = aws_iam_policy.worker-pods-policy.arn
+  role = module.andrew-jarombek-eks-cluster.worker_iam_role_name
+}
+</CodeSnippet>
+<SectionTitle title="Creating Cluster-Wide Objects">Creating Cluster-Wide Objects</SectionTitle>
+<p>
+Once the cluster is running, I create Kubernetes objects and resources that can be utilized by
+all applications.  The first resources I create are namespaces, which provide a logical separation of the
+cluster for different applications and environments.  Namespaces act as virtual clusters with object
+and resource name scoping<sup>1</sup>.  This means there can be two objects (for example, two pods) with
+the same name in different namespaces.
+</p>
+<p>
+In my cluster, each application gets at least one namespace (except for prototypes, which all exist in
+the same namespace).  If the application has a development environment along with a production environment,
+it gets one namespace for each environment.  For example, my <strong>jarombek.com</strong> application
+has two namespaces - <code className="jarombek-inline-code">jarombek-com</code> and
+<code className="jarombek-inline-code">jarombek-com-dev</code>.
+</p>
+<p>
+There are multiple ways to automate the creation of these Kubernetes objects.  Some approaches include
+using the <code className="jarombek-inline-code">kubectl</code> CLI or using a high-level programming
+language API such as the Kubernetes Go client<sup>2</sup>.  The approach I decided to take was to just use Terraform!
+Terraform has a provider which allows you to provision Kubernetes objects and resources on a cluster.
+</p>
+<p>
+The biggest benefit of using Terraform is that the same language and CLI commands are used to build
+the cluster and the Kubernetes objects.  The <a href="https://registry.terraform.io/providers/hashicorp/
+kubernetes/latest/docs/guides/getting-started#why-terraform">Terraform documentation</a> lists out some
+other reasons to use Terraform for Kubernetes object management.
+</p>
+<p>
+Below is an example of a Kubernetes object defined in Terraform.  It defines a namespace for my <strong>jarombek.com</strong>
+application.
+</p>
+<CodeSnippet language="HCL">
+data "aws_eks_cluster" "cluster" {
+  name = module.andrew-jarombek-eks-cluster.cluster_id
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.andrew-jarombek-eks-cluster.cluster_id
+}
+
+provider "kubernetes" {
+  host = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+  token = data.aws_eks_cluster_auth.cluster.token
+  load_config_file = false
+}
+
+resource "kubernetes_namespace" "jarombek-com-namespace" {
+  metadata {
+    name = "jarombek-com"
+
+    labels = {
+      name = "jarombek-com"
+      environment = "production"
+    }
+  }
+}
+</CodeSnippet>
+<p>
+The Kubernetes provider needs to be configured once before building any Kubernetes resources with Terraform.
+As you can see in the code snippet, I pass parameters to the <code className="jarombek-inline-code">provider</code>
+object from the existing <code className="jarombek-inline-code">aws_eks_cluster</code> and
+<code className="jarombek-inline-code">aws_eks_cluster_auth</code> data sources on AWS.  Then I can create
+a new <code className="jarombek-inline-code">kubernetes_namespace</code> resource.  For reference, an
+ equivalent YAML file for this resource looks like this:
+</p>
+<CodeSnippet language="YAML">
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jarombek-com
+  labels:
+    name: jarombek-com
+    environment: production
+</CodeSnippet>
+<p>
+I often keep the YAML documents in a folder alongside my Terraform infrastructure for reference.
+</p>
+<SectionTitle title="ALB Ingress Controller and External DNS">ALB Ingress Controller and External DNS</SectionTitle>
+<p>
+Kubernetes provides multiple ways to configure networking capabilities.  Three options are available
+to make applications on Kubernetes accessible outside the cluster - a <code className="jarombek-inline-code">NodePort</code>
+service, a <code className="jarombek-inline-code">LoadBalancer</code> service, or an
+<code className="jarombek-inline-code">Ingress</code> object<sup>3</sup>.  <code className="jarombek-inline-code">NodePort</code>
+and <code className="jarombek-inline-code">LoadBalancer</code> services have limitations -
+<code className="jarombek-inline-code">NodePort</code> services can only use ports
+<strong>30000</strong>-<strong>32767</strong> and <code>LoadBalancer</code> services can only direct
+traffic to a single application<sup>4</sup>.  Due to these limitations, I use
+<code className="jarombek-inline-code">Ingress</code> objects and ingress controllers for directing
+traffic to my applications.
+</p>
+<p>
+Ingress objects take network requests and forward them to services defined in the Kubernetes cluster.
+In order for an ingress to work, an ingress controller must be running in the cluster.  An ingress
+controller is simply a pod.  There are many different ingress controller implementations.  AWS has its
+own implementation called the ALB Ingress Controller.  The ALB Ingress Controller watches for Ingress
+objects and creates AWS infrastructure such as Application Load Balancers (ALBs) if the Ingress objects
+have the proper tags<sup>5</sup>.  For example, my Jenkins server has the following Ingress object:
+</p>
+<CodeSnippet language="YAML">
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: jenkins-ingress
+  namespace: jenkins
+  annotations:
+    kubernetes.io/ingress.class: alb
+    external-dns.alpha.kubernetes.io/hostname: jenkins.jarombek.io,www.jenkins.jarombek.io
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/certificate-arn: ${ACM_CERT_ARNS}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: '/login'
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/security-groups: ${SECURITY_GROUPS_ID}
+    alb.ingress.kubernetes.io/subnets: ${SUBNET_IDS}
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/tags: Name=jenkins-load-balancer,Application=jenkins,Environment=${ENV}
+  labels:
+    version: v1.0.0
+    environment: production
+    application: jenkins-server
+  spec:
+    rules:
+      - host: jenkins.jarombek.io
+        http:
+          paths:
+            - path: /*
+              backend:
+                serviceName: jenkins-service
+                servicePort: 80
+      - host: www.jenkins.jarombek.io
+        http:
+          paths:
+            - path: /*
+            backend:
+              serviceName: jenkins-service
+              servicePort: 80
+</CodeSnippet>
+<p>
+This Ingress object routes traffic from the <strong>jenkins.jarombek.io</strong> and
+<strong>www.jenkins.jarombek.io</strong> domains to a Jenkins server on my Kubernetes cluster.  Take
+note of all the tags on the Ingress object with the <code className="jarombek-inline-code">alb.ingress.kubernetes.io</code>
+prefix.  The ALB Ingress controller uses these annotations to determine the configuration of the load
+balancer it builds on AWS<sup>6</sup>.  Also notice there is an additional annotation with the
+<code className="jarombek-inline-code">external-dns.alpha.kubernetes.io</code> prefix.  Although the
+ALB Ingress Controller builds the load balancer AWS infrastructure, it does not build any AWS Route53
+DNS records for the domain names that the load balancer takes in traffic from.  To build these DNS
+records, an additional pod called External DNS needs to run on the Kubernetes cluster<sup>7</sup>.
+External DNS is not strictly tied to AWS, but in my use cases I ask it to configure AWS Route53 records.
+To start the ALB Ingress Controller and External DNS, I added more Terraform Kubernetes resources.  The
+configuration is a bit long, so you can view it in <a href="https://github.com/AJarombek/global-aws-infrastructure/
+blob/master/eks/main.tf#L359-L595">main.tf</a> on GitHub.
+</p>
+<SectionTitle title="Debugging with kubectl">Debugging with kubectl</SectionTitle>
+<p>
+One of the things I've noticed is that sometimes the ALB Ingress Controller and External DNS don't work
+as I expect them to.  Luckily this is pretty easy to debug.  When The Terraform EKS module creates the
+cluster, it also creates a <strong>kubeconfig</strong> file which can be used for <strong>kubectl</strong>
+authentication.  Since the ALB Ingress Controller and External DNS are simply Kubernetes pods, their
+logs can be viewed with <strong>kubectl</strong>.  Doing this is as simple as the following commands:
+</p>
+<CodeSnippet language="Bash">
+export KUBECONFIG=/path/to/kubeconfig
+
+# My ALB Ingress Controller and External DNS pods are in the kube-system namespace.
+kubectl get po -n kube-system
+kubectl logs -f ${alb-ingress-controller-pod-name} -n kube-system
+kubectl logs -f ${external-dns-pod-name} -n kube-system
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+I've always enjoyed using Kubernetes to orchestrate application infrastructure, so I'm happy to have
+my own cluster in AWS.  All the code I use to build the EKS cluster is available on <a href="https://github.com/
+AJarombek/global-aws-infrastructure/tree/master/eks">GitHub</a>.
+</p>
+</div>

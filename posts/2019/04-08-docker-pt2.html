@@ -1,0 +1,349 @@
+<div>
+<p>
+In my previous post about <a href="https://jarombek.com/blog/apr-1-2019-docker-pt1">Docker</a>, I explored
+the basic concepts of Docker containers.  In this post, I'm creating a Docker playground environment
+on AWS with Terraform and CloudFormation.  The playground consists of an EC2 instance with Docker installed.
+It's accessible from the internet to facilitate containerized web applications.  To start I'll discuss why
+I used Terraform and CloudFormation to build the playground.  Then I'll take a deep dive into the infrastructure code.
+</p>
+<SectionTitle title="Terraform & CloudFormation for IaC">Terraform & CloudFormation for IaC</SectionTitle>
+<p>
+The Infrastructure is built using Terraform and CloudFormation, which are infrastructure as code (IaC)
+tools.  <a href="https://jarombek.com/blog/sep-3-2018-terraform#what-is-terraform?">IaC</a> uses a
+programming/configuration language to run and provision cloud infrastructure.  I discussed Terraform
+in <a href="https://jarombek.com/blog/sep-3-2018-terraform">prior</a> <a href="https://jarombek.com/blog/
+sep-7-2018-aws-lambda-api-gateway">articles</a> and use it to provision the infrastructure for my
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure">SaintsXCTF website</a>.
+</p>
+<p>
+CloudFormation is another IaC tool designed by Amazon exclusively for AWS.  CloudFormation's AWS exclusivity is different than
+Terraform, which is cloud agnostic.  Similar to Terraform, CloudFormation allows developers to create
+infrastructure declaratively<sup>1</sup>.  CloudFormation is written in JSON or YAML files called
+templates (always use YAML if you can, it's easier on the eyes).  When a template file is built (the
+infrastructure is instantiated), the resulting infrastructure is called a stack<sup>2</sup>.  Stacks
+are easily debugged and validated in the AWS Console.  In my experience, debugging errors in CloudFormation
+is much easier than Terraform, which often gives confusing error messages.
+</p>
+<p>
+When people discuss Terraform and CloudFormation for AWS infrastructure, they make it seem like one
+must be picked over the other.  This is a difficult choice, since Terraform and CloudFormation have
+different strengths and weaknesses.  For example, Terraform has the ability to retrieve existing
+infrastructure while CloudFormation does not (you have to use the AWS CLI or SDKs).  CloudFormation
+has certain features that Terraform lacks, such as <a href="https://docs.aws.amazon.com/AWSCloudFormation/
+latest/UserGuide/aws-resource-init.html">Cloud Init</a> for EC2 instances.  There is also the personal
+preference of CloudFormation's YAML syntax or Terraform's HCL syntax.
+</p>
+<p>
+In reality, you can easily use a combination of both IaC tools.  For building a Docker playground
+environment, I started with Terraform to get existing AWS infrastructure such as VPCs and subnets.
+I then called a CloudFormation template file from Terraform to build a stack.  The Terraform state
+is stored on S3 and the CloudFormation stack logs are available on the AWS Console.
+</p>
+<p>
+Now let's look at the code.
+</p>
+<SectionTitle title="Playground Infrastructure">Playground Infrastructure</SectionTitle>
+<p>
+As I previously mentioned, the IaC codebase begins with Terraform to get existing AWS infrastructure.
+In particular, I'm interested in an existing VPC and Subnet.  A VPC (Virtual Private Cloud) is a private
+cloud with its own IP address range, providing a network for cloud resources<sup>3</sup>.  Within a
+VPC, IP addresses are further partitioned into subnetworks (subnets).  Subnets can either be publicly
+accessible to the internet or private to the VPC.  The Docker playground is an EC2 instance located
+inside a VPC and public subnet.  The VPC and subnet are used for all my experimental applications, so
+they already exist in my AWS account.  The following Terraform code retrieves both the VPC and subnet.
+</p>
+<CodeSnippet language="HCL">
+data "aws_vpc" "sandbox-vpc" {
+  tags {
+    Name = "sandbox-vpc"
+  }
+}
+
+data "aws_subnet" "sandbox-subnet" {
+  tags {
+    Name = "sandbox-vpc-fearless-public-subnet"
+  }
+}
+</CodeSnippet>
+<p>
+Next I create an SSH key used to connect to the EC2 instance from my local computer.  I wrote a Bash
+script to complete this task.  Local bash scripts can be invoked from Terraform using a
+<code className="jarombek-inline-code">null_resource</code> and a <code className="jarombek-inline-code">local-exec</code>
+provisioner.
+</p>
+<CodeSnippet language="HCL">
+resource "null_resource" "key-gen" {
+  provisioner "local-exec" {
+    command = "bash ../key-gen.sh sandbox-docker-playground-key"
+  }
+}
+</CodeSnippet>
+<p>
+With access to the VPC, public subnet, and SSH key, I'm ready to invoke the CloudFormation template.
+The following resource passes variables from Terraform to the <strong>docker-playground.yml</strong>
+CloudFormation template for execution.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_cloudformation_stack" "docker-playground-cf-stack" {
+  name = "docker-playground-cf-stack"
+  template_body = "${file("docker-playground.yml")}"
+  on_failure = "DELETE"
+  timeout_in_minutes = 20
+
+  parameters {
+    VpcId = "${data.aws_vpc.sandbox-vpc.id}"
+    SubnetId = "${data.aws_subnet.sandbox-subnet.id}"
+    MyCidr = "${local.my_cidr}"
+    PublicCidr = "${local.public_cidr}"
+  }
+
+  capabilities = ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
+
+  tags {
+    Name = "docker-playground-cf-stack"
+  }
+
+  depends_on = ["null_resource.key-gen"]
+}
+</CodeSnippet>
+<p>
+I named the CloudFormation stack <code className="jarombek-inline-code">docker-playground-cf-stack</code>
+and ensure it executes after the SSH key Bash script with <code className="jarombek-inline-code">
+depends_on = ["null_resource.key-gen"]</code>.  I passed four parameters to the CloudFormation stack -
+<code className="jarombek-inline-code">VpcId</code>, <code className="jarombek-inline-code">SubnetId</code>,
+<code className="jarombek-inline-code">MyCidr</code>, and <code className="jarombek-inline-code">PublicCidr</code>.
+<code className="jarombek-inline-code">VpcId</code> and <code className="jarombek-inline-code">SubnetId</code> are
+the existing AWS resources.  <code className="jarombek-inline-code">MyCidr</code> and <code className="jarombek-inline-code">
+PublicCidr</code> are used for configuring the security groups of the EC2 instance.
+</p>
+<p>
+Now let's switch over to the CloudFormation template.  The first section of the template collects
+inputs and assigns them to variables.  I specified an optional <code className="jarombek-inline-code">
+AWS::CloudFormation::Interface</code> metadata section which groups parameters together in the AWS Console<sup>4</sup>.
+</p>
+<CodeSnippet language="YAML">
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Playground EC2 instance for testing Docker'
+
+Parameters:
+  VpcId:
+    Type: "AWS::EC2::VPC::Id"
+    Description: "VPC to deploy the Docker Playground in"
+  SubnetId:
+    Type: "AWS::EC2::Subnet::Id"
+    Description: "Subnet to deploy the Docker Playground in"
+  MyCidr:
+    Type: "String"
+    Description: "CIDR for my local environment"
+  PublicCidr:
+    Type: "String"
+    Description: "CIDR for all IP addresses"
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    -
+      Label:
+        default: "Terraform AWS Data"
+    Parameters:
+    - VpcId
+    - SubnetId
+    - MyCidr
+    - PublicCidr
+    ParameterLabels:
+      VpcId:
+        default: "VPC to deploy the EC2 instance in"
+      SubnetId:
+        default: "Subnet to deploy the EC2 instance in"
+      MyCidr:
+        default: "CIDR for my local environment"
+      PublicCidr:
+        default: "CIDR for all IP addresses"
+</CodeSnippet>
+<p>
+Once the parameters from Terraform are collected, the CloudFormation template specifies AWS resources
+to create.  The first resource is the EC2 instance to run Docker on.
+</p>
+<CodeSnippet language="YAML">
+Resources:
+
+# Create an EC2 instance for Docker testing running Amazon Linux 2
+DockerPlaygroundInstance:
+  Type: AWS::EC2::Instance
+  Metadata:
+    AWS::CloudFormation::Init:
+      configSets:
+        default:
+        - "installDocker"
+        - "installGit"
+      installDocker:
+        # Commands are executed in alphabetical order
+        commands:
+          00Begin:
+            command: echo "Beginning Install Docker Step (CF::Init)"
+          01UpdatePackages:
+            command: sudo yum update -y
+          02InstallDocker:
+            command: sudo amazon-linux-extras install docker
+          03StartDocker:
+            command: sudo service docker start
+          04ChangeDockerUnixGroup:
+            command: sudo usermod -a -G docker ec2-user
+          05TestDocker:
+            command: docker --version
+          06GetDockerInfo:
+            command: docker system info
+          07End:
+            command: echo "Finishing Install Docker Step (CF::Init)"
+      installGit:
+        commands:
+          00Install:
+            command: sudo yum -y install git
+  Properties:
+    # us-east-1 Amazon Linux 2
+    ImageId: "ami-035be7bafff33b6b6"
+    InstanceType: "t2.micro"
+    KeyName: "sandbox-docker-playground-key"
+    IamInstanceProfile: !Ref DockerPlaygroundInstanceProfile
+    NetworkInterfaces:
+    - AssociatePublicIpAddress: true
+      DeviceIndex: 0
+      SubnetId: !Ref SubnetId
+      GroupSet:
+      - !Ref DockerPlaygroundSecurityGroup
+    UserData:
+      Fn::Base64:
+        !Sub |
+          #!/bin/bash
+          echo "Beginning UserData Step"
+          sudo yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-init -v -s ${AWS::StackName} -r DockerPlaygroundInstance -c default --region ${AWS::Region}
+          echo "Finishing UserData Step"
+    Tags:
+    -
+      Key: Name
+      Value: docker-playground-instance
+</CodeSnippet>
+<p>
+When CloudFormation creates an <code className="jarombek-inline-code">AWS::EC2::Instance</code> resource,
+it first creates a VM based on the <code className="jarombek-inline-code">ImageId</code> AMI.  My EC2
+instance is of size <code className="jarombek-inline-code">t2.micro</code> and can be accessed with the
+<code className="jarombek-inline-code">sandbox-docker-playground-key</code> SSH key.  As the EC2 instance
+boots up, the Bash script declared under <code className="jarombek-inline-code">UserData</code> runs.
+The Bash script I wrote simply calls <code className="jarombek-inline-code">cfn-init</code>, which executes
+the <code className="jarombek-inline-code">AWS::CloudFormation::Init</code> commands.
+</p>
+<p>
+Let's break down how <code className="jarombek-inline-code">AWS::CloudFormation::Init</code> works.  The
+<code className="jarombek-inline-code">cfn-init</code> Bash command under <code className="jarombek-inline-code">
+UserData</code> contains multiple flags for configuration.  <code className="jarombek-inline-code">-s ${AWS::StackName}</code>
+specifies the CloudFormation stack that contains the <code className="jarombek-inline-code">AWS::CloudFormation::Init</code>
+template.  <code className="jarombek-inline-code">--region ${AWS::Region}</code> helps guide
+<code className="jarombek-inline-code">cfn-init</code> to the template since a CloudFormation stack only
+exists in a single region.  <code className="jarombek-inline-code">-r DockerPlaygroundInstance</code> defines
+the resource <code className="jarombek-inline-code">AWS::CloudFormation::Init</code> exists inside (my EC2
+instance) and <code className="jarombek-inline-code">-c default</code> declares the <code className="jarombek-inline-code">configSet</code>
+to use.  In the code above you can see that <code className="jarombek-inline-code">AWS::CloudFormation::Init</code>
+has a single configuration set called <code className="jarombek-inline-code">default</code>, which specifies
+the execution order of <code className="jarombek-inline-code">AWS::CloudFormation::Init</code> configurations.
+</p>
+<p>
+<code className="jarombek-inline-code">AWS::CloudFormation::Init</code> consists of configurations and
+configuration sets.  Configuration sets create groups of configurations and gives them an execution
+order.  The following code helps show the structure of <code className="jarombek-inline-code">AWS::CloudFormation::Init</code>.
+</p>
+<CodeSnippet language="YAML">
+AWS::CloudFormation::Init:
+  configSets:
+    default:
+      - "configuration1"
+      - "configuration2"
+      - "configuration3"
+    skipThirdConfig:
+      - "configuration1"
+      - "configuration2"
+  configuration1:
+    commands:
+      00Command:
+        command: echo "First Configuration Executing..."
+  configuration2:
+    commands:
+      00Command:
+        command: echo "Second Configuration Executing..."
+  configuration3:
+    commands:
+      00Command:
+        command: echo "Third Configuration Executing..."
+</CodeSnippet>
+<p>
+In my Docker playground template, <code className="jarombek-inline-code">AWS::CloudFormation::Init</code>
+installs Docker, starts Docker, and then installs Git.
+</p>
+<SectionTitle title="Why use AWS::CloudFormation::Init">
+Why use <code className="jarombek-header-code">AWS::CloudFormation::Init</code>?
+</SectionTitle>
+<p>
+When I first learned about CloudFormation, I was really confused about the purpose of <code className="jarombek-inline-code">
+AWS::CloudFormation::Init</code>.  Why not just place all the Bash commands under <code className="jarombek-inline-code">
+UserData</code>?  It turns out <code className="jarombek-inline-code">UserData</code> and
+<code className="jarombek-inline-code">AWS::CloudFormation::Init</code> behave quite differently.
+</p>
+<p>
+<code className="jarombek-inline-code">UserData</code> contains commands which are executed when the virtual
+machine boots up.  Its written imperatively, and is only executed once.  <code className="jarombek-inline-code">
+AWS::CloudFormation::Init</code> is a declaration of desired state on the virtual machine.  Its written
+declaratively, and can be updated throughout the lifecycle of the virtual machine<sup>5</sup>.
+</p>
+<p>
+The consequence of this on virtual machine IaC is significant.  If I change the <code className="jarombek-inline-code">
+UserData</code> script, the virtual machine has to be restarted to take effect.  However I can change
+<code className="jarombek-inline-code">AWS::CloudFormation::Init</code> in whatever way I want without stopping
+the virtual machine.  This makes <code className="jarombek-inline-code">AWS::CloudFormation::Init</code>
+extremely powerful, and is a key reason why I've started using CloudFormation for configuring EC2
+virtual machines.
+</p>
+<p>
+The remainder of the CloudFormation template configures a security group to open appropriate ports on the EC2 instance and
+gives the EC2 instance access to Elastic Container Registry (ECR), which is a private repository for
+Docker images.  You can find all the CloudFormation code on <a href="https://github.com/AJarombek/
+devops-prototypes/blob/master/playgrounds/docker/docker-playground.yml">GitHub</a>.
+</p>
+<SectionTitle title="Using the Docker Playground">Using the Docker Playground</SectionTitle>
+<p>
+With both <a href="https://github.com/AJarombek/devops-prototypes/blob/master/playgrounds/docker/main.tf">
+main.tf</a> and <a href="https://github.com/AJarombek/devops-prototypes/blob/master/playgrounds/docker/
+docker-playground.yml">docker-playground.yml</a> in the same directory, the playground infrastructure
+is built with the following commands:
+</p>
+<CodeSnippet language="Bash">
+terraform init
+terraform plan
+terraform approve -auto-approve
+</CodeSnippet>
+<p>
+Once the infrastructure is built, the following command is used to connect to the EC2 instance.  This
+command must be run from the directory that contains the SSH key.
+</p>
+<CodeSnippet language="Bash">
+ssh -i "sandbox-docker-playground-key.pem" ec2-user@ec2-xxx-xxx-xxx-xxx.compute-1.amazonaws.com
+</CodeSnippet>
+<p>
+Run <code className="jarombek-inline-code">docker -v</code> to confirm that everything is set up correctly.
+If there are any issues, you can debug what occurred during the <code className="jarombek-inline-code">
+UserData</code> and <code className="jarombek-inline-code">AWS::CloudFormation::Init</code> stages with
+the following commands:
+</p>
+<CodeSnippet language="Bash">
+# Debug UserData
+sudo nano /var/log/cloud-init-output.log
+
+# Debug CloudFormation::Init
+sudo nano /var/log/cfn-init.log
+</CodeSnippet>
+<p>
+In my next post, I'll write about containerizing an application on the Docker playground and accessing
+it from the browser.  If you haven't seen it already, check out my <a href="https://jarombek.com/blog/apr-1-2019-docker-pt1">first Docker post</a>
+which covers the basics of the container system.
+</p>
+</div>

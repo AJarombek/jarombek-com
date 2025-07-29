@@ -1,0 +1,117 @@
+<div>
+<p>
+In my
+<a href="https://jarombek.com/blog/jan-6-2018-angular-5-first-impressions">First Reactions to Angular</a>
+discovery post, I was quite critical of TypeScript.  I questioned whether it truly was a pure
+superset of JavaScript and didn't like how it forced the MEAN stack to use multiple languages.
+</p>
+<p>
+I did finish my TypeScript discussion saying I'd give it a chance and continue working with it.  So is
+TypeScript going to replace my JavaScript now that I built a full Angular 5 app with it?  Not quite,
+but it is a really cool language that brings a lot to the JavaScript ecosystem!
+</p>
+<SectionTitle title="Static Typing">Static Typing</SectionTitle>
+<p>
+The biggest argument for TypeScript over JavaScript is that its statically typed.  This can result in
+quicker development and for bugs that stem from type incompatibilities to never appear in the first
+place.  TypeScript does a great job of this!  Its also really nice that TypeScript doesn't force type definitions.
+If you don't explicitly give a variable a type it uses the default <code className="jarombek-inline-code">any</code> type.
+All types in TypeScript are subtypes of <code className="jarombek-inline-code">any</code>.  Variables of type <code className="jarombek-inline-code">any</code>
+can be assigned any value just like JavaScript<sup>1</sup>!  This allows developers to slowly
+incorporate TypeScript specific features into their code.
+</p>
+<SectionTitle title="Constructor Shortcuts">Constructor Shortcuts</SectionTitle>
+<p>
+There were many cool features of TypeScript that assisted my Angular development.  One of these
+features was access modifiers and constructors.  TypeScript allows you to use access modifiers on
+constructor arguments and then automatically adds these arguments as properties of the object.
+This reduces code and the use of <code className="jarombek-inline-code">this</code> in the constructor body.
+In fact almost none of my constructors even needed bodies!
+</p>
+<p>
+Here is an example of a TypeScript class using the constructor shortcut:
+</p>
+<CodeSnippet language="TypeScript">
+class User {
+
+    // Access modifiers (public, private, protected in TS) on constructor variables
+    // automatically make them instance variables
+    constructor(private username: string, private first: string, private last: string) { }
+
+    public getUsername() {
+
+        // Access the automatically created instance variable
+        return this.username;
+    }
+}
+
+const newUser: User = new User("andy", "Andrew", "Jarombek");
+console.info(newUser.getUsername()); // andy
+</CodeSnippet>
+<p>
+In JavaScript this shortcut doesn't exist and properties must be explicitly assigned to an object.
+Here is the JavaScript equivalent**:
+</p>
+<CodeSnippet language="JavaScript">
+class User {
+
+    constructor(username, first, last) {
+        this.username = username;
+        this.first = first;
+        this.last = last;
+    }
+
+    getUsername() {
+        return this.username;
+    }
+}
+
+const user = new User('andy', 'Andrew', 'Jarombek');
+console.info(user.getUsername()); // andy
+</CodeSnippet>
+<p>
+**Well, kinda.  The object properties in this class are accessible to outside code.  To make them
+private requires additional complexity.  If you want to see exactly how TypeScript converts to JavaScript, you
+can paste this code into the online <a href="https://www.typescriptlang.org/play/">
+TypeScript playground</a>.
+</p>
+<p>
+Its also important to remember that both TypeScript and JavaScript classes are syntactic
+sugar on top of Prototypes.
+</p>
+<SectionTitle title="Interfaces">Interfaces</SectionTitle>
+<p>
+While JavaScript doesn't have interfaces, TypeScript gives developers an
+<code className="jarombek-inline-code">interface</code> keyword to work with.
+Interestingly TypeScript interfaces don't transpile into JavaScript code.  Instead they are used to
+enforce types among classes<sup>2</sup>.
+</p>
+<p>
+In my Angular project I had multiple classes interacting with my backend API.  Since each class had a similar
+structure, each implemented an interface:
+</p>
+<CodeSnippet language="TypeScript">
+interface HttpService {
+
+    getAll(): Observable<[any]>;
+    get(name: any): Observable&lt;any&gt;;
+    post(item: any): Observable&lt;any&gt;;
+    put(item: any): Observable&lt;any&gt;;
+    patch?(name: string, data: {[key: string]: any}): Observable&lt;any&gt;;
+    delete(name: any): Observable&lt;any&gt;;
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">patch()</code> function defined in the interface
+is optional for classes to implement (as defined with the <code className="jarombek-inline-code">?</code>
+token).  This allows my classes to still be flexible even with an interface!
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+These were a few TypeScript features that really stood out to me.  I really missed
+static typing amongst other features when switching back to JavaScript.  While I don't think TypeScript
+will replace my use of JavaScript, I do hope JavaScript implements some of these features in the future
+(in fact, there is a <a href="https://github.com/michaelficarra/proposal-first-class-protocols">proposal</a>
+to add interfaces to JavaScript, so there is hope!).
+</p>
+</div>

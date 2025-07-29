@@ -1,0 +1,160 @@
+<div>
+<p>
+Java was not originally designed to support multiple inheritance of implemented methods.  Because of this,
+a class could only extend one other class.  However, multiple inheritance could be simulated by implementing multiple
+interfaces.  The only catch was the methods
+in the interface had no body and had to be created in the implementing class.
+</p>
+<p>
+This design helped avoid multiple inheritance issues, such as the diamond problem.  However,
+using interfaces for APIs is far from perfect.
+</p>
+<p>
+Let's say you need to change an API that uses an interface.  When adding a new method definition to an
+interface, all classes that implement this interface must also implement the new
+method.  If all the implementing classes of this interface belong to you its is an easy fix. Unfortunately in the case of public APIs
+its likely that someone else has a class that implements your interface.  Adding a new method to the interface breaks their code!
+</p>
+<p>
+Java 8 has a fix for this issue called default methods.  With default methods, interface methods with
+the <code className="jarombek-inline-code">default</code> keyword contain bodies.  If an interface method isn't implemented in the
+concrete class and a default method exists, the default method in the interface is invoked!  With default methods existing code doesn't break on interface changes.
+</p>
+<p>
+But wait!  What's the difference between an abstract class and an interface with default methods?  Although
+both can have method bodies now, there are still differences between the two.  First off a class can
+still only extend one abstract class but can implement multiple interfaces.  Second,
+abstract classes can have instance variables while interfaces can't<sup>1</sup>.
+</p>
+<p>
+What about multiple inheritance now that you can inherit methods with implementations from different interfaces?
+With Java 8 new rules were added to deal with situations where a class has multiple method bodies to choose from.
+</p>
+<p>
+First off, if one method body comes from a class and the rest come from default methods, the classes
+implementation is picked.  Second, if multiple default methods exist on different levels of the inheritance
+chain, the implementation in the interface closest to the class is picked.  If neither of
+these conditions are met, the class has to explicitly select which method body to use<sup>2</sup>.
+</p>
+<p>
+Lets observe an example of default methods and what occurs in a diamond problem scenario.
+The interface hierarchy below represents animals:
+</p>
+<figure id="diamond-uml-image">
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/diamond-uml.png">
+</figure>
+<p>
+Here is the code for each entity in the diagram (side note: you can also specify
+<code className="jarombek-inline-code">static</code> method implementations in interfaces with Java 8):
+</p>
+<CodeSnippet language="Java">
+public interface Animal {
+
+    String aboutMe();
+
+    /**
+    * Default method will be called if this method doesn't exist in the implemented class
+    * @return the age of the animal
+    */
+    default int age() {
+        return 0;
+    }
+
+    /**
+    * In Java 8 interfaces can have static methods
+    * @return a description of this animal
+    */
+    static String info() {
+        return "I am an animal";
+    }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+public interface LivingAnimal extends Animal {
+    void run();
+    void walk();
+    void sleep();
+    void eat();
+
+    default String status() {
+        return "I am a living animal!";
+    }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+public interface Pet extends Animal {
+    String owner();
+
+    default String status() {
+        return "I am a pet!";
+    }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+public class Cat implements LivingAnimal, Pet {
+
+    private String name;
+    private String owner;
+
+    public Cat(String name) {
+        this.name = name;
+    }
+
+    public Cat(String name, String owner) {
+        this.name = name;
+        this.owner = owner;
+    }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+public class Main {
+
+    public static void main(String... args) {
+        Cat snickers = new Cat("Snickers", "Caroline D");
+
+        int age = snickers.age();
+        System.out.println(age);
+
+        String status = snickers.status();
+        System.out.println(status);
+    }
+}
+</CodeSnippet>
+<p>
+When I tried running this code I got the following error:
+</p>
+<figure id="error-message-image">
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/error-message.png">
+</figure>
+<p>
+This error occurred because I forgot to explicitly select which <code className="jarombek-inline-code">status()</code> method body to implement in
+the <code className="jarombek-inline-code">Cat</code> class.  Let's fix this issue and explicitly
+call the <code className="jarombek-inline-code">Pet</code> interface implementation<sup>3</sup>:
+</p>
+<CodeSnippet language="Java">
+...
+
+@Override
+public String status() {
+    return Pet.super.status();
+}
+</CodeSnippet>
+<p>
+Now when I run the code <code className="jarombek-inline-code">age</code> equals <code className="jarombek-inline-code">0</code>
+and <code className="jarombek-inline-code">status</code> equals <code className="jarombek-inline-code">'I am a pet!'</code>.
+</p>
+<p>
+For some of us this may be the expected result.  For others with diamond problem experience an error
+may be expected.  Although I don't really know C++ (yet...) I know that having diamond inheritance like
+this example will cause an error.  The reason why Java doesn't complain here has to do with the way Java
+is implemented.  Instead of both <code className="jarombek-inline-code">LivingAnimal</code> and
+<code className="jarombek-inline-code">Pet</code> having a copy of the default method <code className="jarombek-inline-code">age()</code> defined in
+<code className="jarombek-inline-code">Animal</code> as they would in C++, Java knows there is only one default method
+<code className="jarombek-inline-code">age()</code> in <code className="jarombek-inline-code">Animal</code><sup>4</sup>.
+Therefore no conflict exists!
+</p>
+<p>
+Working with API's got a lot easier in Java 8.  You can check out all the code for this discovery on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/01-Jan/1-16-Java-Default-Method/defaultmethods">GitHub</a>.
+</p>
+</div>

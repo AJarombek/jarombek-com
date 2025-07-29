@@ -1,0 +1,301 @@
+<div>
+<p>
+Reflection in Java was always a technique clouded in mystery for me.  There aren't many practical
+applications for reflection, so my personal code never really needed to use it.  It also didn't
+help that people often describe reflection as "hard to learn" and only for "experienced
+developers."  It turns out reflection isn't that complicated, although questions still remain of
+its usefulness in building applications.
+</p>
+<p>
+Reflection is the combination of inspecting runtime elements of an application and modifying its
+runtime structure<sup>1</sup>.  The first piece of this definition is more specifically referred
+to as type introspection.
+</p>
+<Definition word="Type Introspection">
+The ability of a programming language to examine its objects at runtime.  Type introspection
+gives developers the ability to look at multiple aspects of objects at runtime, including the
+type, methods, instance variables, modifiers and more<sup>2</sup>.  Examples of type
+introspection in Java include the <code className="jarombek-inline-code">instanceof</code> operator
+and the <code className="jarombek-inline-code">Class</code> class.
+</Definition>
+<p>
+Basic usage of the <code className="jarombek-inline-code">instanceof</code> operator is to see if
+an object was instantiated as a certain type.  For example, the following code was run in JShell
+(the new Java REPL) to see what two different <code className="jarombek-inline-code">Object</code>
+declarations were instantiated as.
+</p>
+<CodeSnippet language="Java">
+Object obj1 = new Object();
+obj1 instanceof Object
+obj1 instanceof String
+
+Object obj2 = "Hello";
+obj2 instanceof Object
+obj2 instanceof String
+</CodeSnippet>
+<CodeSnippet>
+java.lang.Object obj1 = java.lang.Object@42595112
+java.lang.Boolean res1 = true
+java.lang.Boolean res2 = false
+
+java.lang.Object obj2 = "Hello"
+java.lang.Boolean res1 = true
+java.lang.Boolean res2 = true
+</CodeSnippet>
+<p>
+This is a very basic example of type introspection.  To use type introspection along with the
+reflection API in Java, we have to utilize the <code className="jarombek-inline-code">
+java.lang.Class</code> class.
+</p>
+<Definition word="Reflection">
+Reflection is a programming language implementation and technique for inspecting and modifying the
+runtime structure of an application.  In Java, this runtime structure is the objects that make up
+a program.  To perform reflection in Java, <code className="jarombek-inline-code">java.lang.Class</code>
+is used to inspect objects.  Classes that make up the <code className="jarombek-inline-code">
+java.lang.reflect</code> package are used to modify and interact with these objects at runtime.
+</Definition>
+<p>
+Now that type introspection and reflection are clearly defined, I will demonstrate the 
+basic building blocks of reflection in Java.
+</p>
+<SectionTitle title="Java Reflection">Java Reflection</SectionTitle>
+<p>
+Let's say we created the string <code className="jarombek-inline-code">"1995"</code> as an object in Java.
+For starters we can perform type introspection on this object with the help of <code className="jarombek-inline-code">Class</code>.
+</p>
+<CodeSnippet language="Java">
+var string = "1995";
+Class objectClass = string.getClass();
+
+// Get the modifiers on the class
+String modifier = Modifier.toString(objectClass.getModifiers());
+
+System.out.println(modifier);
+
+// Get the super class of this class
+Class superClass = objectClass.getSuperclass();
+
+System.out.println(superClass.toString());
+</CodeSnippet>
+<CodeSnippet>
+public final
+class java.lang.Object
+</CodeSnippet>
+<p>
+This is a very simple example of type introspection, but you can see the power (yet relative
+simplicity) of <code className="jarombek-inline-code">java.lang.Class</code>.  First the method
+<code className="jarombek-inline-code">getClass()</code> is called on the object.
+<code className="jarombek-inline-code">getClass()</code> is defined on
+<code className="jarombek-inline-code">Object</code>, allowing access to the runtime class of any
+object.  It provides a <code className="jarombek-inline-code">Class</code> instance, allowing for type introspection.
+</p>
+<p>
+Once I have an instance of <code className="jarombek-inline-code">Class</code>,
+<code className="jarombek-inline-code">getModifiers()</code> is called on the class instance.  <code className="jarombek-inline-code">getModifiers()</code> provides
+the modifiers defined on the class.  <code className="jarombek-inline-code">
+String</code> is defined as <code className="jarombek-inline-code">public</code> and
+<code className="jarombek-inline-code">final</code> as shown in the output above.
+</p>
+<p>
+I also get the superclass of <code className="jarombek-inline-code">String</code> by calling
+<code className="jarombek-inline-code">getSuperclass()</code>.  The superclass of
+<code className="jarombek-inline-code">String</code> is simply <code className="jarombek-inline-code">Object</code>.
+</p>
+<p>
+What if I wanted to do something a bit more involved.  For example, let's say I want to perform
+type introspection on a method of <code className="jarombek-inline-code">String</code> and then
+reflectively invoke it.  This can be done through Java's reflective API.  The following code
+searches for the <code className="jarombek-inline-code">length()</code> method on the
+<code className="jarombek-inline-code">String</code> class through type introspection and then invokes
+it reflectively:
+</p>
+<CodeSnippet language="Java">
+/**
+* Get a method from a class with specific parameters
+* @param objectClass the class to look for a method on
+* @param name what the method is defined as
+* @param parameterTypes types of all the parameters for a method
+* @return an {code Optional} with a method if the object contains the method.
+* Otherwise an empty {@code Optional} is returned.
+*/
+private static Optional&lt;Method&gt; getMethod(Class&lt;?&gt; objectClass, String name,
+                                                Class&lt;?&gt;... parameterTypes) {
+  try {
+    Method method = objectClass.getMethod(name, parameterTypes);
+    return Optional.of(method);
+  } catch (NoSuchMethodException e) {
+    return Optional.empty();
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+var string = "1995";
+Class objectClass = string.getClass();
+
+Optional&lt;Method&gt; method = getMethod(objectClass, "length", null);
+
+method.ifPresent(m -> {
+  try {
+    System.out.println("Result of length() invocation: " + m.invoke(object, null));
+  } catch (Exception e) {
+    System.out.println("Error Invoking Method: " + e.getLocalizedMessage());
+  }
+});
+</CodeSnippet>
+<CodeSnippet>
+Result of length() invocation: 4
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">getMethod()</code> is used to get the method
+<code className="jarombek-inline-code">length()</code> from the class
+<code className="jarombek-inline-code">String</code>.  <code className="jarombek-inline-code">
+getMethod()</code> returns an instance of <code className="jarombek-inline-code">Method</code>, a class
+in Java's reflection API.  From the official Java documentation, <code className="jarombek-inline-code">
+Method</code> "provides information about, and access to, a single method on a class or interface
+<sup>3</sup>."  Per the documentation, a call to the <code className="jarombek-inline-code">
+invoke()</code> method on <code className="jarombek-inline-code">java.lang.reflect.Method</code>
+calls the method reflectively.  In the code above <code className="jarombek-inline-code">length()</code>
+is invoked reflectively, returning the expected value of <code className="jarombek-inline-code">4</code>.
+</p>
+<p>
+Another thing you can do with type introspection is list all the methods in a class.  Then
+you could call these <code className="jarombek-inline-code">java.lang.reflect.Method</code>
+instances reflectively.  The following code lists all the methods in the
+<code className="jarombek-inline-code">String</code> class.
+</p>
+<CodeSnippet language="Java">
+private static void listMethods(Object object) {
+  Class objectClass = object.getClass();
+  Method[] methods = objectClass.getMethods();
+
+  Arrays.stream(methods).forEach(System.out::println);
+}
+</CodeSnippet>
+<CodeSnippet language="Java">
+var year = "1995";
+listMethods(year);
+</CodeSnippet>
+<CodeSnippet>
+public boolean java.lang.String.equals(java.lang.Object)
+public int java.lang.String.length()
+public java.lang.String java.lang.String.toString()
+public int java.lang.String.hashCode()
+</CodeSnippet>
+<SectionTitle title="Constructing an Object Reflectively">Constructing an Object Reflectively</SectionTitle>
+<p>
+When given an instance of <code className="jarombek-inline-code">java.lang.Class</code> you can
+construct a new object reflectively.  The following code attempts to construct objects and
+primitives, returning an empty <code className="jarombek-inline-code">Optional</code> if
+construction failed or an <code className="jarombek-inline-code">Optional</code> containing the
+instance if construction succeeded.
+</p>
+<CodeSnippet language="Java">
+/**
+ * Attempt to construct a new object reflectively with just the {@code Class} object
+ * @param objectClass a class that we wish to construct an instance of
+ * @return an {code Optional} with a new instance of a class if the construction is successful.
+ * Otherwise an empty {@code Optional} is returned.
+ */
+private static &lt;T&gt; Optional&lt;T&gt; constructReflectively(Class&lt;T&gt; objectClass) {
+  String isPrimitive = objectClass.isPrimitive() ? "Constructing a Primitive" : "Constructing an Object";
+  System.out.println(isPrimitive);
+
+  var optionalConstructor = getConstructor(objectClass);
+
+  if (optionalConstructor.isPresent()) {
+    return getInstance(optionalConstructor.get());
+  } else {
+    return Optional.empty();
+  }
+}
+
+/**
+ * Get a constructor from a {@code Class} object
+ * @param objectClass the class to look for the constructor on
+ * @return an {code Optional} with a constructor if the constructor is found.
+ * Otherwise an empty {@code Optional} is returned.
+ */
+private static &lt;T&gt; Optional&lt;Constructor&lt;T&gt;&gt; getConstructor(Class&lt;T&gt; objectClass) {
+  try {
+    Constructor&lt;T&gt; constructor = objectClass.getDeclaredConstructor();
+    return Optional.of(constructor);
+  } catch (NoSuchMethodException e) {
+    System.out.println("Error Getting Constructor with Reflection: " + e.getLocalizedMessage());
+    return Optional.empty();
+  }
+}
+
+/**
+ * Create a new object instance with a constructor
+ * @param constructor a constructor object instance from the reflection API to create a new instance with
+ * @return an {code Optional} with an object instance if the constructor is invoked successfully.
+ * Otherwise an empty {@code Optional} is returned.
+ */
+private static &lt;T&gt; Optional&lt;T&gt; getInstance(Constructor&lt;T&gt; constructor) {
+  try {
+    var instance = constructor.newInstance();
+    return Optional.of(instance);
+  } catch (Exception e) {
+    System.out.println("Error Getting Instance with Reflection: " + e.getLocalizedMessage());
+    return Optional.empty();
+  }
+}
+</CodeSnippet>
+<p>
+Invoking the constructor fails for primitives, since they are not objects and don't have
+constructors.  The following code calls the <code className="jarombek-inline-code">
+constructReflectively()</code> method for different objects and primitives.  The instance of
+<code className="jarombek-inline-code">ArrayList</code> shows that an object constructed
+reflectively is no different than one constructed normally.
+</p>
+<CodeSnippet language="Java">
+/* Reflectively construct a instance of String */
+var optionalString = constructReflectively(String.class);
+
+optionalString.ifPresent(str -> System.out.println(str.length()));
+
+/* Reflectively construct a instance of primitive int */
+var optionalInteger = constructReflectively(int.class);
+
+optionalInteger.ifPresent(i -> System.out.println(i.intValue()));
+
+/* Reflectively construct a instance of ArrayList */
+var optionalArrayList = constructReflectively(ArrayList.class);
+
+if (optionalArrayList.isPresent()) {
+  var arrayList = (ArrayList&lt;String&gt;) optionalArrayList.get();
+  arrayList.add("hi");
+  arrayList.add("what is up");
+  System.out.println(arrayList.toString());
+}
+</CodeSnippet>
+<CodeSnippet>
+Constructing an Object
+0
+
+Constructing a Primitive
+Error Getting Constructor with Reflection: int.&lt;init&gt;()
+
+Constructing an Object
+[hi, what is up]
+</CodeSnippet>
+<SectionTitle title="Why use Reflection">Why use Reflection?</SectionTitle>
+<p>
+So what use case does reflection even have?  The truth is there are very few.  Some examples of
+programs that use reflection are unit testing frameworks like JUnit and dependency injection
+frameworks<sup>4</sup>.  While its good to have reflection techniques at your disposal,
+reflection in Java has many drawbacks that make it an unnecessary and poor practice in most cases.
+</p>
+<p>
+Method invocation through reflection is much slower than methods handled normally.  This
+is because the JVM can't perform certain optimizations on types that are dynamically resolved
+like those from the reflection API<sup>5</sup>.  Also reflection can break encapsulation (the
+protection of private abstracted data), giving access to fields that are private to a class.
+</p>
+<p>
+Perhaps in the future I will play around with creating a meaningful prototype with reflection.
+All the code from this discovery is up on <a href="https://github.com/AJarombek/
+jarombek-com-sources/blob/master/2018/07-jul/7-1-java-reflection/reflection/Reflect.java">
+Github</a>.
+</p>
+</div>

@@ -1,0 +1,293 @@
+<div>
+<p>
+A common problem when programming is performing a deep copy of an object or data structure.  In many
+languages this is a complex problem, especially when the object gets large.  In Java there are many
+different ways to perform a deep copy on an object.  The original language implementation for copying
+was the <code className="jarombek-inline-code">Cloneable</code> interface.  Since <code className="jarombek-inline-code">
+Cloneable</code> was the first method for copying objects in Java, it is important to understand how it works
+along with all its shortcomings.  This is my journey to understand Java’s <code className="jarombek-inline-code">
+Cloneable</code> interface in all its complexity.
+</p>
+<p>
+If you've ever heard or read about Java’s <code className="jarombek-inline-code">Cloneable</code> interface
+you likely were told the following three words: <strong>Don’t Use It</strong>.  This is good advice, as there
+are many simpler ways to implement deep copying.  Unfortunately there is a lot of code in existence that
+already uses <code className="jarombek-inline-code">Cloneable</code>.  To understand how it works, first let’s
+look at the source code for the interface:
+</p>
+<CodeSnippet language="Java">
+public interface Cloneable { }
+</CodeSnippet>
+<p>
+Yes that is it.  <code className="jarombek-inline-code">Cloneable</code> is an empty interface that defines no
+methods.  While it may seem based off the interface definition that <code className="jarombek-inline-code">
+Cloneable</code> does nothing, it actually does quite a lot.  <code className="jarombek-inline-code">Cloneable</code>
+determines the implementation details of one of the methods on the <code className="jarombek-inline-code">Object</code>
+class.  This method I'm referring to is <code className="jarombek-inline-code">clone()</code>, a
+<code className="jarombek-inline-code">protected</code> method as shown below<sup>1</sup>:
+</p>
+<CodeSnippet language="Java">
+@HotSpotIntrinsicCandidate
+protected native Object clone() throws CloneNotSupportedException;
+</CodeSnippet>
+<p>
+There are a couple of interesting things to note about <code className="jarombek-inline-code">clone()</code>.
+First off it has no method body and is defined with the keyword <code className="jarombek-inline-code">
+native</code>.  The <code className="jarombek-inline-code">native</code> keyword means that the method is
+implemented using the Java Native Interface (JNI).  This means the method body is not written in
+Java, instead implemented in another language such as C, C++, or Assembly<sup>2</sup>.  The
+reason for this is writing code in a low level, machine specific language increases performance.
+</p>
+<p>
+Another important piece of <code className="jarombek-inline-code">clone()</code> is the <code className="jarombek-inline-code">@HotSpotIntrinsicCandidate</code> annotation.
+This annotation allows the HotSpot VM (an implementation of the Java Virtual Machine) know that the
+method implementation may be an intrinsic function<sup>3</sup>.
+</p>
+<Definition word="Intrinsic Function">
+A function that a programming language uses which is handled by the compiler instead of the programming languages
+runtime environment<sup>4</sup>.  In other words - an optimized method definition by the compiler is used, replacing
+the one in the programming languages library<sup>5</sup>.  Intrinsic functions are used as an optimization technique.
+</Definition>
+<p>
+If there is one thing to take away from the <code className="jarombek-inline-code">native</code> keyword and
+<code className="jarombek-inline-code">@HotSpotIntrinsicCandidate</code> annotation it's that
+<code className="jarombek-inline-code">clone()</code> is not handled by the Java language itself.  As Joshua Bloch,
+creator of the Java Collections framework says, <code className="jarombek-inline-code">Cloneable</code> is
+extralinguistic.  It does not follow Java’s rules.
+</p>
+<Definition word="Extralinguistic">
+Outside the bounds of a language.  In Java something that is extralinguistic is outside the rules enforced
+by the language.
+</Definition>
+<p>
+An interface with no defined methods should not be able to change a method implementation in another class.
+However <code className="jarombek-inline-code">Cloneable</code> does just that.  If a class implements
+<code className="jarombek-inline-code">Cloneable</code>, the <code className="jarombek-inline-code">clone()</code>
+method performs a deep copy on the object.  If a class does not implement
+<code className="jarombek-inline-code">Cloneable</code>, <code className="jarombek-inline-code">clone()</code> throws
+a <code className="jarombek-inline-code">CloneNotSupportedException</code>.  This should not be a legal Java
+operation and is downright confusing.
+</p>
+<SectionTitle title="Implementing Cloneable">Implementing <code className="jarombek-header-code">Cloneable</code></SectionTitle>
+<p>
+Here is a simple class I made in Java representing a programming language.  It contains three fields -
+<code className="jarombek-inline-code">name</code>, <code className="jarombek-inline-code">inception</code>, and
+<code className="jarombek-inline-code">paradigms</code>.  It also has getters and setters along with a method
+<code className="jarombek-inline-code">addParadigm()</code> which mutates the list of paradigms by adding a new paradigm.
+</p>
+<CodeSnippet language="Java">
+public class Language implements Cloneable {
+
+    private String name;
+    private LocalDate inception;
+    private List&lt;Paradigm&gt; paradigms;
+
+    enum Paradigm {
+        Object_Oriented, Imperative, Functional, Declarative
+    }
+
+    public Language(String name, LocalDate inception, List&lt;Paradigm&gt; paradigms) {
+        this.name = name;
+        this.inception = inception;
+        this.paradigms = new ArrayList<>(paradigms);
+    }
+
+    @Override
+    public String toString() {
+        return "[" + name + ", " + inception.toString() + ", " + paradigms.toString() + "]";
+    }
+
+    /* Getters and Setters */
+
+    // Add a paradigm to the list if a non null value is passed in
+    public void addParadigm(Paradigm paradigm) {
+        Optional.ofNullable(paradigm).ifPresent(p -> this.paradigms.add(p));
+    }
+}
+</CodeSnippet>
+<p>
+Here is my first attempt at overriding the <code className="jarombek-inline-code">clone()</code> method:
+</p>
+<CodeSnippet language="Java">
+@Override
+protected Language clone() {
+    try {
+        return (Language) super.clone();
+    } catch(CloneNotSupportedException ex) {
+        throw new AssertionError();
+    }
+}
+</CodeSnippet>
+<p>
+Interestingly, the cast to <code className="jarombek-inline-code">(Language)</code> always succeeds.
+On the other hand, the catch clause is never reached since we implemented <code className="jarombek-inline-code">
+Cloneable</code>, however it must be included since <code className="jarombek-inline-code">clone()</code>
+throws a <code className="jarombek-inline-code">CloneNotSupportedException</code>.  If you are thinking to
+yourself this doesn’t make much sense I agree wholeheartedly.  The <code className="jarombek-inline-code">
+Cloneable</code> interface does not follow the rules that the rest of Java enforces.
+</p>
+<p>
+I created a <code className="jarombek-inline-code">Language</code> instance to try cloning.
+</p>
+<CodeSnippet language="Java">
+
+Language language = new Language("Java", LocalDate.of(1995, Month.MAY, 23),
+                            List.of(Language.Paradigm.Object_Oriented,
+                                    Language.Paradigm.Imperative));
+
+Language language2 = language.clone();
+
+System.out.println(language);
+System.out.println(language2);
+
+// Name is immutable and Inception is a final singleton, so changing them
+// has no impact on the copied language
+language.setName("Prolog");
+language.setInception(LocalDate.EPOCH);
+
+// This mutation will effect the copy
+language.addParadigm(Language.Paradigm.Declarative);
+
+System.out.println(language);
+System.out.println(language2);
+</CodeSnippet>
+<CodeSnippet language="Bash">
+# Before Mutation
+[Java, 1995-05-23, [Object_Oriented, Imperative]]
+[Java, 1995-05-23, [Object_Oriented, Imperative]]
+
+# After Mutation
+[Prolog, 1970-01-01, [Object_Oriented, Imperative, Declarative]]
+[Prolog, 1970-01-01, [Object_Oriented, Imperative, Declarative]]
+</CodeSnippet>
+<p>
+Adding an item to the paradigm list in the first
+<code className="jarombek-inline-code">Language</code> instance actually impacts the cloned instance.  This is
+because <code className="jarombek-inline-code">clone()</code> does not make a deep copy of each field in
+an object.  It simply copies the value assigned to the field into the clone.  In the case of an object, the
+copied value is a reference to the object.  Altering the object the reference points to changes the value
+in both the original and cloned instances.  Of course this is never an issue if object fields
+are immutable objects (which both <code className="jarombek-inline-code">String</code> and
+<code className="jarombek-inline-code">LocalDate</code> are).
+</p>
+<p>
+To prevent mutations I added another line to the clone method.  This time a new instance of the
+<code className="jarombek-inline-code">ArrayList</code> is created in each clone.
+</p>
+<CodeSnippet language="Java">
+@Override
+protected Language clone() {
+    try {
+        Language language = (Language) super.clone();
+        language.paradigms = new ArrayList<>(paradigms);
+        return language;
+    } catch(CloneNotSupportedException ex) {
+        throw new AssertionError();
+    }
+}
+</CodeSnippet>
+<p>
+Now the clone is not modified:
+</p>
+<CodeSnippet language="Bash">
+# Before Mutation
+[Java, 1995-05-23, [Object_Oriented, Imperative]]
+[Java, 1995-05-23, [Object_Oriented, Imperative]]
+
+# After Mutation
+[Prolog, 1970-01-01, [Object_Oriented, Imperative, Declarative]]
+[Java, 1995-05-23, [Object_Oriented, Imperative]]
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">Cloneable</code> interface is very confusing and does not follow the
+rules of Java.  Therefore it is encouraged to avoid implementing it in your classes.  To make matters worse,
+if an extendable class implements <code className="jarombek-inline-code">Cloneable</code> all its subclasses have
+to implement it as well<sup>6</sup>.  If the extendable class is client facing, other developers may have to endure
+implementing <code className="jarombek-inline-code">Cloneable</code>.
+</p>
+<SectionTitle title="Alternatives to Cloneable">Alternatives to <code className="jarombek-header-code">Cloneable</code></SectionTitle>
+<p>
+Since we know that implementing <code className="jarombek-inline-code">Cloneable</code> is a bad idea, what
+are the alternatives?  The two best choices for copying an object are copy constructors and copy static
+factories.  Both take an existing object as an argument and return a copy of that object.
+They can be used together, as shown below:
+</p>
+<CodeSnippet language="Java">
+/* Copy Constructor */
+public Language(Language language) {
+    this.name = language.name;
+    this.inception = language.inception;
+    this.paradigms = new ArrayList<>(language.paradigms);
+}
+
+/* Copy Static Factory Method */
+public static Language create(Language language) {
+    return new Language(language);
+}
+</CodeSnippet>
+<p>
+Copy constructors and copy static factories are within the bounds of the Java language, making them excellent
+alternatives.  Use them!
+</p>
+<SectionTitle title="Valid uses of clone">Valid uses of <code className="jarombek-header-code">clone()</code></SectionTitle>
+<p>
+Because the <code className="jarombek-inline-code">Cloneable</code> interface has been in Java since version 1.0, you
+are likely to see code that uses it.  There are indeed some use cases of <code className="jarombek-inline-code">
+clone()</code> that are quite useful.  One of the use cases is copying an array.  Using
+<code className="jarombek-inline-code">clone()</code> is generally the fastest way to copy an array, and is the
+recommended approach<sup>7</sup>.
+</p>
+<CodeSnippet language="Java">
+String[] strings = new String[2];
+strings[0] = "Whats";
+strings[1] = "Up";
+
+String[] stringsCopy = strings.clone();
+</CodeSnippet>
+<p>
+Remember that <code className="jarombek-inline-code">clone()</code> does not perform a deep copy on
+objects within a class or array.  If you mutate an object within a class or array that was cloned, the mutation
+occurs in both the original and the copy.
+</p>
+<CodeSnippet language="Java">
+Language[] languages = new Language[2];
+
+languages[0] = new Language("Java", LocalDate.of(1995, Month.MAY, 23),
+                    List.of(Language.Paradigm.Object_Oriented,
+                            Language.Paradigm.Imperative));
+
+languages[1] = new Language("JavaScript", LocalDate.of(1995, Month.DECEMBER, 4),
+                    List.of(Language.Paradigm.Object_Oriented,
+                            Language.Paradigm.Imperative,
+                            Language.Paradigm.Functional));
+
+// Clone array of mutable languages
+Language[] languagesCopy = languages.clone();
+
+System.out.println(Arrays.toString(languages));
+System.out.println(Arrays.toString(languagesCopy));
+
+// Change the date Java was created to the epoch
+languagesCopy[0].setInception(LocalDate.EPOCH);
+
+System.out.println(Arrays.toString(languages));
+System.out.println(Arrays.toString(languagesCopy));
+</CodeSnippet>
+<CodeSnippet language="Bash">
+# Before Mutation
+[[Java, 1995-05-23, [Object_Oriented, Imperative]], ...]
+[[Java, 1995-05-23, [Object_Oriented, Imperative]], ...]
+
+# After Mutation - Both Arrays are Impacted
+[[Java, 1970-01-01, [Object_Oriented, Imperative]], ...]
+[[Java, 1970-01-01, [Object_Oriented, Imperative]], ...]
+</CodeSnippet>
+<p>
+Yet another reason to use immutable objects!
+</p>
+<p>
+That is all I have to share on the <code className="jarombek-inline-code">Cloneable</code> interface, its strange
+behavior, and the alternatives.  The code used for this discovery is on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2018/05-May/5-15-Java-Clone/clone">Github</a>.
+</p>
+</div>

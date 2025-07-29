@@ -1,0 +1,119 @@
+<div>
+<p>
+When working with Amazon RDS (Relational Database Service) or any other database, creating backups of
+your data is an important safety precaution.  The data of an application is often its most important
+asset, and if its lost or damaged the app is rendered useless.  With RDS, Amazon provides a backup mechanism called
+snapshots.  Snapshots backup the database instance and allow users to restore their RDS instance from a
+snapshot<sup>1</sup>.
+</p>
+<p>
+Internally snapshots are stored in an Amazon S3 (Simple Storage Service) bucket.  However, these backups
+aren't accessible through S3, since the bucket is hidden from the users AWS account<sup>2</sup>.  The only
+way to see snapshots is through the RDS service.  Also, snapshots aren't downloadable and their contents
+can't be viewed.  This poses some serious limitations when trying to test a database backup.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-3-19-rds-snapshot-console.png"/>
+</figure>
+<p>
+Due to the limitations of snapshots, custom solutions for RDS backups are often required.  In this series of
+articles, I'm going to create an automated mechanism for backing up RDS instances.  My approach uses an AWS
+Lambda function and the mysqldump command line utility to store MySQL database backup files on Amazon S3.
+</p>
+<p>
+This lambda function is currently in use for my <a href="https://www.saintsxctf.com">SaintsXCTF</a> website.
+In this article I'll discuss the AWS infrastructure around my SaintsXCTF RDS database, which helps give context
+for the design choices I made.  In my <a href="https://jarombek.com/blog/sep-5-2019-rds-backups-pt2">next
+ article</a> I'll discuss the code required to create the lambda function.
+</p>
+<SectionTitle title="Infrastructure Overview">Infrastructure Overview</SectionTitle>
+<p>
+At a high level, the SaintsXCTF application lives in a single VPC inside my AWS account.  My VPC has four subnets,
+two which are private and which that are public.
+</p>
+<Definition word="VPC">
+A VPC (Virtual Private Cloud) is a private cloud with its own IP address range, providing a network for cloud
+resources.  VPCs are a good way to create isolation between different applications or environments in a cloud
+infrastructure account<sup>3</sup>.  Within a VPC, IP addresses are further partitioned into subnetworks (subnets).
+</Definition>
+<Definition word="Subnet">
+A subnet (subnetwork) is a subsection of an IP address range.  Subnets provide a way to partition IP addresses into
+groups.  In AWS, a subnet within a VPC can either be publically accessible to the internet or private to the subnetwork.
+</Definition>
+<p>
+Here's an infrastructure diagram for my VPC and subnets:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-3-19-saints-xctf-infra-diagram-1.png"/>
+</figure>
+<p>
+The web application for SaintsXCTF lives on an EC2 instance behind a load balancer in the public subnets.  The RDS
+MySQL database is highly available and lives in the private subnets.  Since the database exists in a private
+subnet, only resources within the VPC are able to access it.  Any IP addresses located elsewhere on the internet are blocked
+from reaching it.  This is great for security, since only the web application in the public subnet should access
+the database.  However, it makes the process of automating database backups a bit trickier (as we will soon see).
+</p>
+<p>
+Here is an updated infrastructure diagram with the web application and database:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-3-19-saints-xctf-infra-diagram-2.png"/>
+</figure>
+<p>
+All my infrastructure for SaintsXCTF is written as code using Terraform.  You can check out the IaC for the
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/web-server">web server</a> and
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure/tree/master/database">database</a> on GitHub.
+</p>
+<SectionTitle title="Infrastructure for Database Backups">Infrastructure for Database Backups</SectionTitle>
+<p>
+The first piece of infrastructure needed to automate database backups is a lambda function.  Since the lambda
+function needs access to a database in a private subnet, it must be located within the applications VPC.
+</p>
+<p>
+The second piece of infrastructure needed is a S3 bucket to store the SQL files containing database backups.
+While S3 buckets are assigned regions, they can't be placed within a VPC.  S3 buckets can be described as a
+global resource within the cloud infrastructure.
+</p>
+<p>
+The third piece of infrastructure needed is Amazon Secrets Manager.  With Secrets Manager I'm able to securely store
+ the database username and password.  Thanks to Secrets Manager my database credentials aren't hard-coded within the lambda
+function.  Just like S3, Secrets Manager is assigned a region but not a VPC.
+</p>
+<p>
+With these three new pieces of infrastructure outlined, I drafted a new infrastructure diagram:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-3-19-saints-xctf-infra-diagram-3.png"/>
+</figure>
+<p>
+Unfortunately, this diagram still has some missing pieces.  I quickly learned that placing an AWS Lambda function
+within a VPC causes some complications.  Since I placed the lambda function within the VPC to connect
+to the database, it no longer had internet access.  This is the default behavior of lambda functions within a VPC<sup>4</sup>.
+</p>
+<p>
+While my lambda function was still able to connect to the RDS instance, it lost connection to Secrets Manager
+and the S3 bucket.  RDS connections still worked because the lambda function and database existed in the same
+ VPC.  Because of this I could utilize the database's private IP address instead of its public one.  However,
+S3 and Secrets Manager didn't exist in my applications VPC.  Therefore the only way to connect to them was over
+the internet.
+</p>
+<p>
+There are two solutions to this problem.  One is to set up network address translation (NAT) in the private subnet.
+The other is to create VPC endpoints for Secrets Manager and S3.  I really wanted to avoid using NAT because it
+costs $0.045 per hour, which is very expensive for my personal use.  Therefore I went with the VPC endpoint approach.
+VPC endpoints allow for resources within a VPC to connect to other AWS resources without needing internet access<sup>5</sup>.
+</p>
+<p>
+With the VPC endpoints in place, here is the final infrastructure diagram:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-3-19-saints-xctf-infra-diagram-4.png"/>
+</figure>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+This article gave a high-level overview of my AWS infrastructure and the new parts needed to automate
+database backups.  In my <a href="https://jarombek.com/blog/sep-5-2019-rds-backups-pt2">next article</a>, I'll
+implement these new pieces of infrastructure and go over the AWS Lambda function which lives at the heart of the
+backup process.
+</p>
+</div>

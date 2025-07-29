@@ -1,0 +1,215 @@
+<div>
+<p>
+Something I'm really interested in is incorporating functional programming practices into my
+code.  Despite not working in any purely functional languages (although I am starting to look
+at Haskell), most imperative and object oriented languages support certain functional 
+operations.  In my recent exploration of Groovy, I noticed that closures support the
+currying technique.  Currying in Groovy takes an existing function and creates a new specialized
+variant.  This post explains how to use currying to enhance Groovy closures.
+</p>
+<SectionTitle title="What is Currying?">What is Currying?</SectionTitle>
+<p>
+My exploration of Groovy wasn't the first time I crossed paths with currying.  Currying was
+mentioned in my readings on Java 8 along with my brief research so far of Haskell (a functional
+programming language).  Currying is named after Haskell Curry, an American mathematician (the
+Haskell language is also named after Curry)<sup>1,2</sup>.  The goal of currying in Groovy is to
+make specialized versions of a function.  To accomplish this, pieces of a function are
+put into a fixed state prior to invocation.
+</p>
+<p>
+Confusingly, Groovy's definition of currying does not match the purely functional definition of
+currying.  Currying in Groovy aligns closer to the definition of a partial application.
+</p>
+<Definition word="Currying">
+Curried functions are those that take in their arguments one at a time instead of all at
+once<sup>3</sup>.  A function takes in arguments one at a time by having a single argument and
+returning a function that also takes a single argument<sup>4</sup>.  Returning a function makes a
+curried function a higher order function - one that either takes in a function as an argument or
+results in a function.  A basic example of a curried function is one that multiplies two numbers.
+Denoted as <code className="jarombek-inline-code">mult :: Int -> (Int -> Int)</code>, this curried
+function is invoked with the statement <code className="jarombek-inline-code">
+mult 2 3</code>, resulting in <code className="jarombek-inline-code">6</code> (note the syntax matches
+Haskell). <code className="jarombek-inline-code">mult</code> takes a single integer argument and
+returns a function that also takes a single integer argument.  Curried functions are commonly used 
+to create partial applications.
+</Definition>
+<Definition word="Partial Application">
+A partial application is when some of a curried function's arguments are supplied a fixed value
+before invocation.  The resulting function is a specialized version of the curried function.
+</Definition>
+<SectionTitle title="Haskell Currying and Partial Applications">Haskell Currying and Partial Applications</SectionTitle>
+<p>
+In Haskell, a curried function that multiplies two numbers is straightforward.
+</p>
+<CodeSnippet language="Haskell">
+mult :: Int -> (Int -> Int)
+mult x y = x * y
+</CodeSnippet>
+<CodeSnippet>
+> mult 2 3
+6
+</CodeSnippet>
+<p>
+Now that a curried function exists, partial implementations are easily defined.  Note that the
+following partial implementations fix one of the curried functions arguments to a value.  For example,
+<code className="jarombek-inline-code">dub</code> fixes one of the integer arguments to
+<code className="jarombek-inline-code">2</code>, so all function invocations will multiply the functions
+argument by 2.
+</p>
+<CodeSnippet language="Haskell">
+-- A partial implementation of the 'mult' function that doubles a number
+dub :: Int -> Int
+dub = mult 2
+
+-- Another partial implementation of the 'mult' function that multiplies a number by 10
+x10 :: Int -> Int
+x10 = mult 10
+</CodeSnippet>
+<CodeSnippet>
+dub 3
+> 6
+
+x10 3
+> 30
+</CodeSnippet>
+<p>
+Haskell isn't the focus of the remaining article, so no more code from the language is shown.
+However, I think it's important to see different ways a functional language handles currying.  Keeping the
+purely functional approach in the back of our minds will assist in understanding Groovy's approach.
+</p>
+<UpdateInfo date="November 3rd, 2018">
+Curried functions and partial applications are also easy to make in JavaScript using
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2018/08-Aug/8-27-groovy-currying/curry.js">ES6 arrow functions</a>.
+</UpdateInfo>
+<SectionTitle title="Currying Groovy Closures">Currying Groovy Closures</SectionTitle>
+<p>
+The closure object in Groovy has a <code className="jarombek-inline-code">curry()</code> method.
+Invoking <code className="jarombek-inline-code">curry()</code> creates a partial implementation of the
+closure.  It is important to remember that <code className="jarombek-inline-code">curry()</code> does
+not create a curried function like those we defined in Haskell.  Currying
+in Groovy only creates specialized versions of a function (yes, this is confusing.  You may want to
+re-read this paragraph).
+</p>
+<p>
+The basic example of partial implementations in Groovy match the multiplication methods we defined
+in Haskell:
+</p>
+<CodeSnippet language="Groovy">
+def times = { x, y -> x * y }
+
+assert times(2, 2) == 4
+
+def timesTwo = times.curry(2)
+
+assert timesTwo(5) == 10
+
+def timesTen = times.curry(10)
+
+assert timesTen(10) == 100
+</CodeSnippet>
+<p>
+The argument passed to the <code className="jarombek-inline-code">curry()</code> method is a value
+bound to one of the closures parameters.
+</p>
+<p>
+One solid use case of partial implementation is to take a generic function and create many
+specialized variants.  In the following code I have a generic closure for logging exercises.  The
+parameters of the closure <code className="jarombek-inline-code">workout</code> are the distance,
+time spent, and type of exercise.  Specialized workout closures are built with partial
+implementations:
+</p>
+<CodeSnippet language="Groovy">
+// Closure that prints out a workout
+def workout = { type, miles, minutes, seconds ->
+
+  def min = minutes >= 10 ? minutes : "0$minutes"
+  def sec = seconds >= 10 ? seconds : "0$seconds"
+
+  return "$type $miles miles in $min:$sec"
+}
+
+assert workout("Ran", 4.7, 32, 5) == "Ran 4.7 miles in 32:05"
+
+// Bind the 'type' argument to the value 'Ran'.  All exercises that use the new curried closure are runs
+def run = workout.curry("Ran")
+
+assert run(4.58, 29, 18) == "Ran 4.58 miles in 29:18"
+
+// Bind the 'type' argument to the value 'Ran' and the 'miles' argument to the 5K mile conversion
+def run5K = workout.curry("Ran", 3.106)
+
+assert run5K(15, 27) == "Ran 3.106 miles in 15:27"
+
+// Bind the second argument in the workout closure to the 5K mile conversion
+def fiveK = workout.ncurry(1, 3.106)
+
+assert fiveK("Biked", 15, 0) == "Biked 3.106 miles in 15:00"
+</CodeSnippet>
+<p>
+Partial implementations get really interesting when closure parameters are also closures.  One
+example is a composition closure, which combines two other closures<sup>5</sup>.
+</p>
+<CodeSnippet language="Groovy">
+def composition = { f, g, x -> f(g(x)) }
+</CodeSnippet>
+<p>
+Compositions are used in advanced examples of partial implementations.  The following code snippet
+gives a taste of how to utilize compositions and partial implementations together.
+</p>
+<CodeSnippet language="Groovy">
+/**
+* Represents a running pace/time in minutes and seconds
+*/
+class Time {
+  int minutes
+  int seconds
+
+  /**
+  * Calculate the mile pace for a run given a distance in miles and the time spent running
+  * @param miles - the mileage of the run
+  * @param time - the time it took to complete the run
+  * @return the pace of the run
+  */
+  static int milePace(double miles, Time time) {
+    def seconds = (time.minutes * 60) + time.seconds
+    return seconds / miles
+  }
+
+  @Override
+  String toString() {
+    return "Time: $minutes:${seconds >= 10 ? seconds : "0${seconds}"}"
+  }
+}
+
+// Closure to convert an integer representing seconds into a Time object
+def toPace = {int seconds -> new Time(minutes: Math.floor(seconds / 60), seconds: seconds % 60)}
+
+// Use the milePace() static method as a closure.  This gives us access to the curry() method
+def pace = Time.&milePace
+
+// Curry the pace closure to calculate paces for 5K races
+def pacePer5K = pace.curry(3.106)
+
+// The purpose of a composition closure is to combine two other closures
+def composition = { f, g, x -> f(g(x)) }
+
+// Create a composition of the pacePer5K closure and the toPace closure.  The resulting closure takes in a
+// 5K time and returns the pace of the 5K represented by a Time object.
+def minutesPerMileFor5K = composition.curry(toPace, pacePer5K)
+
+def pr = [minutes: 15, seconds: 27] as Time
+
+assert minutesPerMileFor5K(pr).toString() == "Time: 4:58"
+
+def trackTT = [minutes: 16, seconds: 42] as Time
+
+assert minutesPerMileFor5K(trackTT).toString() == "Time: 5:22"
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+I'm still unsure about specific use cases for currying and partial implementations outside of
+a purely functional language like Haskell.  However, like any programming concept it is another
+skill added to the resume.  I'll keep you updated if I use currying or partial implementations in
+any of my production applications.
+</p>
+</div>

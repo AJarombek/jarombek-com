@@ -1,0 +1,339 @@
+<div>
+<p>
+Over the summer I wrote an article about <a href="https://jarombek.com/blog/jul-31-2018-batch-scripting">
+Batch scripting</a> and just a few weeks ago wrote a follow up on <a href="https://jarombek.com/blog/
+feb-22-2019-bash-scripting">Bash scripting</a>.  Today I'm exploring PowerShell scripting on Windows.
+I've used PowerShell at work recently for automating the deployment of .NET applications.  The rest of
+this article looks at basic features of PowerShell and how it compares to Bash and Batch.
+</p>
+<SectionTitle title="What is a PowerShell Script">What is a PowerShell Script?</SectionTitle>
+<p>
+Powershell is a command line shell and scripting language first released for Windows in 2006<sup>1</sup>.
+It was created as a better way to perform command line scripting on Windows.  Before Powershell, Batch
+files were used for command line scripting in the <code className="jarombek-inline-code">cmd.exe</code> CLI.
+While Batch was suitable for basic tasks, the scripting language was rough around the edges and lacked
+modern functionality.  PowerShell aimed to improve upon these shortcomings.
+</p>
+<SectionTitle title="PowerShell File Basics">PowerShell File Basics</SectionTitle>
+<p>
+PowerShell scripts are files with the <strong>.ps1</strong> extension.  The PowerShell language is
+<a href="https://jarombek.com/blog/jul-15-2018-groovy-optional-typing#dynamic-&-static-typing">
+  dynamically typed</a> and contains basic programming constructs familiar to software developers<sup>2</sup>.
+Powershell types are objects, and type definitions can be explicitly or implicitly declared on variables<sup>3</sup>.  This
+is much different than Bash, which doesn't have types.  In Bash everything is plain text which is
+interpreted differently depending on the context.
+</p>
+<p>
+Let's look at a basic example.  PowerShell has very clean syntax for handling script arguments (similar
+to <a href="https://jarombek.com/blog/may-26-2018-nodejs-command-line">JavaScript command line programs</a>).
+In the script parameter definition, I explicitly declare the type of the single parameter as a string.
+</p>
+<CodeSnippet language="PowerShell">
+# basics.ps1
+
+# Handle script arguments
+param (
+  [string]$author = "Andrew Jarombek"
+)
+</CodeSnippet>
+<p>
+This code declares a single parameter for the <strong>basics.ps1</strong> script.  It creates a new
+variable <code className="jarombek-inline-code">$author</code> of type string (<code className="jarombek-inline-code">
+[string]</code>).  If no argument is supplied to <strong>basics.ps1</strong>, the default value
+<code className="jarombek-inline-code">"Andrew Jarombek"</code> is used.
+</p>
+<p>
+PowerShell scripts are easily invoked in the PowerShell CLI by writing the path of the script followed
+by any arguments.
+</p>
+<CodeSnippet language="PowerShell">
+# No arguments
+basics.ps1
+
+# Single argument
+basics.ps1 "Andy J"
+</CodeSnippet>
+<p>
+Variables are written to stdout with the <code className="jarombek-inline-code">Write-Host</code> command,
+which is admittedly a bit more verbose than its <code className="jarombek-inline-code">echo</code> bash
+counterpart.  The verbosity of commands is a common PowerShell gripe from developers accustomed to using Bash.  The following command
+prints out the <code className="jarombek-inline-code">$author</code> parameter.
+</p>
+<CodeSnippet language="PowerShell">
+Write-Host $author
+</CodeSnippet>
+<SectionTitle title="Execution Policies">Execution Policies</SectionTitle>
+<p>
+One complicated aspect of PowerShell is its execution policy.  Execution policies configure requirements
+that must be met for a PowerShell script to execute<sup>4</sup>.  By default, the execution policy for
+PowerShell on Windows machines is <code className="jarombek-inline-code">Restricted</code>, meaning no scripts
+are allowed to execute.  When I first started using PowerShell this was quite confusing since all my scripts
+failed before executing.
+</p>
+<p>
+While you can create complex execution policy hierarchies at the process, user, and computer levels
+(among others), the most basic way to change the execution policy is with the <code className="jarombek-inline-code">
+Set-ExecutionPolicy &lt;policy&gt;</code> command.  For example, the following command changes the
+execution policy to <code className="jarombek-inline-code">RemoteSigned</code>, which provides some protection
+against running untrustworthy downloaded scripts.
+</p>
+<CodeSnippet language="PowerShell">
+Set-ExecutionPolicy RemoteSigned
+</CodeSnippet>
+<p>
+You can also check the current execution policy with <code className="jarombek-inline-code">Get-ExecutionPolicy</code>.
+All the different execution policies are explained on <a href="https://docs.microsoft.com/en-us/
+powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-6">Microsoft's website</a>.
+</p>
+<SectionTitle title="Working with Objects">Working with Objects</SectionTitle>
+<p>
+As I previously mentioned, all types in PowerShell are objects.  Because of this, variables have methods
+and properties that we can invoke and access.  For example, the <code className="jarombek-inline-code">string</code>
+type has methods such as <code className="jarombek-inline-code">Substring()</code> and <code className="jarombek-inline-code">
+Replace()</code>.
+</p>
+<CodeSnippet language="PowerShell">
+[string]$author = "Andrew Jarombek"
+
+# Select just the lastname portion of the author string
+$lastname = $author.Substring(7)
+Write-Host $lastname
+
+# the -match operator checks if author contains "Jarombek"
+$lastname2 = $author -match "Jarombek"
+Write-Host $lastname2
+
+# Replace Jarombek with Jarbek
+$altauthor = $author.Replace("Jarombek", "Jarbek")
+Write-Host $altauthor
+</CodeSnippet>
+<CodeSnippet>
+Jarombek
+True
+Andrew Jarbek
+</CodeSnippet>
+<p>
+I also utilized a PowerShell operator <code className="jarombek-inline-code">-match</code> to match a
+regular expression to the <code className="jarombek-inline-code">$author</code> string.
+</p>
+<p>
+If you are coming from Batch or Bash, the fact that PowerShell has objects similar to an Object-oriented
+programming language is surprising.  PowerShell objects are very helpful in
+creating concise scripts and integrate well with IDEs.
+</p>
+<p>
+Because PowerShell has object types, performing arithmetic is simpler than Bash (and much simpler than
+Batch).  PowerShell doesn't need an integer context to perform operations like simple addition.
+</p>
+<CodeSnippet language="PowerShell">
+$age = 23
+$ageInTenYears = $age + 10
+Write-Host $ageInTenYears
+</CodeSnippet>
+<CodeSnippet>
+33
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">$age</code> is implicitly typed in this example.  It can be explicitly
+typed as <code className="jarombek-inline-code">[int]$age = 23</code>.
+</p>
+<p>
+PowerShells object based type system really shines when dealing with more complex types.  For example,
+the following script handles the <code className="jarombek-inline-code">DateTime</code> type.
+</p>
+<CodeSnippet language="PowerShell">
+# Get the current date set on the computer
+[DateTime]$CurrentDate = Get-Date -DisplayHint Date
+
+# Demonstrate that there is a lot of functionality availiable on a DateTime object
+Write-Host "It is currently Daylight Savings Time: $($CurrentDate.IsDaylightSavingTime())"
+Write-Host "Current Month: $($CurrentDate.Month)"
+Write-Host "Next Month: $($CurrentDate.AddMonths(1).Month)"
+
+# Prove that $CurrentDate didn't mutate from the previous method invocations
+Write-Host $CurrentDate
+
+# Build another DateTime object
+[DateTime]$EndOfMonth = (Get-Date -Year 2019 -Month 03 -Day 31)
+
+# Its extremely simple to compare dates
+if ($CurrentDate -GT $EndOfMonth) {
+  Write-Host "It isn't March Anymore: $CurrentDate"
+} else {
+  Write-Host "It's still March: $CurrentDate"
+}
+</CodeSnippet>
+<CodeSnippet>
+It is currently Daylight Savings Time: True
+Current Month: 3
+Next Month: 4
+3/13/2019 11:21:00 AM
+It's still March: 03/13/2019 11:21:00
+</CodeSnippet>
+<p>
+This code snippet also shows off some modern PowerShell features such as string interpolation.
+</p>
+<p>
+Powershell arrays are also objects that are easy to work with.
+</p>
+<CodeSnippet language="PowerShell">
+# Basic array syntax @()
+[string[]]$names = @("Andy", "Tom", "Joe")
+
+# Arrays are objects with methods and properties
+Write-Host $names.GetUpperBound(0)
+
+# Implicitly typed array of towns in Connecticut
+$towns = @("Greenwich","Darien","New Canaan","Wilton","Ridgefield")
+Write-Host $towns[0]
+
+# Shortened syntax to create an array of a number range
+$numberArray = @(0..10)
+$subArray = $numberArray[5..9]
+
+# Collect all the towns north of I-95
+$northernTownsArray = $towns[2..4]
+$northernTownsString = ""
+
+foreach ($element in $northernTownsArray) {
+  $northernTownsString += $element + " "
+}
+
+Write-Host $northernTownsString
+
+# An alternative way to iterate over an array is to use a pipe and a foreach loop
+# Collect all the towns along the coast
+$coastalTownsArray = $towns[0..1]
+$coastalTownsString = ""
+
+$coastalTownsArray | foreach {
+  $coastalTownsString += $_ + " "
+}
+
+Write-Host $coastalTownsString
+
+# PowerShell supports multidimensional arrays
+$multiDimensional = @(
+  @("Andrew", "Jarombek"),
+  @("Tom", "Caul"),
+  @("Joseph", "Smoth")
+)
+
+$tom = $multiDimensional[1][0]
+Write-Host $tom
+</CodeSnippet>
+<CodeSnippet>
+2
+Greenwich
+New Canaan Wilton Ridgefield
+Greenwich Darien
+Tom
+</CodeSnippet>
+<SectionTitle title="Writing Functions">Writing Functions</SectionTitle>
+<p>
+PowerShell has pretty clean syntax for writing functions.  By default variables defined in functions
+are scoped locally to the function and don't leak into the global scope.  This is the opposite of Bash
+which leaks variables globally by default.
+</p>
+<CodeSnippet language="PowerShell">
+$age = 23
+
+function Test-Scoping() {
+  # $age is scoped locally to the function
+  $age = 24
+  Write-Host $age
+}
+
+Test-Scoping
+Write-Host $age
+</CodeSnippet>
+<CodeSnippet>
+24
+23
+</CodeSnippet>
+<p>
+To create a global variable from a function, the <code className="jarombek-inline-code">global:</code>
+variable prefix is used.  PowerShell also provides a <code className="jarombek-inline-code">script:</code>
+variable prefix which persists the variable across function invocations.
+</p>
+<CodeSnippet language="PowerShell">
+function Test-Scoping-Variables() {
+  # By default, variables created in functions are local
+  $countLocal = 0
+
+  # By using the $script: prefix, variables are persisted across function calls
+  $script:countScript = 0
+
+  # By using the $global: prefix, variables become global
+  $global:countGlobal = 0
+
+  Write-Host "Local count: $countLocal, Script count: $script:countScript, Global count: $global:countGlobal"
+}
+
+Test-Scoping-Variables
+Write-Host "Local count: $countLocal, Script count: $countScript, Global count: $countGlobal"
+</CodeSnippet>
+<CodeSnippet>
+Local count: 0, Script count: 0, Global count: 0
+Local count: , Script count: 0, Global count: 0
+</CodeSnippet>
+<p>
+Function parameters and return values are a bit funky in PowerShell.  Parameters are defined similar
+to script parameters with a <code className="jarombek-inline-code">param()</code> block.  Return values
+are captured at the end of a function or when a <code className="jarombek-inline-code">return</code> keyword
+is encountered.  Therefore a <code className="jarombek-inline-code">return</code> keyword isn't needed for
+functions to return a value!  They simply declare a function exit point<sup>5</sup>.
+</p>
+<p>
+I think the easiest way to demonstrate this behavior is with an example.  The following three functions
+multiply a string a number of times and return a new string.  They all behave the same way despite
+the <code className="jarombek-inline-code">return</code> keyword used differently (or missing entirely) in each.
+</p>
+<CodeSnippet language="PowerShell">
+# Output of functions are captured and returned.
+# There is a return keyword, but it just specifies an exit point.
+function Mult() {
+  param([string]$str, [int]$count)
+  $str * $count
+}
+
+# Therefore, Mult2 is equivalent to Mult...
+function Mult2() {
+  param([string]$str, [int]$count)
+  return $str * $count
+}
+
+# ...and Mult3 is equivalent to Mult2 and Mult
+function Mult3() {
+  param([string]$str, [int]$count)
+  $str * $count
+  return
+}
+
+# The result is the same when invoking the three functions
+$meows = Mult -str "meow" -count 3
+Write-Host $meows
+
+$meows2 = Mult2 -str "meow" -count 3
+Write-Host $meows2
+
+$meows3 = Mult3 -str "meow" -count 3
+Write-Host $meows3
+</CodeSnippet>
+<CodeSnippet>
+meowmeowmeow
+meowmeowmeow
+meowmeowmeow
+</CodeSnippet>
+<p>
+Besides for return values, PowerShell functions behave as you likely expect.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+One thing that fascinates me is the different design decisions across programming languages.
+I really enjoyed comparing the biggest three scripting languages - Bash, PowerShell, and Batch.  I
+plan to use all three throughout the rest of my career, and will write more discovery posts about
+them as I learn more.  All the code from this article is available on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2019/03-Mar/03-15-powershell-scripting">GitHub</a>.
+</p>
+</div>

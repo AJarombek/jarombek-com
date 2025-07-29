@@ -1,0 +1,130 @@
+<div>
+<p>
+My MEAN stack prototype is the first personal project that uses Continuous Integration (CI).
+Continuous Integration is great and I will likely use it in all future projects.
+</p>
+<p>
+So what is CI?  Continuous Integration is the practice of merging code in development into a main
+repository on a regular basis.  On each of these merges, testing suites and builds are executed automatically
+by a tool separate from the main codebase<sup>1</sup>.  This allows
+for early detection of bugs and helps avoid the nightmare of backtracking through many commits to see
+where some functionality broke.  With CI each time a commit is made the developer knows if
+any existing code broke.  Of course this requires some thorough
+testing suites to be created (something I often cut corners on admittedly).
+</p>
+<p>
+So yes, I have a bad habit of thinking about unit/integration testing as an afterthought.  Like any
+bad habit, it is time to start breaking it with small baby steps!  The first of those steps includes
+setting up each project with a CI service, and in this case I
+chose TravisCI because of how easily it integrates with GitHub repositories!
+</p>
+<p>
+After signing up for <a href="https://travis-ci.org/">TravisCI</a>
+and enabling it on for certain repositories, GitHub notifies Travis each time new commits are
+pushed<sup>2</sup>!  I set up TravisCI for both the client side and server side of my MEAN stack prototype.
+Let’s take a look at the configuration file (named .travis.yml) and see what it does for each project!
+</p>
+<SectionTitle title="Angular 5 Client">Angular 5 Client</SectionTitle>
+<CodeSnippet language="YAML">
+sudo: required
+dist: trusty
+
+addons:
+  apt:
+    source:
+        - google-chrome
+    packages:
+        - google-chrome-stable
+
+language: node_js
+node_js:
+    - '9.2'
+    - '8.0'
+
+before_install:
+    - export CHROME_BIN=chromium-browser
+    - export DISPLAY=:99.0
+    - sh -e /etc/init.d/xvfb start
+
+before_script:
+    - npm install -g @angular/cli
+
+script:
+    - cd web-app
+    - npm install
+    - ng test --single-run --watch=false --code-coverage
+    - npm run build
+
+after_script:
+    - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+
+notifications:
+  email:
+    recipients:
+        - ajarombek95@gmail.com
+    on_success: always
+    on_failure: always
+</CodeSnippet>
+<p>
+Let’s break this file down.  I set the language to a Node.js flavor of
+JavaScript by writing <code className="jarombek-inline-code">language: node_js</code>.  My TravisCI config
+runs tests on two different Node.js versions.  I did this to test out how backwards
+compatible my project was!  Even though the project uses TypeScript and not Node.js, I guess specifying
+the language as Node.js basically tells Travis "This project uses npm."
+</p>
+<p>
+The Angular configuration was a bit more complex than the server side config because of some complexities
+thanks to Angular CLI.  For whatever reason, you
+have to install Chrome in the build in order to get the Karma tests to run properly<sup>3</sup>.
+</p>
+<p>
+Accomplishing this requires use of the apt add-on.  The apt add-on provides commands to the
+apt-get package handler for installation<sup>4</sup>.
+I specified that I want to install <code className="jarombek-inline-code">google-chrome</code>
+from the <code className="jarombek-inline-code">google-chrome-stable</code> package.
+</p>
+<p>
+Before the script is run I tell TravisCI to install AngularCLI (<code className="jarombek-inline-code">
+npm install -g @angular/cli</code>).  This allows TravisCI to use the
+<code className="jarombek-inline-code">ng</code> commands.  Then I specified
+that the tests should run and that a build should execute.  If both of these commands succeed, TravisCI's
+success criteria is met.  Finally, code coverage statistics are sent to <a href="https://coveralls.io/">Coveralls</a>
+, another really cool tool that easily integrates with GitHub.
+</p>
+<p>
+After TravisCI finishes executing the scripts, there is an option to send notifications about the build details.  I
+decided to have emails sent out each time a build finished,
+no matter if it succeeded or failed.  Notifications are very easily configurable to fit your needs.
+</p>
+<SectionTitle title="Nodejs Express Server">Node.js &amp; Express Server</SectionTitle>
+<CodeSnippet language="YAML">
+language: node_js
+node_js:
+    - '9.2'
+    - '8.0'
+
+script:
+    - npm run test
+
+after_success:
+    - npm run coveralls
+
+notifications:
+  email:
+    recipients:
+        - ajarombek95@gmail.com
+    on_success: always
+    on_failure: always
+</CodeSnippet>
+<p>
+Just by glancing at this code you will see that not much changed from the Angular frontend
+configuration.  Node.js is used as the language, a test
+script is run, and email notifications are sent out on success and failure.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+With TravisCI the first baby step has been taken towards a full
+fledged test suite with continuous integration!  I'll be using TravisCI in my projects for the
+foreseeable future.
+</p>
+</div>

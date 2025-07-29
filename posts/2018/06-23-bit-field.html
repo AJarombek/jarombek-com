@@ -1,0 +1,323 @@
+<div>
+<p>
+I was recently reading a book on Java and read through a chapter on how to use bit fields.  Bit
+Fields are a data structure that I never really understood completely (along with most of the
+bitwise operators), so I figured I would take some time to look at Bit Fields in detail.
+</p>
+<Definition word="Bit Field">
+A data structure that consists of one or many memory locations (bits).  Each of these bits has a
+unique meaning defined by the programmer<sup>1</sup>.  It is common practice to use an unsigned
+integer data type of a specified length for a bit field.  For example, in C you can define a
+bit field as <code className="jarombek-inline-code">unsigned int bitField : 2</code>.  This bit field
+consists of two bits which can be turned on or off - each of which has a unique meaning defined
+by the programmer.
+</Definition>
+<p>
+I decided to go back to C for my bit field implementation since the data structure is often used
+in situations where low memory consumption is imperative.  While I am no master at C, I really
+enjoy playing around with the language and hope to understand it to a greater capacity some day.
+</p>
+<SectionTitle title="Bit Field C Implementation">Bit Field C Implementation</SectionTitle>
+<p>
+I started my implementation by defining some bit masks along with a type definition representing
+a user.  The last field in the <code className="jarombek-inline-code">User</code> type definition -
+<code className="jarombek-inline-code">statusField</code> - is a 3-bit field.
+</p>
+<CodeSnippet language="C">
+#define VALIDATED 01
+#define SUBSCRIBED 02
+#define ADMIN 04
+
+typedef struct {
+  char first[31];
+  char last[31];
+  unsigned int statusField : 3;
+} User;
+</CodeSnippet>
+<p>
+The preprocessor definitions for this code are three bit masks which can be applied to the bit
+field.  Every time a macro such as <code className="jarombek-inline-code">VALIDATED</code> is used
+in the code, its occurrence is replaced with the definitions replacement text (ex.
+<code className="jarombek-inline-code">VALIDATED</code> is replaced with
+<code className="jarombek-inline-code">01</code>)<sup>2</sup>.
+</p>
+<Definition word="Bit Mask">
+A bit mask is a series of bits used to perform operations on another series of bits.
+A mask is commonly used to check for the existence of certain bits or remove/add certain bits to a
+value<sup>3, 4</sup>.  For example, let’s say we have a series of bits
+<code className="jarombek-inline-code">010</code>.  If we wanted to toggle on the first bit in the
+previous sequence, we can use the bit mask <code className="jarombek-inline-code">001</code> and
+perform a bitwise OR operation.   The result of <code className="jarombek-inline-code">010 | 001</code>
+is <code className="jarombek-inline-code">011</code>, so the first bit was successfully toggled on by the bit mask.
+</Definition>
+<p>
+The <code className="jarombek-inline-code">typedef struct</code> code defines a new data type that
+has multiple fields - a users first and last name along with a bit field containing their
+status<sup>5</sup>.  The bit field represents a users privileges/status on an online website.
+</p>
+<p>
+Next I wrote some code to declare a new user type and set its bit field to
+<code className="jarombek-inline-code">000</code>.
+</p>
+<CodeSnippet language="C">
+int main()
+{
+  User andy;
+  strcpy(andy.first, "Andrew");
+  strcpy(andy.last, "Jarombek");
+
+  // Set the status as 000
+  andy.statusField = 0;
+
+  ...
+}
+</CodeSnippet>
+<p>
+Now comes the interesting part.  I set up some functions to alter bits in the bit field using
+bit masks.
+</p>
+<CodeSnippet language="C">
+/**
+* Add a status to the bit field on a user type
+* @param user - a User type
+* @param mask - the status to add to the bit field
+*/
+void addStatus(User *user, unsigned int mask) {
+  user->statusField |= mask;
+}
+
+/**
+* Remove a status from the bit field on a user type
+* @param user - a User type
+* @param mask - the status to add to the bit field
+*/
+void removeStatus(User *user, unsigned int mask) {
+  user->statusField &= ~mask;
+}
+
+/**
+* Check to see if a status is in the bit field
+* @param bitField - a bit field to search through
+* @param mask - a bit mask to bitwise 'and' with the bit field
+* @return 0 if the mask doesn't exist in the bit field, an integer >= 1 otherwise
+*/
+int containsStatus(unsigned int bitField, unsigned int mask) {
+  return bitField & mask;
+}
+</CodeSnippet>
+<p>
+To turn on bits in a bit field, the bitwise OR operation is performed between the bit field and
+the mask.  For example, <code className="jarombek-inline-code">000 | 010</code> results in the
+middle bit being turned on - <code className="jarombek-inline-code">010</code>.
+</p>
+<p>
+To turn off bits in the bit field, the bitwise AND and NOT operators are used.  For example,
+<code className="jarombek-inline-code">011 & ~010</code> turns off the middle bit, resulting
+in <code className="jarombek-inline-code">001</code>.
+</p>
+<p>
+To check if a bit is turned on in a bit field, a simple bitwise AND is used between the bit field
+and the mask.  If the value resulting from the bitwise AND is greater than 0, the bit is turned
+on in the field.  Otherwise, its turned off.  For example,
+<code className="jarombek-inline-code">011 & 010</code> checks if the middle bit is turned on.
+Since the result is <code className="jarombek-inline-code">010</code> or
+<code className="jarombek-inline-code">2</code>, we know that the bit is turned on in the bit field.
+</p>
+<p>
+The bit masks are the preprocessor macros <code className="jarombek-inline-code">VALIDATED</code>,
+<code className="jarombek-inline-code">SUBSCRIBED</code>, and
+<code className="jarombek-inline-code">ADMIN</code>.  They are used in the following code to turn on
+bits, turn off bits, and check for existence of bits in the bit field.
+</p>
+<CodeSnippet language="C">
+...
+
+// Set the status as 000
+andy.statusField = 0;
+
+printUser(andy);
+
+// Validate the user, change the status from 000 to 001
+addStatus(&andy, VALIDATED);
+printUser(andy);
+
+// Give the user admin rights, change the status from 001 to 101
+addStatus(&andy, ADMIN);
+printUser(andy);
+
+// Take away the admin rights to the user, change the status from 101 to 001
+removeStatus(&andy, ADMIN);
+printUser(andy);
+
+// Give the subscribed status, change the status from 001 to 011
+addStatus(&andy, SUBSCRIBED);
+printUser(andy);
+
+if (containsStatus(andy.statusField, VALIDATED)) {
+  printf("The User IS Validated \n");
+} else {
+  printf("The User IS NOT Validated \n");
+}
+
+if (containsStatus(andy.statusField, SUBSCRIBED)) {
+  printf("The User IS Subscribed \n");
+} else {
+  printf("The User IS NOT Subscribed \n");
+}
+
+if (containsStatus(andy.statusField, ADMIN)) {
+  printf("The User IS an Admin \n");
+} else {
+  printf("The User IS NOT an Admin \n");
+}
+</CodeSnippet>
+<CodeSnippet>
+Andrew, Jarombek, 0
+Andrew, Jarombek, 1
+Andrew, Jarombek, 5
+Andrew, Jarombek, 1
+Andrew, Jarombek, 3
+The User IS Validated
+The User IS Subscribed
+The User IS NOT an Admin
+</CodeSnippet>
+<p>
+The full code for the C implementation can be found <a href="https://github.com/AJarombek/
+jarombek-com-sources/blob/master/2018/06-Jun/6-23-Bit-Field/C/bitfield.c">here</a>.
+</p>
+<SectionTitle title="Bit Field Java Implementation">Bit Field Java Implementation</SectionTitle>
+<p>
+Bit fields can also be used in Java.  The following code for a <code className="jarombek-inline-code">
+User</code> class defines static final variables for the bit masks.  Note that in Java all
+integers are signed and 32 bits long, so you have 31 bits to play with in a bit field data structure.
+</p>
+<CodeSnippet language="Java">
+public final class User {
+
+  /* Flags for different statuses */
+  static final int VALIDATED = 1;
+  static final int SUBSCRIBED = 2;
+  static final int ADMIN = 4;
+
+  private int statusBitField;
+  private String first;
+  private String last;
+
+  // Package-private constructor for the user.  The bit field is defaulted to a value of 0.
+  User(String first, String last) {
+    statusBitField = 0;
+    this.first = first;
+    this.last = last;
+  }
+
+  // private constructor that takes in a bit field.
+  private User(String first, String last, int bitField) {
+    this.statusBitField = bitField;
+    this.first = first;
+    this.last = last;
+  }
+
+  // Add a status to the users bit field
+  static User addStatus(User user, int status) {
+    int updatedStatusBitField = user.statusBitField | status;
+
+    return new User(user.first, user.last, updatedStatusBitField);
+  }
+
+  // Remove a status from the users bit field
+  static User removeStatus(User user, int status) {
+    int updatedStatusBitField = user.statusBitField & ~status;
+
+    return new User(user.first, user.last, updatedStatusBitField);
+  }
+
+  // Perform an action (supplied by the second argument) when given a boolean
+  // representing the existence of a status for the user.
+  void containsStatus(int mask, Consumer&lt;Boolean&gt; action) {
+    action.accept(containsStatus(mask));
+  }
+
+  // Check for the existance of a status in a bit field
+  boolean containsStatus(int mask) {
+    return (statusBitField & mask) &gt; 0;
+  }
+}
+</CodeSnippet>
+<p>
+The following code performs operations on the user class, similar to the C implementation.
+</p>
+<CodeSnippet language="Java">
+// Base user has a bit field of value 000
+User user = new User("Andy", "Jarombek");
+
+// Add the validated flag to the bit field: 000 -> 001
+User validatedUser = User.addStatus(user, User.VALIDATED);
+
+// Add the admin flag to the bit field: 001 -> 101
+User adminUser = User.addStatus(validatedUser, User.ADMIN);
+
+// Remove the admin flag from the bit field: 101 -> 001
+User revokedAdminUser = User.removeStatus(adminUser, User.ADMIN);
+
+// Add the subscribed flag to the bit field: 001 -> 011
+User subscribedUser = User.addStatus(revokedAdminUser, User.SUBSCRIBED);
+
+System.out.println(user);
+System.out.println(validatedUser);
+System.out.println(adminUser);
+System.out.println(revokedAdminUser);
+System.out.println(subscribedUser);
+
+// Check to see if the user has different statuses based on the bit field
+subscribedUser.containsStatus(User.VALIDATED,
+    (bool) -> System.out.println("User is Validated: " + bool));
+
+subscribedUser.containsStatus(User.SUBSCRIBED,
+    (bool) -> System.out.println("User is Subscribed: " + bool));
+
+subscribedUser.containsStatus(User.ADMIN,
+    (bool) -> System.out.println("User is Admin: " + bool));
+</CodeSnippet>
+<CodeSnippet>
+Andy, Jarombek, 0
+Andy, Jarombek, 1
+Andy, Jarombek, 5
+Andy, Jarombek, 1
+Andy, Jarombek, 3
+User is Validated: true
+User is Subscribed: true
+User is Admin: false
+</CodeSnippet>
+<p>
+The full code for the <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/
+2018/06-Jun/6-23-Bit-Field/Java/User.java">User</a> class and <a href="https://github.com/AJarombek/
+jarombek-com-sources/blob/master/2018/06-Jun/6-23-Bit-Field/Java/Main.java">Main</a> class utilizing
+bit fields is on GitHub.
+</p>
+<p>
+While you can use bit fields in Java like the previous implementation, using primitive
+<code className="jarombek-inline-code">int</code> variables for bit fields goes against some of Java’s
+core principles.  Using <code className="jarombek-inline-code">int</code> primitives for bit fields
+is not type safe - which is often a crucial requirement for a Java data structure<sup>6</sup>.
+Luckily there is a type safe approach for bit fields in Java.  This approach uses the
+<code className="jarombek-inline-code">EnumSet</code> collection to store the fields.  The fields
+themselves are represented as enums.  This approach is not only type safe and more readable, but
+also has the same performance as the non-safe integer approach.
+</p>
+<p>
+The code for the <code className="jarombek-inline-code">EnumSet</code> approach is on GitHub in the
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2018/06-Jun/
+6-23-Bit-Field/Java/EnumSetUser.java">EnumSetUser</a> and
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2018/06-Jun/
+6-23-Bit-Field/Java/EnumSetMain.java">EnumSetMain</a> classes.
+</p>
+<UpdateInfo date="January 31st, 2019">
+It's also easy to create bit fields with enums in C#.  You can check out the C# code on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/06-Jun/6-23-Bit-Field/CSharp">GitHub</a>.
+</UpdateInfo>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Researching bit fields was a really valuable exercise to gain further knowledge of bitwise
+operations and low level data structures.  Expect more discoveries on Java and C in the future.
+</p>
+</div>

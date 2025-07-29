@@ -1,0 +1,423 @@
+<div>
+<p>
+In my <a href="https://jarombek.com/blog/jun-29-2021-jss">previous article on JSS</a>, I discussed the improvements
+ JSS makes over traditional <a href="https://jarombek.com/blog?query=CSS&page=1">CSS</a> stylesheets and CSS preprocessors such as
+<a href="https://jarombek.com/blog?query=Sass&page=1">Sass</a>.  <a href="https://jarombek.com/blog?query=JSS&page=1">JSS</a>
+utilizes the highly expressive <a href="https://jarombek.com/blog?query=JavaScript&page=1">JavaScript</a> language,
+enables style reusability, dynamic styling, and provides name conflict resolution.  Although JSS works with any
+front-end framework or library, it really shines when paired with React. In this article, I begin by discussing the
+basics of JSS in React applications. Then, I show sample code from my <a href="https://saintsxctf.com">SaintsXCTF</a>
+application, which is running in production and <a href="https://github.com/AJarombek/saints-xctf-web">
+utilizes JSS for its stylesheets</a>.
+</p>
+<SectionTitle title="React JSS Basics">React JSS Basics</SectionTitle>
+<p>
+To use JSS in React applications, the <a href=https://www.npmjs.com/package/react-jss/v/10.6.0>react-jss</a> npm module
+is used instead of the <a href="https://www.npmjs.com/package/jss">jss</a> and
+<a href="https://www.npmjs.com/package/jss-preset-default">jss-preset-default</a> modules used in my prior article.
+Behind the scenes, React JSS uses both these modules, but exposes a React hook API for application code to use<sup>1</sup>.
+</p>
+<p>
+The main exported method of the React JSS library is <code className="jarombek-inline-code">createUseStyles()</code>,
+which takes a JavaScript object representing JSS styles as an argument and returns a React hook for use in components. This
+React hook, commonly named <code className="jarombek-inline-code">useStyles()</code>, returns a
+<code className="jarombek-inline-code">classes</code> object which can be attached to JSX/HTML elements as their class
+attribute.
+</p>
+<p>
+For example, my SaintsXCTF application has a basic
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/components/shared/CheckBox/CheckBox.tsx">CheckBox</a>
+component represented by the following function:
+</p>
+<CodeSnippet language="TypeScript">
+import React from 'react';
+import { createUseStyles } from 'react-jss';
+import styles from './styles';
+
+const useStyles = createUseStyles(styles);
+
+const CheckBox: React.FunctionComponent&lt;Props> = ({ id, checked, onChange, className }) => {
+  const classes = useStyles();
+
+  return (
+    &lt;div className={classes.checkBox} onClick={onChange}>
+      &lt;input type="checkbox" id={id} className={classes.input} checked={checked} />
+      &lt;span>{checked && &lt;p>&#x4e;&lt;/p>}&lt;/span>
+    &lt;/div>
+  );
+};
+
+export default CheckBox;
+</CodeSnippet>
+<p>
+I simplified this code a bit to focus on the parts that utilize JSS.  The code starts by importing the
+<code className="jarombek-inline-code">createUseStyles()</code> function from the React JSS library with the line
+<code className="jarombek-inline-code">import { createUseStyles } from 'react-jss'</code>.
+<code className="jarombek-inline-code">createUseStyles()</code> is used outside of the component function, taking a JSS
+styles object as an argument and returning a React hook definition, in my case named
+<code className="jarombek-inline-code">useStyles</code>. The first line of the component function,
+<code className="jarombek-inline-code">const classes = useStyles()</code>, invokes the React hook to retrieve all the
+stylesheet classes. The JSS classes are properties on the <code className="jarombek-inline-code">classes</code> object.
+In the components return statement, JSS classes are passed to JSX elements via the
+<code className="jarombek-inline-code">className</code> prop. For example, the
+<code className="jarombek-inline-code">&lt;div&gt;</code> element's
+<code className="jarombek-inline-code">className</code> prop is passed the
+<code className="jarombek-inline-code">checkBox</code> JSS class.
+</p>
+<p>
+In this code sample, the <code className="jarombek-inline-code">styles</code> object passed as an argument to
+<code className="jarombek-inline-code">createUseStyles()</code> is imported from a separate file. I generally follow
+this practice to logically separate component code from stylesheet code. The
+<code className="jarombek-inline-code">styles</code> object, located in a
+ <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/components/shared/CheckBox/styles.ts">styles.ts</a>
+file, has the following code:
+</p>
+<CodeSnippet language="TypeScript">
+import Colors from '../../../styles/colors';
+import { FontMixins } from '../../../styles/mixins';
+
+export default {
+  checkBox: {
+    display: 'flex',
+    cursor: 'pointer'
+  },
+  input: {
+    display: 'none',
+
+    '& + span': {
+      ...FontMixins.elegantIcons(),
+      display: 'inline-block',
+      border: '2px solid #999',
+      borderRadius: 2,
+      width: 16,
+      height: 16,
+      position: 'relative',
+
+      '& > p': {
+        color: '#FFF',
+        position: 'absolute',
+        margin: 0,
+        top: -1,
+        left: -3
+      }
+    },
+
+    '&:checked + span': {
+      backgroundColor: Colors.sxctfRed,
+      border: `2px solid ${Colors.sxctfRed}`
+    }
+  }
+};
+</CodeSnippet>
+<p>
+At a basic level, this object has two properties representing two classes:
+<code className="jarombek-inline-code">checkBox</code> and <code className="jarombek-inline-code">input</code>.  These
+properties are objects themselves, containing CSS styles as properties.  I'm also importing additional code for
+reusability purposes, which I will discuss next.
+</p>
+<SectionTitle title="React JSS Production Code Examples">React JSS Production Code Examples</SectionTitle>
+<p>
+In this section, I discuss different approaches for creating reusable and dynamic stylesheet code with JSS.  All of the
+code examples shown come from my <a href="https://saintsxctf.com">SaintsXCTF</a> application, with the front-end source
+code maintained in my <a href="https://github.com/AJarombek/saints-xctf-web">saints-xctf-web</a> repository.
+</p>
+<SubTitle title="Variables for Colors">Variables for Colors</SubTitle>
+<p>
+In web applications, the same color schemes are often used throughout the UI components.  In traditional CSS (before
+variables were added to the specification), these colors were copy-pasted throughout the stylesheets whenever they were
+needed.  Maintaining colors in a singular location and referencing them in stylesheets is a better approach for writing
+clean code and easing future refactoring.
+</p>
+<p>
+In my application, I maintain a <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/styles/colors.ts">colors.ts</a>
+file which contains all the commonly reused colors.
+</p>
+<CodeSnippet language="TypeScript">
+const Colors = {
+  sxctfRed: '#990000',
+  spotPaletteBrown: '#a96a5b',
+  spotPaletteCream: '#ffe6d9',
+  spotPaletteBlue: '#58b7d2',
+  statusSuccess: '#28a745',
+  statusWarning: '#ffc107',
+  statusFailure: '#dc3545',
+  lightestBackground: '#fdfdfd',
+  lightBackground: '#f5f5f5'
+};
+
+export const FeelColors = [
+  '#EA9999',
+  '#FFAD99',
+  '#EAC199',
+  '#FFD699',
+  '#FFFFAD',
+  '#E3E3E3',
+  '#C7F599',
+  '#99D699',
+  '#99C199',
+  '#A3A3FF'
+];
+
+export default Colors;
+</CodeSnippet>
+<p>
+By default this file exports the <code className="jarombek-inline-code">Colors</code> object, which contains properties
+with hex color codes.  There is also a <code className="jarombek-inline-code">FeelColors</code> list, which is used for
+application specific logic dealing with how user's felt on their exercises.
+<code className="jarombek-inline-code">FeelColors</code> will look familiar if you read my
+<a href="https://jarombek.com/blog/jun-29-2021-jss">prior article on JSS</a>.
+</p>
+<p>
+In component stylesheets, the <code className="jarombek-inline-code">Colors</code> object is simply
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/components/shared/NotFound/styles.ts">
+imported and its properties are referenced</a>.  A simplified example is shown below, with a
+<code className="jarombek-inline-code">container</code> class holding a single
+ <code className="jarombek-inline-code">backgroundColor</code> style.
+</p>
+<CodeSnippet language="TypeScript">
+import Colors from '../../../styles/colors';
+
+export default {
+  container: {
+    backgroundColor: Colors.lightBackground
+  }
+};
+</CodeSnippet>
+<SubTitle title="Mixins for Reusable Styles">Mixins for Reusable Styles</SubTitle>
+<p>
+In some cases, there are groups of styles that are reused in multiple stylesheets.  In Sass these groups of styles are
+called mixins, since they can be “mixed in” with other styles.  In my JSS code, I followed the same naming convention.
+My application has a <a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/styles/mixins.ts">mixins.ts</a>
+file with all the style mixins.  Mixins are simply JavaScript functions that return an object with CSS styles as properties.
+</p>
+<p>
+For example, one of my mixins <code className="jarombek-inline-code">blueLink()</code> is reused for many of the
+text links on the website.
+</p>
+<CodeSnippet language="TypeScript">
+class Mixins {
+  static blueLink = (): object => ({
+    ...FontMixins.robotoBold(),
+    fontSize: 14,
+    textDecoration: 'none',
+    color: Colors.spotPaletteBlue,
+    cursor: 'pointer',
+
+    '&:hover': {
+      textDecoration: 'underline'
+    }
+  });
+}
+</CodeSnippet>
+<p>
+These mixins are “mixed in” to JSS classes by importing the <code className="jarombek-inline-code">Mixin</code> class
+ and using the spread notation on the mixin function.  The following code mixes in
+<code className="jarombek-inline-code">blueLink()</code> with the <code className="jarombek-inline-code">link</code>
+JSS class.
+</p>
+<CodeSnippet language="TypeScript">
+import Mixins from './styles/mixins';
+
+export default {
+  link: {
+    ...Mixins.blueLink(),
+    marginTop: 15
+  }
+}
+</CodeSnippet>
+<SubTitle title="Modules for Reusable Classes">Modules for Reusable Classes</SubTitle>
+<p>
+Sometimes multiple components contain matching groups of classes.  In terms of reusability, this pattern goes above the
+scope of mixins.  In my code I call this pattern “modules”.  While mixins return an object with styles in them, modules
+return an object with JSS classes.  All the modules in my application exist in a
+<a href="https://github.com/AJarombek/saints-xctf-web/blob/master/src/styles/modules.ts">modules.ts</a> file.
+</p>
+<p>
+One of the modules is for exercise type filters in my application.  I noticed that some of my components had identical classes
+ and styles, but the logic these components held was different.  Because of this, I kept the components separate but made a
+reusable module for the styles.  The module is a function that returns a JSS styles object.
+</p>
+<CodeSnippet language="TypeScript">
+import { FontMixins } from './mixins';
+import { Styles } from 'react-jss';
+
+export class Modules {
+  static filters = (): Styles<
+    'filters' | 'filterTitle' | '@media screen and (max-width: 900px)' | '@media screen and (max-width: 450px)'
+  > => ({
+    filters: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    filterTitle: {
+      ...FontMixins.robotoSlab(),
+      margin: '30px 40px 30px 0'
+    },
+    '@media screen and (max-width: 900px)': {
+      filterTitle: {
+        margin: '20px 20px 20px 0'
+      }
+    },
+    '@media screen and (max-width: 450px)': {
+      filterTitle: {
+        display: 'none'
+      }
+    }
+  });
+}
+</CodeSnippet>
+<p>
+This module is used with the JavaScript spread notation, similar to the mixins.
+</p>
+<CodeSnippet language="TypeScript">
+import { Modules } from '../../../styles/modules';
+
+export default {
+  ...Modules.membershipModal()
+};
+</CodeSnippet>
+<SubTitle title="Dynamic Styling with React State and Props">Dynamic Styling with React State and Props</SubTitle>
+<p>
+The greatest thing about JSS is the ability to pass application state to stylesheets.  This allows for dynamic styles
+that can change along with the application state.  As a basic example, let's look at my applications
+<code className="jarombek-inline-code">Alert</code> component.
+<a href="https://github.com/AJarombek/saints-xctf-web/tree/master/src/components/shared/Alert">Alert</a> displays
+messages designed to get the users attention. Alert messages can exist in four different states:
+<code className="jarombek-inline-code">error</code>, <code className="jarombek-inline-code">warning</code>,
+<code className="jarombek-inline-code">info</code>, and <code className="jarombek-inline-code">success</code>.  The
+alert message shown below is in a <code className="jarombek-inline-code">success</code> state.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-30-21-react-jss-alert-component.png"/>
+</figure>
+<p>
+The <code className="jarombek-inline-code">Alert</code> component picks its state depending on a
+ <code className="jarombek-inline-code">type</code> prop.
+</p>
+<CodeSnippet language="TypeScript">
+import React, { ReactNode } from 'react';
+import { createUseStyles } from 'react-jss';
+import styles from './styles';
+
+export type AlertType = 'error' | 'warning' | 'info' | 'success';
+
+interface Props {
+  message: ReactNode;
+  type: AlertType;
+  closeable: boolean;
+  onClose?: () => void;
+}
+
+const useStyles = createUseStyles(styles);
+
+const Alert: React.FunctionComponent&lt;Props> = ({ message, type, closeable, onClose }) => {
+  const classes = useStyles({ type });
+
+  let alertIcon;
+  switch (type) {
+    case 'error':
+      alertIcon = '\ue062';
+      break;
+    case 'info':
+      alertIcon = '\ue064';
+      break;
+    case 'warning':
+      alertIcon = '\ue063';
+      break;
+    case 'success':
+      alertIcon = '\ue052';
+      break;
+    default:
+      alertIcon = '\ue062';
+  }
+
+  return (
+    &lt;div className={classes.alert} data-cypress="alert">
+      &lt;p className={classes.alertIcon}>{alertIcon}&lt;/p>
+      &lt;div className={classes.message}>{message}&lt;/div>
+      {closeable && (
+        &lt;p className={classes.closeIcon} data-cypress="alertCloseIcon" onClick={onClose}>
+          &#x4d;
+        &lt;/p>
+      )}
+    &lt;/div>
+  );
+};
+
+export default Alert;
+</CodeSnippet>
+<p>
+Notice that the <code className="jarombek-inline-code">type</code> prop is passed into the
+<code className="jarombek-inline-code">useStyles()</code> React hook with
+<code className="jarombek-inline-code">const classes = useStyles({ type })</code>. One or more props or state variables
+ can be passed to <code className="jarombek-inline-code">useStyles()</code> this way.  In the stylesheet object for
+<code className="jarombek-inline-code">Alert</code>, the <code className="jarombek-inline-code">type</code> prop is
+accessible to CSS styles using the arrow function syntax.
+</p>
+<CodeSnippet language="TypeScript">
+import { AlertType } from './Alert';
+import color from 'color';
+import Colors from '../../../styles/colors';
+import { FontMixins } from '../../../styles/mixins';
+
+export default {
+  alert: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '10px 0',
+    borderRadius: 3,
+    backgroundColor: ({ type }: { type: AlertType }): string =>
+      type === 'warning'
+        ? color(Colors.statusWarning).lighten(0.65).hex()
+        : type === 'info'
+        ? color(Colors.spotPaletteBlue).lighten(0.65).hex()
+        : type === 'success'
+        ? color(Colors.statusSuccess).lighten(1.1).hex()
+        : color(Colors.statusFailure).lighten(0.65).hex()
+  },
+  alertIcon: {
+    ...FontMixins.elegantIcons(),
+    fontSize: 28,
+    margin: '10px 25px',
+    color: ({ type }: { type: AlertType }): string =>
+      type === 'warning'
+        ? Colors.statusWarning
+        : type === 'info'
+        ? Colors.spotPaletteBlue
+        : type === 'success'
+        ? Colors.statusSuccess
+        : Colors.statusFailure
+  },
+  message: {
+    ...FontMixins.roboto(),
+    fontSize: 16,
+    margin: '5px 10px 5px 0'
+  },
+  closeIcon: {
+    ...FontMixins.elegantIcons(),
+    fontSize: 24,
+    margin: '0 10px 0 auto',
+    cursor: 'pointer'
+  }
+};
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">backgroundColor</code> in the <code className="jarombek-inline-code">alert</code>
+class and <code className="jarombek-inline-code">color</code> in the <code className="jarombek-inline-code">alertIcon</code>
+class utilize <code className="jarombek-inline-code">type</code> for dynamic styling.
+</p>
+<p>
+For more examples of components using dynamic styling in JSS, check out
+<a href="https://github.com/AJarombek/saints-xctf-web/tree/master/src/components/shared/ExerciseLog">ExerciseLog</a>,
+<a href="https://github.com/AJarombek/saints-xctf-web/tree/master/src/components/shared/ProgressBar">ProgressBar</a>,
+and <a href="https://github.com/AJarombek/saints-xctf-web/tree/master/src/components/shared/StepSlider">StepSlider</a>.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+JSS shines brightest when used with React, enabling dynamic styling for components, reusability, and modularization.
+In this article I demonstrated some approaches I took while creating reusable JSS code.  However, your approach to JSS
+can be as wide as the JavaScript language itself.  All the JSS code shown in this article and more is available in my
+<a href="https://github.com/AJarombek/saints-xctf-web">saints-xctf-web</a> repository.
+</p>
+</div>

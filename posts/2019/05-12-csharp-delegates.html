@@ -1,0 +1,257 @@
+<div>
+<p>
+C# has an object called a delegate which is similar to lambda functions and functional interfaces in
+<a href="https://jarombek.com/blog?query=java&page=1">Java</a>.  A delegate object has a single role -
+calling a method.  This article explores delegates and compares them to similar language constructs in
+C# and Java.
+</p>
+<SectionTitle title="Delegate Basics">Delegate Basics</SectionTitle>
+<p>
+A delegate type defines the return type and parameters required for a function to be one of its
+instances<sup>1</sup>.  For example, the following <code className="jarombek-inline-code">Combiner</code>
+delegate must take in two integer arguments and return a single integer.
+</p>
+<CodeSnippet language="C#">
+delegate int Combiner(int x, int y);
+</CodeSnippet>
+<p>
+The following two functions are compatible with <code className="jarombek-inline-code">Combiner</code>.
+</p>
+<CodeSnippet language="C#">
+static int Add(int x, int y) => x + y;
+static int Subtract(int x, int y) => x - y;
+</CodeSnippet>
+<p>
+With the <code className="jarombek-inline-code">Combiner</code> delegate and these basic functions, I
+created a basic gambling simulator.  The <code className="jarombek-inline-code">Gamble</code> method
+internally assigns the <code className="jarombek-inline-code">Add</code> or <code className="jarombek-inline-code">
+Subtract</code> functions to the <code className="jarombek-inline-code">Combiner</code> delegate type.
+</p>
+<CodeSnippet language="C#">
+/// &lt;summary>
+/// Method which uses the Combiner delegate internally.  Dynamically picks between the Add and Subtract methods
+/// at runtime, depending on a random number value.  This method simulates gambling money.
+/// &lt;/summary>
+/// &lt;param name="balance">Your total account balance.&lt;/param>
+/// &lt;param name="risking">The amount of money from your balance you are gambling.&lt;/param>
+/// &lt;returns>Your new account balance.  Will either increase or decrease by the amount you gamble.&lt;/returns>
+static int Gamble(int balance, int risking)
+{
+  Random random = new Random();
+  int randomNumber = random.Next(0, 10);
+
+  Combiner combiner = (randomNumber >= 5) ? (Combiner) Add : Subtract;
+
+  return combiner(balance, risking);
+}
+
+static void Main(string[] args)
+{
+  /* Testing Program.cs */
+
+  int newBalance = Gamble(1000, 100);
+
+  // Gambling 100 dollars either increases or decreases your balance by 100 dollars
+  Assert(newBalance == 1100 || newBalance == 900);
+}
+</CodeSnippet>
+<p>
+Delegates in C# and lambda functions in Java really shine when used with higher order functions.
+For example, the following code passes a <code className="jarombek-inline-code">Transformer</code> delegate
+as an argument to a <code className="jarombek-inline-code">Map</code> function.
+</p>
+<CodeSnippet language="C#">
+delegate int Transformer(int x);
+
+/// &lt;summary>
+/// Performs a transformation on every element of the list.  Keeps the original list in-tact, returns a new
+/// list instance.
+/// &lt;/summary>
+static List&lt;int> Map(List&lt;int> list, Transformer transformer) => list.ConvertAll(x => transformer(x));
+
+static void Main(string[] args)
+{
+  // Create a function to assign to a delegate and a list of integers
+  int Doubler(int x) => x * 2;
+  var list = new List&lt;int> {5, 10, 15, 20, 25, 31};
+
+  // Call the delegate function on every list item
+  var newList = Map(list, Doubler);
+
+  // Prove that the new list is mapped to new values
+  Assert(newList[0].Equals(10));
+  Assert(newList[5].Equals(62));
+
+  // Prove that the original list wasn't mutated
+  Assert(list[0].Equals(5));
+  Assert(list[5].Equals(31));
+}
+</CodeSnippet>
+<p>
+So far, nothing I've shown you about delegates differentiates them from Java lambda functions and
+functional interfaces.  Both delegates and functional interfaces know how to call a function
+with a certain return value and parameter types.  For example, the following Java code maps values
+in a list with a <code className="jarombek-inline-code">Transformer</code> functional interface just
+like the last example.
+</p>
+<CodeSnippet language="Java">
+@FunctionalInterface
+public interface Transformer {
+  Integer transform(Integer x);
+}
+
+public class Delegates {
+
+  private static List&lt;Integer> map(List&lt;Integer> list, Transformer transformer) {
+    List&lt;Integer> newList = new ArrayList<>(list);
+    newList.replaceAll(transformer::transform);
+    return newList;
+  }
+
+  public static void main(String ...args) {
+    Transformer transformer = x -> x * 2;
+    var list = List.of(5, 10, 15, 20, 25, 31);
+
+    var newList = map(list, transformer);
+
+    assert newList.get(0) == 10;
+    assert newList.get(5) == 62;
+
+    assert list.get(0) == 5;
+    assert list.get(5) == 31;
+  }
+}
+</CodeSnippet>
+<p>
+If you weren't already aware, functional interfaces in Java are just interfaces with a single method.
+Java functional interfaces expose what the C# delegate pattern truly is - an interface that knows how
+to call a method.  Delegates are a shortened syntax for a single method interface.  You can easily write
+an interface in C# to perform the same logic as a delegate<sup>2</sup>.
+</p>
+<p>
+Well… for the most part.  The similarities between delegates, functional interfaces, and interfaces
+breaks down in regards to multicasting.
+</p>
+<SectionTitle title="Multicasting with Delegates">Multicasting with Delegates</SectionTitle>
+<p>
+Multicasting is one of the most interesting aspects of Delegates in C#.  Multicasting is a form of
+<a href="https://jarombek.com/blog/nov-6-2018-haskell-pt3">function composition</a> where the delegate
+invokes multiple functions.  Think of multicasting as a way of combining
+delegate instances together.  This pattern makes more sense with an example.
+</p>
+<p>
+The following code defines a delegate type <code className="jarombek-inline-code">TransformerRef</code> and
+two functions named <code className="jarombek-inline-code">Increment</code> and
+<code className="jarombek-inline-code">Triple</code>.
+</p>
+<CodeSnippet language="C#">
+/// &lt;summary>
+/// Same as the &lt;code>Transformer&lt;/code> delegate except it uses ref returns and ref parameters.
+/// &lt;/summary>
+delegate ref int TransformerRef(ref int x);
+
+static void Main(string[] args)
+{
+  // Create a function that increments an integer, using a single memory location
+  ref int Increment(ref int x)
+  {
+    x++;
+    return ref x;
+  }
+
+  // Create another function that triples an integer, using a single memory location
+  ref int Triple(ref int x)
+  {
+    x *= 3;
+    return ref x;
+  }
+}
+</CodeSnippet>
+<p>
+These functions use <code className="jarombek-inline-code">ref</code> return types and arguments so that
+the integer value is modified in place (at a single location in memory) instead of creating a new
+integer.  Both can be made instances of the <code className="jarombek-inline-code">TransformerRef</code>
+  delegate type.
+</p>
+<p>
+Now let's make a delegate instance with multicasting.  The following delegate instance combines
+<code className="jarombek-inline-code">Increment</code> and <code className="jarombek-inline-code">Triple</code>.
+</p>
+<CodeSnippet language="C#">
+// Create a delegate with two methods.  Increment is called first, Triple is called second
+TransformerRef transformer = Increment;
+transformer += Triple;
+
+// Prove that integers are transformed in place
+var i = 5;
+transformer(ref i);
+
+Assert(i == 18);
+</CodeSnippet>
+<p>
+The above code proved that the value <strong>5</strong> is first increment and then tripled.
+</p>
+<p>
+Delegate instances with multicasting are easily modified after creation.  Let's say I
+want the <code className="jarombek-inline-code">transformer</code> delegate instance to only triple the
+value.  To do this, I simply remove the <code className="jarombek-inline-code">Increment</code> function.
+</p>
+<CodeSnippet language="C#">
+// Remove the increment function from the delegate
+transformer -= Increment;
+
+// Prove that the only transformation executed is Triple.
+var j = 10;
+transformer(ref j);
+
+Assert(j == 30);
+</CodeSnippet>
+<p>
+Multicasting is a very powerful aspect of delegates in C#.  It helps separate them from patterns
+found in comparable languages like Java.
+</p>
+<SectionTitle title="Built-In Delegate Types">Built-In Delegate Types</SectionTitle>
+<p>
+Similar to how the Java standard library exposes multiple functional interfaces for use, C# provides
+delegate types in the <code className="jarombek-inline-code">System</code> namespace.  These types can
+often be used instead of a custom type.  I recreated the commonly used <code className="jarombek-inline-code">
+Filter</code> and <code className="jarombek-inline-code">Reduce</code> functions for the
+<code className="jarombek-inline-code">List</code> type using the <code className="jarombek-inline-code">
+System.Func</code> delegate type.  That code is available on <a href="https://github.com/AJarombek/
+jarombek-com-sources/blob/master/2019/05-May/05-12-csharp-delegates/csharp/Util.cs">GitHub</a>.
+</p>
+<SectionTitle title="Similar C# Patterns">Similar C# Patterns</SectionTitle>
+<p>
+One confusing thing about the C# language is the two arrow functions at a developers disposal.
+Without background knowledge, it's hard to decide which pattern to use in which context, and at worst
+it feels like feature bloat. Along with delegates, C# also offers lambda functions and local methods.
+It's important to understand the differences between these three options.
+</p>
+<p>
+As we've discussed, a delegate knows how to call one or many method(s).  It doesn't matter if this
+method is a standard function, lambda function, or local method.  They all work with delegates!
+</p>
+<p>
+A lambda function is a nameless function that uses the fat arrow syntax <code className="jarombek-inline-code">args => result</code>.
+It can take the place of a standard function in a delegate instance.  One of the limitations of
+lambda functions is that they must be assigned to a delegate type<sup>3</sup>.
+</p>
+<p>
+With C# 7.0 (released in 2017), local methods were added.  Local methods are only visible in their
+<a href="https://jarombek.com/blog/nov-9-2017-js-closure-modules">lexical scope</a>.  Unlike lambda
+functions, local methods don't need to be assigned to a delegate type.  This gives them greater
+flexibility.  Otherwise, they use the same fat arrow syntax as lambda functions.
+</p>
+<p>
+In many cases local methods are the easiest approach since you don't have to define a delegate
+type.  However, in some cases delegate types are needed.  For example, only lambda functions can
+be passed as arguments to other functions.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Delegates are a very interesting design pattern in C#.  I think they're an elegant simplification
+for the single method interface pattern.  I look forward to learning more about C# in the coming
+months.  All the code from this article is available on <a href="https://github.com/AJarombek/jarombek-com-sources/
+blob/master/2019/05-May/05-12-csharp-delegates">GitHub</a>.
+</p>
+</div>

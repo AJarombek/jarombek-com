@@ -1,0 +1,736 @@
+<div>
+<p>
+In my <a href="https://jarombek.com/blog/mar-31-2020-numpy">previous article</a> I walked through
+interesting aspects of numpy.  I first learned numpy back in college during a course on Artificial
+Intelligence.  With my daytime work becoming more Python based these past few months, I took numpy back up.
+</p>
+<p>
+Before this winter, I never used pandas.  Pandas is a data analysis library similar to numpy.  In fact,
+pandas uses numpy arrays in many of its exposed methods.  While numpy exposes an array data structure,
+pandas has two main data structures: <code className="jarombek-inline-code">Series</code> and
+<code className="jarombek-inline-code">DataFrame</code>.  In general, pandas is commonly used for
+manipulating and analysing time series or table data (think SQL table or excel spreadsheet)<sup>1</sup>.
+</p>
+<p>
+Just like numpy, I wanted to write an article about the interesting aspects of pandas.  I read
+thoroughly about pandas and coded with it at my job, so I wanted to share some of my favorite features.
+This article isn't meant to teach pandas basics, instead highlighting what makes pandas unique and
+special compared to other libraries and languages.
+</p>
+<SectionTitle title="What is Pandas">What is Pandas?</SectionTitle>
+<p>
+Pandas is a Python library used for data analysis, commonly on table and time series data.  Pandas was
+originally built to work with financial data, however its modern use cases are vast in number<sup>2</sup>.
+Software engineering fields that use pandas include machine learning, economics, stock picking algorithms,
+and big data<sup>3</sup>.
+</p>
+<p>
+Pandas has two main data types - <code className="jarombek-inline-code">Series</code> and
+ <code className="jarombek-inline-code">DataFrame</code>.  A series is a
+single-dimensional data structure containing an array of data and an array of labels<sup>4</sup>.  Each
+label is associated with an element in the data array.  The array of labels is called the index, and
+is of type <code className="jarombek-inline-code">Index</code>.  Listed below are two examples of
+ the <code className="jarombek-inline-code">Series</code> data structure,
+along with ways to access their indexes.
+</p>
+<CodeSnippet language="Python">
+import pandas as pd
+
+series = pd.Series([1, 2, 3, 4, 5])
+series
+
+# Out[1]:
+#    0    1
+#    1    2
+#    2    3
+#    3    4
+#    4    5
+#	   dtype: int64
+
+series.index
+
+# Out[2]: RangeIndex(start=0, stop=5, step=1)
+
+series = pd.Series([1, 2, 3], index=['c', 'b', 'a'])
+series
+
+# Out[3]:
+#    c    1
+#    b    2
+#    a    3
+#    dtype: int64
+
+series.index
+
+# Out[4]: Index(['c', 'b', 'a'], dtype='object')
+</CodeSnippet>
+<p>
+The first series implicitly defines an index while the second series explicitly passes an
+<code className="jarombek-inline-code">index</code> argument to the
+<code className="jarombek-inline-code">Series()</code> constructor.  The first series'
+<code className="jarombek-inline-code">RangeIndex</code> is a subtype of
+<code className="jarombek-inline-code">Index</code> which holds a range of integers.
+</p>
+<p>
+A data frame contains columns and rows of data, just like a table<sup>5</sup>.  Data frames have
+indexes for rows and names for columns.  There are many ways to create
+<code className="jarombek-inline-code">DataFrame</code> objects, the most basic of which
+passes its constructor a dictionary.  The following <code className="jarombek-inline-code">DataFrame</code>
+represents some of my workouts in February.
+</p>
+<CodeSnippet language="Python">
+runs = {
+  'user': ['andy', 'andy', 'andy'],
+  'type': ['run', 'core', 'run'],
+  'date': ['02-19-2020', '02-19-2020', '02-18-2020'],
+  'time': ['20:15', '8:00', '16:00']
+}
+frame = pd.DataFrame(runs)
+frame
+
+# Out[5]:
+# |   | user | type | date       | time  |
+# +---+------+------+------------+-------+
+# | 0 | andy | run  | 02-19-2020 | 20:15 |
+# | 1 | andy | core | 02-19-2020 | 8:00  |
+# | 2 | andy | run  | 02-18-2020 | 16:00 |
+</CodeSnippet>
+<p>
+The full pandas library builds upon the <code className="jarombek-inline-code">Series</code> and
+<code className="jarombek-inline-code">DataFrame</code> objects. The remainder of this article
+ discusses aspects of pandas that I found most interesting.
+</p>
+<SectionTitle title="Similarities to R">Similarities to R</SectionTitle>
+<p>
+Pandas has many similarities to the R programming language, most noticeably its
+<code className="jarombek-inline-code">DataFrame</code> object.  In R,
+<code className="jarombek-inline-code">data.frame</code> is a fundamental built-in object with similar
+functionality to pandas' <code className="jarombek-inline-code">DataFrame</code><sup>6,7</sup>.  The
+following data frame in R is nearly identical to the one in pandas.
+</p>
+<CodeSnippet language="R">
+user <- c("andy", "andy", "andy")
+type <- c("run", "core", "run")
+date <- c("02-19-2020", "02-19-2020", "02-18-2020")
+time <- c("20:15", "8:00", "16:00")
+
+exercises <- data.frame(user, type, date, time)
+print(exercises)
+
+#   user type       date  time
+# 1 andy  run 02-19-2020 20:15
+# 2 andy core 02-19-2020  8:00
+# 3 andy  run 02-18-2020 16:00
+</CodeSnippet>
+<p>
+R is a domain-specific programming language for data analysis and statistical computing.  Although not
+explicitly documented as true, the R programming language seems to have inspired the creation of pandas
+(and numpy).  For example, R has array vectorization and conditional indexing, features found in both
+pandas and numpy (although noticeably missing from the base Python language).  The following code sample
+demonstrates vectorization operations in R:
+</p>
+<CodeSnippet language="R">
+vec1 <- c(1, 2, 3)
+vec2 <- c(3, 2, 1)
+
+# Perform addition of two vectors.
+result_vec <- vec1 + vec2
+result_vec
+
+# [1] 4 4 4
+</CodeSnippet>
+<p>
+Conditional indexing is shown below:
+</p>
+<CodeSnippet language="R">
+# Create a range vector
+vec3 <- c(1:10)
+
+onlygt2 <- vec3[vec3 > 2]
+print(onlygt2)
+
+# [1]  3  4  5  6  7  8  9 10
+</CodeSnippet>
+<p>
+I find it fascinating to compare languages and frameworks to see where features and ideas originated from.
+Although pandas and numpy were influenced heavily by prior tools and languages, their ease of use within
+the Python ecosystem is what makes them so valuable.
+</p>
+<SectionTitle title="DataFrame Creation">DataFrame Creation</SectionTitle>
+<p>
+One of the great things about pandas is the multitude of ways to initialize a
+<code className="jarombek-inline-code">DataFrame</code> or <code className="jarombek-inline-code">Series</code>.
+In software engineering, it's generally a good idea when building an API to not assume the existing
+format of a user's data.  For example, in Java, APIs that accept a data structure as an argument often
+declare their parameters as type <code className="jarombek-inline-code">Iterable&lt;T&gt;</code>.  By
+using the <code className="jarombek-inline-code">Iterable&lt;T&gt;</code> interface, a user can pass
+whatever iterable structure their data already exists in, whether it be a list, set, queue, stack, tree,
+or something else<sup>8</sup>.  All these data structures implement
+<code className="jarombek-inline-code">Iterable&lt;T&gt;</code>, so they work with the API.
+</p>
+<p>
+Pandas takes this concept to another level.  Not only does the
+<code className="jarombek-inline-code">DataFrame</code> constructor and accompanying static factory
+methods accept multiple Python data structures as arguments, they also accept many different file formats.
+For example, CSV files can be turned into a data frame with <code className="jarombek-inline-code">
+read_csv()</code> and database tables can be turned into a data frame with
+<code className="jarombek-inline-code">read_sql_table()</code>.  Other file formats that are easily turned
+into a data frame include Excel spreadsheets, HTML, and JSON.  A full list of
+<code className="jarombek-inline-code">DataFrame</code> input formats is found in the
+<a href="https://pandas.pydata.org/pandas-docs/stable/reference/io.html">pandas documentation</a>.
+</p>
+<SectionTitle title="Indexing Slicing and Manipulation">Indexing, Slicing, and Manipulation</SectionTitle>
+<p>
+In my previous article on <a href="https://jarombek.com/blog/mar-31-2020-numpy#enhanced-slicing">numpy</a>,
+I discussed its advanced slicing and indexing mechanics.  Pandas has similar functionality for its
+<code className="jarombek-inline-code">Series</code> and
+<code className="jarombek-inline-code">DataFrame</code> objects.  First, here are some indexing and slicing examples on <code className="jarombek-inline-code">Series</code> data structures.
+</p>
+<CodeSnippet language="Python">
+series = pd.Series([1, 2, 3], index=['c', 'b', 'a'])
+series
+
+# Out[6]:
+#    c    1
+#    b    2
+#    a    3
+#    dtype: int64
+
+series[1]
+
+# Out[7]: 2
+
+series['b']
+
+# Out[8]: 2
+
+series[['a', 'b']]
+
+# Out[9]:
+#    a    3
+#    b    2
+#    dtype: int64
+
+series[['b', 'b']]
+
+# Out[10]:
+#    b    2
+#    b    2
+#    dtype: int64
+
+# Indexes can be checked for existence with 'in' ...
+'a' in series
+
+# Out[11]: True
+
+# ... values can not.
+1 in series
+
+# Out[12]: False
+</CodeSnippet>
+<p>
+The same slicing and indexing functionality is available for
+<code className="jarombek-inline-code">DataFrame</code> objects.  The following data frame contains
+running PR (personal record) information for some of my friends and I in college.
+</p>
+<CodeSnippet language="Python">
+data_xctf = {
+  '8K': ['24:20.80', '24:33.50', '24:58.80', None, '26:24.20'],
+  '6K': ['18:58.80', '19:10.20', '19:25.80', '20:54.00', '20:20.50'],
+  '5K': ['15:32.00', '15:39.00', '15:59.00', '17:31.60', '16:38.40'],
+  '10000m': [None, None, '31:51.73', '35:50.22', None],
+  '5000m': ['14:23.21', None, '15:27.01', '16:44.14', '15:27.64'],
+  '3000m': ['8:32.83', '8:52.60', '8:51.80', '9:47.70', '9:03.60'],
+  '1 Mile': ['4:20.59', '4:20.39', '4:40.34', '4:57.53', '4:40.76'],
+  '1500m': ['3:54.67', '3:57.78', None, '4:32.14', '4:08.17']
+}
+run_dataframe = pd.DataFrame(data_xctf, index=['Thomas Caulfield', 'Joseph Smith', 'Ben Fishbein', 'Lisa Grohn', 'Andy Jarombek'])
+run_dataframe
+
+# Out[13]:
+# |                  | 8K       | 6K       | 5K       | 10000m   | 5000m    | 3000m   | 1 Mile  | 1500m   |
+# +------------------+----------+----------+----------+----------+----------+---------+---------+---------+
+# | Thomas Caulfield | 24:20.80 | 18:58.80 | 15:32.00 | None     | 14:23.21 | 8:32.83 | 4:20.59 | 3:54.67 |
+# | Joseph Smith     | 24:33.50 | 19:10.20 | 15:39.00 | None     | None     | 8:52.60 | 4:20.39 | 3:57.78 |
+# | Ben Fishbein     | 24:58.80 | 19:25.80 | 15:59.00 | 31:51.73 | 15:27.01 | 8:51.80 | 4:40.34 | None    |
+# | Lisa Grohn       | None     | 20:54.00 | 17:31.60 | 35:50.22 | 16:44.14 | 9:47.70 | 4:57.53 | 4:32.14 |
+# | Andy Jarombek    | 26:24.20 | 20:20.50 | 16:38.40 | None     | 15:27.64 | 9:03.60 | 4:40.76 | 4:08.17 |
+</CodeSnippet>
+<p>
+Now, here are some slicing and indexing operations on the data frame.
+</p>
+<CodeSnippet language="Python">
+# Rows can be sliced by index name...
+run_dataframe['Joseph Smith':'Lisa Grohn']
+
+# Out[14]:
+# |                  | 8K       | 6K       | 5K       | 10000m   | 5000m    | 3000m   | 1 Mile  | 1500m   |
+# +------------------+----------+----------+----------+----------+----------+---------+---------+---------+
+# | Joseph Smith     | 24:33.50 | 19:10.20 | 15:39.00 | None     | None     | 8:52.60 | 4:20.39 | 3:57.78 |
+# | Ben Fishbein     | 24:58.80 | 19:25.80 | 15:59.00 | 31:51.73 | 15:27.01 | 8:51.80 | 4:40.34 | None    |
+# | Lisa Grohn       | None     | 20:54.00 | 17:31.60 | 35:50.22 | 16:44.14 | 9:47.70 | 4:57.53 | 4:32.14 |
+
+# ...or by index location.
+run_dataframe[1:3]
+
+# Out[15]:
+# |                  | 8K       | 6K       | 5K       | 10000m   | 5000m    | 3000m   | 1 Mile  | 1500m   |
+# +------------------+----------+----------+----------+----------+----------+---------+---------+---------+
+# | Joseph Smith     | 24:33.50 | 19:10.20 | 15:39.00 | None     | None     | 8:52.60 | 4:20.39 | 3:57.78 |
+# | Ben Fishbein     | 24:58.80 | 19:25.80 | 15:59.00 | 31:51.73 | 15:27.01 | 8:51.80 | 4:40.34 | None    |
+
+# Columns can also be sliced by column name...
+run_dataframe.loc[:, ['8K', '6K', '5K']]
+
+# Out[16]:
+# |                  | 8K       | 6K       | 5K       |
+# +------------------+----------+----------+----------+
+# | Thomas Caulfield | 24:20.80 | 18:58.80 | 15:32.00 |
+# | Joseph Smith     | 24:33.50 | 19:10.20 | 15:39.00 |
+# | Ben Fishbein     | 24:58.80 | 19:25.80 | 15:59.00 |
+# | Lisa Grohn       | None     | 20:54.00 | 17:31.60 |
+# | Andy Jarombek    | 26:24.20 | 20:20.50 | 16:38.40 |
+
+# ...or by column location.
+run_dataframe.iloc[:, [0, 2]]
+
+# Out[17]:
+# |                  | 8K       | 5K       |
+# +------------------+----------+----------+
+# | Thomas Caulfield | 24:20.80 | 15:32.00 |
+# | Joseph Smith     | 24:33.50 | 15:39.00 |
+# | Ben Fishbein     | 24:58.80 | 15:59.00 |
+# | Lisa Grohn       | None     | 17:31.60 |
+# | Andy Jarombek    | 26:24.20 | 16:38.40 |
+
+# Slicing can be done on both rows and columns at the same time.
+run_dataframe.iloc[3, [0, 1, 2]]
+
+# Out[18]:
+# 8K        None
+# 6K    20:54.00
+# 5K    17:31.60
+# Name: Lisa Grohn, dtype: object
+
+# Picking rows and columns for the resulting frame.  Results in Men's Track & Field PRs.
+run_dataframe.iloc[np.array([0, 1, 2, 4]), np.arange(3, 8)]
+
+# Out[19]:
+# |                  | 10000m   | 5000m    | 3000m   | 1 Mile  | 1500m   |
+# +------------------+----------+----------+---------+---------+---------+
+# | Thomas Caulfield | None     | 14:23.21 | 8:32.83 | 4:20.59 | 3:54.67 |
+# | Joseph Smith     | None     | None     | 8:52.60 | 4:20.39 | 3:57.78 |
+# | Ben Fishbein     | 31:51.73 | 15:27.01 | 8:51.80 | 4:40.34 | None    |
+# | Andy Jarombek    | None     | 15:27.64 | 9:03.60 | 4:40.76 | 4:08.17 |
+
+# Indexing can also be performed with index and column names...
+run_dataframe.at['Thomas Caulfield', '5000m']
+
+# Out[20]: '14:23.21'
+
+# ...or with index and column locations.
+run_dataframe.iat[0, 4]
+
+# Out[21]: '14:23.21'
+</CodeSnippet>
+<p>
+An important takeaway from these code samples is that indexing and slicing in pandas is just as powerful
+as numpy, with the added benefit of a tabular <code className="jarombek-inline-code">DataFrame</code>
+data structure.  Pandas also exposes many ways to manipulate data, from simple vectorization operations to
+complex "group by" expressions (which I will explain later).  Some simple data manipulation examples are
+shown below.
+</p>
+<CodeSnippet language="Python">
+data_xctf = {
+  '8K': [1460.80, 1473.50, 1498.80, np.nan, 1584.20],
+  '6K': [1138.80, 1150.20, 1165.80, 1254.00, 1220.50],
+  '5K': [932.00, 939.00, 959.00, 1051.60, 998.40]
+}
+run_sec_dataframe = pd.DataFrame(data_xctf, index=['Thomas Caulfield', 'Joseph Smith', 'Ben Fishbein', 'Lisa Grohn', 'Andy Jarombek'])
+run_sec_dataframe
+
+# Out[22]:
+# |                  | 8K       | 6K       | 5K       |
+# +------------------+----------+----------+----------+
+# | Thomas Caulfield | 1460.8   | 1138.8   | 932.0    |
+# | Joseph Smith     | 1473.5   | 1150.2   | 939.0    |
+# | Ben Fishbein     | 1498.8   | 1165.8   | 959.0    |
+# | Lisa Grohn       | None     | 1254.0   | 1051.6   |
+# | Andy Jarombek    | 1584.2   | 1220.5   | 998.4    |
+
+# Vectorization on two Series objects.  Computes Tom and Joe's combined seconds for races.
+run_sec_dataframe.iloc[0] + run_sec_dataframe.iloc[1]
+
+# Out[23]:
+# 8K    2934.3
+# 6K    2289.0
+# 5K    1871.0
+# dtype: float64
+
+# Vectorization on a DataFrame object which is first sliced.  Computes everyones 400m pace for the 6K.
+run_sec_dataframe.loc[:, ['6K']] / 15
+
+# Out[24]:
+# |                  | 6K      |
+# +------------------+---------+
+# | Thomas Caulfield | 75.92   |
+# | Joseph Smith     | 76.68   |
+# | Ben Fishbein     | 77.72   |
+# | Lisa Grohn       | 83.60   |
+# | Andy Jarombek    | 81.37   |
+
+# Vectorization on a DataFrame.  Pace per 400m for each race.
+run_sec_dataframe / [20, 15, 12.5]
+
+# Out[25]:
+# |                  | 8K      | 6K      | 5K       |
+# +------------------+---------+---------+----------+
+# | Thomas Caulfield | 73.04   | 75.92   | 74.56    |
+# | Joseph Smith     | 73.67   | 76.68   | 75.12    |
+# | Ben Fishbein     | 74.94   | 77.72   | 76.72    |
+# | Lisa Grohn       | None    | 83.60   | 84.13    |
+# | Andy Jarombek    | 79.21   | 81.37   | 79.87    |
+
+# Transpose a DataFrame by swapping its rows and columns.
+run_sec_dataframe.T
+
+# Out[26]:
+# |    | Thomas Caulfield | Joseph Smith | Ben Fishbein | Lisa Grohn | Andy Jarombek |
+# +----+------------------+--------------+--------------+------------+---------------+
+# | 8K | 1460.8           | 1473.5       | 1498.8       | None       | 1584.2        |
+# | 6K | 1138.8           | 1150.2       | 1165.8       | 1254.0     | 1220.5        |
+# | 5K | 932.0            | 939.0        | 959.0        | 1051.6     | 998.4         |
+
+# Series and DataFrame types have methods for each arithmetic operation.
+# These can be used instead of vectorization.
+run_seconds_dataframe.loc['5K'].div(25)
+
+# Out[27]:
+# Thomas Caulfield    37.280
+# Joseph Smith        37.560
+# Ben Fishbein        38.360
+# Lisa Grohn          42.064
+# Andy Jarombek       39.936
+# Name: 5K, dtype: float64
+</CodeSnippet>
+<p>
+There are so many examples of pandas <code className="jarombek-inline-code">DataFrame</code> manipulation
+operations, but these are some basic ones.  By showing these code samples, I'm trying to demonstrate that
+<code className="jarombek-inline-code">DataFrame</code> objects aren't simply for holding data, but also
+transforming and analyzing data to suit an application's needs.  Pandas provides plenty
+of statistical operations as well, such as finding the sum or standard deviation of data.  Math isn't
+my strong suit so I won't go over any statistical functions, but they are readily available and easy to use.
+</p>
+<SectionTitle title="Time Series Data">Time Series Data</SectionTitle>
+<p>
+Along with tabular data, another common use case for pandas is holding time series data.  Pandas has the
+strongest time-series functionality I've ever seen in a language or library, which is quite exciting!
+</p>
+<p>
+Dealing with dates and times in programming languages is often a frustrating experience.  When creating a
+library that handles dates and times, it's crucial that the basic API is easy to use and intuitive.
+Otherwise, date and time complexities such as timezones and daylight savings time become a nightmare to
+deal with.  An example of a poorly made date API is the original Java
+<code className="jarombek-inline-code">Date</code> class<sup>9, 10</sup>.
+</p>
+<p>
+Luckily, the date and time API used in pandas is easy to understand and use.  To use dates in a pandas
+<code className="jarombek-inline-code">DataFrame</code> or <code className="jarombek-inline-code">Series</code>,
+native Python <code className="jarombek-inline-code">datetime.datetime</code> objects are used.
+</p>
+<CodeSnippet language="Python">
+import pandas as pd
+import numpy as np
+from datetime import datetime
+
+mile_races = pd.Series(
+  np.array(['4:54', '4:47', '4:52', '4:48']),
+  [datetime(2019, 12, 20), datetime(2020, 2, 13), datetime(2020, 2, 27), datetime(2020, 3, 5)]
+)
+mile_races
+
+# Out[28]:
+# 2019-12-20    4:54
+# 2020-02-13    4:47
+# 2020-02-27    4:52
+# 2020-03-05    4:48
+# dtype: object
+</CodeSnippet>
+<p>
+Filtering data with a time series index is very easy.  The following examples retrieve data from
+my <code className="jarombek-inline-code">mile_races</code> series at certain indexes or slices.
+</p>
+<CodeSnippet language="Python">
+mile_races['2/27/2020']
+
+# Out[29]: '4:52'
+
+mile_races['20200227']
+
+# Out[30]: '4:52'
+
+mile_races['2020']
+
+# Out[31]:
+# 2020-02-13    4:47
+# 2020-02-27    4:52
+# 2020-03-05    4:48
+# dtype: object
+
+mile_races['2020-02']
+
+# Out[32]:
+# 2020-02-13    4:47
+# 2020-02-27    4:52
+# dtype: object
+
+mile_races['12/1/2019':'2/29/2020']
+
+# Out[33]:
+# 2019-12-20    4:54
+# 2020-02-13    4:47
+# 2020-02-27    4:52
+# dtype: object
+</CodeSnippet>
+<p>
+As you can see, indexing and slicing is very flexible and is achievable with many common date formats.  One of the
+ annoyances of most date libraries is their expectation of dates to be in certain formats.  These libraries
+ often fail and throw errors if formats don't meet expectations.  Pandas is much more lenient.
+</p>
+<p>
+Beyond the basics, the aspect I found most interesting about pandas time series functionality is resampling.
+Resampling is when the frequency of time series data is changed<sup>11</sup>.  For example, daily
+time series data can be converted to weekly time series data.
+</p>
+<p>
+There are two forms of resampling - downsampling and upsampling.  Downsampling is when a higher
+frequency is converted to a lower frequency.  An example of downsampling is converting weekly time
+series data to monthly time series data.  Downsampling can be thought of as data compression<sup>12</sup>.  Upsampling
+is when a lower frequency is converted to a higher frequency.  An example of upsampling is converting
+monthly time series data to weekly time series data.  Upsampling can be thought of as data expansion<sup>13</sup>.
+</p>
+<p>
+To demonstrate downsampling, I created a data frame with all my runs in the month of February.  Then,
+I resampled it to show weekly average run length and weekly mileage.
+</p>
+<CodeSnippet language="Python">
+feb_days = pd.date_range('2020-02-01', periods=29, freq='D')
+run_lengths = np.array([
+  11.56, 12,
+  2.34, 3.63, 2.85, 3.06, 3.92, 7.87, 12.5,
+  2.81, 3.8, 2.65, 7.5, 2.63, 14, 13.21,
+  1.28, 1.88, 2.64, 5.20, 3.76, 7.87, 12.59,
+  2.81, 2.81, 3.45, 2.6, 2.91, 5.2
+])
+feb_runs = pd.Series(run_lengths, feb_days)
+
+# Downsampling to find the average length of a run each week.
+feb_runs.resample('W').mean()
+
+# Out[34]:
+# 2020-02-02    11.780000
+# 2020-02-09     5.167143
+# 2020-02-16     6.657143
+# 2020-02-23     5.031429
+# 2020-03-01     3.296667
+# Freq: W-SUN, dtype: float64
+
+# Downsampling to find the total running mileage each week.
+feb_runs.resample('W', label='left').sum()
+
+# Out[35]:
+# 2020-01-26    23.56
+# 2020-02-02    36.17
+# 2020-02-09    46.60
+# 2020-02-16    35.22
+# 2020-02-23    19.78
+# Freq: W-SUN, dtype: float64
+</CodeSnippet>
+<p>
+To demonstrate upsampling, I created a data frame with my mile times per quarter (example: Q3 2019).
+Then, I resampled it to display data for missing quarters.
+</p>
+<CodeSnippet language="Python">
+quarters = [pd.Period('2013Q1'), pd.Period('2014Q1'), pd.Period('2014Q4'), pd.Period('2015Q1'), pd.Period('2016Q1'), pd.Period('2016Q2'), pd.Period('2020Q1')]
+times_in_sec = [295, 280, 283, 280, 281, 267, 287]
+mile_progression = pd.Series(times_in_sec, quarters)
+mile_progression
+
+# Out[36]:
+# 2013Q1    295
+# 2014Q1    280
+# 2014Q4    283
+# 2015Q1    280
+# 2016Q1    281
+# 2016Q2    267
+# 2020Q1    287
+# Freq: Q-DEC, dtype: int64
+
+mile_progression.resample('Q').asfreq()
+
+# Out[37]:
+# 2013Q1    295.0
+# 2013Q2      NaN
+# 2013Q3      NaN
+# 2013Q4      NaN
+# 2014Q1    280.0
+# 2014Q2      NaN
+# 2014Q3      NaN
+# 2014Q4    283.0
+# 2015Q1    280.0
+# 2015Q2      NaN
+# 2015Q3      NaN
+# 2015Q4      NaN
+# 2016Q1    281.0
+# 2016Q2    267.0
+# 2016Q3      NaN
+# 2016Q4      NaN
+# 2017Q1      NaN
+# 2017Q2      NaN
+# 2017Q3      NaN
+# 2017Q4      NaN
+# 2018Q1      NaN
+# 2018Q2      NaN
+# 2018Q3      NaN
+# 2018Q4      NaN
+# 2019Q1      NaN
+# 2019Q2      NaN
+# 2019Q3      NaN
+# 2019Q4      NaN
+# 2020Q1    287.0
+# Freq: Q-DEC, dtype: float64
+</CodeSnippet>
+<p>
+Missing data can be filled in with the <code className="jarombek-inline-code">ffill()</code> function.
+</p>
+<CodeSnippet language="Python">
+mile_progression.resample('Q').ffill()
+
+# Out[38]:
+# 2013Q1    295
+# 2013Q2    295
+# 2013Q3    295
+# 2013Q4    295
+# 2014Q1    280
+# 2014Q2    280
+# 2014Q3    280
+# ...
+</CodeSnippet>
+<SectionTitle title="Advanced Data Manipulation with Group By">Advanced Data Manipulation with Group By</SectionTitle>
+<p>
+The final aspect of pandas I'll talk about is its "group by" capabilities.  In a basic sense, pandas
+<code className="jarombek-inline-code">groupby()</code> function is analogous to SQL's
+<code className="jarombek-inline-code">GROUP BY</code> clause.  In pandas,
+<code className="jarombek-inline-code">groupby()</code> groups rows by given column(s) and performs
+aggregations on remaining columns.  I'll walk you through one example to give an idea of how it works,
+but to fully understand <code className="jarombek-inline-code">groupby()</code> you will have to
+experiment with it yourself.
+</p>
+<p>
+I started by creating a data frame which includes my programming language usage statistics (as of March 2020).
+</p>
+<CodeSnippet language="Python">
+lines_coded = pd.DataFrame({
+    '2014': [0, 4282, 0, 0, 0, 0, 0, 0, 0, 0],
+    '2015': [0, 1585, 931, 0, 0, 0, 0, 0, 325, 0],
+    '2016': [2008, 12962, 1122, 1413, 0, 5433, 0, 0, 942, 179],
+    '2017': [6663, 12113, 1288, 2289, 10726, 3670, 163, 0, 812, 113],
+    '2018': [16414, 4769, 1975, 10833, 698, 356, 4198, 3801, 1392, 2164],
+    '2019': [13354, 4439, 20192, 4855, 2208, 357, 4468, 4089, 2622, 2324],
+    '2020': [5022, 1664, 3666, 36, 0, 0, 727, 1332, 156, 652]
+  },
+  index=['JavaScript', 'Java', 'Python', 'HTML', 'Swift', 'PHP', 'Sass', 'HCL', 'SQL', 'Groovy']
+)
+lines_coded
+
+# Out[39]:
+# |            | 2014   | 2015   | 2016   | 2017   | 2018   | 2019   | 2020   |
+# +------------+--------+--------+--------+--------+--------+--------+--------+
+# | JavaScript | 0      | 0      | 2008   | 6663   | 16414  | 13354  | 5022   |
+# | Java       | 4282   | 1585   | 12962  | 12113  | 4769   | 4439   | 1664   |
+# | Python     | 0      | 931    | 1122   | 1288   | 1975   | 20192  | 3666   |
+# | HTML       | 0      | 0      | 1413   | 2289   | 10833  | 4855   | 36     |
+# | Swift      | 0      | 0      | 0      | 10726  | 698    | 2208   | 0      |
+# | PHP        | 0      | 0      | 5433   | 3670   | 356    | 357    | 0      |
+# | Sass       | 0      | 0      | 0      | 163    | 4198   | 4468   | 727    |
+# | HCL        | 0      | 0      | 0      | 0      | 3801   | 4089   | 1332   |
+# | SQL        | 0      | 325    | 942    | 812    | 1392   | 2622   | 156    |
+# | Groovy     | 0      | 0      | 179    | 113    | 2164   | 2324   | 652    |
+</CodeSnippet>
+<p>
+Next, I reset the data frame's index.  This makes the programming language names their own column.
+In the final data transformation before using <code className="jarombek-inline-code">groupby()</code>,
+I melted the data frame on the programming language names column.  Melting on this column results in a
+new data frame with a row for every language and year combination.
+</p>
+<CodeSnippet language="Python">
+lines_coded_v2 = lines_coded.reset_index()
+melted = pd.melt(lines_coded_v2, ['index'])
+melted
+
+# Out[40]:
+# |    | index      | var    | value  |
+# +----+------------+--------+--------+
+# | 0  | JavaScript | 2014   | 0      |
+# | 1  | Java       | 2014   | 4282   |
+# | 2  | Python     | 2014   | 0      |
+# | 3  | HTML       | 2014   | 0      |
+# | 4  | Swift      | 2014   | 0      |
+# | .. | ...        | ...    | ...    |
+# | 65 | PHP        | 2020   | 0      |
+# | 66 | Sass       | 2020   | 727    |
+# | 67 | HCL        | 2020   | 1332   |
+# | 68 | SQL        | 2020   | 156    |
+# | 69 | Groovy     | 2020   | 652    |
+</CodeSnippet>
+<p>
+Finally, it's time to use <code className="jarombek-inline-code">groupby()</code>!  In my examples, I
+group on the <code className="jarombek-inline-code">index</code> column (which contains programming
+language names).  <code className="jarombek-inline-code">groupby()</code> returns a grouping object
+which aggregation functions are performed upon.  My examples use the
+<code className="jarombek-inline-code">sum()</code> and <code className="jarombek-inline-code">mean()</code>
+aggregation functions to find the total lines coded all time and average lines coded per year, respectively.
+</p>
+<CodeSnippet language="Python">
+grouping = melted.groupby('index')
+grouping.sum()
+
+# Out[41]:
+# | index      | value  |
+# +------------+--------+
+# | Groovy     | 5432   |
+# | HCL        | 9222   |
+# | HTML       | 19426  |
+# | Java       | 41814  |
+# | JavaScript | 43461  |
+# | PHP        | 9816   |
+# | Python     | 29174  |
+# | SQL        | 6249   |
+# | Sass       | 9556   |
+# | Swift      | 13632  |
+
+grouping.mean()
+
+# Out[42]:
+# | index      | value  |
+# +------------+--------+
+# | Groovy     | 776.0  |
+# | HCL        | 1317.4 |
+# | HTML       | 2775.1 |
+# | Java       | 5973.4 |
+# | JavaScript | 6208.7 |
+# | PHP        | 1402.3 |
+# | Python     | 4167.7 |
+# | SQL        | 892.7  |
+# | Sass       | 1365.1 |
+# | Swift      | 1947.4 |
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Pandas is a really great library for tabular data, and fits into the Python ecosystem nicely.  I use
+pandas all the time at work, especially when interacting with data coming from a relational database.
+I plan on incorporating pandas into my personal projects as well, which is a sign that pandas is both fun
+for personal use and powerful enough for use at the enterprise level.  You can find all my pandas
+code samples on <a href="https://github.com/AJarombek/data-analytics-prototypes/tree/master/Python/pandas">GitHub</a>.
+</p>
+</div>

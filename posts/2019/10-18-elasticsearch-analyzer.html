@@ -1,0 +1,407 @@
+<div>
+<p>
+One of the biggest strengths of <a href="https://jarombek.com/blog/sep-15-2019-elasticsearch#elasticsearch">
+Elasticsearch</a> is text searching.  Elasticsearch holds strings for text searching in
+<code className="jarombek-inline-code">text</code> data types.  A document can contain one or more fields
+of type <code className="jarombek-inline-code">text</code>.
+</p>
+<p>
+When strings are placed into a field of type <code className="jarombek-inline-code">text</code> they are
+processed by an analyzer.  Elasticsearch analyzers can be viewed as a pipeline that takes text as an input,
+breaks it into terms, and returns the terms as output<sup>1</sup>.  These terms are placed in an inverted
+index which makes an index searchable.
+</p>
+<Definition word="Inverted Index">
+<p>
+An inverted index is a data structure commonly used to perform quick text searching.  Each
+<code className="jarombek-inline-code">text</code> field in Elasticsearch has a corresponding inverted
+index<sup>2</sup>.  The purpose of an inverted index is to map terms to the documents they appear in<sup>3</sup>.
+Terms are created from text with the help of an analyzer.
+</p>
+<p>
+For example, let's take a field in a document with an ID of 1.  If the field contains the text "Hello World"
+and an analyzer creates a term for each word, the corresponding inverted index would contain two terms - "Hello"
+and "World".  Both these terms would be mapped to ID #1.
+</p>
+<p>
+When fields are queried in a text search, document matches are determined by the terms in the inverted
+index.  For example, if the text search is "Hello", the document with ID #1 will be returned.  Importantly,
+text search matches aren't determined by the contents of a documents JSON, only by the terms in the inverted index.
+</p>
+</Definition>
+<p>
+Analyzers are critical in determining whether a text search returns a document.  The remainder
+of this article explores the components of analyzers and the impact they have on the inverted index.
+</p>
+<SectionTitle title="Components of Analyzers">Components of Analyzers</SectionTitle>
+<p>
+Each field of type <code className="jarombek-inline-code">text</code> is processed by an analyzer.  There are
+three main components of analyzers - character filters, tokenizers, and token filters.
+</p>
+<ComparisonTable title="Elasticsearch Constructs">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Character Filter
+</h5>
+<div className="jarombek-cte-body">
+<p>
+The first component of an analyzer is the character filter.  Character filters operate on text passed
+into the analyzer.  Analyzers have zero or more character filters.  The purpose of a character filter
+ is to transform text<sup>4</sup>.  This transformed text is passed along to the next analyzer component,
+the tokenizer.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Tokenizer
+</h5>
+<div className="jarombek-cte-body">
+<p>
+The second component of an analyzer is the tokenizer.  Tokenizers take the input text of the analyzer (or
+the transformed text from character filters) and creates tokens<sup>5</sup>.  Each analyzer must have a
+single tokenizer.  Tokens created by the tokenizer are either returned from the analyzer or passed onto the
+token filter(s).
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Token Filter
+</h5>
+<div className="jarombek-cte-body">
+<p>
+The third and final component of an analyzer is the token filter.  Token filters add, delete, or modify the
+tokens created by the tokenizer<sup>6</sup>.  Analyzers have zero or more token filters.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+When an analyzer executes, it sequentially runs the character filter(s), tokenizer, and token filter(s) in
+order, respectively.  Elasticsearch has many built-in character filters, tokenizers, and token filters for
+use.  Elasticsearch also allows developers to create their own components.  With the help of built-in and
+custom components, analyzers can be configured to suit most needs.
+</p>
+<p>
+If you don't want to spend time customizing an analyzer, Elasticsearch provides multiple built-in analyzers
+that work for most requirements.
+</p>
+<SectionTitle title="Working with Analyzers">Working with Analyzers</SectionTitle>
+<p>
+Elasticsearch exposes the <code className="jarombek-inline-code">/_analyze</code> endpoint to work directly
+with an analyzer.  This is great for testing the behavior of analyzers and exploring how they tokenize
+text.  <code className="jarombek-inline-code">/_analyze</code> can be called on an individual index or
+the entire Elasticsearch cluster.
+</p>
+<p>
+The most basic usage of <code className="jarombek-inline-code">/_analyze</code> is to run an analyzer on
+a string of text.  The following API call executes the build-it <code className="jarombek-inline-code">standard</code>
+analyzer on the text <strong>Hello my name is Andy.</strong>.
+</p>
+<CodeSnippet language="Bash">
+curl -XPOST ${ES_ENDPOINT}/_analyze?pretty=true -H 'Content-Type: application/json' -d '{
+  "analyzer": "standard",
+  "text": "Hello my name is Andy."
+}'
+</CodeSnippet>
+<CodeSnippet>
+{ "tokens": ["hello", "my", "name", "is", "andy"] }
+</CodeSnippet>
+<p>
+I abbreviated the API response to include only the resulting tokens.  This same API call can be executed in
+the Kibana UI:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/10-18-19-kibana-analyzer.png"/>
+</figure>
+<p>
+The standard analyzer consists of zero character filters, the standard tokenizer, and a lowercase token
+filter<sup>7</sup>.  The standard tokenizer removes punctuation and places each word in a separate
+token<sup>8</sup>.  After the standard tokenizer runs, the tokens are in the following form:
+</p>
+<CodeSnippet>
+{ "tokens": ["Hello", "my", "name", "is", "Andy"] }
+</CodeSnippet>
+<p>
+Notice that the tokens above are different than the end result of the standard analyzer (the uppercase
+characters still exist).  This is where the standard analyzer's token filter comes into play.  As its name
+suggests, the lowercase token filter modifies tokens by converting uppercase characters to lowercase.
+After the lowercase token filter runs, the tokens become <code className="jarombek-inline-code">
+["hello", "my", "name", "is", "andy"]</code>.
+</p>
+<p>
+The standard analyzer is one of many built-in analyzers.  Another example of a built-in analyzer is the
+<code className="jarombek-inline-code">whitespace</code> analyzer.
+</p>
+<CodeSnippet language="Bash">
+curl -XPOST ${ES_ENDPOINT}/_analyze?pretty=true -H 'Content-Type: application/json' -d '{
+  "analyzer": "whitespace",
+  "text": "Hello my name is Andy."
+}'
+</CodeSnippet>
+<CodeSnippet>
+{ "tokens": ["Hello", "my", "name", "is", "Andy."] }
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">/_analyze</code> endpoint also accepts character filters,
+token filters, and a tokenizer as input.  The following example uses the standard tokenizer and a character
+filter that strips HTML tags from text.
+</p>
+<CodeSnippet language="Bash">
+curl -XPOST ${ES_ENDPOINT}/_analyze?pretty=true -H 'Content-Type: application/json' -d '{
+  "tokenizer": "standard",
+  "char_filter": ["html_strip"],
+  "text": "&lt;h1>Title&lt;/h1>"
+}'
+</CodeSnippet>
+<CodeSnippet>
+{ "tokens": ["Title"] }
+</CodeSnippet>
+<SectionTitle title="Indexes with Custom Analyzers">Indexes with Custom Analyzers</SectionTitle>
+<p>
+All the examples so far called the <code className="jarombek-inline-code">/_analyze</code> endpoint on
+the entire cluster.  While this is beneficial for testing, its less useful in practice.  Custom analysers
+become especially advantageous once we start attaching them to indexes and fields on types within an index.
+</p>
+<p>
+Custom analyzers can be defined within the JSON configuration object of an index.  The following custom
+analyzer consists of the whitespace tokenizer and a custom <code className="jarombek-inline-code">emoji_filter</code>
+character filter.
+</p>
+<CodeSnippet language="JSON">
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 5,
+      "number_of_replicas": 2
+    },
+    "analysis": {
+      "analyzer": {
+        "emoji_analyzer": {
+          "tokenizer": "whitespace",
+          "char_filter": [
+            "emoji_filter"
+          ]
+        }
+      },
+      "char_filter": {
+        "emoji_filter": {
+          "type": "mapping",
+          "mappings": [
+            "🙂 => :)",
+            "🙁 => :(",
+            "😀 => :D"
+          ]
+        }
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+If this JSON configuration is saved in <strong>index.json</strong>, the following API call creates the
+  index and names it <code className="jarombek-inline-code">test</code>:
+</p>
+<CodeSnippet language="Bash">
+curl -XPUT ${ES_ENDPOINT}/test -H 'Content-Type: application/json' -d @data/test/index.json
+</CodeSnippet>
+<p>
+The whitespace tokenizer creates a new token each time it encounters whitespace.  The custom emoji character
+filter turns unicode emojis to ascii compliant emoticons.  The following API call demonstrates how to
+use the custom analyzer.
+</p>
+<CodeSnippet language="Bash">
+curl -XPOST ${ES_ENDPOINT}/test/_analyze -H 'Content-Type: application/json' -d '{
+  "analyzer": "emoji_analyzer",
+  "text": "😀"
+}'
+</CodeSnippet>
+<CodeSnippet>
+{ "tokens": [":D"] }
+</CodeSnippet>
+<p>
+Here are three more examples of custom analyzers:
+</p>
+<CodeSnippet language="JSON">
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 5,
+      "number_of_replicas": 2
+    },
+    "analysis": {
+      "analyzer": {
+        "email_analyzer": {
+          "tokenizer": "email"
+        },
+        "short_words_analyzer": {
+          "tokenizer": "short_words"
+        },
+        "long_words_analyzer": {
+          "tokenizer": "standard",
+          "filter": ["english_stop"]
+        }
+      },
+      "filter": {
+        "english_stop": {
+          "type": "stop",
+          "stopwords": "_english_"
+        }
+      },
+      "tokenizer": {
+        "email": {
+          "type": "pattern",
+          "pattern": "([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\\.[a-zA-Z]{2,})",
+          "group": 1
+        },
+        "short_words": {
+          "type": "classic",
+          "max_token_length": 2
+        }
+      }
+    }
+  }
+}
+</CodeSnippet>
+<CodeSnippet language="Bash">
+
+curl -XPOST ${ES_ENDPOINT}/test/_analyze -H 'Content-Type: application/json' -d '{
+  "analyzer": "email_analyzer",
+  "text": "My emails are andrew@jarombek.com and ajarombek95@gmail.com."
+}'
+
+curl -XPOST ${ES_ENDPOINT}/test/_analyze -H 'Content-Type: application/json' -d '{
+  "analyzer": "short_words_analyzer",
+  "text": "Hi my name is Andy Jarombek."
+}'
+
+curl -XPOST ${ES_ENDPOINT}/test/_analyze -H 'Content-Type: application/json' -d '{
+  "analyzer": "long_words_analyzer",
+  "text": "Dotty is a good horse."
+}'
+</CodeSnippet>
+<p>
+And here are the responses from the API calls:
+</p>
+<CodeSnippet>
+{ "tokens": ["andrew@jarombek.com", "ajarombek95@gmail.com"] }
+{ "tokens": ["Hi", "my", "is"] }
+{ "tokens": ["Dotty", "good", "horse"] }
+</CodeSnippet>
+<SectionTitle title="Fields with Custom Analyzers">Fields with Custom Analyzers</SectionTitle>
+<p>
+It's time to demonstrate how analyzers work end-to-end.  Analyzers are executed on two occasions - when
+a document is created with a field of type <code className="jarombek-inline-code">text</code> and when
+a text field is queried.
+</p>
+<p>
+Before creating a document, an index is needed with a custom analyzer and a type mapping.  Notice that the type mapping contains
+a single field of type <code className="jarombek-inline-code">text</code> called <code className="jarombek-inline-code">name</code>.
+This field has two additional properties - <code className="jarombek-inline-code">analyzer</code> and
+<code className="jarombek-inline-code">search_analyzer</code>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 5,
+      "number_of_replicas": 2,
+      "max_ngram_diff": 10
+    },
+    "analysis": {
+      "analyzer": {
+        "tech_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "char_filter": [],
+          "filter": ["tech_ngram"]
+        }
+      },
+      "filter": {
+        "tech_ngram": {
+          "type": "ngram",
+          "min_gram": 4,
+          "max_gram": 10
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "name": {
+        "type": "text",
+        "analyzer": "tech_analyzer",
+        "search_analyzer": "standard"
+      }
+    }
+  }
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">analyzer</code> declares the analyzer used when documents are indexed.
+<code className="jarombek-inline-code">search_analyzer</code> declares the analyzer used when text searches
+ execute.  The <code className="jarombek-inline-code">name</code> field uses a custom analyzer with a n-gram
+tokenizer when indexed and the standard analyzer when queried.  The n-gram tokenizer creates tokens of
+length four through ten.
+</p>
+<p>
+With the index definition created, it's time to populate it with some documents:
+</p>
+<CodeSnippet language="Bash">
+curl -XPOST ${ES_ENDPOINT}/tech/_doc/1 -H 'Content-Type: application/json' -d \
+  '{"name": "Elasticsearch"}'
+curl -XPOST ${ES_ENDPOINT}/tech/_doc/2 -H 'Content-Type: application/json' -d \
+  '{"name": "Logstash"}'
+curl -XPOST ${ES_ENDPOINT}/tech/_doc/3 -H 'Content-Type: application/json' -d \
+  '{"name": "Kibana"}'
+</CodeSnippet>
+<p>
+If we could view the inverted index for the <code className="jarombek-inline-code">name</code> field, it
+would look something like this<sup>8,9</sup>:
+</p>
+<span className="code-span">
+| Term       | Appearances (Document, Frequency) |
+|------------|-----------------------------------|
+| Elas       | (1,1)                             |
+| Elast      | (1,1)                             |
+| Elasti     | (1,1)                             |
+| Elastic    | (1,1)                             |
+| Elastics   | (1,1)                             |
+| Elasticse  | (1,1)                             |
+| Elasticsea | (1,1)                             |
+| lasticsear | (1,1)                             |
+| asticsearc | (1,1)                             |
+| sticsearch | (1,1)                             |
+| last       | (1,1)                             |
+| lasti      | (1,1)                             |
+| lastic     | (1,1)                             |
+| Logs       | (2,1)                             |
+| Kiba       | (3,1)                             |
+| ...        | ...                               |
+|------------|-----------------------------------|
+</span>
+<p>
+Viewing the inverted index is helpful since we can see the result of the n-gram tokenizer.  Since the
+standard analyzer is used on the <code className="jarombek-inline-code">name</code> field at query time,
+the following query returns the first document.
+</p>
+<CodeSnippet language="Bash">
+curl ${ES_ENDPOINT}/tech/_doc/_search?pretty=true -H 'Content-Type: application/json' -d '{
+  "query": {
+    "match": {
+      "name": "stic"
+    }
+  }
+}'
+</CodeSnippet>
+<p>This query would not have returned the first document if the entire <strong>Elasticsearch</strong>
+string was stored in the inverted index.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Learning how analyzers and inverted indexes work helps explain some of the "magic" in Elasticsearch.
+In my next Elasticsearch adventure, I will explore querying documents.  All the code from this
+article is available on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/10-Oct/10-18-elasticsearch-query">GitHub</a>.
+</p>
+</div>

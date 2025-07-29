@@ -1,0 +1,472 @@
+<div>
+<p>
+While working with the object oriented paradigm, methods often need to be overridden or
+overloaded.  These similar concepts are often confused by new developers - in my early days of
+software development it took a long time to remember the differences.  Both overriding and
+overloading consist of creating multiple methods of the same name.  The difference between the
+two is the scope and situation in which these methods are used.
+</p>
+<ComparisonTable title="Method Overloading vs. Overriding">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Overloading
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Overloading is creating multiple methods or functions in the same scope with the same name.  For
+overloaded methods the scope is a class definition.  The difference between overloaded methods
+is the number of parameters - or for a language with explicit type definitions the
+parameter types.  A programming language is tasked with choosing between the different overloaded
+methods when they are invoked.  Invocation processes differ across programming languages.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Overriding
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Overriding methods occurs in object oriented programming when a subclass implements a method already
+defined in the superclass.  Everything about the method signature stays the same - including the
+number of parameters and the return type of the method.  When the method is called from a subclass
+instance, the overridden method is invoked instead of the superclass method.
+</p>
+<p>
+Languages such as JavaScript use a similar technique to overriding with prototypal inheritance.
+The JavaScript technique is called shadowing, in which an object lower on the prototype chain
+has a method that shares the same name as a method higher up the chain.  Methods lower on the
+prototype chain will block - or shadow - methods with the same signature higher on the chain.
+Shadowing results in methods lower on the chain being invoked.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+Method overriding is used strictly with inheritance while overloading can be used in any class
+structure (in languages that support it).  For the rest of this post I want to look at method
+overloading in particular.  The final sentence in the overloading definition is the most
+important - "Invocation processes differ across programming languages."  I will walk through how
+to perform method overloading in Java, Groovy, JavaScript, Python, Swift, and PHP.
+</p>
+<SectionTitle title="The Code">The Code</SectionTitle>
+<p>
+I set up a few classes in each language to help demonstrate method overloading.  I built classes
+representing a garden I often do work in at Tod’s Point in Old Greenwich, CT.  The garden is
+filled with flowers and animals often stop by to eat.  Three classes were built to
+depict the scene - <code className="jarombek-inline-code">Animal</code>,
+<code className="jarombek-inline-code">Plant</code> and
+<code className="jarombek-inline-code">Garden</code>:
+</p>
+<CodeSnippet language="Groovy">
+class Animal {
+
+  enum Species {
+    DEER, GROUNDHOG, RABBIT, RACCOON, SQUIRREL, CHIPMUNK, CROW, CARDINAL
+  }
+
+  String name
+  Species species
+  def description
+}
+</CodeSnippet>
+<CodeSnippet language="Groovy">
+class Plant {
+
+  enum Species {
+    HOSTA, DAYLILY, IRIS, HIBISCUS, PEONY
+  }
+
+  Species species
+  boolean inBloom
+}
+</CodeSnippet>
+<CodeSnippet language="Groovy">
+class Garden {
+
+  List&lt;Animal&gt; animals
+  List&lt;Plant&gt; plants
+  List&lt;Object&gt; randomObjects
+
+  def inGarden(...) {
+    ...
+  }
+}
+</CodeSnippet>
+<p>
+Tod’s Points garden is filled with animals, plants, and potentially other random objects - which
+correspond to the instance variables <code className="jarombek-inline-code">animals</code>,
+<code className="jarombek-inline-code">plants</code>, and <code className="jarombek-inline-code">
+randomObjects</code> in <code className="jarombek-inline-code">Garden</code>.  The method of interest
+is <code className="jarombek-inline-code">inGarden()</code> located in the
+<code className="jarombek-inline-code">Garden</code> class.  This is the method that we
+wish to overload.
+</p>
+<SectionTitle title="Java">Java</SectionTitle>
+<p>
+  Garden.java
+</p>
+<CodeSnippet language="Java">
+public final class Garden {
+
+  private List&lt;Animal&gt; animals;
+  private List&lt;Plant&gt; plants;
+  private List&lt;Object&gt; randomObjects;
+
+  static Garden of(Iterable&lt;Animal&gt; animals, Iterable&lt;Plant&gt; plants) {
+    return new Garden(animals, plants, List.of());
+  }
+
+  boolean inGarden(Animal animal) {
+    System.out.println("Checking if Animal in Garden");
+    return animals.contains(animal);
+  }
+
+  boolean inGarden(Plant plant) {
+    System.out.println("Checking if Plant in Garden");
+    return plants.contains(plant);
+  }
+
+  boolean inGarden(Object object) {
+    System.out.println("Checking if Random Object in Garden");
+    return randomObjects.contains(object);
+  }
+}
+</CodeSnippet>
+<p>
+  Main.java
+</p>
+<CodeSnippet language="Java">
+...
+
+Animal doe = Animal.ofName("doe", Animal.Species.DEER);
+
+Garden garden = Garden.of(List.of(msGroundhog, mrGroundhog, doe, bunny), List.of(hosta, lily, iris));
+
+/* The compile time type of 'doe' is Animal, so inGarden(Animal) is invoked */
+assert garden.inGarden(doe);
+
+Object objectDoe = doe;
+
+/* The compile time type of 'objectDoe' is Object, so inGarden(Object) is invoked */
+assert !garden.inGarden(objectDoe);
+</CodeSnippet>
+<p>
+Java is a statically typed language with explicit type declarations.  Overloading methods in Java is
+unique in the sense that it chooses which overloaded method to invoke at compile time<sup>1</sup>.
+</p>
+<p>
+Picking overloaded methods at compile time has some interesting consequences.  Remember that
+variables in Java have both compile time and runtime types.  Often the compile time and runtime
+types of variables are the same, such as the variable definition <code className="jarombek-inline-code">
+Animal doe = Animal.ofName("doe", Animal.Species.DEER);</code>.  Both compile and runtime types are
+of the class <code className="jarombek-inline-code">Animal</code>.  The overloaded method that gets
+invoked is equally predictable - <code className="jarombek-inline-code">inGarden(Animal animal)</code>.
+</p>
+<p>
+Things get more complicated when the compile time and runtime types are different.  Different
+compile time and runtime types are possible in object oriented programming thanks to polymorphism.
+Take the variable definition <code className="jarombek-inline-code">Object objectDoe = doe;</code>.  The
+compile time type of the variable <code className="jarombek-inline-code">objectDoe</code> is
+<code className="jarombek-inline-code">Object</code>.  However, recall that the type of the variable
+<code className="jarombek-inline-code">doe</code> is <code className="jarombek-inline-code">Animal</code>.
+Two different types for one variable!
+</p>
+<p>
+So the question becomes which overloaded method gets invoked when calling
+<code className="jarombek-inline-code">garden.inGarden(objectDoe)</code> -
+<code className="jarombek-inline-code">inGarden(Animal animal)</code> or
+<code className="jarombek-inline-code">inGarden(Object object)</code>?  Java actually picks
+<code className="jarombek-inline-code">inGarden(Object object)</code>, as it only considers the compile
+time type for overloaded methods.
+</p>
+<p>
+If you want to add to this confusion, overridden methods in Java are picked amongst according to the
+arguments runtime type<sup>2</sup>.  This is important, since we want a method to be picked from the
+class furthest down the inheritance hierarchy.  You just have to remember that overloaded methods
+are picked by compile time types and overridden methods are picked by runtime types.
+</p>
+<UpdateInfo date="January 31st, 2019">
+Overloaded methods work similarly in C#, which you can view on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2018/07-jul/7-29-overloading/csharp">GitHub</a>.
+</UpdateInfo>
+<SectionTitle title="Groovy">Groovy</SectionTitle>
+<p>
+  Garden.groovy
+</p>
+<CodeSnippet language="Groovy">
+class Garden {
+
+  List&lt;Animal&gt; animals
+  List&lt;Plant&gt; plants
+  List&lt;Object&gt; randomObjects
+
+  def inGarden(Animal animal) {
+    return animals.contains(animal)
+  }
+
+  def inGarden(Plant plant) {
+    return plants.contains(plant)
+  }
+
+  def inGarden(Object object) {
+    return randomObjects.contains(object)
+  }
+}
+</CodeSnippet>
+<p>
+  Main.groovy
+</p>
+<CodeSnippet language="Groovy">
+...
+
+def doe = ["doe", deer, "from the tip of his wand burst the silver doe"] as Animal
+
+def garden = new Garden(animals: [msGroundhog, mrGroundhog, doe, bunny], plants: [hosta, lily, iris])
+
+assert garden.inGarden(doe)
+
+Object objectDoe = doe
+assert garden.inGarden(objectDoe)
+</CodeSnippet>
+<p>
+Unlike Java, Groovy will determine which overloaded method to call based on the runtime types of the
+method arguments.  This is because Groovy is dynamically typed - it enforces Java’s type system only
+at runtime.  Calling <code className="jarombek-inline-code">garden.inGarden(objectDoe)</code> in Groovy
+will invoke <code className="jarombek-inline-code">inGarden(Animal animal)</code> instead of
+<code className="jarombek-inline-code">inGarden(Object object)</code>.  Without going into much detail
+on dynamic programming languages, this behavior in Groovy is thanks to multimethods.
+</p>
+<Definition word="Multimethods">
+When two methods are differentiated only by their argument types, languages using multimethods look
+up which method to invoke based on the runtime types of the arguments passed to them<sup>3</sup>.
+Multimethods (also called Multiple Dispatch<sup>4</sup>) is in contrast with picking between methods
+based on static, compile time types.
+</Definition>
+<SectionTitle title="JavaScript">JavaScript</SectionTitle>
+<p>
+  Garden.js
+</p>
+<CodeSnippet language="JavaScript">
+class Garden {
+
+  constructor(animals=[], plants=[], randomObjects=[]) {
+    this.animals = animals;
+    this.plants = plants;
+    this.randomObjects = randomObjects;
+  }
+
+  inGarden(item) {
+    if (arguments.length === 0) {
+      return false;
+    }
+
+    if (typeof item === "object") {
+
+      // Check for the object type using duck typing
+      if (item.hasOwnProperty("name") && item.hasOwnProperty("species")
+          && item.hasOwnProperty("description")) {
+        return this.animals.includes(item);
+      } else if (item.hasOwnProperty("species") && item.hasOwnProperty("inBloom")) {
+        return this.plants.includes(item);
+      } else {
+        return this.randomObjects.includes(item);
+      }
+
+    } else {
+      return false;
+    }
+  }
+}
+</CodeSnippet>
+<p>
+  Main.js
+</p>
+<CodeSnippet language="JavaScript">
+...
+
+const doe = new Animal("doe", Animal.Species.DEER);
+
+const garden = new Garden([msGroundhog, mrGroundhog, doe, bunny], [hosta, lily, iris]);
+
+// Both checks on animals and plants will succeed
+assert(garden.inGarden(doe));
+assert(garden.inGarden(lily));
+
+assert(!garden.inGarden(new Animal("momma rabbit", Animal.Species.RABBIT)));
+</CodeSnippet>
+<p>
+Classical forms of method overloading like in the Java and Groovy code are not possible in
+JavaScript.  An object can’t have two method declarations of the same name.  Instead, you can set
+up one method that handles all the different argument scenarios<sup>5</sup>.  That is exactly what
+I did in the code above.
+</p>
+<SectionTitle title="Python">Python</SectionTitle>
+<p>
+Garden.py
+</p>
+<CodeSnippet language="Python">
+class Garden(object):
+
+  def __init__(self, animals=list(), plants=list(), random_objects=list()):
+    self.animals = animals
+    self.plants = plants
+    self.random_objects = random_objects
+
+  def in_garden(self, item):
+    if item is not None:
+      if type(item) is Animal:
+        return item in self.animals
+      if type(item) is Plant:
+        return item in self.plants
+      else:
+        return item in self.random_objects
+    else:
+      return False
+</CodeSnippet>
+<p>
+Main.py
+</p>
+<CodeSnippet language="Python">
+...
+
+doe = Animal("doe", AnimalSpecies.DEER)
+
+garden = Garden(animals=[msGroundhog, mrGroundhog, doe, bunny],
+plants=[hosta, lily, iris])
+
+assert garden.in_garden(doe)
+assert garden.in_garden(lily)
+assert not garden.in_garden(Animal("momma rabbit", AnimalSpecies.RABBIT))
+</CodeSnippet>
+<p>
+Method overloading in Python is just like JavaScript<sup>6</sup>.  All the logic to handle
+different method arguments is handled in one method definition.
+</p>
+<UpdateInfo date="November 27th, 2018">
+<p>
+There are a few things incorrect about the above Python code and explanation.  Function
+overloading is possible in Python outside of a class with the <code className="jarombek-inline-code">@singledispatch</code>
+decorator.  <code className="jarombek-inline-code">@singledispatch</code> creates a generic function that has different
+bodies depending on the argument types<sup>7</sup>.  I refactored the garden example above to use
+<code className="jarombek-inline-code">@singledispatch</code>.  That code exists in the <a href="https://bit.ly/2PaGVZK">garden2.py</a>
+and <a href="https://bit.ly/2DNzPrP">main2.py</a> files on GitHub.
+</p>
+<p>
+The second problem is in the <code className="jarombek-inline-code">Garden</code> constructor.  In Python default arguments for
+should never be mutable<sup>8</sup>.  The problem is default arguments are bound to the function
+object when the module is loaded<sup>9</sup>.  After that, if the value is mutated, it affects
+all further invocations of the function.  This exploit is shown in <a href="https://bit.ly/2KF93Ua">mainI.py</a>.  I fixed the
+<code className="jarombek-inline-code">Garden</code> class in <a href="https://bit.ly/2KDWS9T">GardenII.py</a>
+and <a href="https://bit.ly/2SiQlV0">mainII.py</a>.
+</p>
+</UpdateInfo>
+<SectionTitle title="Swift">Swift</SectionTitle>
+<p>
+  Garden.swift
+</p>
+<CodeSnippet language="Swift">
+struct Garden {
+
+  let animals: [Animal]
+  let plants: [Plant]
+  let random_objects: [Any]?
+
+  func inGarden(_ animal: Animal) -> Bool {
+    return self.animals.contains { $0 == animal }
+  }
+
+  func inGarden(_ plant: Plant) -> Bool {
+    return self.plants.contains { $0 == plant }
+  }
+
+  func inGarden(_ object: Any) -> Bool {
+    let exists: Bool? = self.random_objects?.contains { $0 as? AnyObject === object as? AnyObject }
+    return exists ?? false
+  }
+}
+</CodeSnippet>
+<p>
+  Main.swift
+</p>
+<CodeSnippet language="Swift">
+...
+
+let doe = Animal(name: "doe", species: AnimalSpecies.Deer)
+
+let garden = Garden(withAnimals: [msGroundhog, mrGroundhog, doe, bunny],
+                    plants: [hosta, lily, iris], andObjects: nil)
+
+assert(garden.inGarden(doe))
+
+let otherDoe: Any = doe
+assert(!garden.inGarden(otherDoe))
+
+assert(garden.inGarden(lily))
+assert(!garden.inGarden(Animal(name: "momma rabbit", species: AnimalSpecies.Rabbit)))
+assert(!garden.inGarden("Squirrel"))
+</CodeSnippet>
+<p>
+Swift is interesting because it is a statically typed language with optional type annotations
+that can be applied to variables<sup>10</sup>.  The most generic type in Swift is
+<code className="jarombek-inline-code">Any</code> - meaning an instance of any type.  If you define a
+variable with <code className="jarombek-inline-code">Any</code> as the type annotation such as
+<code className="jarombek-inline-code">let otherDoe: Any = doe</code>, the generic overloaded method
+<code className="jarombek-inline-code">inGarden(_ object: Any)</code> will be called instead of
+<code className="jarombek-inline-code">inGarden(_ animal: Animal)</code>.
+</p>
+<SectionTitle title="PHP">PHP</SectionTitle>
+<p>
+  Garden.php
+</p>
+<CodeSnippet language="PHP">
+class Garden
+{
+
+  private $animals;
+  private $plants;
+  private $randomObjects;
+
+  public function inGarden($item) {
+    if ($item != null) {
+
+      if ($item instanceof Animal) {
+        return in_array($item, $this->animals);
+      } else if ($item instanceof Plant) {
+        return in_array($item, $this->plants);
+      } else {
+        return in_array($item, $this->randomObjects);
+      }
+    } else {
+      return false;
+    }
+  }
+}
+</CodeSnippet>
+<p>
+  Main.php
+</p>
+<CodeSnippet language="PHP">
+...
+
+$doe = new Animal("doe", AnimalSpecies::DEER);
+
+$garden = new Garden([$msGroundhog, $mrGroundhog, $doe, $bunny], [$hosta, $lily, $iris]);
+
+assert($garden->inGarden($doe));
+assert($garden->inGarden($lily));
+assert(!$garden->inGarden(new Animal("momma rabbit", AnimalSpecies::RABBIT)));
+</CodeSnippet>
+<p>
+Just like JavaScript and Python, PHP does not allow for method overloading - the logic for handling
+different arguments must be handled in the function body.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+I had a blast playing around with these different languages I’ve used over the years and exploring
+them on a more technical level.  Looking at the code makes me realize how simple object oriented
+concepts like method overloading can be implemented in many different ways.  If you want to look at
+the code in more detail it is available on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2018/07-jul/7-29-overloading">GitHub</a>.
+</p>
+</div>

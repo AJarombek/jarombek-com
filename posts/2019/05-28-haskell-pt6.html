@@ -1,0 +1,321 @@
+<div>
+<p>
+Right now I'm learning <a href="https://jarombek.com/blog?query=haskell&page=1">Haskell</a>, a
+functional programming language.  In my last few Haskell articles I've discussed basic aspects of the
+language.  Now I've begun digging into advanced functional programming concepts.  This article discusses
+functors, a generic way to map functions over objects.
+</p>
+<SectionTitle title="Functor Basics">Functor Basics</SectionTitle>
+<p>
+A common pattern in programming is looping through a collection of values and applying a transformation
+to each.  For example, a programmer might loop through a list of integers and increment each value.  The
+imperative approach to this transformation sets up a for loop and iterates over each list
+index.  The functional approach uses the <code className="jarombek-inline-code">map</code> higher-order
+function.  <code className="jarombek-inline-code">map</code> accepts two arguments - a collection to iterate
+over and a function.  The function is applied to each item in the collection.
+</p>
+<p>
+Haskell has a <code className="jarombek-inline-code">map</code> function defined in the GHC Prelude
+module<sup>1</sup>.  It accepts a list and a function as arguments.
+</p>
+<CodeSnippet language="Haskell">
+map :: (a -> b) -> [a] -> [b]
+map _ []     = []
+map f (x:xs) = f x : map f xs
+</CodeSnippet>
+<p>
+With the <code className="jarombek-inline-code">map</code> function, list items can be transformed.  A basic
+example is incrementing each item in the list.
+</p>
+<CodeSnippet language="Haskell">
+main :: IO ()
+main = do
+  print $ map (+1) [1,2,3] -- [2,3,4]
+</CodeSnippet>
+<p>
+Haskell's <code className="jarombek-inline-code">map</code> function is useful, however its restricted to
+just a list data structure.  The concept of applying a function across all items in a data structure
+can be generalized even more than the <code className="jarombek-inline-code">map</code> function.  This
+is where functors come into play.
+</p>
+<Definition word="Functor">
+In Haskell (and functional programming in general), a functor provides the ability to map a function
+across all the items in a data structure or object<sup>2</sup>.  Functors in Haskell are defined by a
+<code className="jarombek-inline-code">Functor</code> type class.  Types that are instances of
+<code className="jarombek-inline-code">Functor</code> implement a function called
+<code className="jarombek-inline-code">fmap</code>, which provides mapping functionality.
+</Definition>
+<p>
+The <code className="jarombek-inline-code">Functor</code> type class definition is simple:
+</p>
+<CodeSnippet language="Haskell">
+class Functor f where
+  fmap :: (a -> b) -> f a -> f b
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">fmap</code> is a <a href="https://jarombek.com/blog/
+aug-27-2018-groovy-currying#currying">curried function</a> that takes in another function
+[<code className="jarombek-inline-code">(a -> b)</code>] and a value whose type is an instance of
+<code className="jarombek-inline-code">Functor</code> [<code className="jarombek-inline-code">f a</code>] as
+arguments.  <code className="jarombek-inline-code">fmap</code> passes <code className="jarombek-inline-code">f a</code>
+to the function <code className="jarombek-inline-code">(a -> b)</code>, resulting in <code className="jarombek-inline-code">b</code>.
+</p>
+<SectionTitle title="Functor Examples">Functor Examples</SectionTitle>
+<p>
+The most basic functor instance is for the list type<sup>3</sup>.
+</p>
+<CodeSnippet language="Haskell">
+instance Functor [] where
+  -- fmap :: (a -> b) -> [a] -> [b]
+  fmap = map
+</CodeSnippet>
+<p>
+For lists, <code className="jarombek-inline-code">fmap</code> is implemented the same as
+<code className="jarombek-inline-code">map</code>.  Therefore, it behaves as expected.
+</p>
+<CodeSnippet language="Haskell">
+main :: IO ()
+main = do
+  print $ fmap (+1) [1,2,3] -- [2,3,4]
+  print $ fmap (*2) [1,2,3] -- [2,4,6]
+  print $ fmap show [1,2,3] -- ["1","2","3"]
+</CodeSnippet>
+<p>
+The great thing about functors is any parameterized type in Haskell can be made an instance of
+<code className="jarombek-inline-code">Functor</code>.  For example, the <code className="jarombek-inline-code">Maybe</code>
+type which defines a potentially non-existant value can become a functor.
+</p>
+<CodeSnippet language="Haskell">
+data Maybe a = Nothing | Just a
+
+instance Functor Maybe where
+  -- fmap :: (a -> b) -> Maybe a -> Maybe b
+  fmap _ Nothing = Nothing
+  fmap g (Just x) = Just (g x)
+
+main :: IO ()
+main = do
+  print $ fmap (+1) (Just 5) -- Just 6
+  print $ fmap (+1) Nothing -- Nothing
+  print $ fmap (*3) (Just 5) -- Just 15
+  print $ fmap (*3) Nothing -- Nothing
+</CodeSnippet>
+<p>
+Custom types can also become functors.  For example, my custom <code className="jarombek-inline-code">Distance</code>
+type is easily made an instance of <code className="jarombek-inline-code">Functor</code>.
+</p>
+<CodeSnippet language="Haskell">
+data Distance a = Miles a | Kilometers a | Meters a
+                  deriving (Show, Read)
+
+-- Make the 'Distance' type into a Functor
+instance Functor Distance where
+  -- fmap :: (a -> b) -> Distance a -> Distance b
+  fmap f (Miles x) = Miles (f x)
+  fmap f (Kilometers x) = Kilometers (f x)
+  fmap f (Meters x) = Meters (f x)
+
+main :: IO ()
+main = do
+  print $ fmap (+1) (Miles 4.38) -- Miles 5.38
+  print $ fmap (+1) (Kilometers 7.05) -- Kilometers 8.05
+  print $ fmap (+1) (Meters 7005) -- Meters 7006
+  print $ fmap (*3) (Miles 1) -- Miles 3
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">Distance</code> is a valid functor instance because its data definition
+is parameterized and it has a type constructor.  You can think of <code className="jarombek-inline-code">Distance</code>
+as a container type, since it holds a value such as a floating point number.  Lists and the
+<code className="jarombek-inline-code">Maybe</code> type have similar structures.  Types without a parameterized
+data definition are not valid functors because they don't contain another type<sup>4</sup>.
+</p>
+<SectionTitle title="Working with Functors">Working with Functors</SectionTitle>
+<p>
+Functors are useful for mapping functions across all items contained in an object.  They become even more
+useful in regards to Applicatives and Monads, which I will discuss in upcoming articles.
+</p>
+<p>
+For now, one last useful functor implementation is a generic function for all instances of
+<code className="jarombek-inline-code">Functor</code> to utilize.  With the help of a <code className="jarombek-inline-code">
+Functor</code> class constant, a function is easily created to increment the items in any
+<code className="jarombek-inline-code">Functor</code> instance<sup>5</sup>.
+</p>
+<CodeSnippet language="Haskell">
+inc :: Functor f => f Int -> f Int
+inc x = fmap (+1) x
+
+main :: IO ()
+main = do
+  print $ inc [1,2,3] -- [2,3,4]
+  print $ inc (Just 5) -- Just 6
+  print $ inc Nothing -- Nothing
+  print $ inc (Miles 3) -- Miles 4
+</CodeSnippet>
+<p>
+Any type that is an instance of <code className="jarombek-inline-code">Functor</code> can utilize
+the <code className="jarombek-inline-code">inc</code> function!  This is a really powerful design pattern for
+function reuse.
+</p>
+<SectionTitle title="Functors in Java">Functors in Java</SectionTitle>
+<p>
+The concept of functors isn't limited to Haskell or functional programming.  In Java, the
+<code className="jarombek-inline-code">Functor</code> type class is represented as an interface<sup>6</sup>.
+</p>
+<CodeSnippet language="Java">
+public interface Functor&lt;T> {
+
+  /**
+   * Map a function to values wrapped inside the Functor instance
+   * @param f A function that is applied to the Functor
+   * @param &lt;R> The generic type that will be wrapped in the Functor return value
+   * @return A new instance of Functor
+   */
+  &lt;R> Functor&lt;R> fmap(Function&lt;T, R> f);
+}
+</CodeSnippet>
+<p>
+Classes can implement the <code className="jarombek-inline-code">Functor</code> interface.
+This is comparable to creating an instance of the <code className="jarombek-inline-code">Functor</code> type
+class in Haskell.  The following class creates a list that is also a functor.
+</p>
+<CodeSnippet language="Java">
+public class FList&lt;T> implements Functor&lt;T> {
+
+  // The FList class uses composition to hold an instance of a List object
+  private List&lt;T> list;
+
+  /**
+   * Construct an FList object with any iterable collection.  Converts the Iterable to a List.
+   * @param iterable - Iterable collection used as the contents of the FList
+   */
+  public FList(Iterable&lt;T> iterable) {
+    list = new ArrayList&lt;>();
+    iterable.forEach(list::add);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public &lt;R> FList&lt;R> fmap(Function&lt;T, R> f) {
+    List&lt;R> newList = list.stream().map(f).collect(toList());
+    return new FList&lt;>(newList);
+  }
+
+  /**
+   * Retrieve the internal list object
+   * @return The Generic list
+   */
+  public List&lt;T> getList() {
+    return list;
+  }
+}
+</CodeSnippet>
+<p>
+Class <code className="jarombek-inline-code">FList</code> has a concrete implementation of
+<code className="jarombek-inline-code">fmap()</code> as required by the <code className="jarombek-inline-code">
+Functor</code> interface.  For the sake of another example, the following class defines a functor for
+a pair of values.
+</p>
+<CodeSnippet language="Java">
+public class FPair&lt;T> implements Functor&lt;T> {
+
+  // The FPair object contains two values of matching types
+  private T item1;
+  private T item2;
+
+  /**
+   * Construct a pair based on two values of the same type.
+   * @param item1 The first value
+   * @param item2 The second value
+   */
+  public FPair(T item1, T item2) {
+    this.item1 = item1;
+    this.item2 = item2;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public &lt;R> FPair&lt;R> fmap(Function&lt;T, R> f) {
+    return new FPair&lt;>(f.apply(item1), f.apply(item2));
+  }
+
+  /**
+   * Get the internal objects and return them as a list
+   * @return A list containing two objects
+   */
+  public List&lt;T> getPair() {
+    return List.of(item1, item2);
+  }
+}
+</CodeSnippet>
+<p>
+The following code confirms that the functors behave as expected when invoking
+<code className="jarombek-inline-code">fmap()</code>.
+</p>
+<CodeSnippet language="Java">
+public static void main(String... args) {
+  // Testing the Functor implementation of a List
+  FList&lt;Integer> fList = new FList&lt;>(List.of(1,2,3,4));
+
+  fList = fList.fmap(x -> x * 2)
+               .fmap(x -> x + 1);
+
+  List&lt;Integer> list = fList.getList();
+  assert list.size() == 4;
+  assert list.toString().equals("[3, 5, 7, 9]");
+
+  // Testing the Functor implementation of a Pair
+  FPair&lt;Double> fPair = new FPair&lt;>(0.1, 0.2);
+
+  fPair = fPair.fmap(x -> x + 1)
+               .fmap(x -> x * 2)
+               .fmap(x -> x / 2);
+
+  List&lt;Double> pairList = fPair.getPair();
+  assert pairList.size() == 2;
+  assert pairList.toString().equals("[1.1, 1.2]");
+}
+</CodeSnippet>
+<p>
+For completeness, here is the generic <code className="jarombek-inline-code">inc()</code> function for
+functors in Java.
+</p>
+<CodeSnippet language="Java">
+static Functor&lt;Integer> inc(Functor&lt;Integer> functor) {
+  return functor.fmap(x -> x + 1);
+}
+
+public static void main(String... args) {
+  // inc() works on lists...
+  FList&lt;Integer> fList2 = new FList&lt;>(List.of(5,6,7,8));
+  fList2 = (FList&lt;Integer>) inc(fList2);
+
+  List&lt;Integer> list2 = fList2.getList();
+  assert list2.size() == 4;
+  assert list2.toString().equals("[6, 7, 8, 9]");
+
+  // ...and on pairs of objects
+  FPair&lt;Integer> fPair2 = new FPair&lt;>(1,2);
+  fPair2 = (FPair&lt;Integer>) inc(fPair2);
+
+  List&lt;Integer> pairList2 = fPair2.getPair();
+  assert pairList2.size() == 2;
+  assert pairList2.toString().equals("[2, 3]");
+}
+</CodeSnippet>
+<p>
+The same functor pattern works in many different languages!
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Working with a functional programming language forces the brain to think about common problems differently.
+While initially difficult to reason about, functors simply provide a mechanism for mapping a function
+across different items.  Functors also promote the creation of generic code which works for many different types.  In
+my next article I'll build on this knowledge and explore applicatives.  All the code from this article
+is available on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/05-May/
+05-28-haskell-pt6">GitHub</a>.
+</p>
+</div>

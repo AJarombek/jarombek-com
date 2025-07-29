@@ -1,0 +1,91 @@
+<div>
+<p>
+When I first heard about generators in the ES6 version of JavaScript, I wasn't quite sure
+how useful they would be.  In this post I will look at the basics of generators in JavaScript
+and other languages. In a <a href="https://jarombek.com/blog/nov-26-2017-js-async-function">future post</a>
+I'll explore how to combine Generators and <a href="https://jarombek.com/blog/nov-21-2017-js-promises">Promises</a>.
+</p>
+<p>
+The following code uses generators to create a fibonacci sequence.
+</p>
+<CodeSnippet language="JavaScript">
+function *fib() {
+    var first = 0;
+    var last = 1;
+
+    yield first;
+    yield last;
+
+    while(true) {
+        // ES6 Desconstructing shortens the traditional variable swap
+        [first, last] = [last, first + last];
+
+        yield last;
+    }
+}
+
+var fibonacci = fib();
+
+for(let i = 0; i < 50; i++) {
+    let result = fibonacci.next();
+    console.info(result.value);
+}
+</CodeSnippet>
+<p>
+To create a generator function in JavaScript the <code className="jarombek-inline-code">*</code>
+token is placed next to a function.  When a generator function is invoked, it does not execute like a normal
+function.  Instead it creates an iterator which is called to execute the functions contents.
+Therefore the <code className="jarombek-inline-code">fibonacci</code> variable actually contains an
+iterator that you can iterate over using the <code className="jarombek-inline-code">next()</code>
+function.  When <code className="jarombek-inline-code">next()</code> is called, the
+generator contents execute until the whole code body is run or a
+<code className="jarombek-inline-code">yield</code> keyword is encountered.  At this point a generator
+is paused.  <code className="jarombek-inline-code">yield</code> statements can also return a value.  A returned value is placed in the
+<code className="jarombek-inline-code">value</code> property of the iterator (which itself is an object).
+I printed this property out when I called <code className="jarombek-inline-code">console.info(result.value)</code>.
+</p>
+<p>
+One thing you may have noticed is the infinite <code className="jarombek-inline-code">while</code> loop
+in the generator. Usually infinite loops should be avoided, but in generator bodies they are
+completely okay!  The reason infinite loops are okay is because the user of the generator decides how many times the
+iterator is called, so it won't necessarily run forever.
+</p>
+<p>
+It is still possible for a generator to be called an infinite number of times.
+In ES6 there is a new <code className="jarombek-inline-code">for...of</code> loop which is used to loop through the iterator
+until completion.  In the fibonacci example, I did not use this loop because it would run forever!
+</p>
+<p>
+I mentioned that the <code className="jarombek-inline-code">yield</code> keyword passes a value to the
+outer code via the iterators <code className="jarombek-inline-code">value</code> property.  You can
+also pass values back into the generator by adding a parameter to the iterators
+<code className="jarombek-inline-code">next()</code> function.  An example of passing values into generators
+can be found in this articles <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/
+2017/11-Nov/11-25-Generators">source code</a>.
+</p>
+<p>
+JavaScript is not the only language with generators.  Amongst my commonly used languages Python and PHP also have
+generators.  Let's look at an example in Python<sup>1</sup>:
+</p>
+<CodeSnippet language="Python">
+def fib():
+    first = 0
+    last = 1
+
+    yield first
+    yield last
+
+    while True:
+        # Construct and deconstruct a tuple
+        first, last = last, first + last
+        yield last
+
+fibonacci = fib()
+for x in range(50):
+    print(next(fibonacci))
+</CodeSnippet>
+<p>
+Notice that the Python code is nearly identical - although you don't need the
+<code className="jarombek-inline-code">*</code> token next to the function definition.
+</p>
+</div>

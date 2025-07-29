@@ -1,0 +1,213 @@
+<div>
+<p>
+Recently I looked at RabbitMQ, a message broker used to communicate between different parts of
+an application.  An analogy I really liked is that RabbitMQ puts a post office in an application, where producers
+put messages in a post office box, which are then routed to consumers<sup>1</sup>.
+</p>
+<p>
+RabbitMQ configuration can be written in any language with a RabbitMQ library (which consists
+of most languages you know).  This is extremely powerful since different pieces of the
+RabbitMQ channel can be implemented in different languages.  For example, let's say a
+RabbitMQ server has one producer and three consumers.  The single producer might be written in Java,
+while the three consumers might be written in JavaScript, Python, and PHP.  Imagine all the different possibilities
+of sending RabbitMQ messages across applications!
+</p>
+<p>
+In order to get to know RabbitMQ better, I made an enhanced 'hello world' example where producers
+send JSON representing running logs to different consumers.  All the code is in Python, since the RabbitMQ
+Python API is very short and sweet!  Let's take a look!
+</p>
+<SectionTitle title="Producer">Producer</SectionTitle>
+<p>
+My producer starts by taking command line arguments and converting them to JSON.  This JSON is used for the
+message bodies sent across the RabbitMQ channel.  The producer also takes arguments to help create routing
+keys, which are like mailing addresses.
+</p>
+<CodeSnippet language="Python">
+# The ArgumentParser API is used for specifying command line arguments
+# description - a text description shown when you use the --help argument
+parser = ArgumentParser(description='Upload a New Log')
+
+# Arguments that specify the routing keys
+# dest - the destination variable to hold an array of routing keys
+# const - the string that will be placed in the dest array if the argument is used
+parser.add_argument("-WXC", action="append_const", dest="routing_keys", const="womensxc",
+                    default=[], help="use the woman's cross country routing key")
+parser.add_argument("-WTF", action="append_const", dest="routing_keys", const="womenstf",
+                    default=[], help="use the woman's track & field routing key")
+parser.add_argument("-MXC", action="append_const", dest="routing_keys", const="mensxc",
+                    help="use the men's cross country routing key")
+parser.add_argument("-MTF", action="append_const", dest="routing_keys", const="menstf",
+                    help="use the men's track & field routing key")
+parser.add_argument("-ALUM", action="append_const", dest="routing_keys", const="alumni",
+                    help="use the alumni routing key")
+
+# Specify all the command line arguments that specify running log JSON properties
+# The first argument is the command line short form, and the second argument is the long form
+# help - description displayed when you use the --help argument
+parser.add_argument("-n", "--name", help="the name of the runner")
+parser.add_argument("-d", "--distance", type=float, help="the distance run")
+parser.add_argument("-m", "--metric", choices=["miles", "kilometers", "meters"],
+                    help="the distance run metric")
+parser.add_argument("-t", "--time", help="the time taken on the run")
+parser.add_argument("-dt", "--date", help="the date of the run 'yyyy-mm-dd'")
+parser.add_argument("-l", "--location", help="the location of the run")
+parser.add_argument("-des", "--description", help="a description of the run")
+
+# Parse the command line arguments into the args object with the arguments as variables
+args = parser.parse_args()
+
+# Build the JSON object to send across Rabbit
+json_object = dict()
+json_object['name'] = args.name
+json_object['distance'] = args.distance
+json_object['metric'] = args.metric
+json_object['time'] = args.time
+json_object['date'] = args.date
+json_object['location'] = args.location
+json_object['description'] = args.description
+
+json_data = json.dumps(json_object)
+</CodeSnippet>
+<p>
+Now I need to generate a routing key for this message.  Routing keys in RabbitMQ are strings
+separated by <code className="jarombek-inline-code">.</code> symbols.  For example, a key could be written as
+<code className="jarombek-inline-code">foo.bar</code>.  These keys are used in the topic exchange type, where
+each consumer specifies a routing key pattern to subscribe to<sup>2</sup>.
+</p>
+<CodeSnippet language="Python">
+def build_routing_key(key_list):
+    """ Build up the routing key from a list of routes """
+
+    str = ""
+
+    for i in range(len(key_list)):
+        if i != 0:
+            str += "."
+
+        str += key_list[i]
+
+    return str
+
+routing_key = build_routing_key(args.routing_keys)
+</CodeSnippet>
+<p>
+Now I need to create a connection to RabbitMQ.  First I created two new
+RabbitMQ users on the command line, one for consuming and one for producing.  The following example creates the users and gives them both full
+permissions to configure, read, and write to RabbitMQ across all queues and exchanges.  The
+<code className="jarombek-inline-code">".*"</code> pattern is what matches to any queue or exchange, with the
+first pattern for configuring, the second for reading, and the last for writing<sup>3</sup>.
+</p>
+<CodeSnippet language="Python">
+# Add a new RabbitMQ user to consume messages
+rabbitmqctl add_user running-log-consumer iconsume
+
+# Add a new RabbitMQ user to produce messages
+rabbitmqctl add_user running-log-producer iproduce
+
+rabbitmqctl set_permissions running-log-consumer ".*" ".*" ".*"
+rabbitmqctl set_permissions running-log-producer ".*" ".*" ".*"
+</CodeSnippet>
+<p>
+Since I'm building the producer, I'll use the <code className="jarombek-inline-code">
+running-log-producer</code> user.  A connection to RabbitMQ is done over
+TCP (a reliable data stream protocol between applications).  Inside each RabbitMQ TCP connection
+is a channel, which is a virtual connection to perform messaging commands<sup>4</sup>.  The following
+code sets up this channel:
+</p>
+<CodeSnippet language="Python">
+credentials = pika.PlainCredentials(cred.USERNAME, cred.PASSWORD)
+connection_params = pika.ConnectionParameters(cred.SERVER, virtual_host=cred.VHOST,
+                                                credentials=credentials)
+
+connection = pika.BlockingConnection(connection_params)
+channel = connection.channel()
+</CodeSnippet>
+<p>
+Now comes the largest piece of the producer: the exchange.  In fact, all the producer really does
+is publish messages on the exchange and RabbitMQ handles the rest.  Eventually, exchanges hand
+off messages to queues based on specified routing keys<sup>5</sup>.
+</p>
+<p>
+The following code creates an exchange and publishes a message to it with the JSON I created earlier.
+The full code for the producer is up on <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/
+2018/01-Jan/1-24-RabbitMQ/producer.py">GitHub</a>.
+</p>
+<CodeSnippet language="Python">
+# Declare the running-log exchange
+# exchange -- the name of the exchange
+# exchange_type -- the type of exchange, in this case a topic exchange
+# passive -- perform an exchange declare (False) or just check if it exists (True)
+# durable -- If the exchange will survive a RabbitMQ reboot
+# auto_delete -- If the exchange will be removed when no queues are bound to it
+channel.exchange_declare(exchange=cred.EXCHANGE, exchange_type='topic', passive=False,
+                            durable=True, auto_delete=False)
+
+# Publish to the channel and check for publisher confirms
+# exchange -- the exchange to publish to
+# routing_key -- the routing key to bind to
+# properties -- basic properties of the message
+# body -- the message contents
+if channel.basic_publish(exchange=cred.EXCHANGE, routing_key=routing_key, properties=msg_props,
+                            body=json_data):
+    print("Confirm Received!")
+else:
+    print("Message Lost!")
+</CodeSnippet>
+<SectionTitle title="Consumer">Consumer</SectionTitle>
+<p>
+Now its time to build the RabbitMQ consumer.  Similar to the producer, I started by creating a
+connection and defining an exchange.  I then created a queue on the exchange and determined all the routing
+keys that the queue accepts.  The python code takes routing keys
+as command line arguments.  If there is no command line argument, the queue accepts all routing keys.
+</p>
+<CodeSnippet language="Python">
+# Declare a queue and create it if needed
+# queue --  the name of the queue - if you dont specify a name RabbitMQ will auto create one
+# exclusive -- only allow access by the current connection
+# durable -- Survives a reboot
+result = channel.queue_declare(queue='log', exclusive=True, durable=True)
+queue_name = result.method.queue
+
+# Use command line arguments to get the binding keys
+binding_keys = sys.argv[1:]
+if not binding_keys:
+    # Bind a queue to an exchange and match to all routing keys ('#' operator)
+    channel.queue_bind(exchange=cred.EXCHANGE, queue=queue_name, routing_key='#')
+</CodeSnippet>
+<p>
+Now that the queues are set up, I created a consumer to read messages.  The following
+Python code sets up a consumer and tells it to listen to certain queues.  The consumer uses a callback
+function which is invoked when messages are received.
+</p>
+<CodeSnippet language="Python">
+def consumer(ch, method, properties, body):
+    """ Consumer callback is called when a message is consumed """
+    if body == 'quit':
+
+        # Cancel a consumer
+        # consumer_tag -- id for the consumer
+        ch.basic_cancel(consumer_tag='consumer')
+        ch.stop_consuming()
+    else:
+        print(" [x] %r:%r" % (method.routing_key, body))
+    return
+
+# Start a queue consumer and bind messages to the callback function
+# queue -- the name of the queue to consume from
+# consumer_tag -- the id of the consumer
+# no_ack -- tell the broker not to expect a response back
+channel.basic_consume(consumer, queue=queue_name, consumer_tag='consumer', no_ack=True)
+channel.start_consuming()
+</CodeSnippet>
+<p>
+If you want to run the producers and consumers to see messaging in action, the commands are on
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2018/01-Jan/1-24-RabbitMQ/setup.sh">GitHub</a>.
+</p>
+<SectionTitle title="Moving Forward">Moving Forward</SectionTitle>
+<p>
+While I wrote my RabbitMQ code in Python, it can be written in many different languages! This code shows the small amount
+of configuration needed to set up messaging.  RabbitMQ is simply a data transfer mechanism, the real power of
+an application is the code around it!
+</p>
+</div>

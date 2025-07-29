@@ -1,0 +1,181 @@
+<div>
+<p>
+On December 24th 2016, I released my first website <a href="https://saintsxctf.com/">saintsxctf.com</a>.  I was still a
+senior in college at the time, and used my limited software development knowledge from classes and a summer internship
+to build the application.  SaintsXCTF is a training log designed for my college Cross Country and Track & Field
+teams at St. Lawrence University.  Running competitively in college had a major impact on my life, and I was really
+proud to create the website to assist my teammates and coaches.  Shortly after releasing the
+<a href="https://github.com/AJarombek/saints-xctf">website</a>, I created an
+<a href="https://github.com/AJarombek/saints-xctf-android">Android application</a> and an
+<a href="https://github.com/AJarombek/saints-xctf-ios">iOS application</a> for SaintsXCTF.  With SaintsXCTF accessible
+via web browsers and mobile applications, I felt my development work was complete and moved on to other programming
+projects.
+</p>
+<p>
+As I began my professional software engineering career in the summer of 2017, I gradually learned industry best
+practices and became more well rounded as a developer.  At this point, certain shortcomings and misguided assumptions
+about my SaintsXCTF applications became apparent.  First, the core web application and API did not follow the latest
+industry standards.  Second, all three applications were not properly tested and were prone to degradation if left
+unchecked.  Third, the security & infrastructure of the applications was very basic and not fault tolerant. Lastly, my
+assumption that releasing the applications meant my work was done proved to be incorrect. As all software engineers
+know, the work just begins when an application is initially released.
+</p>
+<p>
+These realizations resulted in a multi-year effort to create a new version of SaintsXCTF that fixed all the issues with
+ the original.  I decided upon a two step process to get the original version of SaintsXCTF converted to the
+ new version.  The first step began in December 2018 and was completed in February 2019.  This step moved the website,
+API, and database infrastructure to AWS.  All the infrastructure was written as code using Terraform.  The second step
+began in June 2019 and was completed in May 2021.  This two year development step rewrote the SaintsXCTF
+<a href="https://github.com/AJarombek/saints-xctf-web">web application</a>,
+<a href="https://github.com/AJarombek/saints-xctf-api">API</a>, and
+<a href="https://github.com/AJarombek/saints-xctf-infrastructure">infrastructure</a>.  It also created a new
+<a href="https://github.com/AJarombek/saints-xctf-auth">authentication API</a> and
+<a href="https://github.com/AJarombek/saints-xctf-functions">AWS Lambda Function API</a>.
+</p>
+<p>
+This article explores the architectural changes to the SaintsXCTF application across these iterations.  Subsequent
+articles discuss certain components, technologies, and design decisions in SaintsXCTF 2.0.
+</p>
+<SubTitle title="SaintsXCTF Version 2.0 Articles">SaintsXCTF Version 2.0 Articles</SubTitle>
+<ul>
+<li><strong>Architectural Overview</strong></li>
+<li><a href="https://jarombek.com/blog/jun-15-2021-saints-xctf-v2-aws-infrastructure">AWS Infrastructure</a></li>
+<li><a href="https://jarombek.com/blog/oct-25-2021-saints-xctf-v2-k8s-infrastructure">Kubernetes Infrastructure</a></li>
+<li><a href="https://jarombek.com/blog/nov-1-2021-saints-xctf-v2-react-web-app">React Web Application Overview</a></li>
+<li><a href="https://jarombek.com/blog/nov-15-2021-react-typescript">Web Application React and TypeScript</a></li>
+<li><a href="https://jarombek.com/blog/dec-3-2021-redux-react">Web Application Redux State Configuration</a></li>
+<li><a href="https://jarombek.com/blog/aug-11-2021-cypress-typescript">Web Application Cypress E2E Tests</a></li>
+<li><a href="https://jarombek.com/blog/jun-30-2021-react-jss">Web Application JSS Modular Design</a></li>
+<li><a href="https://jarombek.com/blog/dec-24-2021-flask-python-api">Flask Python API</a></li>
+<li><a href="https://jarombek.com/blog/jan-10-2022-flask-api-testing">Flask API Testing</a></li>
+<li><a href="https://jarombek.com/blog/feb-5-2022-function-api">Function API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/feb-18-2022-auth-api">Auth API Using API Gateway & Lambda</a></li>
+<li><a href="https://jarombek.com/blog/mar-27-2022-mysql-client-kubernetes">Database Client on Kubernetes</a></li>
+</ul>
+<SectionTitle title="Initial Architecture">Initial Architecture</SectionTitle>
+<p>
+The initial SaintsXCTF infrastructure was extremely barebones, consisting of a single hosted linux server. This
+server, a virtual machine hosted by Linode, ran the web application, API, and database.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-14-21-initial-architecture.png"/>
+</figure>
+<p>
+There are many flaws with this architecture design.  The most obvious issue is that the linux server is a single point
+of failure.  If the server goes down, so does the website, API, and database.  Worst of all, in the case of a
+catastrophic failure where the virtual machine’s file system isn’t recoverable, all the application data is lost.  For
+an application with user information and exercise logs uploaded every day, this is an unacceptable level of risk.
+</p>
+<p>
+The initial UI and API code was tightly coupled into a single codebase. The API was written in
+<a href="https://jarombek.com/blog?query=PHP&page=1">PHP</a> without the use of any server framework. The UI code was
+written in <a href="https://jarombek.com/blog?query=JavaScript&page=1">JavaScript</a> using the JQuery library.
+</p>
+<p>
+These technologies have their fair share of issues as well.  In the UI technology ecosystem, JQuery is infamous for
+resulting in difficult to read spaghetti code.  With modern front-end frameworks and libraries such as React and
+Angular, UI code has become more modular, clean, and reusable.  In college, I wasn't aware of these libraries, so
+JQuery was a logical starting point.  An additional problem with the UI code was the stylesheet.  The UI consisted of
+one single CSS file for the entire application.  This resulted in hard to identify styling issues, especially when
+adding new styles to one page negatively impacted another page.  Once again, modern CSS preprocessors and CSS in
+JavaScript libraries have greatly improved the modularity of stylesheets as modern frameworks and libraries have for
+JavaScript code.
+</p>
+<p>
+In the API technology ecosystem, the lack of a server-side framework resulted in hard to read code.  Also, certain
+actions such as creating classes that represent HTTP request objects were written by me.  If I used a back-end
+framework instead, these classes would have been provided for me.  I was reinventing the wheel without realizing it.  Another issue
+with the API was that it shared the same codebase and build process (a manual SFTP upload to the linux server) as the
+front-end code.  This meant if the website went down, the API would as well.  If new UI code was deployed, the API was
+redeployed as well.  In the second version of the application, I redesigned the codebase to separate the UI and API.
+</p>
+<p>
+Due to all these flaws in the initial website’s technology stack and infrastructure, I stopped
+ enhancing the functionality of the application shortly after releasing it.  Instead, I began planning an iterative process of refurbishing the
+application up to industry standards.
+</p>
+<SectionTitle title="Lift and Shift AWS Architecture">Lift and Shift AWS Architecture</SectionTitle>
+<p>
+Before creating entirely new codebases for the UI and API, I fixed all the fatal flaws with the initial
+version of the application.  The biggest flaw of the initial design was the linux server, which was a single point of
+failure.  If that server went down, everything would have been lost.
+</p>
+<p>
+To remedy this issue I redesigned the infrastructure on <a href="https://jarombek.com/blog?query=AWS&page=1">AWS</a>
+and wrote the infrastructure as code using <a href="https://jarombek.com/blog?query=Terraform&page=1">Terraform</a>.  As a result, I
+ was able to build the infrastructure in a repeatable manner.  This new infrastructure was designed without any single points of
+failure.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-14-21-aws-lift-shift-architecture.png"/>
+</figure>
+<p>
+From the end user perspective, nothing changed while using the application after these changes.  However, the
+reliability of the application greatly increased.  First, in a worst case scenario where the infrastructure broke,
+Terraform scripts were capable of recreating the infrastructure in a matter of minutes.
+</p>
+<p>
+Second, I implemented an AWS Lambda function (not shown in the infrastructure diagram) which takes
+<a href="https://jarombek.com/blog/sep-3-2019-rds-backups-pt1">database backups</a> daily and uploads them to S3.
+Therefore, the new worst case scenario would result in one day of lost data; a great improvement over losing everything.
+</p>
+<p>
+Luckily, this scenario is extremely unlikely.  <a href="https://jarombek.com/blog?query=aws%20rds&page=1">AWS RDS</a>
+(the MySQL database) and <a href="https://jarombek.com/blog?query=aws%20ec2&page=1">AWS EC2</a> (the API and web application
+server) have impressive uptime percentages of 99.95% and 99.99%, respectively<sup>1,2</sup>.  RDS also takes snapshots
+on a regular basis for disaster recovery purposes.  With this impressive reliability, I never had to use my database
+backup files to restore the database.  Nevertheless, the peace of mind it gave me was worth it.
+</p>
+<SectionTitle title="Version 2.0 Architecture">Version 2.0 Architecture</SectionTitle>
+<p>
+With the application infrastructure in a reliable state, I took my time creating a second version of the web
+application and API.  With increased knowledge of cloud infrastructure, containers, and container orchestrators, I
+also decided to rewrite the application infrastructure for a third time.  I released this new codebase at the end of
+May 2021.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-14-21-v2-architecture.png"/>
+</figure>
+<p>
+The updated infrastructure for the new version of the application is still hosted on AWS and written as code with
+Terraform.  The biggest infrastructure change was moving to
+<a href="https://jarombek.com/blog?query=Kubernetes&page=1">Kubernetes</a> on
+<a href="https://jarombek.com/blog?query=EKS&page=1">EKS</a>.  Both the API and web application are
+deployed on Kubernetes pods, with traffic routed to them from an AWS load balancer.  All the Kubernetes infrastructure is
+created with Terraform as well.  With the combined ease of Terraform and elegance of Kubernetes deployments, updating
+or reverting a website or API version is as easy as building
+<a href="https://jarombek.com/blog?query=Docker&page=1">Docker</a> images and applying Terraform changes.  I go
+into all the technical details of this process in the article on SaintsXCTF Kubernetes Infrastructure.
+</p>
+<p>
+Other infrastructure changes include the use of <a href="https://jarombek.com/blog?query=API%20Gateway&page=1">API Gateway</a>
+and <a href="https://jarombek.com/blog?query=AWS%20Lambda&page=1">AWS Lambda</a>.  There are two APIs deployed on API
+Gateway - an authentication API (<strong>auth.saintsxctf.com</strong>) and a function API
+(<strong>fn.saintsxctf.com</strong>).  The authentication API has endpoints for creating authentication tokens and
+validating authentication tokens.  These tokens are <a href="https://jarombek.com/blog?query=JWT&page=1">JWTs</a> that
+have a lifespan of one hour.  This authentication approach is a major improvement over my old implementation, which
+just used a static passcode in the authorization header for all API calls.
+</p>
+<p>
+The function API serves many purposes, including profile picture uploads and all the email functionality on the
+website.  Profile pictures are saved and accessed from an
+<a href="https://jarombek.com/blog?query=AWS%20S3&page=1">AWS S3</a> bucket.
+</p>
+<p>
+The API and web application technology stacks where built from the ground up for the new version.  The API now uses the
+Flask server side library, which is written in <a href="https://jarombek.com/blog?query=Python&page=1">Python</a>.  The
+web application uses <a href="https://jarombek.com/blog?query=React&page=1">React</a>, Redux, and
+ <a href="https://jarombek.com/blog?query=JSS&page=1">JSS</a>.  This time
+around all the front-end code is written in <a href="https://jarombek.com/blog?query=TypeScript&page=1">TypeScript</a>
+instead of <a href="https://jarombek.com/blog?query=JavaScript&page=1">JavaScript</a>.  The only unchanged technology between
+the two versions of the application is the MySQL database, which is hosted on AWS RDS.  All these technologies and
+their use in SaintsXCTF are discussed in depth in separate articles.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+SaintsXCTF has undergone massive changes since its initial release in December 2016.  My knowledge of the software
+engineering landscape has grown a lot since my senior year of college, and that growth is displayed in the
+technological changes of SaintsXCTF.  Learning from and evolving this application is invaluable to my growth as a
+software engineer, and I’m excited for its continued evolution in the future.
+</p>
+</div>

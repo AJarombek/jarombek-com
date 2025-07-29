@@ -1,0 +1,335 @@
+<div>
+<p>
+Low-level languages such as C, C++, and Assembly have always interested me.  However, the lack of use cases for these languages
+in my personal projects causes them to be left to the side.  I do
+believe proficiency in these languages helps developers write better high-level code, so I occasionally
+work with them in my free time.  This article introduces a new low-level language called WebAssembly.
+</p>
+<p>
+Ever since I first heard about WebAssembly, I've wanted to play around with it.  WebAssembly was released as a minimum
+viable product (MVP) in March 2017<sup>1</sup>.  It's designed to work in the web alongside JavaScript.
+WebAssembly allows programming languages other than JavaScript to run in the browser.  Despite its name,
+WebAssembly is not an assembly language since its not hardware specific<sup>2</sup>.  Instead, WebAssembly
+runs in the same browser virtual machine that executes JavaScript<sup>3</sup>.  In the past this VM was
+only able to run JavaScript, however as of November 2017 it can also execute WebAssembly across all major
+browsers<sup>4</sup>.
+</p>
+<p>
+In its current state, WebAssembly enables <a href="https://jarombek.com/blog?query=C&page=1">C</a>, <a href="https://jarombek.com/blog/jan-3-2019-cpp-first-impressions">C++</a>, and Rust to run in a web browser.  One future goal
+of WebAssembly is to allow garbage collected languages to run in the browser as well (these include
+<a href="https://jarombek.com/blog?query=java&page=1">Java</a>, <a href="https://jarombek.com/blog?query=python&page=1">Python</a>,
+<a href="https://jarombek.com/blog/jan-2-2019-csharp-first-impressions">C#</a>, etc.).
+</p>
+<p>
+WebAssembly has two formats - a human readable text format and a binary format.  Text based WebAssembly
+is called WAT (WebAssembly Text Format) and binary based WebAssembly is called WASM.  When writing
+WebAssembly code, development is completed in the WAT format.
+</p>
+<p>
+While you can develop WebAssembly directly, its meant to be used as an intermediate representation.
+</p>
+<Definition word="Intermediate Representation">
+An intermediate representation is code used by a compiler to represent source code<sup>5</sup>.  For
+example, WebAssembly is used by compilers as an intermediate representation for higher-level languages.
+</Definition>
+<p>
+In this article, I'm going to write code in WebAssembly and execute it in JavaScript.  I think it's
+a great educational opportunity to see how this new intermediate representation for the web works.
+For real applications, only compilers will need to understand WebAssembly.  Application developers
+will simply write code in higher-level languages such as C or C++ and compile them to WebAssembly to
+be run in the browser.
+</p>
+<SectionTitle title="WebAssembly First Steps">WebAssembly First Steps</SectionTitle>
+<p>
+WebAssembly is a software implemented stack machine where programs push and pop values off the execution
+stack.  Other examples of languages that are stack machines include JVM bytecode<sup>6</sup>.  Similar
+to assembly, lines of WebAssembly code perform single instructions.  However, while assembly code
+interacts with CPU registers, WebAssembly code interacts with the virtual stack machine.
+</p>
+<p>
+As mentioned previously, WebAssembly development is done in the text format WAT.  The following code
+is a basic WebAssembly module containing a function that adds two integers together.
+</p>
+<CodeSnippet language="WebAssembly">
+;; test.wat
+
+(module
+  (func $add (param $n0 i32) (param $n1 i32) (result i32)
+    get_local $n0
+    get_local $n1
+    i32.add
+  )
+
+  (export "add" (func $add))
+)
+</CodeSnippet>
+<p>
+WebAssembly programs consist of modules which can communicate with one another.  The functionality of
+modules is concentrated in functions, which are specified with the <code className="jarombek-inline-code">
+func</code> keyword.  WebAssembly code can be written in a linear format or with s-expressions<sup>7</sup>.
+S-expressions are tree-like structures which are nested in WebAssembly with parenthesis.
+</p>
+<p>
+WebAssembly has four basic types, 32-bit integers (<code className="jarombek-inline-code">i32</code>),
+64-bit integers (<code className="jarombek-inline-code">i64</code>), 32-bit floating point numbers
+(<code className="jarombek-inline-code">f32</code>), and 64-bit floating point numbers
+(<code className="jarombek-inline-code">f64</code>).  With these basic types any complex type can be
+created.  Each function has a set number of local variables accessed with the
+<code className="jarombek-inline-code">get_local</code> operation<sup>8</sup>.  Each of the function
+parameters (specified with <code className="jarombek-inline-code">(param ${param_name} {param-type})</code>)
+is a local variable of the function.
+</p>
+<p>
+In the <code className="jarombek-inline-code">$add</code> function body, the first instruction
+<code className="jarombek-inline-code">get_local $n0</code> takes the first parameter and places it on
+the execution stack.  The second instruction <code className="jarombek-inline-code">get_local $n1</code>
+takes the second parameter and places it on the execution stack.  The final instruction
+<code className="jarombek-inline-code">i32.add</code> pops both integers off the execution stack, adds
+them together, and places the result back on the stack.  Finally, the result is returned from
+the function.
+</p>
+<p>
+The final line of the WebAssembly module exports the <code className="jarombek-inline-code">$add</code>
+function for use outside the module.  In my case, I use this function in JavaScript code.
+</p>
+<SectionTitle title="Running WebAssembly in JavaScript">Running WebAssembly in JavaScript</SectionTitle>
+<p>
+JavaScript has a <code className="jarombek-inline-code">WebAssembly</code> global object that is used
+for all WebAssembly related functionality<sup>9</sup>.  I use the <code className="jarombek-inline-code">
+WebAssembly</code> global object to compile WebAssembly byte code (WASM) and instantiate it in JavaScript.
+Compiling and instantiating Webassembly byte code is accomplished with the <code className="jarombek-inline-code">
+WebAssembly.compile()</code> and <code className="jarombek-inline-code">WebAssembly.instantiate()</code>
+functions, respectively.
+</p>
+<p>
+In order to work with the <code className="jarombek-inline-code">WebAssembly</code> global object, the
+WAT files I coded need to be converted to binary WASM files.  This is accomplished with
+the WebAssembly Tool Kit (WABT).  Although WABT is implemented in C++, there is a JavaScript port in the
+npm registry<sup>10</sup>.  The following code uses the <code className="jarombek-inline-code">
+WebAssembly</code> global object and WABT module to execute the WebAssembly <code className="jarombek-inline-code">
+$add</code> function. <code className="jarombek-inline-code">$add</code> exists in a file called <strong>test.wat</strong>.
+</p>
+<CodeSnippet language="JavaScript">
+// wat-wasm.js
+
+const wabt = require("wabt")();
+const fs = require("fs");
+
+/**
+* Convert a web assembly text file (.wat) to a web assembly binary file (.wasm)
+* @param inputWat - the name of the existing .wat file
+* @param outputWasm - the name of the produced .wasm file
+*/
+const watToBinary = (inputWat, outputWasm) => {
+  const wasmModule = wabt.parseWat(inputWat, fs.readFileSync(inputWat, "utf8"));
+  const {buffer} = wasmModule.toBinary({});
+
+  fs.writeFileSync(outputWasm, new Buffer(buffer));
+};
+
+/**
+* Compile and run a web assembly binary
+* @param wasm - the name of the .wasm file
+* @param exec - a function that executes with an instance of the compiled web assembly program
+* @return {Promise&lt;void&gt;}
+*/
+const runWasm = async (wasm, exec) => {
+  const buffer = fs.readFileSync(wasm);
+  const module = await WebAssembly.compile(buffer);
+  const instance = await WebAssembly.instantiate(module);
+
+  exec(instance);
+};
+
+/**
+* Execute a web assembly text file.  Internally this function calls watToBinary() to convert the
+* .wat file to .wasm, and then calls runWasm() to compile and run the .wasm binary file.
+* @param wat - the name of the existing .wat file
+* @param exec - a function that executes with an instance of the compiled web assembly program
+*/
+exports.execWat = (wat, exec) => {
+  const outputWasm = `${wat.substr(0, wat.indexOf('.'))}.wasm`;
+  watToBinary(wat, outputWasm);
+  runWasm(outputWasm, exec);
+};
+
+module.exports = exports;
+</CodeSnippet>
+<CodeSnippet language="JavaScript">
+// main.js
+
+const {execWat} = require('./wat-wasm');
+
+// Basic addition operation in Web Assembly
+execWat("wa/test.wat", (instance) => console.info(instance.exports.add(2, 2)));
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">instance.exports.add(2, 2)</code> accesses the exported WebAssembly
+function and invokes it.  As expected, the code returns <code className="jarombek-inline-code">4</code>.
+</p>
+<SectionTitle title="WebAssembly Next Steps">WebAssembly Next Steps</SectionTitle>
+<p>
+WebAssembly modules are often broken down into multiple sections.  These include the function types,
+global variables, memory declarations, export definitions, and function bodies<sup>11</sup>.  Here's
+an example with all these sections:
+</p>
+<CodeSnippet language="WebAssembly">
+;; basics.wat
+
+(module
+  ;; Function Type section
+  (type $calcPace1a (func (param i32 i32 i32) (result i32)))
+  (type $calcPace1b (func (param i32 i32 i32) (result i32)))
+  (type $calcPace2 (func (param f32 i32 i32) (result f32)))
+  (type $setInt (func (param i32 i32)))
+  (type $setIntInverse (func (param i32 i32)))
+  (type $getInt (func (param i32) (result i32)))
+  (type $inc (func (result i32)))
+  (type $div (func (param i32 i32 i32) (result i32)))
+
+  ;; Global section
+  (global $stored_location i32 (i32.const 26))
+
+  ;; Memory section
+  ;; This module requires one page of memory (64 KiB)
+  (memory 1)
+
+  ;; Export section
+  (export "calcPace1a" (func $calcPace1a))
+  (export "calcPace1b" (func $calcPace1b))
+  (export "calcPace2" (func $calcPace2))
+  (export "setInt" (func $setInt))
+  (export "setIntInverse" (func $setInt))
+  (export "getInt" (func $getInt))
+  (export "inc" (func $inc))
+  (export "div" (func $div))
+
+  ;; Function Bodies section
+  ...
+)
+</CodeSnippet>
+<p>
+I mentioned earlier that WebAssembly can be written in a linear format or with s-expressions.  The
+following two functions calculate the mile pace of a run.  The first follows a linear format and the
+second uses s-expressions.
+</p>
+<CodeSnippet language="WebAssembly">
+;; Calculate the mile pace of an exercise.  The number of miles exercised must
+;; be an integer.
+(func $calcPace1a (param $miles i32) (param $minutes i32)
+                  (param $seconds i32) (result i32)
+  get_local $minutes
+  i32.const 60
+  i32.mul
+  get_local $seconds
+  i32.add
+  get_local $miles
+  i32.div_s
+)
+
+;; Rewritten with a nested s-expression form.
+(func $calcPace1b (param $miles i32) (param $minutes i32)
+                  (param $seconds i32) (result i32)
+  (i32.div_s
+    (i32.add
+      (i32.mul
+        (get_local $minutes)
+        (i32.const 60)
+      )
+      (get_local $seconds)
+    )
+    (get_local $miles)
+  )
+)
+</CodeSnippet>
+<p>
+This code reveals some of the 32-bit integer operators that WebAssembly provides.  Also, inline integer
+values are created with the <code className="jarombek-inline-code">i32.const</code> instruction.
+Changing these functions to handle floating point distances requires type conversions and the
+<code className="jarombek-inline-code">f32</code> type.
+</p>
+<CodeSnippet language="WebAssembly">
+(func $calcPace2 (param $miles f32) (param $minutes i32)
+                 (param $seconds i32) (result f32)
+  (f32.div
+    ;; Convert the 32-bit integer into a 32-bit floating point number
+    (f32.convert_s/i32
+      (i32.add
+        (i32.mul
+          (get_local $minutes)
+          (i32.const 60)
+        )
+        (get_local $seconds)
+      )
+    )
+    (get_local $miles)
+  )
+)
+</CodeSnippet>
+<p>
+WebAssembly provides linear memory for use in modules.  In the memory section of my module I declared
+<code className="jarombek-inline-code">(memory 1)</code>, meaning that the module needs access to a single
+page (64 KiB) of memory<sup>12</sup>.  Memory is read and written to using operators.  For example,
+<code className="jarombek-inline-code">i32.load</code> is used to read an integer from memory and
+<code className="jarombek-inline-code">i32.store</code> is used to write an integer to memory.  Memory is
+indexed starting at zero, with integers used to read/write data.
+</p>
+<CodeSnippet language="WebAssembly">
+(func $setInt (param $key i32) (param $value i32)
+  (i32.store
+    (get_local $key)
+    (get_local $value)
+  )
+)
+
+;; Retrieve an integer stored at a given location in memory.
+(func $getInt (param $key i32) (result i32)
+  (i32.load
+    (get_local $key)
+  )
+)
+</CodeSnippet>
+<p>
+Memory helps create functions that persist data between invocations, such as a
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/01-Jan/01-07-webassembly/
+wa/basics.wat">function invocation counter</a>.  WebAssembly also supports more complex program
+flow, such as loops and conditionals.  The following function demonstrates <code className="jarombek-inline-code">
+if</code> statements in WebAssembly.
+</p>
+<CodeSnippet language="WebAssembly">
+;; Perform division on two integers.  If the type parameter is 0, an integer
+;; division is performed.  Otherwise a floating point division is performed.
+(func $div (param $num i32) (param $den i32) (param $type i32) (result i32)
+  (if (result i32)
+    (i32.eqz
+      (get_local $type)
+    )
+    (then
+      (i32.div_s
+        (get_local $num)
+        (get_local $den)
+      )
+    )
+    (else
+      (i32.trunc_s/f32
+        (f32.div
+          (f32.convert_s/i32
+            (get_local $num)
+          )
+          (f32.convert_s/i32
+            (get_local $den)
+          )
+        )
+      )
+    )
+  )
+)
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+I had a lot of fun experimenting with WebAssembly.  Since its still so early in WebAssembly's life
+cycle, it's hard to find a lot of material about it online.  I'm excited to follow its development
+progress and continue prototyping with it in the future.  The code for this article is available on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/01-Jan/01-07-webassembly">GitHub</a>.
+</p>
+</div>

@@ -1,0 +1,273 @@
+<div>
+<p>
+I'll be honest - most of the time when I write CSS I just hack away at things until they work.
+Building layouts in CSS never seemed intuitive to me.  Other methods such as Androids XML layout
+system always seems more beginner friendly and powerful.  Luckily creating web layouts in CSS gets
+easier every year.  New features are added to CSS, and in the past year a new layout method
+called CSS Grid was added to the language specification.  Now instead of using a library such as
+Bootstrap to manage page layouts, CSS has native support for easy grid layout management.  I used
+CSS Grid in my <a href="https://jarombek.com/blog/may-31-2018-react-seed">React</a>/
+<a href="https://jarombek.com/blog/jun-4-2018-webpack-seed">Webpack</a> prototype back in March
+and applied it to every page on this website so far!  I think CSS Grid is a major enhancement to
+the CSS specification, providing an easier entry point to new developers.  This post looks into
+the basics of CSS Grid and acts as a stepping stone for further CSS discoveries down the line.
+</p>
+<SectionTitle title="Before CSS Grid">Before CSS Grid</SectionTitle>
+<p>
+My software development journey began just two years ago in 2016 - so for the first 20 years of the
+CSS lifespan I was not around.  Recently however I had to write some HTML and CSS for an email
+template.  The HTML email I created is sent from this website when someone subscribes.   When I first began
+development on the email I thought it would be an easy task - create a few
+<code className="jarombek-inline-code">&lt;div&gt;</code> elements, write some CSS Grid styling, and
+call it a day.  Little did I know that creating an HTML and CSS email is like building a website
+in 1999.
+</p>
+<p>
+In order to get the email layout to work on all clients, the HTML had to be formatted using
+<code className="jarombek-inline-code">&lt;table&gt;</code> elements<sup>1</sup>.  None of the layout
+could be handled in CSS.  The worst offender of all email clients was Outlook, which didn't even
+support the CSS <code className="jarombek-inline-code">width</code> property<sup>2</sup>!  You can
+checkout the <a href="https://gist.github.com/AJarombek/5e8df26bcb3ca8f8f6b4d66640381141">gnarly
+HTML and CSS code for my email</a> in all its beauty.
+</p>
+<p>
+Luckily in recent years we didn't have to create layouts with HTML tables or define element
+widths as HTML attributes.  We did it all in CSS!  Before CSS Grid (and after the 90's) creating
+layouts consisted of either playing around with the CSS <code className="jarombek-inline-code">
+position</code> and <code className="jarombek-inline-code">float</code> declarations or giving up and
+using a library such as Bootstrap to handle layout creation for you.
+</p>
+<p>
+When I started developing my first website <a href="https://www.saintsxctf.com/">SaintsXCTF</a> in
+the fall of 2016, CSS Grid did not yet exist.  At that point I was a beginner and
+didn't know bootstrap existed.  If you look at most of the
+<a href="https://github.com/AJarombek/saints-xctf/blob/master/views/style.css">websites code</a>
+all the layouts are created by floating <code className="jarombek-inline-code">&lt;div&gt;</code>
+elements around the page and manipulating the <code className="jarombek-inline-code">position</code>
+attribute.  I won't go in detail of how to use this technique here, but it's safe to say it
+was challenging and confusing.  Clearly the <code className="jarombek-inline-code">float</code>
+attribute wasn't meant for designing layouts<sup>3</sup>.
+</p>
+<p>
+Luckily CSS has evolved and introduced two new ways to create layouts natively - flexbox and grid.
+This post is about CSS Grid and the power it gives developers and designers.
+</p>
+<Definition word="CSS Grid">
+Grid is a two-dimensional layout system that uses rows and columns to format HTML<sup>4</sup>.
+CSS Grid replaces hacks such as CSS floats for creating layouts.  It also is more powerful at
+creating grid layouts than Flexbox, which is a one-dimensional layout system.  CSS Grid was first
+introduced in 2017 and is currently supported on <a href="https://caniuse.com/#feat=css-grid">most
+major browsers</a> (as of June 2018).
+</Definition>
+<SectionTitle title="Designing CSS Grid Layouts">Designing CSS Grid Layouts</SectionTitle>
+<p>
+To demonstrate how CSS grid works I designed a UI which displays different runs I went on
+this past week.  Before using CSS Grid, here is what the UI looked like:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-18-grid-0.png"/>
+</figure>
+<p>
+Now let's start working with CSS Grid.  In order to create a grid, a container HTML element must
+be given the <code className="jarombek-inline-code">display: grid</code> CSS definition.  The columns
+in the grid are defined with <code className="jarombek-inline-code">grid-template-columns</code> declarations and
+the rows are defined with <code className="jarombek-inline-code">grid-template-rows</code> declarations.
+</p>
+<p>
+The following <code className="jarombek-inline-code">.container</code> class holds all the runs
+I went on:
+</p>
+<CodeSnippet language="HTML">
+&lt;body&gt;
+  &lt;div className="container"&gt;
+    ...
+  &lt;/div&gt;
+&lt;/body&gt;
+</CodeSnippet>
+<CodeSnippet language="CSS">
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 10px;
+}
+</CodeSnippet>
+<p>
+Two additional things to note about the <code className="jarombek-inline-code">.container</code> class.
+You will notice that I use the <code className="jarombek-inline-code">fr</code> unit, which represents
+a fraction of the space in a CSS Grid container.  The <code className="jarombek-inline-code">
+grid-template-columns</code> declaration specifies two columns with equal widths.  The
+<code className="jarombek-inline-code">grid-gap</code> declaration specifies the space between grid
+items.
+</p>
+<p>
+Inside the container there are seven HTML <code className="jarombek-inline-code">&lt;div&gt;</code>
+elements for the running logs.
+</p>
+<CodeSnippet language="HTML">
+&lt;div class="container"&gt;
+  &lt;div class="run run-6-17-0 run-6"&gt;...&lt;/div&gt;
+  &lt;div class="run run-6-16-0 run-7"&gt;...&lt;/div&gt;
+  &lt;div class="run run-6-15-2 run-5"&gt;...&lt;/div&gt;
+  &lt;div class="run run-6-15-1 run-6"&gt;...&lt;/div&gt;
+  &lt;div class="run run-6-15-0 run-5"&gt;...&lt;/div&gt;
+  &lt;div class="run run-6-14-0 run-8"&gt;...&lt;/div&gt;
+  &lt;div class="run run-6-13-0 run-4"&gt;...&lt;/div&gt;
+&lt;/div&gt;
+</CodeSnippet>
+<p>
+In the initial CSS Grid layout I designed, the columns and rows are specified in each running log:
+</p>
+<CodeSnippet language="CSS">
+.run-6-17-0 {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.run-6-16-0 {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+
+.run-6-15-2 {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.run-6-15-1 {
+  grid-column: 1;
+  grid-row: 3 / 5;
+}
+
+.run-6-15-0 {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.run-6-14-0 {
+  grid-column: 1;
+  grid-row: 5;
+}
+
+.run-6-13-0 {
+  grid-column: 2;
+  grid-row: 5;
+}
+</CodeSnippet>
+<p>
+The result:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-18-grid-1.png"/>
+</figure>
+<p>
+Notice that nothing is filling the grid space with column #2 and row #4.  CSS
+Grid allows for easy declarations of whitespace in a layout.
+</p>
+<p>
+One issue with the above code is it's quite lengthy for such a simple layout.  To make a grid
+definition less verbose, the CSS properties <code className="jarombek-inline-code">grid-area</code>
+and <code className="jarombek-inline-code">grid-template-areas</code> are used.  The following
+code creates the same exact layout as the previous one:
+</p>
+<CodeSnippet language="CSS">
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 10px;
+
+  grid-template-areas:
+        "a b"
+        "c b"
+        "d e"
+        "d ."
+        "f g";
+}
+
+.run-6-17-0 { grid-area: a; }
+.run-6-16-0 { grid-area: b; }
+.run-6-15-2 { grid-area: c; }
+.run-6-15-1 { grid-area: d; }
+.run-6-15-0 { grid-area: e; }
+.run-6-14-0 { grid-area: f; }
+.run-6-13-0 { grid-area: g; }
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">grid-area</code> gives each grid item a unique identifier and
+<code className="jarombek-inline-code">grid-template-areas</code> defines the pattern for the grid.
+Note that the grid area with column #2 and row #4 is declared with the
+<code className="jarombek-inline-code">.</code> token, denoting an empty grid space.
+</p>
+<p>
+<code className="jarombek-inline-code">grid-template-columns</code> and
+<code className="jarombek-inline-code">grid-template-rows</code> are powerful because
+you can give unique identifiers to each line in between grid items.  These unique
+identifiers are used within the grid items CSS declaration block for placement in the grid.
+Here are unique grid edge identifiers in action:
+</p>
+<CodeSnippet language="CSS">
+.container {
+  display: grid;
+  grid-template-columns: [left] 1fr [middle-start] 2fr [middle-end] 1fr [right];
+  grid-template-rows: [row-1] 1fr [row-2] 1fr [row-3] 1fr [bottom];
+  grid-gap: 10px;
+}
+
+.run-6-17-0 {
+  /* Specify the items location within the grid */
+  grid-column-start: left;
+  grid-column-end: middle-start;
+  grid-row-start: row-1;
+  grid-row-end: row-3;
+}
+
+.run-6-16-0 {
+  /*
+  Shorthand for specifying each column and rows start and end
+  Goes in this order: row-start, column-start, row-end, column-end
+  */
+  grid-area: row-3 / middle-start / bottom / middle-end;
+}
+
+.run-6-15-2 {
+  grid-area: row-1 / middle-end / row-2 / right;
+}
+
+.run-6-15-1 {
+  grid-area: row-1 / middle-start / row-3 / middle-end;
+}
+
+.run-6-15-0 {
+  grid-area: row-3 / left / bottom / middle-start;
+}
+
+.run-6-14-0 {
+  grid-area: row-2 / middle-end / row-3 / right;
+}
+
+.run-6-13-0 {
+  grid-area: row-3 / middle-end / bottom / right;
+}
+</CodeSnippet>
+<p>
+The result:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-18-18-grid-2.png"/>
+</figure>
+<p>
+From all these examples, you may have noticed that each grid item stretches to fit its grid
+position.  This behavior comes from each items <code className="jarombek-inline-code">align-self</code>
+and <code className="jarombek-inline-code">justify-self</code> properties, which default to
+<code className="jarombek-inline-code">stretch</code><sup>5</sup>.  You can declare these properties
+with different values to change their behavior<sup>6</sup> (I often use
+<code className="jarombek-inline-code">center</code> which retains the shape of the original HTML
+element).
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+This concludes my brief introduction to CSS Grid.  Hopefully you have seen why I am so excited
+about this new specification and the power it gives developers and designers to create layouts on
+the web.  It has never been easier to design webpages with native CSS, and I am excited to continue
+growing my stylesheet knowledge.
+</p>
+</div>

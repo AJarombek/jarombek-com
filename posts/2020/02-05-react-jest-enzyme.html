@@ -1,0 +1,495 @@
+<div>
+<p>
+In an article last fall I spoke about my <a href="https://jarombek.com/blog/
+oct-26-2019-unit-test-aws-infrastructure">change in mindset towards unit testing</a>.  In my early programming
+days I thought unit tests slowed down development to a fault.  Nowadays they are mandatory in all my
+applications.  Unit tests are assertions that a unit of code is working as expected in isolation of
+other components in the codebase.  They promote code review, help catch recurring bugs, and ease the
+burden of upgrading and switching technologies.
+</p>
+<p>
+For React applications, the de facto testing framework is <a href="https://jestjs.io/en/">Jest</a>.  Jest
+was written by Facebook with React unit testing in mind, making it a natural fit.  Alongside Jest,
+<a href="https://airbnb.io/enzyme/">Enzyme</a> is used to test React components.  Enzyme was created by
+AirBnB to render components for testing.  It provides an API to traverse the rendered DOM nodes in a
+component and hook into stateful component instances.
+</p>
+<p>
+My <a href="https://jarombek.com/blog/jan-31-2020-react-16-3">previous article</a> consisted of a <a href="https://react16-3.demo.jarombek.com/">
+demo application</a> which showcasing the new features in React 16.3 with detailed descriptions and sample
+components.  The demo is a React application, so naturally I created a
+<a href="https://github.com/AJarombek/react-16-3-demo/tree/master/app/test">testing suite</a> with Jest
+and Enzyme.
+</p>
+<p>
+This article walks through the testing suite, providing insights about Jest and Enzyme in the process.
+</p>
+<SectionTitle title="Configuring the Test Suite">Configuring the Test Suite</SectionTitle>
+<p>
+Any npm project begins with a <a href="https://github.com/AJarombek/react-16-3-demo/blob/master/app/
+package.json">package.json</a> file and application dependencies.  For the sake of brevity I only listed
+the dependencies needed for unit testing.
+</p>
+<CodeSnippet language="JSON">
+{
+  ...
+  "dependencies": {
+    ...
+    "react": "16.12.0",
+    "react-dom": "16.12.0",
+    "react-router-dom": "^5.1.2"
+    ...
+  },
+  "devDependencies": {
+    ...
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.1",
+    "jest": "^24.9.0",
+    "react-test-renderer": "^16.12.0",
+    ...
+  },
+  ...
+}
+</CodeSnippet>
+<p>
+React is a standard dependency while Jest and Enzyme are dev dependencies.  As its name suggests, dev
+dependencies are used for development purposes only.  When a repository is cloned and
+<code className="jarombek-inline-code">npm install</code> or <code className="jarombek-inline-code">
+yarn</code> is invoked, both standard and dev dependencies are installed.  However, when a module
+is installed with <code className="jarombek-inline-code">npm install {module_name}</code> or
+<code className="jarombek-inline-code">yarn add {module_name}</code>, only standard dependencies are
+installed.  We don't want unit testing frameworks to be installed for module end-users, so their
+dependency definitions always exist in <code className="jarombek-inline-code">devDependencies</code>.
+</p>
+<p>
+The <code className="jarombek-inline-code">jest</code> and <code className="jarombek-inline-code">
+enzyme</code> dev dependencies are the Jest testing framework and Enzyme testing utility, respectively.
+<code className="jarombek-inline-code">enzyme-adapter-react-16</code> is used to configure Enzyme to
+work with React 16 code.  There are many Enzyme adapters, ranging from React versions 0.13 to 16<sup>1</sup>.  I will configure the React 16 adapter soon.
+</p>
+<p>
+<code className="jarombek-inline-code">react-test-renderer</code> renders React elements and components
+as JavaScript objects without needing the DOM<sup>2</sup>.  It's used for component snapshot testing.
+</p>
+<p>
+With <strong>package.json</strong> initialized, it's time to create the applications Jest configuration.
+The Jest configuration is located alongside <strong>package.json</strong> in <a href="https://github.com/
+AJarombek/react-16-3-demo/blob/master/app/jest.config.js">jest.config.js</a>.
+</p>
+<CodeSnippet language="JavaScript">
+module.exports = {
+  displayName: 'components',
+  testEnvironment: 'jsdom',
+  testMatch: ['**/test/**/*.test.js'],
+  setupFilesAfterEnv: ['&lt;rootDir>/test/setupTests.js'],
+  maxConcurrency: 5,
+  moduleNameMapper: {
+    '\\.(png)$': '../../test/mocks/fileMock.js'
+  },
+  transform: {
+    '^.+\\.js$': 'babel-jest'
+  },
+  collectCoverage: true,
+  collectCoverageFrom: ['src/**/*.js'],
+  coveragePathIgnorePatterns: ['src/index.js'],
+  coverageThreshold: {
+    'global': {
+      'branches': 100,
+      'functions': 100,
+      'lines': 100,
+      'statements': 100
+    }
+  }
+};
+</CodeSnippet>
+<p>
+<strong>jest.config.js</strong> configures the testing suite for the application.  Let's highlight some
+important aspects of the configuration.  Tests are executed in the <code className="jarombek-inline-code">
+jsdom</code> environment, a headless browser which provides rendered components access to the DOM and
+DOM API.  Any file in the <strong>test</strong> directory (or its subdirectories) with the
+<strong>.test.js</strong> file extension is executed in the test suite.  The Enzyme adapter is configured
+in the <a href="https://github.com/AJarombek/react-16-3-demo/blob/master/app/test/setupTests.js">
+setupTests.js</a> file, which has a very simple body:
+</p>
+<CodeSnippet language="JavaScript">
+import {configure} from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+
+configure({ adapter: new Adapter() });
+</CodeSnippet>
+<p>
+Before testing, all Javascript files are transpiled with Babel and non-JavaScript imports are mocked with
+a file named <a href="https://github.com/AJarombek/react-16-3-demo/blob/master/app/test/mocks/fileMock.js">
+fileMock.js</a>.  This file contains a single line:
+</p>
+<CodeSnippet language="JavaScript">
+module.exports = 'test-file-stub';
+</CodeSnippet>
+<p>
+All that remains in the Jest configuration file is code coverage setup.  All source code JavaScript files
+are tested for code coverage (except for <a href="https://github.com/AJarombek/react-16-3-demo/blob/master/
+app/src/index.js">index.js</a> which consists of React and React Router bootstrapping).  In order for the
+test suite to pass, code coverage must be 100%.
+</p>
+<Definition word="Code Coverage">
+Code coverage is the percentage of a program that executes in a test suite.  Code coverage is usually run
+alongside tests, and generates a text or html report.  While 100% code coverage is ideal, it isn't always
+practical or necessary.  Likewise, 100% code coverage doesn't mean that code is properly tested.  Poorly
+written tests count towards code coverage the same as properly written ones!
+</Definition>
+<p>
+At this point the test suite is fully configured!  In my experience Jest configuration is pretty easy to
+work with.  Without much work, I created a test suite that is executable with the
+<code className="jarombek-inline-code">jest</code> command.  I often alias this command in my
+<strong>package.json</strong>.
+</p>
+<CodeSnippet language="JSON">
+{
+  ...
+  "scripts": {
+    "test": "jest",
+    ...
+  },
+  ...
+}
+</CodeSnippet>
+<p>
+I wrote three types of tests for my React 16.3 demo - unit tests, integration tests, and snapshots.
+</p>
+<ComparisonTable title="Testing Methods">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Unit Tests
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A <a href="https://jarombek.com/blog/oct-26-2019-unit-test-aws-infrastructure#unit-test">unit test</a>
+is an assertion that a unit of code is working as expected. Units of code can range from a single line
+or function to an entire class or application.  Unit tests are often run in isolation, without impact
+from external dependencies.  In React, units are often methods or shallow rendered components (components
+rendered without their child components).
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Integration Tests
+</h5>
+<div className="jarombek-cte-body">
+<p>
+In an integration test, units of code are combined and tested together as a group.  The grouping of code
+can range from two functions to an entire webpage or application.  In React, this grouping is often a
+module or a component rendered on the DOM with its child components.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Snapshot Tests
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A snapshot test takes a snapshot of the UI and saves it.  On subsequent snapshot tests, the saved snapshot
+is compared to the current UI.  If the UI changed since the snapshot was taken, the test fails.  Snapshot
+tests are very helpful for preventing unwanted UI changes<sup>3</sup>.  In React, snapshots are created
+for components.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<SectionTitle title="Unit Tests">Unit Tests</SectionTitle>
+<p>
+Unit tests assert that a unit of code behaves as expected.  When writing unit tests, we use three main
+functions provided by Jest - <code className="jarombek-inline-code">describe()</code>,
+<code className="jarombek-inline-code">it()</code>, and <code className="jarombek-inline-code">assert()</code>.
+These functions aren't explicitly imported into test code, Jest injects them implicitly when the tests execute.
+</p>
+<p>
+<code className="jarombek-inline-code">describe()</code> creates a grouping of test cases (test suite)
+and <code className="jarombek-inline-code">it()</code> creates a single test case.  Test cases pass if
+all their assertions (created with <code className="jarombek-inline-code">assert()</code> and a
+corresponding <a href="https://jestjs.io/docs/en/expect">matcher</a>) are true.  Test cases fail as
+soon as a single assertion fails.  Matchers are chained onto <code className="jarombek-inline-code">
+assert()</code> global functions.  Some examples of matchers are <code className="jarombek-inline-code">
+toEqual()</code>, <code className="jarombek-inline-code">toBeTruthy()</code>, and
+<code className="jarombek-inline-code">toContain()</code>.
+</p>
+<p>
+A common "Hello World" unit test example adds two values together and asserts the result is a third value.
+I created this <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2020/02-Feb/
+02-05-react-jest-enzyme">"Hello World" test application</a>, which is easily executed with
+<code className="jarombek-inline-code">npm install</code> and <code className="jarombek-inline-code">
+npm run test</code>.  Here is the <a href="https://github.com/AJarombek/jarombek-com-sources/blob/
+master/2020/02-Feb/02-05-react-jest-enzyme/test.js">Jest code</a>:
+</p>
+<CodeSnippet language="JavaScript">
+describe('unit tests', () => {
+
+  it('adds two numbers', () => {
+    expect(1 + 1).toEqual(2);
+  });
+
+});
+</CodeSnippet>
+<p>
+This code creates a single test case named "adds two numbers" in a single test suite named "unit test."
+It also successfully proves that <strong>1 + 1 = 2</strong>.  Running this code with
+<code className="jarombek-inline-code">npm run test</code> produces the following output:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/2-5-20-jest-output.png"/>
+</figure>
+<p>
+The next piece needed for React unit tests is Enzyme.  I previously mentioned that React component unit
+tests are implemented with shallow rendering.  Shallow rendering only renders the React elements in a
+components render method (or return value for functional components), excluding any child components.  Enzyme
+provides shallow rendering with the <code className="jarombek-inline-code">shallow()</code> method.
+<code className="jarombek-inline-code">shallow()</code> takes a component as an argument and returns a
+wrapper around the rendered component with helper methods used for testing<sup>4</sup>.  The following
+unit test performs a shallow render, proving that the component successfully renders.
+</p>
+<CodeSnippet language="JavaScript">
+import React from 'react';
+import { shallow } from 'enzyme';
+import App from '../src/App';
+
+it('renders', () => {
+  const wrapper = shallow(&lt;App/>);
+  expect(wrapper.exists()).toBe(true);
+});
+</CodeSnippet>
+<p>
+In this example the wrappers <code className="jarombek-inline-code">exists()</code> method is called,
+which returns <code className="jarombek-inline-code">true</code> if the wrapper's rendered component
+contains one or more elements (nodes)<sup>5</sup>.  On the Jest side of things,
+<code className="jarombek-inline-code">wrapper.exists()</code> was expected to be
+<code className="jarombek-inline-code">true</code>.
+</p>
+<p>
+The wrapper object returned from <code className="jarombek-inline-code">shallow()</code> has an
+<a href="https://airbnb.io/enzyme/docs/api/shallow.html">extensive API</a> that satisfies most testing
+needs.  Shallow rendering often falls short of testing requirements when DOM API logic needs to be tested.
+<code className="jarombek-inline-code">shallow()</code> doesn't simulate rendering on the DOM, so none
+of its APIs are accessible from the wrapper object.  Components must be fully rendered with Enzyme's
+ <code className="jarombek-inline-code">mount()</code> function in order to be tested with the DOM.
+Full DOM rendering falls under integration tests, which I will cover in the next section.
+</p>
+<p>
+A common unit test for components is to assert that certain text or classes appear in the rendered elements.
+These tests can also be fulfilled by snapshots depending on your personal preference.  The following test
+traverses the rendered nodes in a component and asserts that the rendered text is as expected.
+</p>
+<CodeSnippet language="JavaScript">
+it('renders message', () => {
+const wrapper = shallow(&lt;DerivedFromPropsRefactored show={true} />);
+  expect(wrapper.find('.secret-code')).toHaveLength(1);
+  expect(wrapper.find('.secret-code-classified')).toHaveLength(0);
+  expect(wrapper.find('.secret-code').childAt(0).text()).toEqual('You have a beautiful heart.');
+});
+</CodeSnippet>
+<p>
+There are many other unit tests that can be performed on React components.  When I first started using
+Enzyme, familiarizing myself with the <a href="https://airbnb.io/enzyme/docs/api/shallow.html">shallow
+render wrapper functions</a> was crucial to writing quality unit tests.
+</p>
+<SectionTitle title="Integration Tests">Integration Tests</SectionTitle>
+<p>
+Integration tests occur when units of code are combined and tested together as a group.  Integration
+tests build upon the Jest and Enzyme fundamentals used for unit testing.  In this section, I'll show
+some interesting tests from my React 16.3 application.  I encourage you to check out and adjust my tests
+on <a href="https://github.com/AJarombek/react-16-3-demo/tree/master/app/test">GitHub</a> to meet your
+specific needs.
+</p>
+<p>
+Integration tests are performed on React components using Enzyme's <code className="jarombek-inline-code">
+mount()</code> method.  <code className="jarombek-inline-code">mount()</code> simulates a full DOM
+rendering with access to the DOM API.  With that in mind, integration tests are useful for code that
+accesses the DOM API.  In React, Refs serve this purpose.  The following test checks if the CSS style
+attached to a DOM node changes after a button is clicked.
+</p>
+<CodeSnippet language="JavaScript">
+import React from 'react';
+import { shallow, mount } from 'enzyme';
+import RefSamples from '../../src/createref/RefSamples';
+
+it('lights up a light bulb on focus', () => {
+  const wrapper = mount(&lt;RefSamples />);
+
+  const button = wrapper.find('.aj-outlined-button');
+  const lightBulb = wrapper.find('.ref-sample');
+
+  // The initial filter value will be empty instead of 'brightness(4)' as defined in my CSS file
+  // because Jest/Enzyme don't load CSS stylesheets.
+  expect(lightBulb.getDOMNode().style.filter).toEqual('');
+
+  button.simulate('click');
+
+  expect(lightBulb.getDOMNode().style.filter).toEqual('brightness(5)');
+
+  // Alternative way to get the style value through the DOM API.
+  expect(lightBulb.getDOMNode().style.getPropertyValue('filter'))
+    .toEqual('brightness(5)');
+});
+</CodeSnippet>
+<p>
+Enzyme provides access into a DOM node of a React element with the <code className="jarombek-inline-code">
+getDOMNode()</code> method<sup>6</sup>.  <code className="jarombek-inline-code">style.filter</code> and
+<code className="jarombek-inline-code">style.getPropertyValue()</code> are part of the DOM API, not React
+or Enzyme.
+</p>
+<p>
+This example also demonstrates another important feature of React integration tests - event simulation.
+If React code handles or responds to DOM events like <code className="jarombek-inline-code">onClick</code>,
+integration tests are needed.  I used Enzyme's <code className="jarombek-inline-code">
+simulate(event)</code> function to simulate clicking a button.
+</p>
+<p>
+If you would like to learn more about React Refs and this integration test, you can view the
+<a href="https://github.com/AJarombek/react-16-3-demo/blob/master/app/src/createref/RefSamples.js">React source code</a>,
+<a href="https://github.com/AJarombek/react-16-3-demo/blob/master/app/test/createref/RefSamples.test.js">unit test code</a>, and my
+<a href="https://react16-3.demo.jarombek.com/">React 16.3</a> demo which explains the use of Refs.
+</p>
+<p>
+A common practice in unit tests is mocking.  Mocking is when a function or external dependency is replaced
+with something that imitates its behavior.  Mocking helps isolate unit tests from the side effects of
+code dependencies.  For example, a function that makes an external REST API call can be mocked to simply return an object.
+</p>
+<p>
+In my React 16.3 application, I needed to mock the behavior of React Router navigation.  React Router
+navigates users to different web pages by placing a new value in the browser history.  For example,
+from a home page (<strong>jarombek.com</strong>) React Router can push a new value
+(<strong>jarombek.com/resume</strong>) to the browser history, navigating the user to a page displaying
+my resume in the process.  My application uses React Router's <code className="jarombek-inline-code">
+useHistory()</code> hook method to provide navigation.  The code which tests its behavior mocks
+<code className="jarombek-inline-code">useHistory()</code> with <code className="jarombek-inline-code">
+jest.mock()</code>.
+</p>
+<CodeSnippet language="JavaScript">
+import React from 'react';
+import { shallow, mount } from 'enzyme';
+import { useHistory } from 'react-router-dom';
+import FeaturePage from '../src/FeaturePage';
+
+// Mock react router's useHistory() hook before the tests execute.
+jest.mock('react-router-dom', () => {
+  const historyObj = {
+    push: jest.fn()
+  };
+
+  return {
+    ...jest.requireActual('react-router-dom'),
+    useHistory: () => historyObj
+  }
+});
+
+describe('integration tests', () => {
+
+  it('calls React Router push() when clicking the back button', () => {
+    const wrapper = mount(&lt;FeaturePage/>);
+    const pushSpy = jest.spyOn(useHistory(), 'push').mockImplementation();
+
+    const navCircle = wrapper.find('.aj-nav-circle');
+
+    expect(pushSpy).not.toHaveBeenCalled();
+    expect(pushSpy).toHaveBeenCalledTimes(0);
+
+    navCircle.simulate('click');
+
+    expect(pushSpy).toHaveBeenCalled();
+    expect(pushSpy).toHaveBeenCalledTimes(1);
+    expect(pushSpy).toHaveBeenCalledWith('/');
+  });
+
+});
+</CodeSnippet>
+<p>
+You can see this code mocked the entire <code className="jarombek-inline-code">react-router-dom</code>
+module, and inside it also mocked <code className="jarombek-inline-code">useHistory</code> with
+<code className="jarombek-inline-code">jest.fn()</code>.  In the integration test, I spied on the
+<code className="jarombek-inline-code">useHistory</code> function, providing information such
+as the number of times its been called and with which arguments<sup>7</sup>.  This test proves that
+clicking on a navigation button pushes the home page path (<strong>'/'</strong>) onto the browser history.
+</p>
+<p>
+I'm still learning how to use mocks and spies in Jest, so the code above can likely be improved upon!
+</p>
+<SectionTitle title="Snapshot Tests">Snapshot Tests</SectionTitle>
+<p>
+In my experience, snapshot tests are much simpler than unit tests and integration tests.  A
+ snapshot test passes if a rendered component matches an existing snapshot, and fails if a rendered
+component changed since an existing snapshot was taken.
+</p>
+<p>
+The first step when implementing snapshot tests is to create a test case.  The following is a snapshot test
+ for a <a href="https://github.com/AJarombek/react-16-3-demo/blob/master/app/test/forwardref/
+ButtonWrapper.snap.test.js">button component</a> used in my React 16.3 demo.
+</p>
+<CodeSnippet language="JavaScript">
+import React from 'react';
+import ButtonWrapper from '../../src/ButtonWrapper';
+import renderer from 'react-test-renderer';
+
+it('renders correctly', () => {
+  const tree = renderer.create(&lt;ButtonWrapper>Snapshot Test&lt;/ButtonWrapper>).toJSON();
+  expect(tree).toMatchSnapshot();
+});
+</CodeSnippet>
+<p>
+When running the snapshot test for the first time, a snapshot file is created with the rendered elements
+as they would appear on the React virtual DOM.  For example, <a href="https://github.com/AJarombek/
+react-16-3-demo/blob/master/app/src/forwardref/ButtonWrapper.js"><code className="jarombek-inline-code">
+ButtonWrapper</code></a> is a functional component:
+</p>
+<CodeSnippet language="JavaScript">
+const ButtonWrapper = (props) => {
+  const {children, onClick, ref} = props;
+
+  return (
+    &lt;button className="button-wrapper" type="button" onClick={onClick} ref={ref}>
+      {children}
+    &lt;/button>
+  );
+};
+</CodeSnippet>
+<p>
+When the snapshot test for <code className="jarombek-inline-code">ButtonWrapper</code> runs, the following
+<a href="https://github.com/AJarombek/react-16-3-demo/blob/master/app/test/forwardref/__snapshots__/
+ButtonWrapper.snap.test.js.snap">snapshot file</a> is generated:
+</p>
+<CodeSnippet language="JavaScript">
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders correctly 1`] = `
+  &lt;button
+    className="button-wrapper"
+    type="button"
+  >
+    Snapshot Test
+  &lt;/button>
+`;
+</CodeSnippet>
+<p>
+All future tests don't overwrite the snapshot file, instead comparing the result of the snapshot test to
+it.  If the snapshots mismatch, the test fails.
+</p>
+<p>
+There are two main scenarios that cause a snapshot test to fail.  One scenario is when the component under
+test was incorrectly modified, causing the UI to change.  In this scenario, the course of action is to
+fix the component causing the failure.  Another scenario is when the component was intentionally modified
+and the UI is expected to change.  In this scenario, the snapshot files should be updated to match the
+new UI rendering.  This is achieved by executing <code className="jarombek-inline-code">
+jest --updateSnapshot</code> from the command line.
+</p>
+<p>
+I've only found snapshots helpful when the developer or team makes it a point of emphasis to validate
+snapshots before releasing new code.  Otherwise, snapshot files will always be out of date and worthless
+for testing purposes.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Used together, unit, integration, and snapshot tests help detect regressions and bugs in a React codebase.
+They ensure that all UI changes released are intentional, not due to an unwanted side effect.  I use
+Jest and Enzyme in all my React applications.  You can view my React 16.3 test suite on
+<a href="https://github.com/AJarombek/react-16-3-demo">GitHub</a>.
+</p>
+</div>

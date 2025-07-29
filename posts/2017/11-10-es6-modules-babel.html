@@ -1,0 +1,140 @@
+<div>
+<p>
+In my last discovery post, I went over the
+<a href="https://jarombek.com/blog/nov-9-2017-js-closure-modules">revealing module pattern in JavaScript.</a>
+Now I am recreating the same API with ES6 modules.  The API code will look familiar:
+</p>
+<CodeSnippet language="JavaScript">
+export function lyrics(song) {
+    switch(song.toLowerCase()) {
+    case "sparks fly":
+        return lyric.sparks;
+        case "mine":
+        return lyric.mine;
+    case "back to december":
+        return lyric.dec;
+    default:
+        return lyric.other;
+    }
+}
+
+var lyric = {
+    sparks: "I see sparks fly whenever you smile",
+    mine: "You are the best thing thats ever been mine",
+    dec: "I go back to Decemeber all the time",
+    other: "I'm sorry, taylor can't pick up the phone right now"
+}
+</CodeSnippet>
+<p>
+The only change to the API is the <code className="jarombek-inline-code">export</code> keyword.
+<code className="jarombek-inline-code">export</code> is a new keyword in ES6 that reveals the function
+<code className="jarombek-inline-code">lyrics</code> to other JavaScript code.  Any JavaScript file can
+be a module if it exports functions/variables.
+Only one module can exist per file, and each module can export multiple items.  Since one file
+is one and only one module, the name of a module is the filename. Code to import a module
+uses the <code className="jarombek-inline-code">import</code> keyword:
+</p>
+<CodeSnippet language="JavaScript">
+import * as ts from './taylorSwift';
+</CodeSnippet>
+<p>
+All variables/functions in the <code className="jarombek-inline-code">taylorSwift</code> module are
+imported with the <code className="jarombek-inline-code">import *</code> syntax.
+The imported module is then given the alias
+<code className="jarombek-inline-code">ts</code>. With the Taylor Swift API imported, I invoked the
+<code className="jarombek-inline-code">lyrics()</code> function.
+</p>
+<CodeSnippet language="JavaScript">
+ts.lyrics("Sparks Fly");
+</CodeSnippet>
+<p>
+If you tried running this code in certain environments it would fail.  Many JavaScript engines are not
+ES6 compliant (including my version of Node.js!).  Therefore, when I tried running my main.js file
+(containing the input code) I got an error:
+</p>
+<CodeSnippet language="Bash">
+node main.js
+#import * as ts from 'taylorSwift';
+#^^^^^^
+#SyntaxError: Unexpected token import
+</CodeSnippet>
+<p>
+Eventually I got this code to work after jumping through some hoops.
+The tool to get the job done was Babel, which is a JavaScript transpiler.
+</p>
+<p>
+The way to get ES6 code to work in all environments is by converting it to
+an ES5 equivalent (or as close as possible).  This would be quite the task to do manually,
+so Babel does the work for us.  As I mentioned, Babel is a transpiler.  Transpile is a
+combination of the words translate and
+compile.  So Babel (a compiler) converts (translates) ES6 code to ES5.
+</p>
+<p>
+Let’s set up Babel.  Since I’m using Node.js I set up a dependency manager and installed Babel<sup>1</sup>.
+</p>
+<CodeSnippet language="Bash">
+npm install --save-dev babel-cli
+npm install babel-preset-env --save-dev
+</CodeSnippet>
+<p>
+I then configured Babel by creating a .babelrc file.  In this JSON file I set
+<code className="jarombek-inline-code">presets</code> to <code className="jarombek-inline-code">"env"</code>,
+which helps Babel determine the Babel plugins I need to perform a transpilation based on
+my environment<sup>2</sup>.
+</p>
+<CodeSnippet language="JSON">
+{
+  "presets": ["env"]
+}
+</CodeSnippet>
+<p>
+Now when I got to this point I thought "great I’m done! Let’s run the code!"  Unfortunately, I forgot
+to actually tell Babel which files to convert to ES5.  One way to do that is like so:
+</p>
+<CodeSnippet language="Bash">
+npx babel main.js --out-file es5/main.js
+</CodeSnippet>
+<p>
+This command tells Babel to take main.js and transpile it to a file of the same name in a folder named es5
+(note: <code className="jarombek-inline-code">npx</code> is not a typo – install
+it with <code className="jarombek-inline-code">npm install –g npx</code> to simplify Babel commands).
+</p>
+<p>
+There is however a better way of doing this.  Babel has the ability to watch ES6 files for changes.
+When a change is made, the ES6 code is automatically transpiled to an output file.
+</p>
+<CodeSnippet language="Bash">
+npx babel main.js --watch --out-file es5/main.js &
+npx babel taylorSwift.js --watch --out-file es5/taylorSwift.js &
+</CodeSnippet>
+<p>
+I added the ampersand to the end of these commands to place them in the background.
+This is so the bash shell is not blocked and I can continue to execute commands in one window.
+Background tasks can be killed at any time with their job number<sup>3</sup>:
+</p>
+<CodeSnippet language="Bash">
+# Kill the task by job number (in this case 1)
+kill %1
+</CodeSnippet>
+<p>
+Now Babel is all set and the files are transpiled!
+</p>
+<CodeSnippet language="Bash">
+node es5/main.js
+# I see sparks fly whenever you smile
+</CodeSnippet>
+<p>
+Looking at the transpiled ES5 code reveals that Babel is using CommonJS for the ES6 modules.  This is
+the library that Node.js uses for modules in pre-ES6 code.
+</p>
+<CodeSnippet language="Bash">
+var _taylorSwift = require("./taylorSwift");
+</CodeSnippet>
+<p>
+That was a lot of work just to see some sparks fly using ES6!  Obviously it is not practical to
+transpile ES6 code for such a small codebase, but for larger projects we want
+to use ES6+ JavaScript features no matter the environment.  I'll be using Babel for many
+projects in the future.  You can find all the code in this demo on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2017/11-Nov/11-10-ES6-Modules-Babel">GitHub</a>.
+</p>
+</div>

@@ -1,0 +1,557 @@
+<div>
+<p>
+SwiftUI is a new framework that creates user interfaces for iOS and other Apple operating system applications.  SwiftUI
+is completely programmatic (user interfaces in SwiftUI are built exclusively by writing Swift code).  This is in stark
+contrast to previous frameworks such as UIKit which use a combination of Swift or Objective-C code and storyboards.
+Storyboards are graphical interfaces which allow engineers or designers to build user interfaces without writing code.
+</p>
+<p>
+As someone who prefers solutions that involve writing code exclusively, SwiftUI is a welcome addition to the iOS
+landscape and a positive change in direction from Apple.  Using GUIs such as storyboard to build interfaces have many
+downsides, such as difficulties when working in large groups on a single UI file and confusing merge conflicts when
+using version control systems. Since I'm very passionate about programming (as most software engineers are), altering
+values in a GUI to change a UI is a lot less exciting than coding!
+</p>
+<p>
+This article introduces SwiftUI and walks through a page in an existing iOS application that I converted to SwiftUI
+from UIKit and Storyboard.  I also describe the steps needed to integrate  SwiftUI components into a UIKit application.
+All the code discussed in this article comes from my
+<a href="https://apps.apple.com/nz/app/saintsxctf/id1298285886?platform=iphone">SaintsXCTF</a> iOS application and
+lives in a <a href="https://github.com/AJarombek/saints-xctf-ios">saints-xctf-ios</a> repository.
+</p>
+<SectionTitle title="SwiftUI Overview">SwiftUI Overview</SectionTitle>
+<p>
+SwiftUI is a new approach for creating user interfaces in Apple operating system applications, such as iPhone and Apple
+Watch apps.  Released in September 2019, SwiftUI allows UIs to be built entirely in Swift code.  Apple has
+<a href="https://developer.apple.com/tutorials/swiftui/creating-and-combining-views">excellent tutorials</a> for getting
+started with SwiftUI and for learning how to code SwiftUI views in XCode.
+</p>
+<p>
+SwiftUI is a declarative UI framework, similar to React.js.  Declarative programming frameworks involve coding the
+desired end state instead of coding iterative commands to achieve an end state.  Behind the scenes, SwiftUI is able to
+translate the desired end state into iterative commands which build the UI.  Engineers do not need to worry about these
+details as SwiftUI abstracts them away.  Declarative frameworks are often easier to work with and faster to code in.  A
+comparison in the front-end programming world is how the declarative library React.js is easier to work with then the
+iterative library JQuery for building web pages.
+</p>
+<SectionTitle title="UI Component Overview">UI Component Overview</SectionTitle>
+<p>
+In my SaintsXCTF iOS application, the page I converted from UIKit and Storyboard to SwiftUI is the create exercise log
+page.  When loaded, this page appears like so:
+</p>
+<InlineImage filename="2-26-22-exercise-log-view.png" paddingTop="true" paddingBottom="true" maxwidth="60%">
+</InlineImage>
+<p>
+Users enter details about their exercise, such as the time taken and mileage.
+</p>
+<InlineImage filename="2-26-22-exercise-log-editing.png" paddingTop="true" paddingBottom="true" maxwidth="60%">
+</InlineImage>
+<p>
+After entering information about an exercise, users can create the exercise log, which displays it on the
+application home page and their profile page.
+</p>
+<InlineImage filename="2-26-22-exercise-log-created.png" paddingTop="true" paddingBottom="true" maxwidth="60%">
+</InlineImage>
+<p>
+User's can also edit existing exercise logs and resubmit them.
+</p>
+<InlineImage filename="2-26-22-exercise-logs.png" paddingTop="true" paddingBottom="true" maxwidth="60%">
+</InlineImage>
+<InlineImage filename="2-26-22-edit-exercise-log.png" paddingTop="true" paddingBottom="true" maxwidth="60%">
+</InlineImage>
+<SectionTitle title="Building Views">Building Views</SectionTitle>
+<p>
+SwiftUI applications are split into many views (components) that make up the user interface.  For my exercise log page,
+there are two top level views.  The first, <code className="jarombek-inline-code">CreateExerciseLogView</code>, is for
+creating a new exercise log.  The second, <code className="jarombek-inline-code">EditExerciseLogView</code>, is for
+editing an existing exercise log.
+</p>
+<p>
+<code className="jarombek-inline-code">CreateExerciseLogView</code>, which is located in a <a href="https://github.com/
+AJarombek/saints-xctf-ios/blob/master/SaintsXCTF/CreateExerciseLogView.swift">CreateExerciseLogView.swift</a> file, has
+the following content:
+</p>
+<CodeSnippet language="Swift">
+import SwiftUI
+
+struct CreateExerciseLogView: View {
+    @StateObject var log = ExerciseLog()
+    @StateObject var meta = ExerciseLogMeta(isExisting: false)
+    @StateObject var createLog = CreateExerciseLog()
+    @StateObject var form = ExerciseLogForm()
+
+    var body: some View {
+        ExerciseLogView(log: log, meta: meta, createLog: createLog, form: form)
+    }
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">EditExerciseLogView</code>, which is located in a <a href="https://github.com/
+AJarombek/saints-xctf-ios/blob/master/SaintsXCTF/EditExerciseLogView.swift">EditExerciseLogView.swift</a> file, is coded
+very similarly.
+</p>
+<CodeSnippet language="Swift">
+import SwiftUI
+
+struct EditExerciseLogView: View {
+    @ObservedObject var log = ExerciseLog()
+
+    @StateObject var meta = ExerciseLogMeta(isExisting: true)
+    @StateObject var createLog = CreateExerciseLog()
+    @StateObject var form = ExerciseLogForm()
+
+    var body: some View {
+        ExerciseLogView(log: log, meta: meta, createLog: createLog, form: form)
+            .onAppear(perform: {
+                if !meta.existingLogInitialized {
+                    form.displayedTime = log.time
+                }
+            })
+    }
+}
+</CodeSnippet>
+<p>
+Both <code className="jarombek-inline-code">CreateExerciseLogView</code> and <code className="jarombek-inline-code">
+EditExerciseLogView</code> are structs of type <code className="jarombek-inline-code">View</code>.  The
+<code className="jarombek-inline-code">View</code> protocol defines a struct that is part of a user interface.  When a
+custom view is created that follows the <code className="jarombek-inline-code">View</code> protocol, the
+<code className="jarombek-inline-code">body</code> property of type <code className="jarombek-inline-code">some View
+</code> must be implemented.  Both <code className="jarombek-inline-code">CreateExerciseLogView</code> and
+<code className="jarombek-inline-code">EditExerciseLogView</code> have bodies containing an
+<code className="jarombek-inline-code">ExerciseLogView</code> view.  <code className="jarombek-inline-code">
+ExerciseLogView</code> is the main view holding the create/edit exercise log form.  It takes four objects as arguments
+which help customize the views appearance: <code className="jarombek-inline-code">log</code>,
+<code className="jarombek-inline-code">meta</code>, <code className="jarombek-inline-code">createLog</code>, and
+<code className="jarombek-inline-code">form</code>.
+</p>
+<p>
+These four variables are initialized with the <code className="jarombek-inline-code">@StateObject</code> annotation in
+both <code className="jarombek-inline-code">CreateExerciseLogView</code> and <code className="jarombek-inline-code">
+EditExerciseLogView</code>; except for <code className="jarombek-inline-code">log</code> in
+<code className="jarombek-inline-code">EditExerciseLogView</code>, which is initialized with
+<code className="jarombek-inline-code">@ObservedObject</code>.  These annotations are property wrappers which label
+ variables that hold state in Swift views.  Swift views are controlled by application state; every time the state within
+a view changes, the view re-renders.  For a more in-depth analysis on these annotations, check out
+<a href="https://www.hackingwithswift.com/quick-start/swiftui/whats-the-difference-between-observedobject-state-and-environmentobject">
+this article on SwiftUI property wrappers</a><sup>1</sup>.  In short, <code className="jarombek-inline-code">
+@ObservedObject</code> holds an object in application state with a value passed from another view.
+<code className="jarombek-inline-code">@StateObject</code> also holds an object in application state, but it is
+initialized within the current view.  In other words, <code className="jarombek-inline-code">@ObservedObject</code>
+watches a state object that is owned by another view, while <code className="jarombek-inline-code">@StateObject</code>
+creates a state object in the current view.
+</p>
+<p>
+In the <code className="jarombek-inline-code">EditExerciseLogView</code> view, <code className="jarombek-inline-code">
+log</code> is annotated with <code className="jarombek-inline-code">@ObservedObject</code> because its parent view sends
+information about a log that needs to be edited.  All the other state objects are created in and owned by
+<code className="jarombek-inline-code">CreateExerciseLogView</code> and <code className="jarombek-inline-code">
+EditExerciseLogView</code>.
+</p>
+<p>
+Objects annotated with <code className="jarombek-inline-code">@StateObject</code> and
+<code className="jarombek-inline-code">@ObservedObject</code> must conform to a <code className="jarombek-inline-code">
+ObservableObject</code> protocol.  For example, the <code className="jarombek-inline-code">log</code> object is a class
+of type <code className="jarombek-inline-code">ExerciseLog</code>, which is defined in <a href="https://github.com/
+AJarombek/saints-xctf-ios/blob/master/SaintsXCTF/ExerciseLog.swift">ExerciseLog.swift</a>.
+</p>
+<CodeSnippet language="Swift">
+import SwiftUI
+
+class ExerciseLog: ObservableObject {
+    @Published var id: Int? = nil
+    @Published var name = ""
+    @Published var location = ""
+    var date = Date()
+    @Published var exerciseType = ExerciseType.run
+    @Published var distance = ""
+    @Published var metric = Metric.miles
+    @Published var time = ""
+    @Published var feel = 6.0
+    @Published var description = ""
+
+    func reset() {
+        name = ""
+        location = ""
+        date = Date()
+        exerciseType = ExerciseType.run
+        distance = ""
+        metric = Metric.miles
+        time = ""
+        feel = 6.0
+        description = ""
+    }
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">ExerciseLog</code> contains properties representing the attributes of an exercise
+log.  Some of these properties, such as <code className="jarombek-inline-code">id</code>, are annotated with
+<code className="jarombek-inline-code">@Published</code>.  When values of properties with the
+<code className="jarombek-inline-code">@Published</code> annotation change, the UI updates accordingly<sup>2</sup>.  Properties
+without <code className="jarombek-inline-code">@Published</code> do not cause UI re-renders when their values change.
+</p>
+<p>
+<code className="jarombek-inline-code">reset()</code> is simply a helper method to revert properties to their default
+values.
+</p>
+<p>
+The other three state objects in <code className="jarombek-inline-code">CreateExerciseLogView</code> and
+<code className="jarombek-inline-code">EditExerciseLogView</code> are coded similarly to
+<code className="jarombek-inline-code">ExerciseLog</code>.  <code className="jarombek-inline-code">meta</code> of type
+<code className="jarombek-inline-code">ExerciseLogMeta</code> (located in <a href="https://github.com/AJarombek/
+saints-xctf-ios/blob/master/SaintsXCTF/ExerciseLogMeta.swift">ExerciseLogMeta.swift</a>),
+<code className="jarombek-inline-code">createLog</code> of type <code className="jarombek-inline-code">
+CreateExerciseLog</code> (located in <a href="https://github.com/AJarombek/saints-xctf-ios/blob/master/SaintsXCTF/
+CreateExerciseLog.swift">CreateExerciseLog.swift</a>), and <code className="jarombek-inline-code">form</code> of type
+<code className="jarombek-inline-code">ExerciseLogForm</code> (located in <a href="https://github.com/AJarombek/
+saints-xctf-ios/blob/master/SaintsXCTF/ExerciseLogForm.swift">ExerciseLogForm.swift</a>) are shown below.
+</p>
+<CodeSnippet language="Swift">
+// ExerciseLogMeta.swift
+
+import SwiftUI
+
+class ExerciseLogMeta: ObservableObject {
+
+    init(isExisting: Bool) {
+        self.isExistingLog = isExisting
+    }
+
+    var isExistingLog = false
+    var existingLogInitialized = false
+}
+</CodeSnippet>
+<CodeSnippet language="Swift">
+// CreateExerciseLog.swift
+
+import SwiftUI
+
+class CreateExerciseLog: ObservableObject {
+    @Published var creating = false
+    @Published var created = false
+    @Published var error = false
+    @Published var errorMessage: String? = nil
+
+    func createExerciseLog(exerciseLog: ExerciseLog, completion: @escaping () -> Void) -> Void {
+        creating = true
+        created = false
+        error = false
+        errorMessage = nil
+
+        let log = convertToLog(exerciseLog)
+
+        APIClient.logPostRequest(withLog: log, fromController: nil) {
+            (newlog) -> Void in
+
+            self.creating = false
+
+            if newlog != nil {
+                self.created = true
+                completion()
+            } else {
+                self.error = true
+                self.errorMessage = "Failed to Create New Exercise Log"
+            }
+        }
+    }
+
+    func updateExerciseLog(newLog: ExerciseLog, existingLog: Log, completion: @escaping () -> Void) -> Void {
+        creating = true
+        created = false
+        error = false
+        errorMessage = nil
+
+        let log = convertToLog(newLog, existingLog)
+        log.log_id = existingLog.log_id
+
+        APIClient.logPutRequest(withLogID: log.log_id!, andLog: log, fromController: nil) {
+            (newlog) -> Void in
+
+            self.creating = false
+
+            if newlog != nil {
+                self.created = true
+                completion()
+            } else {
+                self.error = true
+                self.errorMessage = "Failed to Create New Exercise Log"
+            }
+        }
+    }
+
+    func convertToLog(_ exerciseLog: ExerciseLog, _ existingLog: Log = Log()) -> Log {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let formattedDate = dateFormatter.string(from: exerciseLog.date)
+
+        let timeFormat = "00:00:00"
+        let end = timeFormat.index(timeFormat.endIndex, offsetBy: 0 - exerciseLog.time.count - 1)
+        let formattedTime = "\(timeFormat[timeFormat.startIndex...end])\(exerciseLog.time)"
+
+        let user = SignedInUser.user
+
+        let log = existingLog
+        log.name = exerciseLog.name
+        log.username = user.username
+        log.first = user.first
+        log.last = user.last
+        log.location = exerciseLog.location
+        log.date = formattedDate
+        log.type = exerciseLog.exerciseType.rawValue
+        log.distance = Double(exerciseLog.distance)
+        log.metric = exerciseLog.metric.rawValue
+        log.time = formattedTime
+        log.feel = Int(exerciseLog.feel)
+        log.log_description = exerciseLog.description
+
+        return log
+    }
+}
+</CodeSnippet>
+<CodeSnippet language="Swift">
+// ExerciseLogForm.swift
+
+class ExerciseLogForm: ObservableObject {
+    @Published var isEditingName = false
+    @Published var nameStatus = InputStatus.initial
+    @Published var isEditingLocation = false
+    @Published var isEditingDate = false
+    @Published var distanceStatus = InputStatus.initial
+    @Published var isEditingDistance = false
+    @Published var displayedTime = ""
+    @Published var timeStatus = InputStatus.initial
+    @Published var isEditingTime = false
+    @Published var isEditingDescription = false
+    @Published var showCanceling = false
+
+    func reset() {
+        nameStatus = InputStatus.initial
+        distanceStatus = InputStatus.initial
+        displayedTime = ""
+        timeStatus = InputStatus.initial
+    }
+}
+</CodeSnippet>
+<p>
+Slightly different than the others, <code className="jarombek-inline-code">
+CreateExerciseLog</code> not only contains state data in properties with
+<code className="jarombek-inline-code">@Published</code> annotations, but also has functions for making API calls.
+<code className="jarombek-inline-code">createExerciseLog()</code> and <code className="jarombek-inline-code">
+updateExerciseLog()</code> make API calls to create and update exercise logs, respectively.
+</p>
+<p>
+As previously mentioned, both <code className="jarombek-inline-code">CreateExerciseLogView</code> and
+<code className="jarombek-inline-code">EditExerciseLogView</code> are wrappers around an
+ <code className="jarombek-inline-code">ExerciseLogView</code> view, which displays a form to create or edit an exercise
+log.  <code className="jarombek-inline-code">ExerciseLogView</code>, which is located in an <a href="https://github.com/
+AJarombek/saints-xctf-ios/blob/master/SaintsXCTF/ExerciseLogView.swift">ExerciseLogView.swift</a> file, is shown below.
+</p>
+<CodeSnippet language="Swift">
+import SwiftUI
+
+struct ExerciseLogView: View {
+    @EnvironmentObject var existingLog: ExistingLog
+
+    @ObservedObject var log: ExerciseLog
+    @ObservedObject var meta: ExerciseLogMeta
+    @ObservedObject var createLog: CreateExerciseLog
+    @ObservedObject var form: ExerciseLogForm
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading) {
+                Text(meta.isExistingLog ? "Edit Exercise Log" : "Create Exercise Log")
+                    .font(.title)
+                    .foregroundColor(.black)
+                    .bold()
+                    .alert(isPresented: $createLog.error) {
+                        Alert(
+                            title: Text(
+                                meta.isExistingLog ?
+                                    "An unexpected error occurred while updating the exercise log." :
+                                    "An unexpected error occurred while creating an exercise log."
+                            ),
+                            primaryButton: .default(
+                                Text("Cancel"),
+                                action: {
+                                    createLog.error = false
+                                }
+                            ),
+                            secondaryButton: .cancel(
+                                Text("Try Again"),
+                                action: {
+                                    createLog.error = false
+
+                                    if meta.isExistingLog {
+                                        createLog.updateExerciseLog(newLog: log, existingLog: existingLog.log ?? Log()) {}
+                                    } else {
+                                        createLog.createExerciseLog(exerciseLog: log) {
+                                            log.reset()
+                                            form.reset()
+                                        }
+                                    }
+                                }
+                            )
+                        )
+                    }
+
+                ExerciseLogFormView(log: log, meta: meta, createLog: createLog, form: form)
+            }
+            .padding()
+            .padding(.top, 20)
+        }
+        .progressViewStyle(
+            CircularProgressViewStyle(tint: Color(UIColor(Constants.saintsXctfRed)))
+        )
+    }
+}
+</CodeSnippet>
+<p>
+In <code className="jarombek-inline-code">ExerciseLogView</code>, properties <code className="jarombek-inline-code">
+log</code>, <code className="jarombek-inline-code">meta</code>, <code className="jarombek-inline-code">createLog</code>,
+and <code className="jarombek-inline-code">form</code> are all annotated with <code className="jarombek-inline-code">
+@ObservedObject</code> because they are owned by parent views and are passed as parameters to the current view.  This
+view introduces a new property <code className="jarombek-inline-code">existingLog</code> with an
+ <code className="jarombek-inline-code">@EnvironmentObject</code> annotation.  Properties annotated with
+<code className="jarombek-inline-code">@EnvironmentObject</code> are accessible to all other views in the
+application<sup>3</sup>.  You can think of it as SwiftUI's mechanism for global state.  If the user is editing an
+existing exercise log, the <code className="jarombek-inline-code">existingLog</code> property is populated with
+its contents.
+</p>
+<p>
+The <code className="jarombek-inline-code">body</code> property of <code className="jarombek-inline-code">
+ExerciseLogView</code> initializes some elements in the user interface.  The outermost element,
+<code className="jarombek-inline-code">ScrollView</code>, creates a view with scrollable content<sup>3</sup>.  The
+ view inside <code className="jarombek-inline-code">ScrollView</code> is defined as <code className="jarombek-inline-code">VStack(alignment: .leading)</code>.
+<code className="jarombek-inline-code">VStack</code> is a view whose children are arranged vertically<sup>4</sup>.  The
+<code className="jarombek-inline-code">alignment: .leading</code> argument sets the alignment of children in
+ <code className="jarombek-inline-code">VStack</code> on the x and y axes<sup>5</sup>.  Inside
+<code className="jarombek-inline-code">VStack</code> is a <code className="jarombek-inline-code">Text</code> view, which
+is the header of the page.  It either contains the text <strong>"Create Exercise Log"</strong> or
+<strong>"Edit Exercise Log"</strong>.
+</p>
+<p>
+Method calls can be chained on views to customize them.  For example, the <code className="jarombek-inline-code">Text</code>
+view has <code className="jarombek-inline-code">font()</code>, <code className="jarombek-inline-code">foregroundColor()</code>,
+<code className="jarombek-inline-code">bold()</code>, and <code className="jarombek-inline-code">alert()</code> method
+calls attached to it.  The first three methods customize the appearance of the text.  The fourth method,
+<code className="jarombek-inline-code">alert()</code>, displays an alert in case an error occurs while creating or
+editing an exercise log.
+</p>
+<p>
+<code className="jarombek-inline-code">ExerciseLogView</code> contains another custom view,
+<code className="jarombek-inline-code">ExerciseLogFormView</code>.  It exists in a <a href="https://github.com/
+AJarombek/saints-xctf-ios/blob/master/SaintsXCTF/ExerciseLogFormView.swift">ExerciseLogFormView.swift</a> file.  This
+view along with <code className="jarombek-inline-code">ExerciseLogActionsView</code> in the <a href="https://github.com/
+AJarombek/saints-xctf-ios/blob/master/SaintsXCTF/ExerciseLogActionsView.swift">ExerciseLogActionsView.swift</a> file
+make up the remainder of the create/edit exercise log page.  Feel free to view them and use their code in your own
+projects.
+</p>
+<SectionTitle title="Integrating SwiftUI with UIKit">Integrating SwiftUI with UIKit</SectionTitle>
+<p>
+Integrating SwiftUI views into a UIKit application is relatively straightforward.  The main approach is to wrap SwiftUI
+views within a <code className="jarombek-inline-code">UIViewController</code> class.  For the create/edit exercise log
+page, I have two <code className="jarombek-inline-code">UIViewController</code> classes that wrap SwiftUI views -
+<code className="jarombek-inline-code">CreateExerciseLogViewController</code> and <code className="jarombek-inline-code">
+EditExerciseLogViewController</code>.  Both are shown below and are available in <a href="https://github.com/AJarombek/
+saints-xctf-ios/blob/master/SaintsXCTF/CreateExerciseLogViewController.swift">CreateExerciseLogViewController.swift</a>
+and <a href="https://github.com/AJarombek/saints-xctf-ios/blob/master/SaintsXCTF/EditExerciseLogViewController.swift">
+EditExerciseLogViewController.swift</a> files, respectively.
+</p>
+<CodeSnippet language="Swift">
+// CreateExerciseLogViewController.swift
+
+import UIKit
+import SwiftUI
+
+class CreateExerciseLogViewController: UIViewController {
+    @IBOutlet weak var container: UIView!
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let childView = UIHostingController(rootView: CreateExerciseLogView())
+        addChild(childView)
+        childView.view.frame = container.bounds
+        container.addSubview(childView.view)
+        childView.didMove(toParent: self)
+    }
+}
+</CodeSnippet>
+<CodeSnippet language="Swift">
+// EditExerciseLogViewController.swift
+
+import UIKit
+import SwiftUI
+
+class EditExerciseLogViewController: UIViewController {
+    @IBOutlet weak var container: UIView!
+
+    var log: Log? = nil
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let exerciseLog = ExerciseLog()
+
+        if let logObject = log {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let dateObject = dateFormatter.date(from: logObject.date) ?? Date()
+
+            exerciseLog.id = logObject.log_id
+            exerciseLog.name = logObject.name
+            exerciseLog.location = logObject.location ?? ""
+            exerciseLog.date = dateObject
+            exerciseLog.exerciseType = ExerciseType(rawValue: logObject.type!) ?? ExerciseType.run
+            exerciseLog.distance = logObject.distance != nil ? String(logObject.distance!) : ""
+            exerciseLog.metric = Metric(rawValue: logObject.metric!) ?? Metric.miles
+            exerciseLog.time = logObject.time ?? ""
+            exerciseLog.feel = Double(logObject.feel)
+            exerciseLog.description = logObject.log_description ?? ""
+        }
+
+        let existingLog = ExistingLog(log ?? Log())
+
+        let childView = UIHostingController(rootView: EditExerciseLogView(log: exerciseLog).environmentObject(existingLog))
+        addChild(childView)
+        childView.view.frame = container.bounds
+        container.addSubview(childView.view)
+        childView.didMove(toParent: self)
+    }
+}
+</CodeSnippet>
+<p>
+Within both the <code className="jarombek-inline-code">CreateExerciseLogViewController</code> and
+<code className="jarombek-inline-code">EditExerciseLogViewController</code> views, a variable
+<code className="jarombek-inline-code">container</code> of type <code className="jarombek-inline-code">UIView</code>
+exists.  This container view holds SwiftUI views.  Configuring <code className="jarombek-inline-code">container</code>
+to hold SwiftUI views is done within the <code className="jarombek-inline-code">viewDidLoad()</code> method.
+</p>
+<p>
+The <code className="jarombek-inline-code">UIHostingController()</code> class is used to create a UIKit view controller
+for SwiftUI views<sup>6</sup>.  Once a SwiftUI view is wrapped within a <code className="jarombek-inline-code">
+UIHostingController()</code> instance, it can be added as a subview to a UIKit view.
+</p>
+<p>
+The main difference between <code className="jarombek-inline-code">CreateExerciseLogViewController</code> and
+<code className="jarombek-inline-code">EditExerciseLogViewController</code> is that
+<code className="jarombek-inline-code">CreateExerciseLogViewController</code> wraps SwiftUI views within UIKit using
+<code className="jarombek-inline-code">UIHostingController(rootView: CreateExerciseLogView())</code>, and
+<code className="jarombek-inline-code">EditExerciseLogViewController</code> wraps SwiftUI views within UIKit using
+<code className="jarombek-inline-code">UIHostingController(rootView: EditExerciseLogView(log: exerciseLog).environmentObject(existingLog))</code>.
+The SwiftUI view <code className="jarombek-inline-code">CreateExerciseLogView</code> takes no arguments while
+<code className="jarombek-inline-code">EditExerciseLogView</code> takes a single
+<code className="jarombek-inline-code">log</code> argument.  The <code className="jarombek-inline-code">
+exerciseLog</code> object passed to <code className="jarombek-inline-code">EditExerciseLogView()</code> is assigned to a
+property annotated with <code className="jarombek-inline-code">@ObservedObject</code>.  Similarly, the
+<code className="jarombek-inline-code">exerciseLog</code> object passed to <code className="jarombek-inline-code">
+EditExerciseLogView().environmentObject()</code> is assigned to a property annotated with
+<code className="jarombek-inline-code">@EnvironmentObject</code>.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+With the addition of SwiftUI, I'm excited to create user interfaces in Apple applications again!  Configuring user
+interfaces in code using Swift is fun and I can't wait to learn more.  All the code discussed in this article is
+available in my <a href="https://github.com/AJarombek/saints-xctf-ios">saints-xctf-ios</a> repository on GitHub.
+</p>
+</div>

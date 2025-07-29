@@ -1,0 +1,49 @@
+<div>
+<p>
+Creating getters and setters for private class variables is a common practice in many languages.  In
+Java getters and setters are implemented as two methods on an object instance.
+Getters and setters are often used in the POJO structure.  In JavaScript
+getters and setters have native support in the language itself.  JavaScript getters and setters are created
+with the <code className="jarombek-inline-code">get</code> and <code className="jarombek-inline-code">set</code>
+keywords.  They are commonly used for computing properties, as shown in the next example.
+</p>
+<CodeSnippet language="JavaScript">
+var person = {
+    _first: 'Andy',
+    _last: 'Jarombek',
+    get full() {
+        console.info('Accessing Full Name');
+        // Use ES6 template literals
+        return `${this._first} ${this._last}`;
+    }
+};
+</CodeSnippet>
+<p>
+Setters can also perform validation on incoming data, such as type checking<sup>1</sup>:
+</p>
+<CodeSnippet language="JavaScript">
+var person = {
+    _first: 'Andy',
+    _last: 'Jarombek',
+    set first(str) {
+        console.info('Setting First Name');
+        if (typeof str === 'string' || str instanceof String) {
+            var s = str.toLowerCase();
+            this._first = s.charAt(0).toUpperCase() + s.slice(1);
+        } else {
+            throw new TypeError('First Name Must be a String');
+        }
+    }
+};
+</CodeSnippet>
+<p>
+Any sort of logic can be performed inside getters and setters.  To make things even
+nicer a function invocation isn't needed to utilize native getters and setters.  Value assignments and
+property accesses with getters and setters work just like any normal object property!
+</p>
+<p>
+Out of all the languages I use, the only other one with native getter and setter support is Swift<sup>2</sup>.
+You can check out the full getter and setter code in both languages on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2017/12-Dec/12-7-Native-Getter-Setter">GitHub</a>.
+</p>
+</div>

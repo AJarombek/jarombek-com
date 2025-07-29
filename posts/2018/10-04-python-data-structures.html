@@ -1,0 +1,192 @@
+<div>
+<p>
+In my time spent researching <a href="https://jarombek.com/blog/sep-24-2018-python-data-model">Python</a>
+this week I stumbled across some really interesting data structures.  Python has a vast
+standard library, with many data structures that specialize in certain tasks.  It reminds me of
+Java’s standard library, except that Python data structures either have their own literal syntax
+or a built-in function for construction!  This discovery post looks at three data structures that I
+found especially interesting.
+</p>
+<SectionTitle title="Tuples">Tuples</SectionTitle>
+<p>
+Tuples are a commonly used data structure in Python.  They hold immutable records, and are
+often used as immutable lists.  One thing I didn't know is that tuples support
+'tuple unpacking', which spreads their contents across multiple variables.
+</p>
+<p>
+For example, take the following tuple:
+</p>
+<CodeSnippet language="Python">
+items = ("My", "name", "is", "Andy")
+</CodeSnippet>
+<p>
+Each string record in this tuple is easily assigned to a variable using tuple unpacking:
+</p>
+<CodeSnippet language="Python">
+_my, _name, _is, _andy = items
+
+assert _my == "My" and _name == "name" and _is == "is" and _andy == "Andy"
+</CodeSnippet>
+<p>
+Tuple unpacking also has a special operator (<code className="jarombek-inline-code">*</code>), which
+behaves in different ways depending on the context.  One such context is using
+a tuple as a functions argument.  In this case, the tuple records are spread out as separate arguments
+to the function.
+</p>
+<CodeSnippet language="Python">
+print(items)   # ('My', 'name', 'is', 'Andy')
+print(*items)  # My name is Andy
+</CodeSnippet>
+<p>
+The call <code className="jarombek-inline-code">print(*items)</code> is equivalent to
+<code className="jarombek-inline-code">print(items[0], items[1], items[2], items[3])</code>.
+</p>
+<p>
+The <code className="jarombek-inline-code">*</code> operator is also powerful when used to grab excess
+items from an unpacked tuple<sup>1</sup>.
+</p>
+<CodeSnippet language="Python">
+run_info = (4.32, 31, 25, 'Riverside, CT', date(2018, 9, 27))
+
+# Tuple unpacking can also be used to grab excess items.
+# Records can be grabbed from the end of a tuple...
+miles, minutes, seconds, *rest = run_info
+
+assert miles == 4.32 and minutes == 31 and seconds == 25
+assert rest == ['Riverside, CT', date(2018, 9, 27)]
+
+# ...or the start of a tuple...
+*stats, location, run_date = run_info
+
+assert stats == [4.32, 31, 25]
+assert location == 'Riverside, CT' and run_date == date(2018, 9, 27)
+
+# ...or the middle of a tuple
+miles, *others, run_date = run_info
+
+assert others == [31, 25, 'Riverside, CT']
+</CodeSnippet>
+<p>
+While Python tuple unpacking likely influenced the ES6 JavaScript destructuring syntax and spread
+operator, tuple unpacking doesn’t pack the punch of its JavaScript counterpart.  In JavaScript
+destructuring and spread operators are used on both objects and arrays, and are commonly utilized
+to keep <a href="https://jarombek.com/blog/may-23-2018-javascript-immutable#implicitly-immutable">
+data immutable</a>.
+</p>
+<SectionTitle title="Memory Views">Memory Views</SectionTitle>
+<p>
+The Python memory view data structure is unlike any I’ve seen in other languages.  The closest
+equivalent I can think of is using <a href="https://jarombek.com/blog/nov-14-2017-sorting-lists#c">
+pointers in C</a>.
+</p>
+<p>
+Memory views observe a chunk of memory that holds a data structure.  You can think of memory views
+as pointers to certain memory locations of Python data structures such as
+<code className="jarombek-inline-code">bytes</code> or <code className="jarombek-inline-code">bytearray</code>.
+It is important to note that memory views do not hold any of the underlying data they observe<sup>2
+</sup>.  They simply know memory locations.  Because the creation of a memory view does not copy any of
+a data structures content, it is very efficient for dealing with binary data.
+</p>
+<p>
+Memory views are only used with data structures that expose the buffer protocol.  In Python, the
+buffer protocol is a way to observe the internal structure of an object<sup>3</sup>.  Both
+<code className="jarombek-inline-code">bytes</code> and <code className="jarombek-inline-code">bytearray</code>
+expose the buffer protocol.  The built-in <code className="jarombek-inline-code">memoryview()</code>
+function is used to create a memory view.
+</p>
+<CodeSnippet language="Python">
+# A byte array is a mutable binary sequence.
+name_byte_array = bytearray('Andy', 'utf-8')
+
+# Memory views take in an object that exposes the buffer protocol
+memv = memoryview(name_byte_array)
+</CodeSnippet>
+<p>
+Upon observing the contents of <code className="jarombek-inline-code">memv</code>, I noticed each index
+in the memory view is mapped to a byte in <code className="jarombek-inline-code">name_byte_array</code>.
+</p>
+<CodeSnippet language="Python">
+# Analyze each byte in the memory view
+assert memv[0] == 65 and memv[1] == 110 and memv[2] == 100 and memv[3] == 121
+assert chr(memv[0]) == 'A' and chr(memv[1]) == 'n' and chr(memv[2]) == 'd' and chr(memv[3]) == 'y'
+</CodeSnippet>
+<p>
+Although it may appear that the memory view copied and holds the contents of the byte array, we know
+that it simply has a pointer to the existing <code className="jarombek-inline-code">name_byte_array</code>.
+This is proven through a few simple tests.  First, altering data at an index in the memory view also
+alters <code className="jarombek-inline-code">name_byte_array</code>.  The following code changes the
+first letter to a lowercase 'a':
+</p>
+<CodeSnippet language="Python">
+assert name_byte_array == bytearray(b'Andy')
+
+# Convert the first byte in the memory view from capital 'A' to lowercase 'a'
+memv[0] = 97
+
+# Confirm the change to the memory view impacts the original array
+assert name_byte_array == bytearray(b'andy')
+</CodeSnippet>
+<p>
+Memory views can also be sliced without copying any bytes<sup>4</sup>.  If the sliced memory view is
+altered, <code className="jarombek-inline-code">name_byte_array</code> will still be impacted.
+</p>
+<CodeSnippet language="Python">
+# Split the memory view, creating a new memory view that holds only the last two bytes
+last_two_letters_memv = memv[2:]
+
+assert bytes(last_two_letters_memv) == b'dy'
+
+# From the split memory view, change the last letter to 'i'
+last_two_letters_memv[1] = ord('i')
+
+# Since the split memory view didn't copy any bytes, the original byte array is still impacted
+assert name_byte_array == bytearray(b'andi')
+</CodeSnippet>
+<p>
+I’m not sure when I would use a memory view in my own code, but it is a really cool data structure
+that enables fast, low-level data manipulation in Python.
+</p>
+<SectionTitle title="Sets">Sets</SectionTitle>
+<p>
+Sets in Python are really cool, and allow you to perform all the basic set theory operations using
+native Pythons operators (thanks to <a href="https://jarombek.com/blog/sep-24-2018-python-data-model">
+Python's MOP</a>).  Sets have their own literal syntax which matches the syntax from set theory.
+</p>
+<CodeSnippet language="Python">
+s1 = {1, 2, 3}
+s2 = {3, 4, 5}
+
+# Bitwise AND is used to get the Set intersection
+assert s1 & s2 == {3}
+
+# Bitwise OR is used to get the Set union
+assert s1 | s2 == {1, 2, 3, 4, 5}
+
+# The subtraction sign is used to get the Set difference
+assert s1 - s2 == {1, 2}
+assert s2 - s1 == {4, 5}
+
+# Bitwise NOT is used to get the complement of the Set intersection
+assert s1 ^ s2 == {1, 2, 4, 5}
+
+s3 = {22, 44, 66}
+s4 = {22}
+
+# Determine whether a set is a subset or superset of another set with the comparison operators
+
+assert not s3 <= s4  # s3 is not a subset of s4
+assert not s3 < s4   # s3 is not a proper subset (subset but not matching set) of s4
+assert s3 >= s4      # s3 is a superset of s4
+assert s3 > s4       # s3 is a proper superset (superset but not matching set) of s4
+</CodeSnippet>
+<p>
+Python has the best <code className="jarombek-inline-code">set</code> implementation I’ve seen in a language
+so far.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+This concludes my look at interesting Python data structures.  There are many structures
+I haven't observed yet, but I already love Pythons use of built-in functions, literal syntax,
+and the MOP to simplify the use of commonly leveraged data structures.
+</p>
+</div>

@@ -1,0 +1,452 @@
+<div>
+<p>
+Back in 2018, I created a <a href="https://jarombek.com/blog?query=Jenkins&page=1">Jenkins</a> server
+which automated tasks for my applications.  Jenkins is a <a href="https://jarombek.com/blog/
+sep-21-2018-jenkins#continuous-integration">continuous integration</a> and <a href="https://jarombek.com/
+blog/sep-21-2018-jenkins#continuous-delivery">continuous delivery</a> (CI/CD) tool which I've written
+about in the past.  When I first created the Jenkins server, I had a few jobs which ran unit tests,
+but I never took full advantage of them.  Over the past two years, I've gained a greater appreciation
+for CI/CD tools and their ability to save time deploying code and building confidence in codebases
+by automating tests.  Nowadays all my applications have automated test and deployment jobs on Jenkins.
+</p>
+<p>
+Since 2018 the Jenkins ecosystem has evolved along with my understanding of cloud concepts.  My
+original Jenkins server was hosted on an AWS EC2 instance which utilized AWS EFS for persistent storage.
+In the spring of 2020, I decided to rewrite the Jenkins server infrastructure.  With my added
+knowledge of containerization with <a href="https://jarombek.com/blog?query=Docker&page=1">Docker</a>
+and container orchestration with <a href="https://jarombek.com/blog?query=Kubernetes&page=1">Kubernetes</a>,
+I hosted the Jenkins server on AWS EKS as part of a Kubernetes deployment.  In this article,
+I discuss the original EC2 Jenkins server and its creation process with Terraform.  In an
+<a href="https://jarombek.com/blog/sep-29-2020-jenkins-kubernetes">upcoming article</a>, I'll discuss
+the Kubernetes Jenkins server infrastructure.
+</p>
+<SectionTitle title="AWS EC2 Jenkins Architecture">AWS EC2 Jenkins Architecture</SectionTitle>
+<p>
+While designing AWS architecture for the Jenkins server, I wanted the server configuration to persist
+between virtual machine restarts.  This way I could schedule my EC2 instance to only run during the day
+(which optimizes energy consumption and cost) and not lose any data when offline at night.  The solution to persisting data
+between EC2 instances is to store the Jenkins server configuration files on AWS EFS and mount it onto
+the instances.  When the EC2 instance is shut down at night, the filesystem in EFS is not destroyed,
+allowing it to be remounted onto another instance in the morning.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/9-27-20-ec2-efs-architecture.png"/>
+</figure>
+<Definition word="AWS EFS">
+<p>
+AWS Elastic File Storage (EFS) is a filesystem that is highly available and scalable<sup>1</sup>.  It
+can be mounted on multiple EC2 instances<sup>2</sup>.  The filesystem of EFS uses the Network File
+System (NFS) protocol, which is distributed (located on a different server than the server which
+communicates with it)<sup>3</sup>.  From a user perspective EFS behaves like any non-distributed
+filesystem, making it easy to work with.
+</p>
+</Definition>
+<p>
+Besides for EC2 and EFS, the infrastructure utilizes Route53 for DNS records, AMI for a custom Jenkins
+virtual machine image, auto scaling for shutting down the EC2 instance at night, and Elastic Load
+Balancer (ELB) for load balancing to the EC2 instance(s) running Jenkins.  All of this infrastructure
+is configured and created with <a href="https://jarombek.com/blog?query=Terraform&page=1">Terraform</a>
+ (except for the custom AMI, which is created with <a href="https://www.packer.io/">Packer</a>).
+</p>
+<SectionTitle title="Terraform IaC for the Jenkins Server">Terraform IaC for the Jenkins Server</SectionTitle>
+<p>
+The Jenkins server's Terraform configuration is separated into three modules.  The first module
+creates EC2 related resources, the second creates the EFS filesystem and mount target, and the third creates
+Route53 records.  I will discuss some important pieces of the configuration, but the full code is available
+on <a href="https://github.com/AJarombek/global-aws-infrastructure/tree/v1.0.0">GitHub</a> in the
+<a href="https://github.com/AJarombek/global-aws-infrastructure/tree/v1.0.0/jenkins">jenkins</a>,
+<a href="https://github.com/AJarombek/global-aws-infrastructure/tree/v1.0.0/jenkins-efs">jenkins-efs</a>,
+and <a href="https://github.com/AJarombek/global-aws-infrastructure/tree/v1.0.0/jenkins-route53">jenkins-route53</a>
+folders, respectively.
+</p>
+<p>
+In the <a href="https://github.com/AJarombek/global-aws-infrastructure/tree/v1.0.0/jenkins">jenkins</a>
+module, the main resource is the launch configuration for the Jenkins server.  A launch configuration
+determines how an autoscaling group creates EC2 instances.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_launch_configuration" "jenkins-server-lc" {
+  name = "global-jenkins-server-lc"
+  image_id = data.aws_ami.jenkins-ami.id
+  instance_type = "t2.micro"
+  key_name = "jenkins-key"
+  security_groups = [aws_security_group.jenkins-server-lc-security-group.id]
+  associate_public_ip_address = true
+  iam_instance_profile = aws_iam_instance_profile.jenkins-instance-profile.name
+
+  # Script to run during instance startup
+  user_data = data.template_file.jenkins-startup.rendered
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+</CodeSnippet>
+<p>
+The two aspects of the launch configuration I want to focus on are the <code className="jarombek-inline-code">image_id</code>
+and <code className="jarombek-inline-code">user_data</code>.  The image id specifies a custom Amazon
+Machine Image (AMI) for the Jenkins server.  An AMI is a template for creating a virtual machine in AWS.
+I create (bake) the AMI with Packer, which I'll discuss later.  Its important to
+note that in the Terraform configuration I use a data object to find the custom AMI that I create (as shown below).
+</p>
+<CodeSnippet language="HCL">
+data "aws_ami" "jenkins-ami" {
+  # If more than one result matches the filters, use the most recent AMI
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["global-jenkins-server*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["&lt;aws_account_id&gt;"]
+}
+</CodeSnippet>
+<p>
+The user data specified on the launch configuration is a Bash script that runs when the virtual machine
+boots up.  It's in this script that I mount the EFS filesystem onto the EC2 instance.  This script is
+passed parameters from Terraform and is found in <a href="https://github.com/AJarombek/global-aws-infrastructure/
+blob/v1.0.0/jenkins/jenkins-setup.sh">jenkins-setup.sh</a>
+</p>
+<p>
+Another important piece of the EC2 setup is the autoscaling group and autoscaling schedules.  The Terraform configuration
+  below creates the autoscaling group.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_autoscaling_group" "jenkins-server-asg" {
+  name = "global-jenkins-server-asg"
+  launch_configuration = aws_launch_configuration.jenkins-server-lc.id
+  vpc_zone_identifier = [data.aws_subnet.resources-vpc-public-subnet.id]
+
+  max_size = var.max_size_on
+  min_size = var.min_size_on
+  desired_capacity = var.desired_capacity_on
+
+  load_balancers = [aws_elb.jenkins-server-elb.id]
+  health_check_type = "ELB"
+  health_check_grace_period = 600
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tag {
+    key = "Name"
+    propagate_at_launch = true
+    value = "global-jenkins-server-asg"
+  }
+
+  tag {
+    key = "Application"
+    propagate_at_launch = false
+    value = "jenkins-jarombek-io"
+  }
+}
+</CodeSnippet>
+<p>
+The capacity arguments, which determine the number of EC2 instances in the autoscaling group, are configured
+with variables.  The same holds true for the autoscaling schedules, which start the Jenkins server in
+the morning and stop it at night.  The start and stop times are configured differently for weekdays and weekends.
+</p>
+<CodeSnippet language="HCL">
+# main.tf
+
+resource "aws_autoscaling_schedule" "jenkins-server-asg-online-weekday" {
+  autoscaling_group_name = aws_autoscaling_group.jenkins-server-asg.name
+  scheduled_action_name = "jenkins-server-online-weekday"
+
+  max_size = var.max_size_on
+  min_size = var.min_size_on
+  desired_capacity = var.desired_capacity_on
+
+  recurrence = var.online_cron_weekday
+}
+
+resource "aws_autoscaling_schedule" "jenkins-server-asg-offline-weekday" {
+  autoscaling_group_name = aws_autoscaling_group.jenkins-server-asg.name
+  scheduled_action_name = "jenkins-server-offline-weekday"
+
+  max_size = var.max_size_off
+  min_size = var.min_size_off
+  desired_capacity = var.desired_capacity_off
+
+  recurrence = var.offline_cron_weekday
+}
+
+resource "aws_autoscaling_schedule" "jenkins-server-asg-online-weekend" {
+  autoscaling_group_name = aws_autoscaling_group.jenkins-server-asg.name
+  scheduled_action_name = "jenkins-server-online-weekend"
+
+  max_size = var.max_size_on
+  min_size = var.min_size_on
+  desired_capacity = var.desired_capacity_on
+
+  recurrence = var.online_cron_weekend
+}
+
+resource "aws_autoscaling_schedule" "jenkins-server-asg-offline-weekend" {
+  autoscaling_group_name = aws_autoscaling_group.jenkins-server-asg.name
+  scheduled_action_name = "jenkins-server-offline-weekend"
+
+  max_size = var.max_size_off
+  min_size = var.min_size_off
+  desired_capacity = var.desired_capacity_off
+
+  recurrence = var.offline_cron_weekend
+}
+</CodeSnippet>
+<CodeSnippet language="HCL">
+# var.tf
+
+variable "max_size_on" {
+  description = "Max number of instances in the auto scaling group during an online period"
+  default = 1
+}
+
+variable "min_size_on" {
+  description = "Min number of instances in the auto scaling group during an online period"
+  default = 1
+}
+
+variable "max_size_off" {
+  description = "Max number of instances in the auto scaling group during an offline period"
+  default = 0
+}
+
+variable "min_size_off" {
+  description = "Min number of instances in the auto scaling group during an offline period"
+  default = 0
+}
+
+variable "desired_capacity_on" {
+  description = "The desired number of intances in the autoscaling group when I am working"
+  default = 1
+}
+
+variable "desired_capacity_off" {
+  description = "The desired number of intances in the autoscaling group when I am NOT working"
+  default = 0
+}
+
+# Weekdays: 6:30PM - 8:00PM EST
+variable "online_cron_weekday" {
+  description = "The cron syntax for when the Jenkins server should go online on a weekday"
+  default = "0 23 * * 1-5"
+}
+
+variable "offline_cron_weekday" {
+  description = "The cron syntax for when the Jenkins server should go offline on a weekday"
+  default = "0 1 * * 2-6"
+}
+
+# Weekends: 12:00PM - 8:00PM EST
+variable "online_cron_weekend" {
+  description = "The cron syntax for when the Jenkins server should go online on a weekend"
+  default = "0 17 * * 0,6"
+}
+
+variable "offline_cron_weekend" {
+  description = "The cron syntax for when the Jenkins server should go offline on a weekend"
+  default = "0 1 * * 0,1"
+}
+</CodeSnippet>
+<p>
+The other pieces of the main Jenkins module, such as the load balancer and security groups, are
+available on GitHub in <a href="https://github.com/AJarombek/global-aws-infrastructure/blob/v1.0.0/jenkins/main.tf">main.tf</a>.
+</p>
+<p>
+In the <a href="https://github.com/AJarombek/global-aws-infrastructure/tree/v1.0.0/jenkins-efs">jenkins-efs</a>
+module, the EFS filesystem is created along with a mount target, which is located in the same subnet as
+the EC2 instance.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_efs_file_system" "jenkins-efs" {
+  creation_token = "jenkins-fs"
+
+  tags = {
+    Name = "jenkins-efs"
+  }
+}
+
+resource "aws_efs_mount_target" "jenkins-efs-mount" {
+  file_system_id = aws_efs_file_system.jenkins-efs.id
+  subnet_id = data.aws_subnet.resources-vpc-public-subnet.id
+  security_groups = [aws_security_group.jenkins-efs-security.id]
+}
+</CodeSnippet>
+<p>
+And finally in the <a href="https://github.com/AJarombek/global-aws-infrastructure/tree/v1.0.0/
+jenkins-route53">jenkins-route53</a> module, a Route53 record is created and bound to the load balancer.
+</p>
+<CodeSnippet language="HCL">
+data "aws_route53_zone" "jarombek-io-zone" {
+  name = "jarombek.io."
+}
+
+data "aws_elb" "jenkins-server-elb" {
+  name = "global-jenkins-server-elb"
+}
+
+resource "aws_route53_record" "jenkins-jarombek-io-a" {
+  name = "jenkins.jarombek.io"
+  type = "A"
+  zone_id = "${data.aws_route53_zone.jarombek-io-zone.zone_id}"
+
+  alias {
+    evaluate_target_health = true
+    name = "${data.aws_elb.jenkins-server-elb.dns_name}"
+    zone_id = "${data.aws_elb.jenkins-server-elb.zone_id}"
+  }
+}
+</CodeSnippet>
+<SectionTitle title="Creating a Custom AMI with Packer">Creating a Custom AMI with Packer</SectionTitle>
+<p>
+Packer is a tool which allows developers to configure and create custom machine images<sup>4</sup>.  It
+has the ability to create images for multiple different platforms, but the image I'm creating is specifically
+for AWS (an Amazon Machine Image).  To build an image with Packer, the first task is to create a JSON
+template which configures the image.  I created a JSON template called <a href="https://github.com/AJarombek/
+global-aws-infrastructure/blob/v1.0.0/jenkins/ami/jenkins-image.json">jenkins-image.json</a>, which has
+the following content:
+</p>
+<CodeSnippet language="JSON">
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
+        "root-device-type": "ebs"
+      },
+      "owners": ["099720109477"],
+      "most_recent": true
+    },
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+    "ami_name": "global-jenkins-server {{timestamp}}"
+  }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "./setup-jenkins-image.sh"
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "./setup-playbook.yml"
+    }
+  ]
+}
+</CodeSnippet>
+<p>
+The template is split into three pieces - variables, builders, and provisioners.  The
+<code className="jarombek-inline-code">variables</code> section defines variables which can be used
+throughout the template.  In my template, I set variables for my AWS SDK/CLI credentials.  These
+variables are passed to the builder, allowing it to push the AMI to my AWS account.
+</p>
+<p>
+The builders section defines Builders, which are components of Packer that are able to create machine
+images for a specific platform<sup>5</sup>.  In my case, I use the <code className="jarombek-inline-code">amazon-ebs</code>
+builder which creates an Elastic Block Storage (EBS) backed Amazon EC2 image<sup>6</sup>.  I
+configure the builder to use a base Ubuntu image in the <code className="jarombek-inline-code">source_ami_filter</code>
+object.  When the AMI is created, it will exist in my AWS account with the name specified in the
+<code className="jarombek-inline-code">ami_name</code> field (note the dynamic timestamp which will
+resolve to the current time).
+</p>
+<p>
+The provisioners section configures software that runs on top of the base image.  There are multiple
+different provisioner types, such as Shell scripts or Ansible playbooks.  Multiple provisioners can
+be used for a single image.  In my case, the first <code className="jarombek-inline-code">shell</code>
+provisioner runs a shell script which installs Ansible on the image.  This is a required step in order
+to use the <code className="jarombek-inline-code">ansible-local</code> provisioner.
+</p>
+<CodeSnippet language="Bash">
+#!/usr/bin/env bash
+
+# Make sure Ubuntu has enough time to initialize (https://www.packer.io/intro/getting-started/provision.html)
+sleep 30
+
+apt-add-repository ppa:ansible/ansible -y
+sudo apt-get update
+sudo apt-get -y install ansible
+</CodeSnippet>
+<p>
+The second provisioner runs an Ansible playbook on the image, installing dependencies such as Java, Python,
+and Jenkins in the process.  At its most basic level, Ansible Playbooks can be run locally or remotely,
+running tasks on a machine.  Playbooks are YAML files which specify the host to run on and the tasks to
+execute.  Below is a snippet of my Playbook installing dependencies such as Java from the
+<a href="https://en.wikipedia.org/wiki/APT_(software)">apt</a> package manager (Jenkins is written in Java).
+The full playbook code can be found in <a href="https://github.com/AJarombek/global-aws-infrastructure/
+blob/v1.0.0/jenkins/ami/setup-playbook.yml">setup-playbook.yml</a>.
+</p>
+<CodeSnippet language="YAML">
+- hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+
+    - name: Install Java8, Python3, Git, Wget & Unzip
+      become: yes
+      apt: pkg={{item}} state=installed
+      with_items:
+        - openjdk-8-jdk
+        - git
+        - wget
+        - unzip
+        - software-properties-common
+</CodeSnippet>
+<p>
+To build an AMI with the Packer template, a <code className="jarombek-inline-code">packer build jenkins-image.json</code>
+command is run from the terminal.  Optionally, the template can be verified prior to the build with
+ a <code className="jarombek-inline-code">packer validate jenkins-image.json</code> command.
+</p>
+<SectionTitle title="Reflections on the Initial Infrastructure Design">Reflections on the Initial Infrastructure Design</SectionTitle>
+<p>
+One of the nice aspects of this infrastructure design was that I had a functional Jenkins server to work
+with but didn't have to pay for a constantly running server due to the autoscaling schedules.  It was
+also all configured as code, so destroying and rebuilding the infrastructure was as simple as running
+<code className="jarombek-inline-code">terraform destroy</code> and
+<code className="jarombek-inline-code">terraform apply</code> commands, along with
+<code className="jarombek-inline-code">packer build jenkins-image.json</code> if the AMI changed.
+</p>
+<p>
+However, with time I realized there were better approaches to building a Jenkins server on the cloud.
+One of the biggest reasons I needed to use EFS was to avoid manually reconfiguring the Jenkins server
+and reinstalling Jenkins plugins every time I wanted to make an infrastructure change.  Luckily, Jenkins
+provides a plugin called Jenkins Configuration as Code (JCasC), which automates the configuration of a Jenkins server<sup>7</sup>.
+Jenkins also allows plugins to be pre-installed with a <strong>plugins.txt</strong> file.  I'll discuss
+both of these approaches in my <a href="https://jarombek.com/blog/sep-29-2020-jenkins-kubernetes">follow-up article</a>,
+but in summary, the end result of using both these approaches is that I no longer need EFS.
+</p>
+<p>
+The JCasC plugin was in its infancy when I created the original EC2/EFS Jenkins infrastructure in 2018,
+so I can't really blame myself for lack of knowledge about it.  One of the things I should have known
+at the time was the power of using containers instead of virtual machines for cloud infrastructure.
+After using Docker and Kubernetes a good amount in the past year and a half, I decided to move my Jenkins
+server to a Docker container, which is orchestrated by Kubernetes on EKS in production.  The
+<a href="https://jarombek.com/blog/apr-1-2019-docker-pt1">benefits of containers over virtual machines</a>
+are well documented, but in short, containers are more lightweight, energy efficient, and require less
+maintenance (since you are virtualizing the operating system only, not an entire server).  I also find
+Dockerfiles easier to work with and read than Packer templates, but that is more of a personal preference.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+The EC2 and EFS infrastructure discussed in this article was a good foundation to improve upon with Docker
+and Kubernetes.  While this infrastructure no longer exists in my cloud, the repository is tagged at the
+time of its existence and its code can be found on <a href="https://github.com/AJarombek/global-aws-infrastructure/
+tree/v1.0.0">GitHub</a>.  In a <a href="https://jarombek.com/blog/sep-29-2020-jenkins-kubernetes">follow-up article</a>,
+ I will discuss the Kubernetes Jenkins server infrastructure that I'm using in my cloud today.
+</p>
+</div>

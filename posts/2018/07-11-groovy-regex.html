@@ -1,0 +1,491 @@
+<div>
+<p>
+Using regular expressions for pattern matching is a task software developers perform on a
+regular basis.  Although regular expressions still differ a bit across languages, they
+are standardized to the point where they are language agnostic.  However, interacting with these
+regular expressions differs greatly across different programming languages.  In my recent ventures
+into Groovy, I saw a very unique approach to handling regular expressions.  I decided to compare
+the approach in Groovy to approaches in other languages I often use.  This article shares my
+findings.
+</p>
+<Definition word="Language Agnostic">
+A concept that is independent from any single programming language implementation.  Skills that
+are language agnostic can be applied throughout the software development ecosystem.
+</Definition>
+<p>
+Java is the natural language comparison to Groovy, so I explored Java's regular expression
+libraries in this article.  I also included snippets from JavaScript since it is my most used
+language this year.
+</p>
+<p>
+On <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/07-jul/
+7-11-groovy-regex">GitHub</a> there are matching examples from Python, Swift, and PHP.
+After working through examples in all the languages above, the most difficult one to implement
+regular expression matching in was Swift.  This may not come as much of a surprise
+considering the convoluted <a href="https://jarombek.com/blog/jan-3-2018-string-swift">nature of
+strings in Swift</a>.
+</p>
+<p>
+I was thinking of including C in the list of languages to test regular expressions.  However,
+ANSI C does not have regular expressions with the syntax we expect in the modern day<sup>1</sup>.
+Instead if you want to use the regular expressions we are accustomed to an external library must be
+used.  For this reason I decided not to use C.
+</p>
+<SectionTitle title="The Anatomy of a Regular Expression">The Anatomy of a Regular Expression</SectionTitle>
+<p>
+Regular expressions are used in two stages - compilation and execution (also referred to as
+matching).  The compilation stage parses the <code className="jarombek-inline-code">String</code>
+representation of a regular expression<sup>2</sup>.  The structure of a regular expression after
+it is parsed takes the form of a single state in a finite-state machine<sup>3</sup>.  The
+process of compiling a regular expression can take a long time - much longer than executing it.
+This execution stage is what looks for matches on a string.
+</p>
+<Definition word="Finite-State Machine">
+A data structure or machine that is always in one state out of a finite number<sup>3</sup>.  The
+state of the machine is only affected by a series of input values.  If the machine is
+deterministic (which the regular expression finite-machine likely is), a given input will always
+produce the same output<sup>4</sup>.  For the example of a regular expression, a given string
+pattern will always result in the same state of the regular expressions finite-state machine.
+</Definition>
+<p>
+Because of the huge contrast between the execution time of compilation and execution, these two
+operations are often separated for optimization.  With the two stages split, the result of a
+regular expression compilation can be reused for all pattern matches.  This saves time since the
+pattern matches themselves are quick.
+</p>
+<p>
+Many languages separate out compilation and execution by default (such as JavaScript).  Others
+let you choose if you want to split the two steps or keep them together (Java and Groovy).  Next
+I will Introduce the basic concepts for compiling and executing regular expressions in Java,
+Groovy, and JavaScript.
+</p>
+<SectionTitle title="Exact and Existence Matches">Exact and Existence Matches</SectionTitle>
+<p>
+In Java the package <code className="jarombek-inline-code">java.util.regex</code> is used for
+handling regular expressions.  The two key classes are <code className="jarombek-inline-code">
+Pattern</code> and <code className="jarombek-inline-code">Matcher</code>.
+<code className="jarombek-inline-code">Pattern</code> is the result of a regular expressions
+compilation and <code className="jarombek-inline-code">Matcher</code> executes (or performs matching
+operations) on a string with a pattern.
+</p>
+<p>
+Let's look at an example and explore these two classes in more detail.  The following code creates
+a regular expression that represents a date and then tries to perform an exact match on four
+different strings:
+</p>
+<CodeSnippet language="Java">
+String dateRegex = "\\d{1,2}/\\d{1,2}/\\d{4}";
+
+String today = "7/11/2018";
+String tomorrow = "Tomorrow is 7/12/2018.";
+String endOfYear = "12/31/2018";
+String myBirthday = "Feb. 26, 2018";
+
+// Test strings for exact matches
+assert today.matches(dateRegex);
+assert !tomorrow.matches(dateRegex);
+assert Pattern.matches(dateRegex, endOfYear);
+assert !Pattern.matches(dateRegex, myBirthday);
+</CodeSnippet>
+<p>
+Two different methods are used to match the string to the regular expression.
+<code className="jarombek-inline-code">String.matches(regex)</code> is invoked on the string instance.
+Alternatively the static method <code className="jarombek-inline-code">Pattern.matches(regex, string)
+</code> can be invoked to the same result.  If you look at the Java source code for
+<code className="jarombek-inline-code">String.matches(regex)</code>, its method body simply contains
+<code className="jarombek-inline-code">return Pattern.matches(regex, this);</code>  Both return a
+<code className="jarombek-inline-code">boolean</code> value detailing whether the entire string
+matched the regular expression.
+</p>
+<p>
+What's more interesting is the method body for <code className="jarombek-inline-code">
+Pattern.match(regex, string)</code>.  Here is a peek at the Java source code in Pattern.java.
+</p>
+<CodeSnippet language="Java">
+public static boolean matches(String regex, CharSequence input) {
+  Pattern p = Pattern.compile(regex);
+  Matcher m = p.matcher(input);
+  return m.matches();
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">Pattern.matches(regex, string)</code> is composed of multiple
+steps.  First the compile step of the regular expression is invoked with
+<code className="jarombek-inline-code">Pattern.compile()</code>.  Once the regular expression is
+compiled into a state in the finite-state machine, an instance of
+<code className="jarombek-inline-code">Matcher</code> is created by invoking
+<code className="jarombek-inline-code">Pattern.matcher()</code>.  Finally the entire string can be
+matched to the regular expression with <code className="jarombek-inline-code">Matcher.matches()</code>.
+At this point both compilation and execution (matching) steps are complete and a
+<code className="jarombek-inline-code">boolean</code> value of whether or not the string matched the
+regular expression is returned.
+</p>
+<p>
+The important thing to note about this code is that both compilation and execution steps are
+combined into one function.  In the previous code, this means the compilation step is run four
+times and the execution step is run four times.  Running the compilation steps multiple times
+is a waste since it returns the same state in the finite-state machine each time.  Also remember
+that the compile step is very slow compared to the execution step.  A better approach would be to
+separate out the compile step from the execution step - effectively caching the state of the
+finite-state machine for multiple usages.  The following code which searches for existence of a
+regular expression match does just that.
+</p>
+<CodeSnippet language="Java">
+String dateRegex = "\\d{1,2}/\\d{1,2}/\\d{4}";
+
+String today = "7/11/2018";
+String tomorrow = "Tomorrow is 7/12/2018.";
+String endOfYear = "12/31/2018";
+String myBirthday = "Feb. 26, 2018";
+
+Pattern datePattern = Pattern.compile(dateRegex);
+
+Matcher todayMatcher = datePattern.matcher(today);
+Matcher tomorrowMatcher = datePattern.matcher(tomorrow);
+Matcher endOfYearMatcher = datePattern.matcher(endOfYear);
+Matcher myBirthdayMatcher = datePattern.matcher(myBirthday);
+
+assert todayMatcher.find();
+assert tomorrowMatcher.find();
+assert endOfYearMatcher.find();
+assert !myBirthdayMatcher.find();
+</CodeSnippet>
+<p>
+Invocations to <code className="jarombek-inline-code">Pattern.compile()</code> and
+<code className="jarombek-inline-code">Pattern.matcher()</code> are now separated out into two steps.
+The result of <code className="jarombek-inline-code">Pattern.compile()</code> is reused for all
+pattern matches.  <code className="jarombek-inline-code">Matcher.find()</code> is the method which
+attempts to find a subsequence that matches the regular expression pattern.
+</p>
+<p>
+It is important to remember that Java gives you the
+option to combine the compilation and execution steps into a single method or separate them.
+Java expects the developer to know how regular expressions work under the hood, and optimize based
+on their knowledge of the compilation and execution phases.
+</p>
+<SectionTitle title="Groovy">Groovy</SectionTitle>
+<p>
+Groovy does its best to simplify the usage of regular expressions, although under the hood it uses
+Java's <code className="jarombek-inline-code">Pattern</code> and <code className="jarombek-inline-code">
+Matcher</code> classes.  Groovy is actually unique in my experience with programming languages in
+regards to regular expressions.  Groovy uses three operators to help with building regular
+expression patterns, matching a pattern to a string, and finding all pattern matches in a string.
+</p>
+<ComparisonTable title="Regular Expression Operators">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Find Operator <code className="jarombek-header-code">=~</code>
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Checks to see if a pattern matches any substring within a string.  The value before the operand is
+the string to look for a match on.  The value after the operand is the regular expression to match
+against a substring.  For example, both <code className="jarombek-inline-code">
+"02-26" =~ /[0-9]{2}-[0-9]{2}/</code> and <code className="jarombek-inline-code">
+"02-26-2018" =~ /[0-9]{2}-[0-9]{2}/</code> will return <code className="jarombek-inline-code">
+true</code> while <code className="jarombek-inline-code">"Andy" =~ /[0-9]{2}-[0-9]{2}/</code> will
+return <code className="jarombek-inline-code">false</code>.
+</p>
+<p>
+The find operator is equivalent to invoking <code className="jarombek-inline-code">
+Pattern.compile(regex).matcher(string)</code> to get an instance of
+<code className="jarombek-inline-code">Matcher</code> and then calling
+<code className="jarombek-inline-code">Matcher.find()</code> on the <code className="jarombek-inline-code">
+Matcher</code> instance.  Since all these operations are combined into one step, the compilation of
+the regex is not cached for future use.  The find operator should be used if the regular expression
+is only compiled once in the project.  Otherwise, the compilation step should be separated out with
+the pattern operator for reuse.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Match Operator <code className="jarombek-header-code">==~</code>
+</h5>
+<div className="jarombek-cte-body">
+<p>
+Checks to see if a pattern matches an entire string.  The value before the operand is the
+string to look for a match on.  The value after the operand is the regular expression to match
+against the entire string.  For example, <code className="jarombek-inline-code">
+"02-26" ==~ /[0-9]{2}-[0-9]{2}/</code> will return <code className="jarombek-inline-code">true</code>
+while <code className="jarombek-inline-code">"02-26-2018" ==~ /[0-9]{2}-[0-9]{2}/</code> will return
+<code className="jarombek-inline-code">false</code>.
+</p>
+<p>
+Note that the match operator is equivalent to calling <code className="jarombek-inline-code">
+Pattern.matches(regex, string)</code> in Java.  Therefore, this operator combines compilation and
+execution into a single step.  A match operator should be used if a regular expression is only
+compiled once in the project.  Otherwise, the compilation step should be separated out with the
+pattern operator for reuse.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Pattern Operator <code className="jarombek-header-code">~string</code>
+</h5>
+<div className="jarombek-cte-body">
+<p>
+The pattern operator transforms a string it is applied to into an instance of
+<code className="jarombek-inline-code">Pattern</code><sup>6</sup>.  Patterns are a result of the
+compilation stage of a regular expression.  Therefore, a pattern is a state in the regular
+expressions finite-state machine.  The benefit of separating the compiling phase into its own
+operand is to cache the pattern for multiple uses, since determining the state of a regular
+expression based off its string representation is a slow task.
+</p>
+<p>
+An example of the pattern operator is <code className="jarombek-inline-code">
+~/([a-zA-Z]{5-10})/</code>.  The result is a <code className="jarombek-inline-code">
+Pattern</code> object of the regular expression.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+The following code displays how to use the find, match, and pattern operators in Groovy.  The
+functionality matches the Java regular expression code.
+</p>
+<CodeSnippet language="Groovy">
+/* Basic Regex pattern matching and finding for existence */
+
+def datePattern = /\d{1,2}\/\d{1,2}\/\d{4}/
+
+def today = '7/11/2018'
+def tomorrow = 'Tomorrow is 7/12/2018.'
+def endOfYear = '12/31/2018'
+def myBirthday = 'Feb. 26, 2018'
+
+// Test if the entire string matches the pattern
+assert today ==~ datePattern
+assert !(tomorrow ==~ datePattern)
+assert endOfYear ==~ datePattern
+assert !(myBirthday ==~ datePattern)
+
+// Test if the pattern exists in the string
+assert today =~ datePattern
+assert tomorrow =~ datePattern
+assert endOfYear =~ datePattern
+assert !(myBirthday =~ datePattern)
+
+/* Optimization to split pattern creation time and pattern matching time */
+
+def pattern = ~datePattern
+
+assert pattern.matcher(today).matches()
+assert !(tomorrow in pattern)
+assert pattern.isCase(endOfYear)
+assert !pattern.matcher(myBirthday).matches()
+</CodeSnippet>
+<p>
+Under the optimization section that uses the pattern operator, multiple different approaches are
+used to check for matches.  The typical implementation is to chain calls to the Java methods
+<code className="jarombek-inline-code">Pattern.matcher(string)</code> and
+<code className="jarombek-inline-code">Matcher.matches()</code>, although alternatives are also
+available.
+</p>
+<p>
+Groovy takes Java's approach to regular expressions and simplifies the syntax with the use of
+operators.  Groovy developers simply use the find, match, and pattern operators instead
+of learning the <code className="jarombek-inline-code">java.util.regex</code> API.
+</p>
+<SectionTitle title="JavaScript">JavaScript</SectionTitle>
+<p>
+JavaScript takes a different approach to the compilation and execution phases of regular
+expressions.  The compilation phase of regular expressions occurs when the
+<code className="jarombek-inline-code">RegExp</code> object is first created<sup>6</sup>.  This can
+occur at different points in time depending on whether a regular expression literal or constructor
+function <code className="jarombek-inline-code">RegExp(string)</code> is used to declare the
+<code className="jarombek-inline-code">RegExp</code> object.
+</p>
+<p>
+Regular expression literals are the preferred approach because the JavaScript engine precompiles
+them into a state and caches the state before the code is run<sup>7</sup>.  The alternative
+compiles the regular expression at runtime.
+</p>
+<p>
+The following code matches the functionality of the Java and Groovy examples.  Regular expression
+literals are used to take advantage of cached regular expression patterns.
+</p>
+<CodeSnippet language="JavaScript">
+const assert = (assertion) => {
+  console.assert(assertion, `Assertion failed!`);
+};
+
+const datePattern = /\d{1,2}\/\d{1,2}\/\d{4}/;
+const exactDatePattern = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+
+const today = '7/11/2018';
+const tomorrow = 'Tomorrow is 7/12/2018.';
+const endOfYear = '12/31/2018';
+const myBirthday = 'Feb. 26, 2018';
+
+/* Exact matches */
+assert(exactDatePattern.test(today));
+assert(!exactDatePattern.test(tomorrow));
+assert(exactDatePattern.test(endOfYear));
+assert(!exactDatePattern.test(myBirthday));
+
+/* Pattern existence match */
+assert(datePattern.test(today));
+assert(datePattern.test(tomorrow));
+assert(datePattern.test(endOfYear));
+assert(!datePattern.test(myBirthday));
+</CodeSnippet>
+<p>
+One thing to note about the JavaScript implementation is that exact matches vs existence matches
+are handled in the regular expression string instead of the JavaScript regex API.  Both exact and
+existence matches use the <code className="jarombek-inline-code">RegExp.test(string)</code> method.
+</p>
+<SectionTitle title="Looping Through Matches">Looping Through Matches</SectionTitle>
+<p>
+I decided to put together some examples of looping through regular expression matches.  Code
+samples from Java, Groovy, and JavaScript are shown below.  Examples for Python, Swift, and PHP
+are on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2018/07-jul/
+7-11-groovy-regex">GitHub</a>.
+</p>
+<CodeSnippet language="Java">
+/* Looping through RegEx matches */
+
+String catStatements = "I really like cats.  Cats, cats, CATS!  \n" +
+  "I wish I had a cat, I would name it Cat.";
+
+String catRegex = "[Cc][Aa][Tt][Ss]?";
+
+Pattern catPattern = Pattern.compile(catRegex);
+Matcher catMatcher = catPattern.matcher(catStatements);
+
+List&lt;String&gt; catList = new ArrayList&lt;&gt;();
+
+// Search for matches of the regex until all are found
+while (catMatcher.find()) {
+  // matcher.group() returns the string of the previous match
+  catList.add(catMatcher.group());
+}
+
+assert catList.size() == 6;
+assert catList.get(0).equals("cats");
+assert catList.get(3).equals("CATS");
+assert catList.get(5).equals("Cat");
+
+/* Looping through Regex Grouping Captures */
+
+String topLanguages = "Top 5 Favorite Programming Languages (as of 7/11/2018) \n" +
+  "1. Java 2. JavaScript 3. Python 4. Swift 5. PHP";
+
+String languageRegex = "(\\d)\\. (\\w*)";
+
+Pattern languagePattern = Pattern.compile(languageRegex);
+Matcher languageMatcher = languagePattern.matcher(topLanguages);
+
+Map&lt;String, String&gt; languageMap = new HashMap&lt;&gt;();
+
+while (languageMatcher.find()) {
+  languageMap.put(languageMatcher.group(1), languageMatcher.group(2));
+}
+
+assert languageMap.size() == 5;
+assert languageMap.get("1").equals("Java");
+assert languageMap.get("2").equals("JavaScript");
+assert languageMap.get("3").equals("Python");
+assert languageMap.get("4").equals("Swift");
+assert languageMap.get("5").equals("PHP");
+</CodeSnippet>
+<CodeSnippet language="Groovy">
+/* Looping through RegEx matches */
+
+def catStatements = '''
+  I really like cats.  Cats, cats, CATS!
+  I wish I had a cat, I would name it Cat.
+'''
+
+def catRegex = /[Cc][Aa][Tt][Ss]?/
+
+def catAppearances = []
+
+catStatements.eachMatch(catRegex) { match ->
+  catAppearances << match
+}
+
+assert catAppearances == ['cats', 'Cats', 'cats', 'CATS', 'cat', 'Cat']
+
+/* Looping through Regex Grouping Captures */
+
+def topLanguages = '''
+  Top 5 Favorite Programming Languages (as of 7/11/2018)
+    1. Java
+    2. JavaScript
+    3. Python
+    4. Swift
+    5. PHP
+'''
+
+def languagesRegex = /(\w*)/
+def numberingRegex = /(\d)\./
+def listingRegex = /$numberingRegex $languagesRegex/
+
+// Get all the matches of the regex in the languages string
+Matcher languageMatcher = topLanguages =~ listingRegex
+
+def languageMap = [:]
+
+// Loop through each match - the list of regex grouping captures is distributed
+// over the parameters
+languageMatcher.each { match, num, language ->
+  languageMap << [(num):language]
+}
+
+assert languageMap == ['1':'Java', '2':'JavaScript', '3':'Python', '4':'Swift', '5':'PHP']
+</CodeSnippet>
+<CodeSnippet language="JavaScript">
+/* Looping through RegEx matches */
+
+const catStatements = `
+  I really like cats.  Cats, cats, CATS!
+  I wish I had a cat, I would name it Cat.`;
+
+// The 'g' flag matches all instances of the pattern
+const catRegex = /[Cc][Aa][Tt][Ss]?/g;
+const catAppearances = catStatements.match(catRegex);
+
+catAppearances.forEach(value => {
+  assert(value.toLowerCase().substring(0, 3) === 'cat');
+});
+
+assert(catAppearances.toString() === "cats,Cats,cats,CATS,cat,Cat");
+
+/* Looping through Regex Grouping Captures */
+
+const topLanguages = ` Top 5 Favorite Programming Languages (as of 7/11/2018)
+  1. Java 2. JavaScript 3. Python 4. Swift 5. PHP`;
+
+const languageRegex = /(\d)\. (\w*)/g;
+
+const languages = {};
+
+let match;
+while (match = languageRegex.exec(topLanguages)) {
+  languages[`${match[1]}`] = match[2];
+}
+
+assert(languages['1'] = "Java");
+assert(languages['2'] = "JavaScript");
+assert(languages['3'] = "Python");
+assert(languages['4'] = "Swift");
+assert(languages['5'] = "PHP");
+</CodeSnippet>
+<SectionTitle title="How Does Groovy Stack Up?">How Does Groovy Stack Up?</SectionTitle>
+<p>
+So how does Groovy stack up against other languages I have used in regards to regular expressions?
+Groovy simplifies Java's regular expression functionality - which itself it very flexible albeit
+a bit verbose.  Groovy's use of operators for regular expression compilation and execution phases
+puts the language in a very unique position.  The inclusion of regular expressions in Groovy's
+operators - the most basic actions of the language - sets the tone for Groovy's intentions for
+simplifying regular expressions.
+</p>
+<p>
+Since regular expressions are often a pain point for software developers (I've admittedly spent
+countless hours testing different regex implementations for often simple tasks), anything that
+makes their use easier is a welcome addition.  I look forward to using regular expressions and
+other Groovy features in the future.
+</p>
+</div>

@@ -1,0 +1,246 @@
+<div>
+<p>
+C++ is a language I've always wanted to learn.  So many modern languages are influenced by C++ and
+their designs are often predicated upon the strengths and weaknesses of C++.  For example, I recently
+wrote about how interfaces and the lack of multiple inheritance in Java is <a href="https://jarombek.com/
+blog/dec-22-2018-multiple-inheritance#c++">due to C++</a>.
+</p>
+<p>
+C++ is a low level language closely related to the C programming language.  Originally called
+"C with Classes," C++ added object oriented concepts on top of C<sup>1</sup>.  In most cases C++ is
+still a true superset of C.  One of the main design philosophies of C++ was to make it so low level that
+no language would be needed below it<sup>2</sup>.  Because of this philosophy, C++ is commonly used for
+low-level tasks such as system programming.  However, being low-level causes C++ to contain some complexities.
+</p>
+<p>
+This post is my first impressions of C++.  I compare it to other languages such as C and Java, since
+C influenced C++ and Java was influenced by C++.  I also mention all the basic C++ features that I
+find interesting.
+</p>
+<SectionTitle title="Interesting Basic Features">Interesting Basic Features</SectionTitle>
+<p>
+When first writing C++, the similarities to C are immediately apparent.  However, C++ does add new
+syntax which can be used on top of the traditional C syntax.  For example, C++ adds a new variable
+initialization expression to complement the existing C expression.
+</p>
+<CodeSnippet language="C++">
+// C++ initialization notations
+int age = 23;
+double programming_experience {2.5};
+</CodeSnippet>
+<p>
+C++ has some modern syntax as well.  For example, types don't need to be explicitly declared with the help of
+the <code className="jarombek-inline-code">auto</code> keyword.  <code className="jarombek-inline-code">auto</code>
+is similar to <code className="jarombek-inline-code">var</code> in Java and C# (note: all these languages
+are still <a href="https://jarombek.com/blog/jul-15-2018-groovy-optional-typing#dynamic-&-static-typing">
+statically typed</a>).
+</p>
+<CodeSnippet language="C++">
+// 'auto' is used to not explicitly state the type of a variable (like 'var' in C# and Java)
+auto percentage_programming = programming_experience / age;
+</CodeSnippet>
+<p>
+Just like C, you can define constant variables with the <code className="jarombek-inline-code">const</code>
+keyword.  C++ adds the <code className="jarombek-inline-code">constexpr</code> keyword, which defines an
+expression or function that is evaluated at compile time<sup>3</sup>.  <code className="jarombek-inline-code">
+constexpr</code> functions must be pure functions that only handle immutable variables.  I created a
+compile time function that calculates the mile pace of a run.
+</p>
+<CodeSnippet language="C++">
+// A 'constexpr' is evaluated at compile time.  The arguments to this function must be constant
+// (as defined with 'const')
+constexpr double pace(double miles, int minutes, int seconds)
+{
+  return ((minutes * 60) + seconds) / miles;
+}
+
+int main()
+{
+  const auto miles = 2;
+  const auto minutes = 12;
+  const auto seconds = 31;
+
+  // Invoke a 'constexpr' function with 'const' arguments
+  auto run_pace = pace(miles, minutes, seconds);
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">constexpr</code> in C++ was likely influenced by functional
+programming.  Creating compile time functions is also possible in Haskell, a
+<a href="https://jarombek.com/blog/oct-6-2018-haskell-pt1">functional programming language</a>
+<sup>4</sup>.  You can check out the Haskell code on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2019/01-Jan/01-03-cpp-first-impressions/haskell">GitHub</a>.
+</p>
+<p>
+Compile time functions are commonly used as a performance strategy.  We can prove
+<code className="jarombek-inline-code">pace()</code> executes at compile time by using
+static assertions.  Static assertions are just like regular assertions except executed at compile
+time instead of runtime.
+</p>
+<CodeSnippet language="C++">
+// This is valid because pace() is a 'constexpr' function, so it is evaluated at compile time
+static_assert(pace(miles, minutes, seconds) == 375.5);
+
+static_assert(sizeof(float) == 4);
+static_assert(sizeof(double) == 8);
+</CodeSnippet>
+<p>
+Static assertions are a really cool language feature that I've never seen before.  The greatest
+thing about them is how IDEs check if they pass in the code itself.
+</p>
+<p>
+C++ also adds additional pointer functionality to the C model.  While you can still use pointers
+just like in C, there is an additional "references to" operator specified with the unary suffix
+<code className="jarombek-inline-code">&</code>.
+</p>
+<CodeSnippet language="C++">
+// Basic pointers are the same as C
+int minutes[] = {95, 85, 15, 110, 160, 105, -1};
+int* minp = &minutes[5];
+
+assert(*minp == 105);
+
+// C++ also supplies a unary suffix '&'.  It is similar to a pointer as it "references to" a memory location.
+// '&' differs from a pointer because it doesn't need to be prefixed with '*' to get its value.
+int& minr = minutes[6];
+
+assert(minr == -1);
+</CodeSnippet>
+<SectionTitle title="C with Classes">C with Classes</SectionTitle>
+<p>
+Anyone who's heard of C++ but never used it usually thinks its an object oriented
+version of C.  This assumption is true, as C++ provides an enhanced custom type system with classes.
+I decided to create an API for a running exercise in both C++ and C.  This example demonstrates some
+differences between the two languages.
+</p>
+<SectionTitle title="C++">C++</SectionTitle>
+<p>
+The C++ version uses a class to encapsulate the run information and available methods.
+</p>
+<CodeSnippet language="C++">
+// Run.h
+
+#ifndef CPP_RUN_H
+#define CPP_RUN_H
+
+class Run {
+public:
+  Run(double distance, int minutes, int seconds);
+  double pace();
+private:
+  double distance;
+  int minutes;
+  int seconds;
+};
+
+#endif //CPP_RUN_H
+</CodeSnippet>
+<CodeSnippet language="C++">
+// Run.cpp
+
+#include "Run.h"
+#include &lt;iostream&gt;
+
+using namespace std;
+
+// Run class constructor which takes in the distance of the run in miles
+// and the minutes:seconds that the run took to complete.
+Run::Run(const double distance, const int minutes, const int seconds)
+{
+  // Run class invariants
+  if (distance < 0) throw invalid_argument{"Distance must be > 0"};
+  if (minutes < 0) throw invalid_argument{"Minutes must be > 0"};
+  if (seconds < 0) throw invalid_argument{"Seconds must be > 0"};
+
+  this->distance = distance;
+  this->minutes = minutes;
+  this->seconds = seconds;
+}
+
+// Calculate the mile pace of the run.  The pace is returned in seconds.
+double Run::pace()
+{
+  return ((this->minutes * 60) + this->seconds) / this->distance;
+}
+</CodeSnippet>
+<CodeSnippet language="C++">
+// main.cpp
+
+#include "Run.h"
+#include &lt;iostream&gt;
+
+using namespace std;
+
+int main()
+{
+  Run run {2.0, 12, 31};
+  double pace = run.pace();
+  cout << pace << endl;
+
+  auto minute_pace = (int) pace / 60;
+  auto second_pace = (int) pace % 60;
+
+  assert(minute_pace == 6);
+  assert(second_pace == 15);
+
+  return 0;
+}
+</CodeSnippet>
+<SectionTitle title="C">C</SectionTitle>
+<p>
+The C version uses a <code className="jarombek-inline-code">struct</code> to represent the run and maintains
+the <code className="jarombek-inline-code">pace()</code> function in the same header file.
+</p>
+<CodeSnippet language="C">
+// Run.h
+
+#ifndef C_RUN_H
+#define C_RUN_H
+
+struct run {
+  double distance;
+  int minutes;
+  int seconds;
+};
+
+double pace(struct run run);
+
+#endif //C_RUN_H
+</CodeSnippet>
+<CodeSnippet language="C">
+// run.c
+
+#include "run.h"
+
+double pace(struct run run)
+{
+  return ((run.minutes * 60) + run.seconds) / run.distance;
+}
+</CodeSnippet>
+<CodeSnippet language="C">
+// main.c
+
+#include "run.h"
+#include &lt;stdio.h&gt;
+#include &lt;assert.h&gt;
+
+int main()
+{
+  struct run run1;
+  run1.distance = 2;
+  run1.minutes = 12;
+  run1.seconds = 31;
+
+  double run_pace = pace(run1);
+
+  printf("%f", run_pace);
+  assert(run_pace == 375.5);
+}
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+I'm really excited to continue learning C++ and see how it influenced all the languages I use on
+a daily basis.  All the code from this article is available on <a href="https://github.com/
+AJarombek/jarombek-com-sources/tree/master/2019/01-Jan/01-03-cpp-first-impressions">GitHub</a>.
+</p>
+</div>

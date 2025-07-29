@@ -1,0 +1,178 @@
+<div>
+<p>
+Variance amongst generics in programming languages is a topic that interests me.
+<a href="https://jarombek.com/blog/may-13-2018-generics-arrays-complexities-java">Generics in Java</a>
+are always <a href="https://jarombek.com/blog/may-13-2018-generics-arrays-complexities-java#invariant">
+invariant</a>, however C# isn't as restrictive, making it fun to explore.  Since variance is an
+advanced topic, this article starts with the basic concepts of variance.  Once the basics
+are understood, I'll explain variance in C# generics.
+</p>
+<SectionTitle title="Concepts">Concepts</SectionTitle>
+<p>
+Variance is a form of polymorphism.  Therefore, we need to understand the different forms of
+polymorphism to understand variance.
+</p>
+<Definition word="Polymorphism">
+Something that is polymorphic can exist in many different forms.  In computer science, polymorphism
+is when an entity can take the form of multiple different types<sup>1</sup>.  A type is a blueprint
+for a value, the same way a class is a blueprint for an object<sup>2</sup>.
+</Definition>
+<p>
+Polymorphism comes in many different forms.  When Christopher Strachey first defined polymorphism
+in a Computer Science context, he said there were two main forms of polymorphism: ad-hoc and
+parametric<sup>3</sup>.  Nowadays its agreed upon that the two main forms of polymorphism are ad-hoc and
+universal, with parametric falling under universal<sup>4</sup>.
+</p>
+<ComparisonTable title="Main Polymorphism Forms">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">Ad-hoc Polymorphism</h5>
+<div className="jarombek-cte-body">
+<p>
+Ad-hoc Polymorphism is when a function or method works with arguments of multiple different types.
+Therefore it can be said that the function arguments are polymorphic.  Depending on the argument types,
+the behavior of the function can be completely different<sup>5</sup>.  The most common forms of
+Ad-hoc polymorphism are <a href="https://jarombek.com/blog/jul-29-2018-overloading">function
+overloading</a> and <strong>operator overloading</strong>.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">Universal Polymorphism</h5>
+<div className="jarombek-cte-body">
+<p>
+Universal polymorphism consists of symbols that accept an infinite number of different types<sup>6</sup>.
+Acceptable types can exist within a certain range or encompass the entire languages type system.
+The most common forms of universal polymorphism are <strong>inclusion polymorphism</strong> and
+<strong>parametric polymorphism</strong>.  A synonym for inclusion polymorphism is <strong>variance
+</strong>.  An example of parametric polymorphism is <strong>generics</strong>.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+When using generics, we deal with universal polymorphism.  While generics are an implementation of
+parametric polymorphism, variance means the same thing as inclusion polymorphism.
+</p>
+<ComparisonTable title="Universal Polymorphism Implementations">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">Generics</h5>
+<div className="jarombek-cte-body">
+<p>
+Generic types expose type parameters which are filled in by creators and consumers of the type
+instances.  Type parameters are symbols that accept a range of different types.  For example, in
+C# the syntax <code className="jarombek-inline-code">&lt;...&gt;</code> is used next to the class
+identifier to define a generic type.  For example, the <code className="jarombek-inline-code">List</code>
+class is defined <code className="jarombek-inline-code">List&lt;T&gt;</code>, where
+<code className="jarombek-inline-code">T</code> is the type parameter.  Instances of the type fill
+in the type parameter with any type argument, such as <code className="jarombek-inline-code">
+new List&lt;int&gt;();</code> or <code className="jarombek-inline-code">new List&lt;string&gt;();</code>.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">Variance</h5>
+<div className="jarombek-cte-body">
+<p>
+Variance describes the relationship between a compile time type and its assigned runtime type.
+Variance also limits the valid relationships between compile time and runtime types.  There are three
+forms of variance: <a href="https://jarombek.com/blog/may-13-2018-generics-arrays-complexities-java#covariant">
+covariance</a>, <a href="https://jarombek.com/blog/may-13-2018-generics-arrays-complexities-java#contravariant">
+contravariance</a>, and <a href="https://jarombek.com/blog/may-13-2018-generics-arrays-complexities-java#invariant">
+invariance</a>.  Types are covariant when the runtime type can be a subtype or the same type as the
+compile time type.  Types are contravariant when the runtime type can be a supertype or the same type
+as the compile time type.  Types are invariant when the compile time type and runtime type must be the
+same type.  When types are invariant, different types have no relationship to one another.  When types
+are contravariant or covariant, clear relationships between different types are declared.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+In C#, non-generic types follow covariance.  Therefore, the assigned value of a variable declaration
+can be a subtype or the same type as the declared type.  For example, <code className="jarombek-inline-code">
+object myObj;</code> can be assigned to the same type (<code className="jarombek-inline-code">object()</code>)
+or a subtype (<code className="jarombek-inline-code">"a string literal"</code>).
+</p>
+<CodeSnippet language="C#">
+object myObj1 = new object();
+object myObj2 = "a string literal";
+</CodeSnippet>
+<SectionTitle title="Variance in C# Generics">Variance in C# Generics</SectionTitle>
+<p>
+By default, generics in C# are invariant.  Therefore the compile time and runtime type parameters
+must be the same.
+</p>
+<CodeSnippet language="C#">
+// valid
+List&lt;string&gt; list1 = new List&lt;string&gt;();
+
+// ERROR: invalid
+List&lt;object&gt; list2 = new List&lt;string&gt;();
+</CodeSnippet>
+<p>
+This behavior is the same as <a href="https://jarombek.com/blog/may-13-2018-generics-arrays-complexities-java">
+Java</a>.  However, C# provides us with the flexibility to give generics variance.
+</p>
+<p>
+As of C# 4.0, generic type parameters can be made covariant or contravariant with interfaces<sup>7</sup>.
+To make a type parameter covariant, it must be marked with the <code className="jarombek-inline-code">out</code>
+modifier.  To make a type parameter contravariant, it must be marked with the <code className="jarombek-inline-code">
+in</code> modifier<sup>8</sup>.  I defined an interface with one contravariant type parameter and one
+covariant type parameter.
+</p>
+<CodeSnippet language="C#">
+public interface ICovariant&lt;in TK, out TV&gt;
+{
+  TV Get(TK key);
+  TV Pop(TK key);
+}
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">TK</code> type parameter is contravariant and the
+<code className="jarombek-inline-code">TV</code> type parameter is covariant.  Contravariant types with the
+<code className="jarombek-inline-code">in</code> modifier can only be passed in to a method and can't be
+returned by a method.  Covariant types with the <code className="jarombek-inline-code">out</code> modifier
+can only be returned by a method and can't be used as a method argument.
+</p>
+<p>
+With <code className="jarombek-inline-code">ICovariant</code> defined, I created a class
+<code className="jarombek-inline-code">VariantMap</code> which implements <code className="jarombek-inline-code">ICovariant</code>.
+</p>
+<CodeSnippet language="C#">
+public class VariantMap&lt;TK, TV&gt; : ICovariant&lt;TK, TV&gt; {}
+</CodeSnippet>
+<p>
+Finally I proved that <code className="jarombek-inline-code">TK</code> is contravariant and
+<code className="jarombek-inline-code">TV</code> is covariant.
+</p>
+<CodeSnippet language="C#">
+// Program.cs
+
+// Map that uses variance
+ICovariant&lt;string, object&gt; variantMap = new VariantMap&lt;object, string&gt;(("Andy", "Jarombek"));
+
+Assert(variantMap.Get("Andy").Equals("Jarombek"));
+Assert(variantMap.Pop("Andy").Equals("Jarombek"));
+
+var contents = new List<(object, int)> {("Andy", 23), (0, 0)};
+
+// Another map that uses variance
+ICovariant&lt;object, Int32&gt; variantMap2 = new VariantMap&lt;object, int&gt;(contents);
+
+Assert(variantMap2.Get(0).Equals(0));
+Assert(variantMap2.Get("Andy").Equals(23));
+</CodeSnippet>
+<p>
+You can check out the full <code className="jarombek-inline-code">VariantMap</code>,
+<code className="jarombek-inline-code">ICovariant</code> and <code className="jarombek-inline-code">Program</code>
+code on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/02-Feb/02-03-variance-csharp-generics">GitHub</a>.
+In my repository there is also an <code className="jarombek-inline-code">InvariantMap</code> class which
+uses invariant generic type parameters.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Variance may seem like a complex topic, but it's a fundamental piece of the programming languages
+we interact with every day.  For more information on variance make sure to check out my article about
+<a href="https://jarombek.com/blog/may-13-2018-generics-arrays-complexities-java">Generics and Variance in Java</a>.
+</p>
+</div>

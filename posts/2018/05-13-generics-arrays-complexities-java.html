@@ -1,0 +1,257 @@
+<div>
+<p>
+Usually when I work in Java generics are easy to reason about.  They enforce types
+on a collection or a class I created.  When declaring a class with a generic, an instance of that
+class can be parameterized with one (or more) element types.  A simple example is an
+<code className="jarombek-inline-code">ArrayList</code>, which is implemented with a generic parameter like so:
+</p>
+<CodeSnippet language="Java">
+
+public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements List&lt;E&gt; {
+    ...
+}
+</CodeSnippet>
+<p>
+Note that <code className="jarombek-inline-code">ArrayList</code> extends <code className="jarombek-inline-code">AbstractList</code> and implements
+<code className="jarombek-inline-code">List</code>.  <code className="jarombek-inline-code">AbstractList</code>
+actually implements <code className="jarombek-inline-code">List</code> itself, so the definition of
+<code className="jarombek-inline-code">implements &lt;List&gt;</code> is not needed.  It is only
+there for clarity and readability.
+</p>
+<p>
+You can create an instance of an <code className="jarombek-inline-code">ArrayList</code> with a type:
+</p>
+<CodeSnippet language="Java">
+List&lt;Number&gt; numberList = new ArrayList&lt;Number&gt;();
+
+// Java 7 introduced the diamond operator, allowing the
+// compiler to infer the type based on the definition
+List&lt;Number&gt; numberList2 = new ArrayList&lt;&gt;();
+</CodeSnippet>
+<p>
+Easy right?  But what happens if I change the generic assignment to <code className="jarombek-inline-code">
+Integer</code>?  My first thought was it should work, since  <code className="jarombek-inline-code">Integer
+</code> is a subclass of <code className="jarombek-inline-code">Number</code>:
+</p>
+<CodeSnippet language="Java">
+List&lt;Number&gt; n2 = new ArrayList&lt;Integer&gt;(); // Incompatible Types
+</CodeSnippet>
+<p>
+This code actually fails, saying that <code className="jarombek-inline-code">Number</code> and
+<code className="jarombek-inline-code">Integer</code> are incompatible types.  This is because of a unique
+implementation detail of generics.  Generics are invariant, meaning that two generic type parameters are
+neither supertypes or subtypes of one another.  That means <code className="jarombek-inline-code">
+List&lt;Integer&gt;</code> is not a subtype of <code className="jarombek-inline-code">List&lt;Number&gt;</code>,
+they are simply not equal.  Therefore, the above assignment statement is invalid.
+</p>
+<UpdateInfo date="February 3rd, 2019">
+While generics are invariant by default in C#, they can also be covariant and contravariant.  I wrote
+an article about <a href="https://jarombek.com/blog/feb-3-2019-variance-csharp-generics">Variance
+with C# Generics</a> if you want to learn more.
+</UpdateInfo>
+<p>
+It is important to note that object assignments still enable polymorphism when using generics.  In the
+example above an <code className="jarombek-inline-code">ArrayList</code> was still assigned to a
+<code className="jarombek-inline-code">List</code>.
+</p>
+<Definition word="Covariant">
+When a programming language type system allows variables to be assigned any type less than
+(subtype) or equal to the variables declared type<sup>1</sup>.  In Java, obviously a type
+<code className="jarombek-inline-code">List</code> can be assigned to a variable defined as type
+<code className="jarombek-inline-code">List</code> such as <code className="jarombek-inline-code">List&lt;Object&gt;
+ list = new List&lt;&gt;();</code>.  This follows the second part of the rule when the types are equal.
+You can also assign any subtype of <code className="jarombek-inline-code">List</code>, such as
+<code className="jarombek-inline-code">ArrayList</code>.  This follows the first part of the rule.  Arrays in
+Java are also covariant such that the following assignment is legal: <code className="jarombek-inline-code">
+Number[] array = new Integer[1];</code>
+</Definition>
+<Definition word="Contravariant">
+When a programming language type system allows variables to be assigned any type greater than
+(supertype) or equal to the variables declared type.  Java is not contravariant and the compiler throws an
+error when a supertype is assigned to a declaration.
+</Definition>
+<Definition word="Invariant">
+When a type in a programming language is neither a supertype or subtype of any other type.  In Java generics
+follow invariance, so a generic type assignment can only correspond to a generic type declaration of the same type.
+For example the following assignment is valid: <code className="jarombek-inline-code">List&lt;Number&gt; numberList =
+ new ArrayList&lt;Number&gt;();</code>.  The work around for generics invariance is generic wildcards.
+</Definition>
+<p>
+Unlike generics, arrays are covariant.  This sounds nice but can lead to issues around type safety.
+Let's look at one of the issues with covariant arrays in Java:
+</p>
+<CodeSnippet language="Java">
+// Will Compile and Run, but throws a java.lang.ArrayStoreException
+Number[] array = new Integer[1];
+array[0] = 1.6;
+</CodeSnippet>
+<p>
+What happens here is you can assign an array a value of any subtype.  However, when the array was
+initialized it was given the type <code className="jarombek-inline-code">Integer</code>.  While
+<code className="jarombek-inline-code">1.6</code> is a valid number, it is not a valid integer.  Therefore we
+get an unfortunate exception at runtime.  Note that the code above compiles cleanly - the error is only
+noticeable when running the program.  At that point its too late!
+</p>
+<p>
+Generics were designed (unlike arrays) to spot errors at compile time.  Therefore type
+safety is ensured before running a program.  The big difference between generics and arrays is that
+generics implement erasure and are non-reifiable while arrays are reified.  Because of these differences
+arrays and generics do not mix well.  In fact, if you try to mix them it will not work.
+</p>
+<CodeSnippet language="Java">
+/* You can't mix generics and arrays - the following are illegal */
+List&lt;Number&gt;[] arr1 = new ArrayList&lt;&gt;()[10];
+List&lt;?&gt;[] array = new ArrayList&lt;String&gt;[10];
+</CodeSnippet>
+<Definition word="Reified">
+Something abstract that is made more concrete or real.  In
+terms of programming languages a reified variable is one that knows its type at runtime and doesn't
+lose any type information at runtime.  The type
+is 'real' while the program is executing.  In Java, variables that are reified know their type and also enforce it at runtime.
+Arrays are reified - they enforce their type at runtime and don't complain at compile time.
+</Definition>
+<Definition word="Non-Reifiable">
+The opposite of reified - something abstract which is not made concrete.  In a programming language
+a non-reifiable variable is one that does not know or enforce its type at runtime (its type is abstract, not
+concrete)<sup>2</sup>.  It only knows it's type at compile time.  Therefore, it looses information about
+itself when it is compiled.  Although we don't know a generics type at runtime, we know its type safe
+because it passed a compile time check.
+</Definition>
+<Definition word="Erasure">
+The process of removing type constraints when code is compiled.  When a variable is implemented with erasure,
+its type is checked at compile time and not at runtime<sup>3</sup>.  At runtime it does not know what type it
+is.  This is how generics are implemented in Java.
+</Definition>
+<p>
+The fact that generics are non-reifiable means only type safe code can
+compile.  It is impossible to check the type safety of generics at runtime!  The sooner a developer
+knows something is wrong with their code the better. Generics follow this philosophy elegantly.
+</p>
+<SectionTitle title="Wildcards">Wildcards</SectionTitle>
+<p>
+When dealing with generic wildcards a lot of interesting behavior occurs.  There are two types of wildcards -
+ unbounded and bounded.  Unbounded wildcards are of any type, while bounded wildcards are of any type
+within a specified class hierarchy.
+</p>
+<p>
+The problem with assigning generic instances to an unbounded wildcard type is its impossible to know
+the type at runtime (it could be an instance of any class!).  This uncertainty means a lot of
+operations are not allowed since they are not type safe.  Luckily errors for these scenarios occur at compile time.  Take an
+example of unbounded wildcard lists:
+</p>
+<CodeSnippet language="Java">
+List&lt;?&gt; uwList = new ArrayList&lt;&gt;();
+List&lt;?&gt; uwList2 = new ArrayList&lt;Integer&gt;();
+
+/* Invalid operation */
+uwList.add("hi");
+
+/* Invalid operation */
+uwList2.add(1);
+
+List&lt;?&gt; uwList3 = new ArrayList&lt;String&gt;(List.of("hi", "there"));
+
+/* Invalid operation */
+String hi = uwList3.get(0);
+
+/* Valid operations */
+var hi = uwList3.get(0);
+Object there = uwList3.get(1);
+</CodeSnippet>
+<p>
+In the previous code both adding to lists and assigning a list element to a type variable are
+disallowed.  Adding to an unbounded generic list is illegal because its impossible to know if a value
+of the correct type is added.  Similarly there is no guarantee that a declared variable type is equal to
+the type of an unbounded generic list.  Therefore both these operations are disallowed.
+</p>
+<p>
+However you can assign a list element to a variable of type <code className="jarombek-inline-code">Object</code>
+or use Java 10's <code className="jarombek-inline-code">var</code> keyword.
+</p>
+<p>
+Interestingly unbounded wildcards are reified (unlike all other generics) in the sense that they don't
+lose any type information at runtime.  However this does not mean they
+know their type at runtime.  The truth is unbounded wildcards never know their type (even at compile time), so
+there is no type information to lose in the first place!<sup>4</sup>
+</p>
+<p>
+Interesting behavior spills over into bounded wildcards:
+</p>
+<CodeSnippet language="Java">
+List&lt;? extends Number&gt; n4 = new ArrayList&lt;Number&gt;();
+List&lt;? extends Number&gt; n5 = new ArrayList&lt;Integer&gt;();
+List&lt;? extends Number&gt; n6 = new ArrayList&lt;Object&gt;(); // ERROR: Incompatible Types
+
+List&lt;? extends Number&gt; numbers = new ArrayList&lt;&gt;(List.of(1,4,6));
+
+/* Invalid operation */
+numbers.add(1);
+
+/* Valid operation */
+Number number = numbers.get(1);
+</CodeSnippet>
+<p>
+The syntax <code className="jarombek-inline-code">List&lt;? extends Number&gt;</code> defines a generic type
+of <code className="jarombek-inline-code">Number</code> or any subtype of <code className="jarombek-inline-code">
+Number</code>, such as <code className="jarombek-inline-code">Integer</code>.  In the code above assigning the
+subtype <code className="jarombek-inline-code">Integer</code> is valid but
+assigning the supertype <code className="jarombek-inline-code">Object</code> is not.
+</p>
+<p>
+The confusing part is what comes next.  Adding another integer to the list
+fails.  This is because its impossible to guarantee that <code className="jarombek-inline-code">numbers</code>
+is actually a list of <code className="jarombek-inline-code">Integer</code>, even though it was assigned
+<code className="jarombek-inline-code">Integer</code> values.  If you think about it this makes sense.  The
+list can be a <code className="jarombek-inline-code">Number</code> or any subclass.  This means that is could
+be an integer, but it also could be a double, float, or some other complex number type.  There is simply
+no way of guaranteeing type safety, and once the code is compiled all type information is lost.
+</p>
+<p>
+However, it is known that the value of a list element is of type
+<code className="jarombek-inline-code">Number</code> or any of its subtypes.  Therefore it is valid to assign a
+list element to type <code className="jarombek-inline-code">Number</code>.
+</p>
+<p>
+Another kind of unbounded wildcard works with supertypes:
+</p>
+<CodeSnippet language="Java">
+List&lt;? super Number&gt; n7 = new ArrayList&lt;Number&gt;();
+List&lt;? super Number&gt; n8 = new ArrayList&lt;Integer&gt;(); // ERROR: Incompatible Types
+List&lt;? super Number&gt; n8 = new ArrayList&lt;Object&gt;();
+
+List&lt;? super Number&gt; nums = new ArrayList&lt;&gt;(List.of(5, 6, 7));
+
+/* Valid operation */
+nums.add(8);
+
+/* Invalid operation */
+Number num = nums.get(1);
+</CodeSnippet>
+<p>
+The syntax <code className="jarombek-inline-code">List&lt;? super Number&gt;</code>
+defines a generic type of <code className="jarombek-inline-code">Number</code> or any supertype of
+<code className="jarombek-inline-code">Number</code>, such as <code className="jarombek-inline-code">Object</code>.
+In the code above using the supertype <code className="jarombek-inline-code">Object</code> for
+the assignment is valid but using the subtype <code className="jarombek-inline-code">Integer</code> is not.
+</p>
+<p>
+Adding to the list works without error because an
+<code className="jarombek-inline-code">Integer</code> is always a <code className="jarombek-inline-code">Number</code> or
+any of its supertypes (such as <code className="jarombek-inline-code">Object</code>).  Thanks to
+polymorphism, an <code className="jarombek-inline-code">Integer</code> is a <code className="jarombek-inline-code">
+Number</code> and an <code className="jarombek-inline-code">Object</code>.
+</p>
+<p>
+The type in the list still isn't guaranteed, and for that reason a list item can't be assigned to type <code className="jarombek-inline-code">
+Number</code>.  For example, if the list contains
+<code className="jarombek-inline-code">Object</code> values the assignment statement is invalid - an
+<code className="jarombek-inline-code">Object</code> is not a <code className="jarombek-inline-code">Number</code><sup>5</sup>.
+</p>
+<SectionTitle title="Wrapping Up">Wrapping Up</SectionTitle>
+<p>
+There are a lot of different complexities with generics and how they differ from arrays.
+I never fully understood these quirks with generics, so I am happy I did a deep dive on the
+topic.  All the code from this discovery is on <a href="https://github.com/AJarombek/jarombek-com-sources/
+blob/master/2018/05-May/5-13-Generics-Arrays-Complexities-Java/Main.java">GitHub</a>.
+</p>
+</div>

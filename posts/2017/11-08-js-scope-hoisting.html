@@ -1,0 +1,77 @@
+<div>
+<p>
+JavaScript has quickly become one of the languages I use the most (probably second behind Java).
+Many people use JavaScript along with one of its many frontend frameworks (JQuery, AngularJS, etc.)
+without really knowing how the core language operates.  I don't want to be one of those people!
+</p>
+<p>
+This is my first of many discovery posts on JavaScript.  Let's look at one of the basic concepts
+of the language: how variables interact with scope.  Scope describes the area of a program where a
+variable is accessible (e.g. a variable declared in a function is only accessible within that function).
+Scope is also the execution environment for each line of a program.  It consists of
+the variables and functions a program line is aware of.  In JavaScript, scope can get a bit
+tricky.
+</p>
+<p>
+One tricky part is that declared variables in JavaScript get hoisted to the top of their scope.  Let's
+look at a quick code snippet.
+</p>
+<CodeSnippet language="JavaScript">
+console.info(x);  // Error??
+
+var x = 10;
+</CodeSnippet>
+<p>
+For a Java developer like myself, I initially expected an error here.  Variable <code className="jarombek-inline-code">x</code> hasn't
+been declared yet on line 1.  However, JavaScript returns <code className="jarombek-inline-code">undefined</code>,
+which means the variable was declared but not initialized to a value.
+</p>
+<p>
+What happened is JavaScript split the statement <code className="jarombek-inline-code">var x = 10</code>
+into its declaration and assignment.  It then ‘hoisted' the declaration to the top of the scope (in this
+case the global program scope).  When <code className="jarombek-inline-code">console.info()</code> is invoked,
+JavaScript is already aware of <code className="jarombek-inline-code">var x</code>.
+Tricky JavaScript!
+</p>
+<p>
+If you are using ES6+ and don't want hoisting, you can use the
+<code className="jarombek-inline-code">let</code> keyword (simply replace
+<code className="jarombek-inline-code">var</code> with <code className="jarombek-inline-code">let</code> in
+the previous example).  Now if you run the code again, invoking
+<code className="jarombek-inline-code">console.info(x)</code> will throw an error.
+</p>
+<p>
+Here is one more basic example:
+</p>
+<CodeSnippet language="JavaScript">
+{
+    let firstName = "Andy";
+    var lastName = "Jarombek";
+
+    console.info(firstName); // Andrew
+    console.info(lastName); // Jarombek
+}
+
+console.info(lastName); // Jarombek
+console.info(firstName); // Reference Error
+</CodeSnippet>
+<p>
+In JavaScript you can define a block scope with curly bracket syntax - <code className="jarombek-inline-code">{ }</code>.
+In this code, the variable defined with <code className="jarombek-inline-code">let</code> is only available within
+the block scope, while the variable defined with <code className="jarombek-inline-code">var</code> is
+exposed to the global scope<sup>1</sup>.  <code className="jarombek-inline-code">let</code> is useful when
+you want to constrain a variable to one small piece of code.
+</p>
+<p>
+One thing that JavaScript block scope made me question was
+'are variables defined with <code className="jarombek-inline-code">var</code> in functions available
+globally?'  The answer is NO (thankfully) so your internally defined function variables are local and safe!
+</p>
+<p>
+You can check out the full code for these examples on
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2017/11-Nov/11-8-JS-Scope-Hoisting/
+scope.js">GitHub</a>, along with a look at how variables in <code className="jarombek-inline-code">for</code>
+loops leak into the global scope
+(Yuck! – but there is a solution with <code className="jarombek-inline-code">let</code>).
+</p>
+</div>

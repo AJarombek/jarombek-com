@@ -1,0 +1,406 @@
+<div>
+<p>
+DynamoDB is a NoSQL database on <a href="https://jarombek.com/blog?query=AWS&page=1">AWS</a> specializing in key-value
+and document storage.  DynamoDB is fully managed by AWS, meaning users don't need to provision any servers for it
+to run on.  I often compare DynamoDB to <a href="https://jarombek.com/blog?query=MongoDB&page=1">MongoDB</a>, due to
+their similar functionality and JSON document/item structure.
+</p>
+<p>
+Recently, DynamoDB has come up quite a bit in engineering conversations I've had in relation to building cloud native
+applications.  I wrote <a href="https://jarombek.com/blog/dec-15-2017-mongodb-pt1">a</a>
+ <a href="https://jarombek.com/blog/dec-16-2017-mongodb-pt2">series</a>
+ <a href="https://jarombek.com/blog/dec-23-2017-mongodb-pt3">of</a>
+ <a href="https://jarombek.com/blog/dec-27-2017-mongodb-pt4">articles</a> on MongoDB in 2017 while I was prototyping
+with the database.  Recently I did the same with DynamoDB, creating a sample DynamoDB table with
+<a href="https://jarombek.com/blog?query=Terraform&page=1">Terraform</a> and using AWS SDKs to modify and test its
+contents.  This article discusses what I've learned about DynamoDB and showcases my prototype code.
+</p>
+<SectionTitle title="What is DynamoDB?">What is DynamoDB?</SectionTitle>
+<p>
+DynamoDB is a managed NoSQL database that is hosted on AWS. DynamoDB is closed source and fully managed by AWS; No
+installation of DynamoDB on a server is required.  Engineers simply use the service and are charged based on the
+amount of data they store, along with read and write capacity<sup>1</sup>.  DynamoDB is both a key-value store and a
+document database.  The main components of DynamoDB are tables, items, and attributes<sup>2</sup>.
+</p>
+<Definition word="DynamoDB Table">
+A DynamoDB table is a collection of items.  Tables define a schema for their items.  However, you don't need to define
+all the attributes that exist in an item within the schema.  This makes DynamoDB tables very flexible compared to SQL
+database tables, which have static schemas.  A DynamoDB table is roughly equivalent to a
+<strong>MongoDB collection</strong>.
+</Definition>
+<Definition word="DynamoDB Item">
+A DynamoDB item is an object with attributes.  Items are members of a table, and follow the schema of the table.  Items
+are stored in a “marshalled” JSON format<sup>3,4</sup>. For example, the JSON data
+<code className="jarombek-inline-code">{"name": "Andy"}</code> is stored in DynamoDB as
+<code className="jarombek-inline-code">{"name": {"S": "Andy"}}</code>. This is slightly different from MongoDB, which
+stores data in BSON (Binary JSON) format.  A DynamoDB item is roughly equivalent to a <strong>MongoDB document</strong>.
+</Definition>
+<Definition word="DynamoDB Attribute">
+A DynamoDB attribute is a name-value pair that exists on an item.  Attributes are the most fundamental building block
+of data in DynamoDB.  The names of attributes are strings.  Attributes can have three types of values: scalar, document,
+and set<sup>5</sup>. Scalar types include primitive data types such as strings, numbers, and booleans. Document types
+are JSON documents, containing objects and arrays. Set types are groups of scalar values.  A DynamoDB scalar is roughly
+equivalent to a <strong>MongoDB field</strong>.
+</Definition>
+<p>
+DynamoDB tables are required to have a primary key, and can optionally have one or more secondary indexes.  There are
+two types of primary keys: <strong>partition keys</strong> and <strong>sort keys</strong>.  Partition keys and sort keys are assigned to attributes in a
+table.  If a table only has a partition key, each item in the table must have a unique value for that partition key
+attribute.  If a table has a partition key and a sort key, this is called a composite key.  In a composite key, the
+combination of the partition key attribute and sort key attribute must be unique for each item in the table.  Partition
+keys and sort keys also help DynamoDB with its internal storage of table data<sup>6</sup>.
+</p>
+<p>
+In addition to primary keys, DynamoDB tables can have secondary indexes. One difference between
+DynamoDB and traditional SQL relational databases is that in DynamoDB, queries of tables can only be performed on attributes that
+are primary keys or secondary indexes. In contrast, relational database tables can be queried using any of
+their columns, no matter if they are a primary key, indexed or otherwise. This makes secondary indexes in DynamoDB
+very important.
+</p>
+<p>
+Secondary indexes allow for attributes other than the primary keys to be queried.  There are two types of secondary
+indexes: <strong>global secondary indexes</strong> and <strong>local secondary indexes</strong>.  A global secondary
+index creates an index with a partition key and sort key other than the ones assigned to the table, while a local
+secondary index creates an index with a partition key matching the one assigned to the table, but with a different
+sort key<sup>7</sup>.  While global secondary indexes are extremely useful, they are not free.  To build a secondary
+index, DynamoDB must maintain an additional read-only projection of the table, which adds to service costs<sup>8</sup>.
+</p>
+<p>
+My first impression of DynamoDB is that it's very easy to use, especially for those with MongoDB
+experience.  I have yet to see how well it scales up for large datasets, but for prototyping and small
+applications it seems like a really nice option.
+</p>
+<SectionTitle title="DynamoDB Prototype Architecture">DynamoDB Prototype Architecture</SectionTitle>
+<p>
+The DynamoDB prototype I created consists of a single table with a primary key and a global secondary index.  The table
+represents stuffed animals, and is appropriately named <code className="jarombek-inline-code">stuffed-animals</code>.
+The basic table architecture is configured with Terraform, along with a few items.  The following
+<a href="https://github.com/AJarombek/devops-prototypes/blob/master/samples/dynamodb/infra/main.tf">Terraform code</a>
+creates the <code className="jarombek-inline-code">stuffed-animals</code> table.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_dynamodb_table" "table" {
+  name = "stuffed-animals"
+  billing_mode = "PROVISIONED"
+  read_capacity = 20
+  write_capacity = 20
+
+  hash_key = "id"
+
+  attribute {
+    name = "id"
+    type = "N"
+  }
+
+  attribute {
+    name = "name"
+    type = "S"
+  }
+
+  attribute {
+    name = "species"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name = "NameIndex"
+    hash_key = "name"
+    range_key = "species"
+    write_capacity = 10
+    read_capacity = 10
+    projection_type = "INCLUDE"
+    non_key_attributes = ["description"]
+  }
+
+  tags = {
+    Name = "stuffed-animals-table"
+    Application = "dynamodb-sample"
+    Environment = "sandbox"
+  }
+}
+</CodeSnippet>
+<p>
+In the <code className="jarombek-inline-code">aws_dynamodb_table</code> resource, the
+<code className="jarombek-inline-code">hash_key</code> (partition key) argument sets the
+<code className="jarombek-inline-code">id</code> attribute as the partition key for the table. The table schema defines
+three attributes inside <code className="jarombek-inline-code">attribute</code> code blocks:
+<code className="jarombek-inline-code">id</code> of type <code className="jarombek-inline-code">N</code> (number),
+<code className="jarombek-inline-code">name</code> of type <code className="jarombek-inline-code">S</code> (string), and
+<code className="jarombek-inline-code">species</code> of type <code className="jarombek-inline-code">S</code> (string).
+As mentioned earlier, items can have more attributes than those defined in the schema, but schemas do give a rough
+outline for the shape of items. The table also has one global secondary index named
+<code className="jarombek-inline-code">NameIndex</code>, which is defined in the
+<code className="jarombek-inline-code">global_secondary_index</code> code block.
+<code className="jarombek-inline-code">NameIndex</code> has a hash key (partition key) of
+<code className="jarombek-inline-code">name</code> and a range key (sort key) of
+<code className="jarombek-inline-code">species</code>.
+</p>
+<p>
+After creating the DynamoDB table, the Terraform code creates two items with the
+<code className="jarombek-inline-code">aws_dynamodb_table_item</code> resource.
+</p>
+<CodeSnippet language="HCL">
+resource "aws_dynamodb_table_item" "dotty" {
+  table_name = aws_dynamodb_table.table.name
+  hash_key = aws_dynamodb_table.table.hash_key
+  item = file("dotty.json")
+}
+
+resource "aws_dynamodb_table_item" "lily" {
+  table_name = aws_dynamodb_table.table.name
+  hash_key = aws_dynamodb_table.table.hash_key
+  item = file("lily.json")
+}
+</CodeSnippet>
+<p>
+While this code is important for adding the items to the <code className="jarombek-inline-code">stuffed-animals</code>
+table, the most interesting details are in the JSON files which are values for the
+<code className="jarombek-inline-code">item</code> attributes. For example, here is the
+<a href="https://github.com/AJarombek/devops-prototypes/blob/master/samples/dynamodb/infra/dotty.json">JSON file</a> for
+the first item, a stuffed animal horse named Dotty.
+</p>
+<CodeSnippet language="JSON">
+{
+  "id": {"N": "1"},
+  "name": {"S": "Dotty"},
+  "species": {"S": "Horse"},
+  "description": {"S": "Small spotted horse who loves to cuddle.  She also has beautiful flappy ears."},
+  "favorite_activity": {"S": "Sleeping under a blanket"}
+}
+</CodeSnippet>
+<p>
+Notice that the JSON is in the marshalled format discussed earlier, with data types specified for each attribute.  When
+this Terraform code is built, the table and items are created and viewable from the AWS console.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/7-3-21-dynamodb-aws-console.png"/>
+</figure>
+<p>
+The remainder of the DynamoDB prototype consists of AWS Go SDK code for querying and creating items, and AWS Python
+SDK code for DynamoDB table and infrastructure tests.
+</p>
+<SectionTitle title="DynamoDB Coding with the Go AWS SDK">DynamoDB Coding with the Go AWS SDK</SectionTitle>
+<p>
+AWS provides software development kits (SDKs) in multiple programming languages, including Go and Python.  Recently I
+started working with Go, a programming language developed at Google and first released in 2009.  I've really enjoyed
+working with Go, and have tried to incorporate it into more and more projects.  In one sentence, the main reason I like
+Go is that it has all the benefits of a statically typed language, but still has a concise syntax that is easy to write.
+</p>
+<p>
+I decided to incorporate Go into my DynamoDB prototype through the use of the Go AWS SDK.  Using this SDK, I scan all
+items, add items, remove items, and more from the DynamoDB table.  My Go code is located in a
+<a href="https://github.com/AJarombek/devops-prototypes/blob/master/samples/dynamodb/app/main.go">main.go</a> file.
+The AWS SDK has <a href="https://aws.github.io/aws-sdk-go-v2/docs/getting-started/">documentation</a> online, although
+I've found it a bit incomplete.
+</p>
+<p>
+The Go code is just a script in a single <code className="jarombek-inline-code">main()</code> function.  For starters,
+it scans the DynamoDB table and checks that the expected number of items are returned.
+</p>
+<CodeSnippet language="Go">
+cfg, err := config.LoadDefaultConfig(context.TODO())
+
+if err != nil {
+    panic("unable to load AWS SDK config, " + err.Error())
+}
+
+client := dynamodb.NewFromConfig(cfg)
+
+tableName := "stuffed-animals"
+input := &dynamodb.ScanInput{
+    TableName: &tableName,
+}
+
+records, err := client.Scan(context.TODO(), input)
+
+if err != nil {
+    panic("Table scan failed, " + err.Error())
+}
+
+if records.Count != 2 {
+    panic("Dotty and Lily were not found in DynamoDB!  They must be busy napping.")
+}
+</CodeSnippet>
+<p>
+DynamoDB has two main API methods for getting items: <code className="jarombek-inline-code">Scan</code> and
+<code className="jarombek-inline-code">Query</code>.  While a table scan retrieves all the items in a table, a
+query uses primary keys and secondary indexes to retrieve a subset of items.  The next piece of code updates an
+existing item in the table.
+</p>
+<CodeSnippet language="Go">
+teddy := map[string]types.AttributeValue{
+    "id": &types.AttributeValueMemberN{Value: "3"},
+    "name": &types.AttributeValueMemberS{Value: "Teddy"},
+    "species": &types.AttributeValueMemberS{Value: "Bear"},
+    "description": &types.AttributeValueMemberS{
+        Value: "The OG and forever loyal, Teddy always gives and asks for nothing in return.",
+    },
+}
+
+putInput := &dynamodb.PutItemInput{
+    TableName: &tableName,
+    Item: teddy,
+}
+
+_, err = client.PutItem(context.TODO(), putInput)
+
+if err != nil {
+    panic("Failed to create a new item in DynamoDB.")
+}
+</CodeSnippet>
+<p>
+The next piece of code bulk inserts three new items into the table.
+</p>
+<CodeSnippet language="Go">
+fluffy := map[string]types.AttributeValue{
+    "id": &types.AttributeValueMemberN{Value: "4"},
+    "name": &types.AttributeValueMemberS{Value: "Fluffy"},
+    "species": &types.AttributeValueMemberS{Value: "Goat"},
+    "description": &types.AttributeValueMemberS{
+        Value: "Retired daredevil, Fluffy now enjoys relaxing under a warm blanket.",
+    },
+}
+
+spiky := map[string]types.AttributeValue{
+    "id": &types.AttributeValueMemberN{Value: "5"},
+    "name": &types.AttributeValueMemberS{Value: "Spiky"},
+    "species": &types.AttributeValueMemberS{Value: "Goat"},
+    "description": &types.AttributeValueMemberS{
+        Value: "Little brother of Fluffy.",
+    },
+}
+
+grandmasBlanket := map[string]types.AttributeValue{
+    "id": &types.AttributeValueMemberN{Value: "6"},
+    "name": &types.AttributeValueMemberS{Value: "Grandma's Blanket"},
+    "species": &types.AttributeValueMemberS{Value: "Blanket"},
+    "description": &types.AttributeValueMemberS{
+        Value: "Does Grandma's blanket qualify as a stuffed animal?  The debate rages on.",
+    },
+}
+
+fluffyPutRequest := types.PutRequest{
+    Item: fluffy,
+}
+
+spikyPutRequest := types.PutRequest{
+    Item: spiky,
+}
+
+grandmasBlanketPutRequest := types.PutRequest{
+    Item: grandmasBlanket,
+}
+
+writeRequest := map[string][]types.WriteRequest{
+    tableName: {
+        { PutRequest: &fluffyPutRequest },
+        { PutRequest: &spikyPutRequest },
+        { PutRequest: &grandmasBlanketPutRequest },
+    },
+}
+
+batchWriteInput := &dynamodb.BatchWriteItemInput{
+    RequestItems: writeRequest,
+}
+
+_, err = client.BatchWriteItem(context.TODO(), batchWriteInput)
+
+if err != nil {
+    panic("Failed to create new items in DynamoDB (bulk insert).")
+}
+</CodeSnippet>
+<p>
+The final piece of code deletes one of the items I added.
+</p>
+<CodeSnippet language="Go">
+deleteKeyMap := map[string]types.AttributeValue{
+    "id": &types.AttributeValueMemberN{Value: "6"},
+}
+
+deleteInput := &dynamodb.DeleteItemInput{
+    TableName: &tableName,
+    Key: deleteKeyMap,
+}
+
+_, err = client.DeleteItem(context.TODO(), deleteInput)
+</CodeSnippet>
+<p>
+If there is one thing you should take away from this code, its that while DynamoDB operations are easy to work with,
+they aren't as simplistic as SQL.  The expressiveness of SQL is often an argument used for relational SQL databases
+over NoSQL databases, and that argument can be used against DynamoDB as well.  However, the setup ease of DynamoDB is
+often such a great benefit that the lack of a sophisticated SQL-like querying model is a sacrifice worth taking.
+</p>
+<SectionTitle title="DynamoDB Testing with the Python AWS SDK">DynamoDB Testing with the Python AWS SDK</SectionTitle>
+<p>
+I wrote tests for my DynamoDB table in Python using the AWS SDK.  This
+<a href="https://github.com/AJarombek/devops-prototypes/blob/master/samples/dynamodb/test/testTerraformInfra.py">test</a>
+ <a href="https://github.com/AJarombek/devops-prototypes/blob/master/samples/dynamodb/test/testGoSdkInfra.py">code</a>
+provides more examples of how to scan and query a DynamoDB table.
+</p>
+<p>
+As previously shown in the Go code, scanning a DynamoDB table is the simplest way to get all its items.  In Python,
+scanning a table and checking its item count is achieved with the following code.
+</p>
+<CodeSnippet language="Python">
+table: Table = self.dynamodb_resource.Table('stuffed-animals')
+response = table.scan()
+items: List[dict] = response.get('Items')
+
+self.assertEqual(2, len(items))
+</CodeSnippet>
+<p>
+While I prefer the SQL equivalent of <code className="jarombek-inline-code">SELECT COUNT(*) FROM tablename</code>,
+scanning is very simple and easy.  Querying tables for items that match certain criteria is where things get a bit more
+complicated.  For example, let's compare two queries.  The first query uses the
+<code className="jarombek-inline-code">id</code> partition key on the table to retrieve an item with an id of
+<strong>2</strong>.  The second query uses the <code className="jarombek-inline-code">name</code> partition key on the
+secondary index to retrieve an item with the name <strong>dotty</strong>
+</p>
+<CodeSnippet language="Python">
+table: Table = self.dynamodb_resource.Table('stuffed-animals')
+response = table.query(
+    KeyConditionExpression=Key('id').eq(2)
+)
+items: List[dict] = response.get('Items')
+
+self.assertEqual(1, len(items))
+</CodeSnippet>
+<CodeSnippet language="Python">
+response = table.query(
+    IndexName='NameIndex',
+    KeyConditionExpression=Key('name').eq('Dotty')
+)
+items: List[dict] = response.get('Items')
+
+self.assertEqual(1, len(items))
+</CodeSnippet>
+<p>
+The syntax is pretty simple and can be easily learned through use, but the important takeaway is that queries are
+written differently depending on whether you use a key on a table vs. a key on a secondary index. This is different from
+SQL which treats all attributes (columns) the same when querying.  In SQL, when querying with a
+<code className="jarombek-inline-code">WHERE</code> clause there is no difference between filtering on a primary key
+column vs. a foreign key column vs. an indexed column.
+</p>
+<p>
+Advanced DynamoDB queries are beyond the scope of this article, but I plan to experiment with them in the future.
+However, just based off these simple queries I can tell that the querying mechanism is not as robust as SQL.
+</p>
+<SectionTitle title="Tying the Pieces Together with Jenkins">Tying the Pieces Together with Jenkins</SectionTitle>
+<p>
+The final piece of my DynamoDB prototype is a <a href="https://jarombek.com/blog?query=Jenkins&page=1">Jenkins</a> job that
+ runs the full process of building the Terraform infrastructure, testing the state of the DynamoDB table, running the Go
+code, and then testing the table again. The code for this Jenkins job is available on
+<a href="https://github.com/AJarombek/global-jenkins-jobs/tree/master/prototypes/devops-prototypes/dynamodb-sample-test">
+GitHub</a>.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+DynamoDB is a valuable NoSQL database for engineers who work with AWS to know, given how easy it is to set up and its
+ability to hold JSON structured data.  The query mechanism DynamoDB offers is inferior to SQL, but this is often an
+acceptable sacrifice for applications to take.  Compared to MongoDB, DynamoDB is easier to setup and manage, but
+MongoDB has more querying and data aggregation features that make it more suited for complex applications.  As I work
+with DynamoDB more, I'll better understand how it scales and know more of its pros and cons.  All the code for the
+DynamoDB prototype is available on
+<a href="https://github.com/AJarombek/devops-prototypes/tree/master/samples/dynamodb">GitHub</a>.
+</p>
+</div>

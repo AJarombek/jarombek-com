@@ -1,0 +1,73 @@
+<div>
+<p>
+In the last few months I've written articles about lifecyles in <a href="https://jarombek.com/
+blog/jan-18-2019-react-lifecycles">React</a> and <a href="https://jarombek.com/blog/
+nov-24-2018-angular-lifecycles">Angular</a>.  Certain lifecycles in React and Angular are triggered
+by their respective change detection mechanisms.  In React the change detection mechanism is triggered
+whenever a components state changes or the properties passed from a parent component change.  In Angular
+the change detection mechanism is triggered whenever a DOM event occurs or values used in the component
+template are mutated (along with async code returning, timeouts completing, etc.).
+</p>
+<p>
+Angular also allows developers to change the change detection strategy on a per-component basis.  This post
+explores the two change detection strategies - <code className="jarombek-inline-code">Default</code> and
+<code className="jarombek-inline-code">OnPush</code>.
+</p>
+<SectionTitle title="How Default change detection works">How <code className="jarombek-header-code">Default</code> Change Detection Works</SectionTitle>
+<p>
+By default, Angular uses the <code className="jarombek-inline-code">ChangeDetectionStrategy.Default</code>
+change detection strategy.  <code className="jarombek-inline-code">Default</code> tracks alterations to
+Angular's two-way data binding system.  One thing this strategy checks for is changes to variables in
+the component templates<sup>1</sup>.  Variable alterations include both value and reference changes.
+</p>
+<p>
+Another thing <code className="jarombek-inline-code">Default</code> checks for is DOM events.  At a low
+level Angular monkey patches functions in the DOM API such as <code className="jarombek-inline-code">
+addEventListener()</code><sup>2</sup>.  This allows Angular to perform its own logic whenever the DOM
+is altered or interacted with.
+</p>
+<Definition word="Monkey Patch">
+Alterations to a function or other program components at runtime.  The patch is only visible to
+the current programs execution context.  Monkey patching occurs in <a href="https://jarombek.com/blog/
+sep-14-2018-groovy-dynamic">dynamic programming languages</a>.
+</Definition>
+<p>
+Other things <code className="jarombek-inline-code">Default</code> change detection checks for includes
+asynchronous callbacks and timeout completions<sup>3</sup>.
+</p>
+<SectionTitle title="How OnPush change detection works">How <code className="jarombek-header-code">OnPush</code> Change Detection Works</SectionTitle>
+<p>
+<code className="jarombek-inline-code">ChangeDetectionStrategy.OnPush</code> change detection is used as an
+optimization technique.  For DOM events <code className="jarombek-inline-code">OnPush</code> works
+similarly to <code className="jarombek-inline-code">Default</code>.  The DOM API is monkey patched and change
+detection runs when a DOM event occurs.
+</p>
+<p>
+Differences arise when handling variable changes in component templates.  By using <code className="jarombek-inline-code">OnPush</code>,
+we tell Angular that the component uses immutable objects in its template<sup>4</sup>.
+<code className="jarombek-inline-code">OnPush</code> will only trigger change detection when a template variable
+reference changes.  Change detection will <strong>not</strong> trigger when a template variable is mutated.
+</p>
+<SectionTitle title="Change Detection Project">Change Detection Project</SectionTitle>
+<p>
+To help visualize the differences between <code className="jarombek-inline-code">Default</code> and
+<code className="jarombek-inline-code">OnPush</code> I created an Angular application with two nearly
+identical components.  One uses <code className="jarombek-inline-code">OnPush</code> and the other uses
+<code className="jarombek-inline-code">Default</code> change detection.  I log every time a change detection
+cycle occurs to make things clearer.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/3-12-19-cd-project.gif"/>
+</figure>
+<p>
+The major takeaway from this project is that <code className="jarombek-inline-code">OnPush</code> results
+in fewer change detection cycles.  However, be careful and make sure all objects are immutable.
+If variables mutate, unexpected UI changes (or lack thereof) are likely to occur.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+I find it very interesting how Angular handles its change detection mechanism.  I look forward to learn
+more about the topic in the future.  You can check out the code for my change detection project on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2019/03-Mar/03-12-angular-onpush">GitHub</a>.
+</p>
+</div>

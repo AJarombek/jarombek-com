@@ -1,0 +1,170 @@
+<div>
+<p>
+In my recent programming adventures, I’ve run into a lot of code that follows a functional style.
+Many object-oriented and imperative programming languages added basic functional programming features
+to their specs, including <a href="https://jarombek.com/blog/feb-8-2018-java8-functional">Java 8</a>
+in 2014.  I’ve spent time looking at functional programming features in these languages, such as
+<a href="https://jarombek.com/blog/aug-27-2018-groovy-currying#what-is-currying?">currying</a> and
+<a href="https://jarombek.com/blog/aug-16-2018-groovy-closures">lambda functions</a>.  Learning the
+functional programming style through a traditional object-oriented language is fine, but I really
+wanted to apply functional concepts in a language built upon the functional programming paradigm.  Over
+the past few weeks, I’ve spent some of my free time reading about Haskell, a functional programming
+language.  This post covers some of the functional concepts I explored in my first 200 lines of Haskell code.
+</p>
+<SectionTitle title="Guarded Equations">Guarded Equations</SectionTitle>
+<p>
+Often when writing a program with branching outcomes, a conditional expression is used.  Haskell
+also supports <code className="jarombek-inline-code">if...else</code> conditional expressions, which are
+used like so:
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Determine if a number is higher (older), equal to, or lower (younger)
+  than my age using conditional expressions
+-}
+older :: Int -> Int
+older n = if n > 23 then 1
+          else if n == 23 then 0
+          else -1
+</CodeSnippet>
+<p>
+Invoking <code className="jarombek-inline-code">older 24</code> returns <code className="jarombek-inline-code">1
+</code> while <code className="jarombek-inline-code">older 22</code> returns <code className="jarombek-inline-code">
+-1</code>.  Another way to perform the same logic is to use a guarded equation.
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Determine if a number is higher (older), equal to, or lower (younger)
+  than my age using guarded equations
+-}
+older' :: Int -> Int
+older' n | n > 23 = 1
+         | n == 23 = 0
+         | otherwise = -1
+</CodeSnippet>
+<p>
+Guarded equations follow a more mathematical design, using a <code className="jarombek-inline-code">
+| condition = outcome</code> syntax which is read "Such that a condition is met, return an outcome<sup>1</sup>."  Guarded
+equations are easily translated into mathematical equations<sup>2</sup>.  The following equation
+represents the <code className="jarombek-inline-code">older'</code> function:
+</p>
+<MathNotation tex="﻿older'(x) = \begin{cases} 1 & x > 23 \\ 0 & x = 23 \\ -1 & otherwise \end{cases}"></MathNotation>
+<p>
+The following function demonstrates a more advanced example of guarded equations.  It returns a
+sub-list from a list using recursion and the cons operator (<code className="jarombek-inline-code">:</code>),
+which constructs a list.
+</p>
+<CodeSnippet language="Haskell">
+subList :: Int -> Int -> [a] -> [a]
+subList _ _ [] = []
+subList _ 0 _ = []
+subList s e (x:xs) | s <= 0 && e > 0 = x : subList s (e - 1) xs
+                   | s <= 0 && e <= 0 = []
+                   | otherwise = subList (s - 1) (e - 1) xs
+</CodeSnippet>
+<SectionTitle title="Lambda Expressions">Lambda Expressions</SectionTitle>
+<p>
+I use lambda functions (also known as arrow functions in some languages) all the time in my code.
+In many languages, lambda functions are tacked on features, but in Haskell they are an integral part
+of the language.  The following two functions demonstrate lambda expressions in Haskell.
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Multiply two numbers together.  Curried functions are easier to understand
+  when the lambda function syntax is used.
+-}
+mult :: Int -> (Int -> Int)
+mult = \x -> (\y -> x * y)
+
+{-|
+  An age function which returns a constant value of my age.  Written to utilize lambda functions.
+-}
+age' :: a -> Int
+age' = \_ -> 23
+</CodeSnippet>
+<p>
+If you are curious about curried functions, I devoted an entire article to them with a sub-section
+applying strictly to <a href="https://jarombek.com/blog/aug-27-2018-groovy-currying#currying">
+currying in Haskell</a>.
+</p>
+<SectionTitle title="List Comprehensions">List Comprehensions</SectionTitle>
+<p>
+In mathematics, set comprehensions (also known as set-builder notation) are used to construct a set
+that abides by certain rules<sup>3</sup>.  A set comprehension often takes an existing set and filters
+or maps it to match certain criteria, resulting in a new set.
+</p>
+<p>
+In Haskell, comprehensions are used to construct lists from existing lists<sup>4</sup>.  The following
+function uses a list comprehension to square all items in a list and then calculate the sum of the
+new list.
+</p>
+<CodeSnippet language="Haskell">
+sumListSq :: Num a => [a] -> a
+sumListSq xs = sum [x^2 | x <- xs]
+</CodeSnippet>
+<p>
+The list comprehension notation <code className="jarombek-inline-code">[x^2 | x <- xs]</code> is read as
+"item <code className="jarombek-inline-code">x</code> drawn from list
+<code className="jarombek-inline-code">xs</code> such that <code className="jarombek-inline-code">x^2</code>".
+When <code className="jarombek-inline-code">sumListSq [2,3,4]</code>
+is invoked, the list is mapped to <code className="jarombek-inline-code">[4,9,16]</code> first.  Then the sum of
+the list is calculated, which is <code className="jarombek-inline-code">29</code>.
+</p>
+<p>
+Like many constructs in Haskell, list comprehensions are easily translated into mathematical notation:
+</p>
+<MathNotation tex="\{x^2 \: | \: x \in xs\}"></MathNotation>
+<p>
+More advanced list comprehensions can work with multiple lists:
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Create a list of grid indices for a grid of a certain length and height
+-}
+grid :: Int -> Int -> [(Int, Int)]
+grid x y = [(a, b) | a <- [0..x], b <- [0..y]]
+</CodeSnippet>
+<CodeSnippet>
+> grid 2 3
+[(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3),(2,0),(2,1),(2,2),(2,3)]
+> grid 0 0
+[(0,0)]
+</CodeSnippet>
+<MathNotation tex="﻿﻿\{(x', y') \: | \: x' \in \{0..x\}, \: y' \in \{0..y\}\}"></MathNotation>
+<p>
+These list comprehensions mapped each item in a list to a new value.  List comprehensions
+can also use filters to only operate on and return certain items from a list.  A list comprehension
+filter is called a guard, and is placed in a list comprehension following the source list and a comma.
+</p>
+<CodeSnippet language="Haskell">
+{-|
+  Get the grid coordinates for the perimeter of a square.
+-}
+square :: Int -> [(Int, Int)]
+square x = [(a, b) | (a, b) <- grid x x, a == 0 || b == 0 || a == x || b == x]
+
+{-|
+  Extract the vowels from a String.  Uses a guard in the list comprehension which filters the generator
+-}
+vowels :: String -> String
+vowels str = [s | s <- str, elem s "aeiouAEIOU"]
+</CodeSnippet>
+<CodeSnippet>
+> square 1
+[(0,0),(0,1),(1,0),(1,1)]
+> square 2
+[(0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)]
+
+> vowels "Andy Jarombek"
+"Aaoe"
+> vowels "Greenwich,CT"
+"eei"
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Haskell is a challenging language to get accustomed to, but I am really enjoying it.  I'm also
+learning many new functional programming concepts and how they closely relate to mathematical
+concepts.  All the Haskell code from this discovery and more is on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2018/10-Oct/10-06-haskell-pt1">GitHub</a>.
+</p>
+</div>

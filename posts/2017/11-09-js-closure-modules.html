@@ -1,0 +1,89 @@
+<div>
+<p>
+In JavaScript there are multiple module patterns for creating APIs and separating
+concerns in code (as of ES6 there is also official module syntax in the spec).
+In the following code I created an API using the revealing module pattern.  The name 'revealing module pattern' comes
+from the return statement at the end of the module - it 'reveals' functions to outside code.
+</p>
+<CodeSnippet language="JavaScript">
+var taylorSwiftApi = function() {
+    var lyric = {
+        sparks: "I see sparks fly whenever you smile",
+        mine: "You are the best thing that's ever been mine",
+        dec: "I go back to December all the time",
+        other: "I'm sorry, taylor can't pick up the phone right now"
+    }
+
+    function lyrics(song) {
+        switch(song.toLowerCase()) {
+            case "sparks fly":
+                return lyric.sparks;
+            case "mine":
+                return lyric.mine;
+            case "back to december":
+                return lyric.dec;
+            default:
+                return lyric.other;
+        }
+    }
+
+    return {
+        lyrics: lyrics
+    }
+}();
+</CodeSnippet>
+<p>
+This module provides lyrics for Taylor Swift songs (because who doesn't
+enjoy some T-Swift!)  The <code className="jarombek-inline-code">return</code> statement is the public API for the module.  All
+interior details, such as the <code className="jarombek-inline-code">lyric</code> variable, are hidden.
+This pattern harnesses the power of closure in JavaScript!
+</p>
+<p>
+Closure is defined "when a function is able to remember and access its lexical scope
+even when that function is executing outside its lexical scope<sup>1</sup>."
+</p>
+<p>
+Okay cool, so when <code className="jarombek-inline-code">taylorSwiftApi.lyrics()</code> is invoked later
+on, it will remember the modules interior <code className="jarombek-inline-code">lyric</code> variable!
+But what is this 'lexical scope' the definition refers to?
+</p>
+<Definition word="Lexical Scope">
+Lexical scope is when the physical structure of a program determines the scope.  Because
+of this, the scope in which you define a function
+is always that functions scope.  The lexical scope attached to a function can never change.
+</Definition>
+<p>
+Maybe lexical scope and closure will be easier to understand with an example using the Taylor Swift API:
+</p>
+<CodeSnippet language="JavaScript">
+var lyric = {
+    sparks: "I was enchanted to meet you"
+};
+
+let result = taylorSwiftApi.lyrics("Sparks Fly");
+console.info(result); // I see sparks fly whenever you smile
+</CodeSnippet>
+<p>
+In the global scope I defined a second <code className="jarombek-inline-code">lyric</code> variable with a different (and
+as T-Swift fans know – incorrect) value.  The question now is which
+<code className="jarombek-inline-code">lyric.sparks</code> variable will the API find
+when invoking <code className="jarombek-inline-code">taylorSwiftApi.lyrics()</code>?  In this case, it
+will be the one defined in the <code className="jarombek-inline-code">taylorSwiftApi</code> module.  This is because of a
+closure that was created over the lexical scope of the API.
+<code className="jarombek-inline-code">taylorSwiftApi.lyrics()</code> was defined in the API's lexical
+scope, so that scope can’t change!
+</p>
+<p>
+As I mentioned in the beginning of this discovery, there is support for modules in the JavaScript
+spec as of ES6.  I will expand on the Taylor Swift API using
+<a href="https://jarombek.com/blog/nov-10-2017-es6-modules-babel">ES6 modules</a> in the future.  You can find
+all the code from this article on <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2017/
+11-Nov/11-9-JS-Closure-Modules/module.js">GitHub</a>.
+</p>
+<p>
+A final note: there is another type of scoping called dynamic scope.  This is used in shell scripts such
+as Bash and PowerShell.  In these scripting languages, the scope is
+determined by the executing programs location on the call stack<sup>2</sup>.  This may be a fun topic
+to explore in the future!
+</p>
+</div>

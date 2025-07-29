@@ -1,0 +1,105 @@
+<div>
+<p>
+With all the functional additions in Java 8, I think its important to define
+what it means for a program to be 'functional.'  The book
+<a href="https://www.manning.com/books/java-8-in-action">Java 8 In Action</a> tries to supply this definition.
+</p>
+<p>
+It is hard to explain functional programming with Java since it doesn't follow a pure
+functional style.  Instead Java 8 takes pieces of functional programming and
+incorporates them into Java's existing imperative and object oriented paradigm.
+</p>
+<p>
+My experience with functional programming is extremely limited.  The only true functional programming
+language I've used is <a href="https://en.wikipedia.org/wiki/Racket_(programming_language)">Racket</a>
+during my Junior year of college (a few months before I really got invested in programming
+and software development).  So I don't remember much!
+</p>
+<UpdateInfo date="October 20th, 2018">
+In recent months I've spent more time with functional programming.  I've written about
+<a href="https://jarombek.com/blog/aug-27-2018-groovy-currying">currying</a> and worked with
+<a href="https://jarombek.com/blog/oct-6-2018-haskell-pt1">Haskell</a>, a functional programming language.
+</UpdateInfo>
+<p>
+Functional programming, like mathematics, is focused around the function.  Functions take a
+variable number of arguments and return a result.  Most importantly, a 'pure'
+function has zero side effects<sup>1</sup>.  This means each time a function is called with
+the same arguments, the same result occurs.  A pure function also can't output to a log file or throw exceptions<sup>2</sup>.
+In a functional program variables can't mutate.  They must be effectively final.
+I've listed a lot of things you can't do in functional programming, but these rules result in functions that don't cause unexpected errors
+and are very predictable.
+</p>
+<p>
+Functional style programming in Java is not quite this strict.  However, reducing the number of variables a
+function mutates and removing unnecessary exceptions is beneficial.  Predictable functions
+are nice to work with and help future developers who look at your code!
+</p>
+<p>
+As an example, eliminating null errors is simple with Java 8's <code className="jarombek-inline-code">
+Optional</code> class!  I described optionals in a
+prior <a href="https://jarombek.com/blog/jan-30-2018-java8-optionals">article</a>, but invalid conditions
+are easily expressed in functions with optionals.  For example, the book I read discusses a divide by zero scenario:
+</p>
+<CodeSnippet language="Java">
+public class Functional {
+
+    public static Optional&lt;Double&gt; divide(Double numerator, Double denominator) {
+
+        // Wrap arguments into optionals
+        Optional&lt;Double&gt; num = Optional.ofNullable(numerator);
+        Optional&lt;Double> den = Optional.ofNullable(denominator);
+
+        // Return division result if arguments exist and the denominator isn't zero,
+        // otherwise return empty optional
+        return (!num.isPresent() || !den.isPresent()) ?
+                Optional.empty() : (den.get() == 0) ?
+                Optional.empty() : Optional.of(num.get() / den.get());
+    }
+
+    public static void main(String... args) {
+        Optional&lt;Double&gt; success = divide(5.0, 2.0);
+        Optional&lt;Double&gt; fail = divide(5.0, 0.0);
+        Optional&lt;Double&gt; failBecauseNull = divide(null, 6.5);
+
+        success.ifPresent(System.out::println);
+
+        // Both of these Optionals will be empty
+        if (!fail.isPresent()) {
+            System.out.println("Can't Divide By Zero");
+        }
+
+        if (!failBecauseNull.isPresent()) {
+            System.out.println("Can't Pass an Empty Value");
+        }
+    }
+}
+</CodeSnippet>
+<p>
+First I tried dividing 5 by 2, then 5 by 0, and finally the dreaded
+<code className="jarombek-inline-code">null</code> by 6.5.  With optionals, none of these divisions throw an error.
+Instead I simply check the resulting <code className="jarombek-inline-code">Optional</code> for a value.  The first valid
+division contains a result while the other two return <code className="jarombek-inline-code">
+Optional.empty</code>.  The output of this program is as follows:
+</p>
+<CodeSnippet>
+2.5
+"Can't Divide By Zero"
+"Can't Pass an Empty Value"
+</CodeSnippet>
+<p>
+Functional programming often utilizes recursion to avoid mutating variables.  The only issue
+with recursion in Java is each time a recursive function is called, a new stack frame is created
+<sup>3</sup>.  This causes overflows for large operations.  Java also doesn't have tail recursion
+optimization, so there is no way to avoid stack frame creation<sup>4</sup>.
+</p>
+<UpdateInfo date="October 20th, 2018">
+In a recent article I wrote about my experience working with higher order functions in Haskell.  In
+particular I discussed <a href="https://jarombek.com/blog/oct-20-2018-haskell-pt2">fold functions</a>, which
+are recursively implemented.  Fold functions share similar issues of overflowing the program stack.
+</UpdateInfo>
+<p>
+There are other functional operations available in Java that I won't describe here, but I'm
+interested to try them out in the future.  While Java 8 doesn't introduce pure functional
+programming, it does give you more tools to create code without unwanted side effects!
+</p>
+</div>

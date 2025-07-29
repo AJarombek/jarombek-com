@@ -1,0 +1,149 @@
+<div>
+<p>
+When I worked on my first website <a href="https://www.saintsxctf.com">saintsxctf.com</a> during my
+senior year of college, it was a huge revelation that I could pay a company to host my website on
+their servers.  The most surprising part for me was how they were hosting it.  The web server was a
+virtual private server, which is a virtual machine (VM) sold as a service<sup>1</sup>.  The VM ran
+a Debian Linux distribution.  This means I wasn't paying for an entire bare metal server, instead
+provided a software program which acts like a physical server.  In fact, there were likely many other
+virtual private servers running on the same hardware as mine.
+</p>
+<p>
+The adaptation of virtual machines was a major milestone in software development history.  Instead
+of needing a single physical server for each application, a single server could run a program called
+a hypervisor which would create one or many virtual machines.  Virtual machines scaled as needed
+to match business needs.  Eventually companies didn't need to invest in physical servers as
+cloud providers started offering VM IaaS (Infrastructure as a Service).  An example of a VM IaaS is
+EC2 (Elastic Compute Cloud) on AWS.
+</p>
+<Definition word="Virtual Machine">
+A virtual machine emulates a physical machine and its corresponding hardware and software<sup>2</sup>.
+Virtual machines are given a subsection of a physical machines resources to run on.  Often VMs are used
+as a replacement for real machines, as they are easily built, destroyed, and rebuilt.  Virtual
+machines are created by a piece of software or firmware called a hypervisor.  Hypervisors control the lifecycle
+of virtual machines and isolate them from other virtual machines on the same hardware<sup>3</sup>.
+</Definition>
+<p>
+While virtual machines are great, they do present some challenges.  Just like physical machines, VMs
+consume energy on a virtualized CPU, RAM, and storage devices<sup>4</sup>.  They also run their own
+operating system, which requires updating and maintenance to fix exploits and bugs.  VMs also take
+quite a bit of time to start up, which is obvious if you've ever started an EC2 instance on AWS.  With
+both my websites currently running on EC2 VMs, I'm well aware of these challenges.  Still, the creation of a
+virtual machine is magnitudes faster than building a physical server.
+</p>
+<p>
+For a long time there was no better option than VMs for hosting enterprise applications.  Nowadays
+there exists another layer of abstraction away from physical machines - containers.  The best description
+I read about containers described them as virtualized operating systems, compared to VMs which are
+virtualized computers.  While containers are comparable to traditional operating systems, they can be
+much more lightweight.  This is due to containers utilizing their host operating system, freeing them
+from running certain tasks.  Containers use less CPU cycles and don't need as much RAM and storage.
+</p>
+<p>
+Ubuntu can be used as a clear demonstration of the size difference between a full operating system
+and a container.  For the 18.04 LTS release of Ubuntu, the <a href="http://releases.ubuntu.com/18.04/">full
+operating system</a> size is around 1.9 GB.  In comparison, the <a href="https://blog.ubuntu.com/2018/07/
+09/minimal-ubuntu-released">container</a> is as small as 29 MB!  It takes a lot less energy and time to
+start up and maintain a 29 MB operating system vs. a 1.9 GB one.
+</p>
+<Definition word="Container">
+A container is the virtualization of an operating system.  Containers are lightweight because they
+utilize their host operating system, allowing them to only run the processes required by a deployed application.
+</Definition>
+<p>
+Docker is the most popular container system and runtime.  In fact, due to its popularity you often
+hear people use the words "container" and "docker" interchangeably.  There are other container systems
+available, many of which can be used interchangeably with Docker thanks to container standards<sup>5</sup>.
+The rest of this article discusses the basics of Docker containers.
+</p>
+<SectionTitle title="Docker Setup">Docker Setup</SectionTitle>
+<p>
+Installing Docker is a fairly simple process.  Worst case you will need to download installation software
+and follow the appropriate steps.  Best case you can just execute a single Bash command, as is the
+case on Amazon Linux:
+</p>
+<CodeSnippet language="Bash">
+amazon-linux-extras install docker
+</CodeSnippet>
+<p>
+Most environments have installation instructions on <a href="https://docs.docker.com/install/">Docker's
+website</a>.  To work with Docker, you also must start it on your machine.  For example, on
+Amazon Linux the command <code className="jarombek-inline-code">service docker start</code> starts Docker.
+</p>
+<SectionTitle title="Docker Concepts">Docker Concepts</SectionTitle>
+<p>
+The two most important Docker concepts are images and containers.  An image is a blueprint for a
+container in the same way a class is a blueprint for an object.  A container is a running image.
+</p>
+<p>
+Docker has a CLI for interacting with images and containers.  To download an existing image onto your
+computer, you can execute the <code className="jarombek-inline-code">docker pull</code> command.  For
+example, the following command downloads the official ubuntu image onto your computer.  It pulls the
+default repository tag (similar to tags in a git repository), which is <code className="jarombek-inline-code">
+latest</code>.
+</p>
+<CodeSnippet language="Bash">
+docker pull ubuntu
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">docker pull</code> command retrieves an image from a repository.
+By default Docker uses <a href="https://hub.docker.com">DockerHub</a> as a repository.  You can find
+the pulled image on the official <a href="https://hub.docker.com/_/ubuntu">Ubuntu DockerHub repository</a>.
+</p>
+<p>
+The following <code className="jarombek-inline-code">docker container run</code> command starts a
+container based on the <code className="jarombek-inline-code">ubuntu</code> image.
+</p>
+<CodeSnippet language="Bash">
+docker container run -it ubuntu:latest /bin/bash
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">-it</code> flags allow commands to be written in a terminal
+running inside the container<sup>6</sup>.  <code className="jarombek-inline-code">/bin/bash</code> tells
+the container to run a bash process.  After running the <code className="jarombek-inline-code">docker
+ container run</code> command, your Bash terminal runs inside the container.  For example, you can run
+<code className="jarombek-inline-code">ps -elf</code> to see all the processes running inside the container.
+To return the Bash shell from the container to the host machine, click <strong>CTRL-P + CTRL-Q</strong> on the keyboard.
+</p>
+<p>
+To view all the images and containers on your machine, run the following two commands:
+</p>
+<CodeSnippet language="Bash">
+docker image ls
+docker container ls
+</CodeSnippet>
+<CodeSnippet>
+REPOSITORY      TAG              IMAGE ID        CREATED           SIZE
+ubuntu          latest           94e814e2efa8    2 weeks ago       88.9MB
+
+CONTAINER ID    IMAGE            COMMAND         CREATED           STATUS           PORTS    NAMES
+7daf46a8cbdb    ubuntu:latest    "/bin/bash"     33 seconds ago    Up 32 seconds             infallible_lamport
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">docker container ls</code> reveals that each container is given a
+name; in my case the ubuntu container is given the name <code className="jarombek-inline-code">infallible_lamport</code>.
+Using a container name, you can reconnect to, stop, or delete a container.
+</p>
+<CodeSnippet language="Bash">
+# Reconnect to the running container
+docker container exec -it infallible_lamport bash
+
+# Stop the container
+docker container stop infallible_lamport
+
+# Remove the container
+docker container rm infallible_lamport
+</CodeSnippet>
+<p>
+You can find all the basic Docker commands I discussed on my <a href="https://github.com/AJarombek/
+devops-prototypes/blob/master/docker/basic-commands.sh">GitHub</a>.
+</p>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+The basic Docker concepts covered in this article can be incorporated into our projects to create
+containerized applications.  Once an application is containerized, it can easily be orchestrated in a
+scalable and updatable manner.  The <a href="https://jarombek.com/blog/apr-8-2019-docker-pt2">next article</a>
+in my Docker series creates a playground environment on AWS for Docker.  The third and final article
+containerizes an application.
+</p>
+</div>

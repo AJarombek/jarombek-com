@@ -1,0 +1,479 @@
+<div>
+<p>
+In my <a href="https://jarombek.com/blog/aug-5-2018-graphql-pt1">previous post on GraphQL</a>, I
+gave a high level overview on the GraphQL ecosystem and how it compares to a traditional REST API.
+Now it is time to discuss the language features of GraphQL and how it can be used to create an API
+in JavaScript.
+</p>
+<p>
+There are two distinct pieces of GraphQL to remember.  First its a language to create queries for
+an API.  Second its a runtime library on the server to handle queries directed at the API.  The
+GraphQL language is what I will look at first.
+</p>
+<SectionTitle title="The GraphQL Language">The GraphQL Language</SectionTitle>
+<p>
+The GraphQL language revolves around setting up an API schema (a model representation of the
+methods the API exposes).  GraphQL also has syntax to query the API schema.
+</p>
+<p>
+Let’s start by creating the API schema.  A GraphQL schema consists of different object types and
+scalar types.  Object types represent an object that can have multiple fields<sup>1</sup>.
+Scalar types represent concrete data of the schema<sup>2</sup>.
+</p>
+<p>
+Every GraphQL schema starts with one or two special root types - the mandatory
+<code className="jarombek-inline-code">query</code> type and the optional
+<code className="jarombek-inline-code">mutation</code> type<sup>3</sup>.  Every query that you write
+in GraphQL goes through the fields defined in the <code className="jarombek-inline-code">query</code>
+and <code className="jarombek-inline-code">mutation</code> types.  These fields are the equivalents
+of URL endpoints in a REST API model.
+</p>
+<p>
+The following code defines the entry point to the API in the GraphQL language:
+</p>
+<CodeSnippet language="GraphQL">
+schema {
+  query: Query
+  mutation: Mutation
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">schema</code> is an object type that holds two other object
+types as fields.  Queries fetch data from the API (like a <code className="jarombek-inline-code">GET
+</code> request) and mutations manipulate data in the API (like <code className="jarombek-inline-code">
+POST</code>, <code className="jarombek-inline-code">PUT</code>, and
+<code className="jarombek-inline-code">DELETE</code> requests).
+</p>
+<p>
+In my application, I created an API
+which handles exercise logging.  There are two different types of exercises that the API works
+with - cardio exercises (such as running or biking) and strength exercises (such as core or weight
+lifting).  Here is the API expressed in the GraphQL language:
+</p>
+<CodeSnippet language="GraphQL">
+# Define all the root level queries for the GraphQL server
+type Query {
+  # Test query just to make sure that GraphQL is working
+  test: String
+
+  # Queries for the Exercise interface.  Note that certain fields existing on concrete
+  # types implementing Exercise will not be accessible
+  getAllExercises: [Exercise]
+  getExercise(id: ID!): Exercise
+  getExercises(name: String!): [Exercise]
+  getExercisesByUser(user: String!): [Exercise]
+
+  # Queries for cardio specific exercises (ex. runs, bike rides, swims, etc.)
+  getAllCardioExercises: [Cardio]
+  getCardioExercise(id: ID!): Cardio
+  getCardioExercises(name: String!): [Cardio]
+  getCardioExercisesByUser(user: String!): [Cardio]
+
+  # Queries for strength specific exercises (ex. core, weight lifting)
+  getAllStrengthExercises: [Strength]
+  getStrengthExercise(id: ID!): Strength
+  getStrengthExercises(name: String!): [Strength]
+  getStrengthExercisesByUser(user: String!): [Strength]
+}
+
+# Define all the root level mutations for the GraphQL server
+type Mutation {
+  createCardioExercise(cardio: CardioInput!): Cardio
+  createStrengthExercise(strength: StrengthInput!): Strength
+}
+</CodeSnippet>
+<p>
+Types are defined with the <code className="jarombek-inline-code">type</code> keyword.  Each type contains
+fields, which can be passed a parameter.  For example, the field
+<code className="jarombek-inline-code">getExercises</code> takes in the parameter
+<code className="jarombek-inline-code">name</code>.  The <code className="jarombek-inline-code">name</code>
+parameter is of type <code className="jarombek-inline-code">String!</code>.  In GraphQL
+<code className="jarombek-inline-code">String</code> is a built-in scalar type, which is easiest to
+think of as a primitive type without any fields.  The <code className="jarombek-inline-code">!</code>
+token means that the parameter can’t be null.  When queried, the field
+<code className="jarombek-inline-code">getExercises</code> returns an array of exercises, denoted as
+<code className="jarombek-inline-code">[Exercise]</code>.  Since there isn’t a non-null identifier on
+<code className="jarombek-inline-code">[Exercise]</code>, it is possible no value gets returned.
+Putting all these concepts together, the <code className="jarombek-inline-code">getExercises</code>
+field on type <code className="jarombek-inline-code">Query</code> is defined as
+<code className="jarombek-inline-code">getExercises(name: String!): [Exercise]</code>.
+</p>
+<p>
+Most of the API handles simple queries of existing data.  However, there are two fields defined as
+mutations, both of which will create new exercise objects on the server.
+</p>
+<p>
+If you read the comment above the <code className="jarombek-inline-code">getAllExercises</code> field,
+you may be wondering about these GraphQL interfaces.  Just like in any object oriented language,
+interfaces in GraphQL define fields that must be used in concrete types that implement the
+interface.  For my API model, I created an interface called <code className="jarombek-inline-code">
+Exercise</code> that concrete types <code className="jarombek-inline-code">Cardio</code>
+and <code className="jarombek-inline-code">Strength</code> implement.
+</p>
+<CodeSnippet language="GraphQL">
+interface Exercise {
+  id: ID!
+  name: String!
+  user: String!
+  description: String
+  date: Date!
+}
+
+type Cardio implements Exercise {
+  id: ID!
+  name: String!
+  user: String!
+  description: String
+  date: Date!
+  distance: Float
+  minutes: Int
+  seconds: Int
+  type: CardioType!
+}
+
+type Strength implements Exercise {
+  id: ID!
+  name: String!
+  user: String!
+  description: String
+  date: Date!
+  workouts: [String]!
+  type: StrengthType!
+}
+</CodeSnippet>
+<p>
+Interfaces are defined with the <code className="jarombek-inline-code">interface</code> keyword and
+implementing types use the <code className="jarombek-inline-code">implements</code> keyword.  While
+many of the fields in <code className="jarombek-inline-code">Exercise</code> are built-in scalar types
+(<code className="jarombek-inline-code">String</code>, <code className="jarombek-inline-code">Int</code>,
+<code className="jarombek-inline-code">Float</code>, and <code className="jarombek-inline-code">ID</code>),
+some of the types I defined myself.
+</p>
+<p>
+<code className="jarombek-inline-code">CardioType</code> and
+<code className="jarombek-inline-code">StrengthType</code> are enums, which represent a strict set of
+values.  Enums are defined with the <code className="jarombek-inline-code">enum</code> keyword.
+</p>
+<CodeSnippet language="GraphQL">
+enum CardioType {
+  RUN
+  BIKE
+  SWIM
+  SKI
+  HIKE
+}
+
+enum StrengthType {
+  CORE
+  LIFT
+  OTHER
+}
+</CodeSnippet>
+<p>
+<code className="jarombek-inline-code">Date</code> is a custom scalar type.  It is defined in GraphQL
+as <code className="jarombek-inline-code">scalar Date</code>, however the logic for how to handle
+custom scalars lives in the application code.  In my case that application code is JavaScript.  I
+will look at the JavaScript code in just a bit.
+</p>
+<p>
+One final group of types I created in GraphQL was inputs.  Input types allow complex objects
+to be passed as arguments for a mutation.  For example, one of my mutation fields was
+<code className="jarombek-inline-code">createCardioExercise(cardio: CardioInput!): Cardio</code>, in
+which <code className="jarombek-inline-code">CardioInput</code> is an input type.
+Input types are defined with the <code className="jarombek-inline-code">input</code> keyword.
+</p>
+<CodeSnippet language="GraphQL">
+input ExerciseInput {
+  name: String!
+  user: String!
+  description: String
+  date: Date!
+}
+
+input CardioInput {
+  name: String!
+  user: String!
+  description: String
+  date: Date!
+  distance: Float
+  minutes: Int
+  seconds: Int
+  type: CardioType
+}
+
+input StrengthInput {
+  name: String!
+  user: String!
+  description: String
+  date: Date!
+  workouts: [String]!
+  type: StrengthType
+}
+</CodeSnippet>
+<p>
+Unfortunately input types can’t implement interfaces, so there is a good bit of code duplication
+here.  Maybe that is something GraphQL can address later in its lifespan.
+</p>
+<p>
+Every code sample I just went over defined the API schema in the GraphQL language.  There are two
+other pieces that need to be put in place before we have a functioning GraphQL API.  First is the
+server API code, which in my case
+is JavaScript running in a NodeJS environment.  JavaScript will connect the GraphQL schema
+to actual data.  Finally I will query the GraphQL API using the GraphQL language.
+</p>
+<SectionTitle title="GraphQL.js">GraphQL.js</SectionTitle>
+<p>
+I set up a NodeJS environment to run an <a href="http://graphql.github.io/graphql-js/
+running-an-express-graphql-server/">Express GraphQL</a> server.  <a href="https://expressjs.com/">
+Express</a> is a web application framework built in JavaScript.  The npm packages
+<a href="https://www.npmjs.com/package/express-graphql">express-graphql</a> and
+<a href="https://www.npmjs.com/package/graphql-tools">graphql-tools</a> allow us to work with
+GraphQL in an Express web application.
+</p>
+<p>
+The main JavaScript file sets up a HTTP route for a web server.  When run locally the
+following code starts a GraphQL API server at <strong>localhost:4000/</strong>.
+</p>
+<CodeSnippet language="JavaScript">
+const express = require('express');
+const graphqlHTTP = require('express-graphql');
+
+const GraphQLSchema = require('./graphQLSchema');
+const GraphQLRoot = require('./graphQLRoot');
+
+const app = express();
+app.use('/', graphqlHTTP({
+  schema: GraphQLSchema,
+  rootValue: GraphQLRoot,
+  graphiql: true
+}));
+
+const port = 4000;
+app.listen(port, () => {
+  console.info(`GraphQL Server Running on Port ${port}`);
+});
+</CodeSnippet>
+<p>
+The method call <code className="jarombek-inline-code">app.use('/', graphqlHTTP({...}))</code> connects
+GraphQL to the route <code className="jarombek-inline-code">/</code>.  In the
+<code className="jarombek-inline-code">graphqlHTTP()</code> method three things happen.
+</p>
+<p>
+First, I define the GraphQL schema.  This code, which you can view in <a href="https://github.com/
+AJarombek/jarombek-com-sources/blob/master/2018/08-Aug/8-5-graphql/graphQLSchema.js">
+GraphQLSchema.js</a>, pulls in all the GraphQL language files that define the schema.  This includes
+all the types such as <code className="jarombek-inline-code">Exercise</code> and
+<code className="jarombek-inline-code">Cardio</code> along with all the
+<code className="jarombek-inline-code">query</code> and <code className="jarombek-inline-code">mutation
+</code> entry points.  I also perform additional logic that can’t be handled by GraphQL alone.  This
+includes defining custom scalar types (such as <code className="jarombek-inline-code">Date</code>) and
+resolving concrete types from an interface reference (do calls to the interface
+<code className="jarombek-inline-code">Exercise</code> return <code className="jarombek-inline-code">Cardio
+</code> or <code className="jarombek-inline-code">Strength</code>?).
+</p>
+<p>
+Second I define a root object for the GraphQL schema.  Each field in the
+<code className="jarombek-inline-code">query</code> and <code className="jarombek-inline-code">mutation
+</code> types represents a function that returns or manipulates data.  While the field is declared in
+GraphQL, its implementation must exist in the JavaScript code.  The query and mutation
+implementation functions are placed in an object called root.  I created two JavaScript files - one
+with the <code className="jarombek-inline-code">root</code> object called
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2018/08-Aug/8-5-graphql/
+graphQLRoot.js">graphQLRoot.js</a> and another with all the API data called
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2018/08-Aug/8-5-graphql/
+exerciseData.js">exerciseData.js</a>.  I won’t show all the content of these files here as they are
+quite long.  However, as an example here are the root JavaScript functions that correspond to the
+<code className="jarombek-inline-code">getAllExercises</code> and <code className="jarombek-inline-code">
+getExercises</code> query fields in GraphQL:
+</p>
+<CodeSnippet language="JavaScript">
+const root = {
+
+  /**
+  * Get all the exercises in the data store
+  * @return {*} an array of exercises
+  */
+  getAllExercises: () => data.exercises,
+
+  /**
+  * Get all the exercises with a given name.  Name is not a unique field.
+  * @param arg - arguments passed through the getExercises() field.
+  * @return all the exercises that match a name.
+  */
+  getExercises: (arg) => {
+    return data.exercises.filter((exercise) => exercise.name === arg.name);
+  }
+}
+
+const data = {
+  exercises: [
+    {
+      id: uuid(),
+      name: "Early Morning Beach Run",
+      user: "Andy",
+      description: "Morning run on the beach with a few strides",
+      date: Date.parse("Aug 3, 2018"),
+      distance: 3.12,
+      minutes: 23,
+      seconds: 46,
+      type: "RUN"
+    },
+    {
+      id: uuid(),
+      name: "Track Workout at High School",
+      user: "Andy",
+      description: `Was drizzling during the warmup and raining for the workout.
+      6x1000m at a much slower pace than in college (3:12-3:20)`,
+      date: Date.parse("Aug 4, 2018"),
+      distance: 8.75,
+      type: "RUN"
+    },
+    {
+      id: uuid(),
+      name: "Push-Ups at Home",
+      user: "Andy",
+      description: "It was exhausting",
+      date: Date.parse("Aug 4, 2018"),
+      workouts: ["Push-Ups", "Sit-Ups"],
+      type: "CORE"
+    }
+  ]
+}
+</CodeSnippet>
+<p>
+Now I have the GraphQL schema set up along with functions corresponding to query and mutation
+endpoints.  The final field in the <code className="jarombek-inline-code">graphqlHTTP()</code> method
+allows us to use GraphiQL, which is a debugging GUI for GraphQL in the browser.  It is almost like
+having <a href="https://www.getpostman.com/">Postman</a> inside your browser to test a GraphQL API.
+GraphiQL is a really powerful tool to test GraphQL APIs.  I wish I had something similar for testing
+REST endpoints!
+</p>
+<p>
+This section was an extremely quick look at the JavaScript portion of the GraphQL API server, but I
+encourage you to explore the full inline documented code on <a href="https://github.com/AJarombek/
+jarombek-com-sources/tree/master/2018/08-Aug/8-5-graphql">GitHub</a>.
+</p>
+<SectionTitle title="Querying the GraphQL API">Querying the GraphQL API</SectionTitle>
+<p>
+Luckily, since I enabled the GraphiQL GUI debugger, all I have to do is run
+<code className="jarombek-inline-code">node index.js</code> and open my browser to start testing the
+GraphQL API.  GraphiQL has a really nice UI for writing queries and even has full documentation of
+the queries and mutations defined by the API.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/8-8-18-graphiql.png"/>
+</figure>
+<p>
+Queries are written in the GraphQL language.  They are written with the
+<code className="jarombek-inline-code">query</code> keyword (although there is also a shorthand query
+syntax where the <code className="jarombek-inline-code">query</code> keyword can be omitted).  If you
+name your queries, GraphiQL will help by providing a dropdown to pick what query to execute.
+</p>
+<p>
+The simplest query I made simply tests if GraphQL is running properly:
+</p>
+<CodeSnippet language="GraphQL">
+query Test {
+  test
+}
+</CodeSnippet>
+<p>
+GraphQLs response:
+</p>
+<CodeSnippet language="JSON">
+{
+  "data": {
+    "test": "Hello From GraphQL!"
+  }
+}
+</CodeSnippet>
+<p>
+Remember that GraphQL allows clients of the API to explicitly ask for the fields they want in the
+response body.  The following query calls the <code className="jarombek-inline-code">getExercisesByUser
+</code> endpoint, asking only for the <code className="jarombek-inline-code">name</code> and
+<code className="jarombek-inline-code">description</code> fields.  There are other fields in the type
+<code className="jarombek-inline-code">Exercise</code>, but we only want these two.
+</p>
+<CodeSnippet language="GraphQL">
+query AndyExercises {
+  getExercisesByUser(user: "Andy") {
+    name
+    description
+  }
+}
+</CodeSnippet>
+<p>
+Response:
+</p>
+<CodeSnippet language="JSON">
+{
+  "data": {
+    "getExercisesByUser": [
+      {
+        "name": "Early Morning Beach Run",
+        "description": "Morning run on the beach with a few strides"
+      },
+      {
+        "name": "Track Workout at High School",
+        "description": "Was drizzling during the warmup and raining for the workout.  6x1000m at a much slower pace than in college (3:12-3:20)"
+      },
+      {
+        "name": "Push-Ups at Home",
+        "description": "It was exhausting"
+      }
+    ]
+  }
+}
+</CodeSnippet>
+<p>
+Mutations are also easy to execute.  The following mutation creates a new running exercise.  After
+it is created, I ask for all the newly created fields back from the API.
+</p>
+<CodeSnippet language="GraphQL">
+mutation AddNewRun {
+  createCardioExercise(cardio: {
+    name: "Beautiful Sunday Long Run"
+    user: "Andy"
+    date: "Aug 5, 2018"
+    distance: 12.31
+    type: RUN
+  }) {
+    id
+    name
+    user
+    date
+    distance
+    type
+  }
+}
+</CodeSnippet>
+<p>
+Response:
+</p>
+<CodeSnippet language="JSON">
+{
+  "data": {
+    "createCardioExercise": {
+      "id": "813423fe-5954-4137-93e4-fe5bf7a23c68",
+      "name": "Beautiful Sunday Long Run",
+      "user": "Andy",
+      "date": "2018-08-05T04:00:00.000Z",
+      "distance": 12.31,
+      "type": "RUN"
+    }
+  }
+}
+</CodeSnippet>
+<p>
+I created querys and mutations for all the defined endpoints, which you can check out in
+<a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/2018/08-Aug/8-5-graphql/
+queries.graphql">queries.graphql</a>.
+</p>
+<SectionTitle title="Wrapping Up">Wrapping Up</SectionTitle>
+<p>
+After working with GraphQL for the first time, I am really intrigued by this new way of creating
+an API.  Sometime in the future I will create a full GraphQL API prototype with a front-end and
+database.  At that point I can make a conclusion about GraphQLs use in a production application.
+Maybe someday GraphQL will even replace the REST APIs I enjoy working with so much!
+</p>
+</div>

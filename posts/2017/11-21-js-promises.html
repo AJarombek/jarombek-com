@@ -1,0 +1,127 @@
+<div>
+<p>
+Today I am looking at Promises in JavaScript and how they are used to write easy to follow
+ and error resistant asynchronous code.  Before writing any Promises I made an
+async call in JavaScript the traditional way; with callbacks. I didn't use any fancy
+JavaScript framework to make my async http request, just the simple
+<code className="jarombek-inline-code">XMLHttpRequest</code> object (which is as poorly named
+as AJAX - it can be used for much more than XML!)<sup>1</sup>.
+</p>
+<p>
+I made a custom google search API which was really easy and fun to create<sup>2</sup>!
+It searches certain websites for cat related posts (and is appropriately called meowmeow)!
+Who wouldn't love that?  In my code I retrieve the article names from the
+top 10 searches in my custom meow search.  The code uses the
+<code className="jarombek-inline-code">XMLHttpRequest</code> object and a callback function:
+</p>
+<CodeSnippet language="JavaScript">
+var httpRequest = new XMLHttpRequest();
+
+httpRequest.open('GET', 'https://www.googleapis.com/customsearch/#', true);
+httpRequest.send();
+
+httpRequest.onreadystatechange = function() {
+
+    if (httpRequest.status === 200 && httpRequest.readyState === 4) {
+        var json = JSON.parse(httpRequest.response);
+
+        for (let item of json.items) {
+            console.info(item.title);
+        }
+    }
+}
+</CodeSnippet>
+<figure>
+    <img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/11-21-17-results.png">
+</figure>
+<p>
+I won't explain the <code className="jarombek-inline-code">XMLHttpRequest</code> object in detail here
+but you can see that the callback function is placed on the <code className="jarombek-inline-code">
+onreadystatechange</code> property.  This approach gets pretty ugly since <code className="jarombek-inline-code">
+onreadystatechange</code> is called multiple times for each request.  Due to multiple invocations I checked if
+<code className="jarombek-inline-code">readyState === 4</code>, where 4 represents the request being
+done<sup>3</sup>.
+</p>
+<p>
+There are obvious issues with this callback function approach.  What happens if the request
+errors out?  This code has no error handling so the result of an unsuccessful call to the custom google
+search is unclear.  Also what if I need to make a second asynchronous call after this request is completed?
+Using callbacks I would need nested callback functions, which quickly becomes ugly and hard to
+follow.  This is commonly referred to as callback hell.
+</p>
+<p>
+These are just a few of the reasons to move away from callbacks to a more elegant solution - promises!
+A promise object is a value that currently does not exist but is guaranteed to exist in the future.
+With promises it is easy to write error handling for asynchronous code and hide some of the asynchronous details
+inside the promise definition.  Let's see how <code className="jarombek-inline-code">XMLHttpRequest</code>
+works using promises:
+</p>
+<CodeSnippet language="JavaScript">
+function httpMeow() {
+    return new Promise(function (resolve, reject) {
+        var httpRequest = new XMLHttpRequest();
+
+        httpRequest.open('GET', 'https://www.googleapis.com/customsearch/v1?key=AIzaSyA2QIPJoGYMx_DuQH6wDqNG3AHXG7bcb94' +
+                '&cx=005720647135116730303:chkg-pnyocg&q=meow&prettyPrint=false', true);
+
+        httpRequest.onload = function success() {
+            if (httpRequest.status === 200) {
+                resolve(httpRequest.response);
+            } else {
+                reject("no meow was heard :(");
+            }
+        };
+        httpRequest.onerror = function error() {
+            reject("no meow was heard :(");
+        };
+        httpRequest.send();
+    });
+}
+
+httpMeow().then(function(response) {
+    var json = JSON.parse(response);
+
+    for (let item of json.items) {
+        console.info(item.title);
+    }
+}, function(err) {
+    console.info(err);
+});
+</CodeSnippet>
+<p>
+This code is broken up into two parts.  First the
+<code className="jarombek-inline-code">httpMeow()</code> function returns a
+<code className="jarombek-inline-code">Promise</code> object.  You can think of
+<code className="jarombek-inline-code">httpMeow()</code> as a reusable function to execute http
+requests, hiding the <code className="jarombek-inline-code">XMLHttpRequest</code> details from outside
+code.  A promise can either reject or resolve a currently non-existent
+value.  This is represented in code by the <code className="jarombek-inline-code">resolve()</code> and
+<code className="jarombek-inline-code">reject()</code> functions in the promise.
+</p>
+<p>
+The second part of the code interacts with the created promise.  Every <code className="jarombek-inline-code">
+Promise</code> object has a <code className="jarombek-inline-code">then()</code> function
+which is called once the promise value exists.  <code className="jarombek-inline-code">then()</code>
+is supplied two functions, the first which is called when the promise is resolved, the second when it
+is rejected.  With this solution I'm not required to know the details
+of the promise and can simply supply it with actions to perform on success or failure.
+</p>
+<p>
+The <code className="jarombek-inline-code">next()</code> function also has the benefit of returning a
+Promise<sup>4</sup>.  This allows for chained promises, as shown in the pseudocode below:
+</p>
+<CodeSnippet language="JavaScript">
+httpMeow()
+    .then(/* Get all the article titles */)
+    .then(/* Get all the article dates */)
+    .then(/* Get all the article URLs */);
+</CodeSnippet>
+<p>
+Chained promises help with readability and are an escape from callback hell!  Other
+<code className="jarombek-inline-code">Promise</code> object methods include
+<code className="jarombek-inline-code">all()</code> and <code className="jarombek-inline-code">race()</code>,
+which resolve or reject a value after all promises complete or the
+first promise completes (respectively)<sup>5</sup>.  You can read all the code from this discovery on
+<a href="https://github.com/AJarombek/jarombek-com-sources/tree/master/2017/11-Nov/11-21-JS-Promises">GitHub</a>.
+</p>
+</div>

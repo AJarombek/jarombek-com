@@ -1,0 +1,247 @@
+<div>
+<p>
+I think Webpack is intimidating.  There is so much configuration needed to bundle a web application that includes
+JavaScript, style sheets, images, fonts, non-JavaScript files, etc.  Maintenance work on my Webpack config is
+never a task I look forward to.  I have only used Webpack for a few months now, so hopefully some of the
+frustration eases over time.
+</p>
+<p>
+Nonetheless, Webpack is important to know in the current state of web programming.  I used Webpack for the first time
+to bundle my React prototype application (and went on to use it on the website you are currently viewing!).  My
+previous discovery post went over the <a href="https://jarombek.com/blog/may-31-2018-react-seed">React portion</a>
+of my prototype application.  This post looks at the Webpack portion and some of the interesting
+configuration pieces.  I'm not giving a tutorial on how to build a Webpack config - instead focusing on things
+I've learned about the bundler and my initial observations.
+</p>
+<SectionTitle title="What is Webpack">What is Webpack?</SectionTitle>
+<p>
+As I mentioned in my discovery post on the <a href="https://jarombek.com/blog/mar-17-2018-mean-stack-prototype">
+MEAN stack</a>, Webpack is a module bundler commonly used with JavaScript projects, especially those on the client
+side.  Webpack builds a dependency graph of a projects modules and bundles them into a few larger files (or
+just one file if you want).  The reason for bundling JavaScript files is that HTTP requests from the web browser
+to the server are expensive.  Bundling JavaScript modules into a few files reduces the number of HTTP requests,
+speeding up the web application.
+</p>
+<p>
+Because of plugins, Webpack has the ability to perform a wide range of tasks besides bundling.  Plugins in
+Webpack intercept events during the bundling process<sup>1</sup>.  Examples
+of plugins I use in my configuration are <code className="jarombek-inline-code">ExtractTextPlugin</code> (which
+extracts CSS out of the bundled file created by Webpack) and <code className="jarombek-inline-code">
+HotModuleReplacement</code> (live swapping of modules during development<sup>2</sup>).  How plugins actually
+work in the bundling pipeline is beyond the scope of this post, but is something worth learning to
+better understand Webpack.
+</p>
+<p>
+In order to work with Webpack you need to create a configuration file (although with Webpack 4 you don't necessarily
+need it for extremely simple applications).  Here is the basic layout:
+</p>
+<CodeSnippet language="JavaScript">
+const path = require("path");
+const HtmlWebPackPlugin = require("html-webpack-plugin");
+
+// Define paths for the entry point of the app and the output directory
+const PATHS = {
+    app: path.join(__dirname, 'src'),
+    build: path.join(__dirname, 'dist')
+};
+
+module.exports = {
+    entry: {
+        bundle: PATHS.app
+    },
+    output: {
+        path: PATHS.build,
+        filename: "[name].js"
+    },
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /(node_modules)/,
+                loader: "babel-loader",
+                options: {
+                    cacheDirectory: true
+                }
+            },
+            {
+                test: /\.html$/,
+                use: {
+                    loader: "html-loader"
+                }
+            }
+        ]
+    },
+    plugins: [
+        new HtmlWebPackPlugin({
+            template: "./src/index.html",
+            filename: "./index.html"
+        })
+    ]
+};
+</CodeSnippet>
+<p>
+This configuration can be broken down into a few important concepts: entries, outputs, loaders, and plugins.
+</p>
+<Definition word="Webpack Entry">
+<p>
+An entry point in a Webpack configuration is a path to a module.  This module is the root module in Webpack's
+internal dependency graph.  From this module Webpack will find all other referenced modules, adding them to the
+graph<sup>3</sup>.
+</p>
+<p>
+In the configuration file the entry point is specified with the <code className="jarombek-inline-code">entry</code>
+property.  Configurations can have multiple entry points, and Webpack will create multiple dependency graphs in
+that case.
+</p>
+</Definition>
+<Definition word="Webpack Output">
+The output determines a location to write the bundle files created by Webpack.  You can also specify a filename to
+write the bundle to along with more advanced configurations.  The output point is specified with the
+<code className="jarombek-inline-code">output</code> property.
+</Definition>
+<Definition word="Webpack Loader">
+Loaders are used to transform files.  They are a preprocessing step before Webpack builds its final bundle.  While
+Webpack was built to work with JavaScript code, you can use loaders to include other languages in the dependency
+graph<sup>4</sup>.  Loaders can also transform (or transpile) JavaScript code.  They are commonly configured in the
+<code className="jarombek-inline-code">module.rules</code> property.  Loaders can also be configured in JavaScript source
+code, however this technique is not recommended since it couples application code with Webpack<sup>5</sup>.  These
+inline loaders break separation of concerns.
+</Definition>
+<Definition word="Webpack Plugin">
+Plugins intercept events during the bundling process, and can do a wide range of tasks.  These tasks extend the
+capabilities of Webpack.  Plugins are configured in the <code className="jarombek-inline-code">plugin</code> array.
+</Definition>
+<p>
+With these definitions in mind, we can make some assumptions about the previously shown Webpack configuration.  The
+root of the dependency graph is the <code className="jarombek-inline-code">src</code> directory as specified by the
+input.  The output directory is <code className="jarombek-inline-code">dist</code> and the output filename is specified
+as <code className="jarombek-inline-code">[name].js</code>.  These brackets specify a placeholder value.  When Webpack runs,
+the <code className="jarombek-inline-code">[name]</code> placeholder is replaced with the property name specified in
+<code className="jarombek-inline-code">entry</code>.  Since the entry point is declared as
+<code className="jarombek-inline-code">bundle: PATHS.app</code>, the output file is <code className="jarombek-inline-code">
+dist/bundle.js</code>.
+</p>
+<p>
+Two loaders are specified.  The first transpiles all JavaScript files from ES2017 to ES5 using Babel, allowing for
+greater cross browser compatibility (since some users still use old browsers that don't support the latest JavaScript
+features).  The second loader allows Webpack to handle HTML files.
+</p>
+<p>
+The only plugin in the configuration, <code className="jarombek-inline-code">HtmlWebPackPlugin</code>, creates a root
+HTML file for a client side project.  This HTML file includes <code className="jarombek-inline-code">&lt;script&gt;</code>
+elements for the JavaScript files that Webpack bundles.  The <code className="jarombek-inline-code">
+HtmlWebPackPlugin()</code> constructor function specifies the name of the created HTML file
+(<code className="jarombek-inline-code">index.html</code>) and a template file to base the created HTML file off of
+(located at <code className="jarombek-inline-code">/src/index.html</code>).  The created index.html file is located
+in the output directory (<code className="jarombek-inline-code">dist</code>) after Webpack runs.
+</p>
+<p>
+I find that many Webpack configurations look complex at first sight.  However, it gets easier to understand when I
+remember they simply boil down to entries, outputs, loaders, and plugins.
+</p>
+<p>
+Now let's analyze some cool things the Webpack configuration does in my prototype.
+</p>
+<SectionTitle title="Handling CSS">Handling CSS</SectionTitle>
+<p>
+Since stylesheets aren't JavaScript, Webpack needs the help of loaders and plugins to handle them.  The React
+prototype uses Sass for its stylesheets.  Sass is a CSS preprocessor that adds additional functionality on top of CSS.
+I used Sass in my <a href="https://jarombek.com/blog/mar-17-2018-mean-stack-prototype">MEAN stack prototype</a> and
+dedicated a <a href="https://jarombek.com/blog/mar-10-2018-sass">discovery post</a> to it.  I
+really enjoy writing Sass, but using it includes the additional effort of converting Sass to CSS before using it on the
+web.  Luckily Webpack loaders make this process extremely simple.
+</p>
+<CodeSnippet language="JavaScript">
+{
+    module: {
+        rules: [
+            {
+                test: /\.scss$/,
+                use: ["style-loader", "css-loader", "sass-loader"]
+            }
+        ]
+    }
+}
+</CodeSnippet>
+<p>
+This configuration specifies three loaders - <code className="jarombek-inline-code">style-loader</code>,
+<code className="jarombek-inline-code">css-loader</code>, and <code className="jarombek-inline-code">sass-loader</code>.
+Confusingly Webpack executes loaders from right to left - so <code className="jarombek-inline-code">
+sass-loader</code> is executed first.  <code className="jarombek-inline-code">sass-loader</code> compiles Sass to
+CSS, and then <code className="jarombek-inline-code">css-loader</code> creates a dependency graph of CSS files by
+linking <code className="jarombek-inline-code">@import</code> statements and <code className="jarombek-inline-code">
+url()</code> blocks as dependencies<sup>6</sup>.  These styles are then inlined in the projects HTML file inside
+a <code className="jarombek-inline-code">&lt;style&gt;</code> tag.  When viewing the website, elements appear
+styled according to the projects stylesheets.
+</p>
+<p>
+This setup is perfect for a development environment.  Unfortunately inline styles are not recommended in a
+production environment<sup>7</sup>.  An alternative to inlining styles is to separate them out into their own
+bundle.  This can be done with the <code className="jarombek-inline-code">ExtractTextPlugin</code>.
+</p>
+<CodeSnippet language="JavaScript">
+const plugin = new ExtractTextPlugin({
+    filename: '[name].css'
+});
+
+module.exports = {
+    ...
+    module: {
+        rules: [
+            {
+                test: /\.scss$/,
+                use: plugin.extract({
+                    use: ["css-loader", "sass-loader"],
+                    fallback: "style-loader"
+                })
+            }
+        ]
+    },
+    plugins: [plugin]
+}
+</CodeSnippet>
+<p>
+In this code snippet I extract the CSS styling into a bundle.  The bundle has a placeholder name
+<code className="jarombek-inline-code">[name].css</code>.  Now the HTML file that Webpack produces will have a
+<code className="jarombek-inline-code">&lt;link&gt;</code> element referencing the CSS stylesheet.
+</p>
+<SectionTitle title="Handling Images">Handling Images</SectionTitle>
+<p>
+To reduce the number of server calls a client makes to load a web page, Webpack helps inline images
+in the JavaScript bundle.  These images are represented as base64 encoded strings<sup>8</sup>.  In a development
+environment it is fine to inline all of the images.  However, in an effort to keep Webpack's output bundle relatively
+small, images beyond a certain size are not inlined for production.  Here is the config to inline any images less
+than 15kB in size.
+</p>
+<CodeSnippet language="JavaScript">
+{
+    module: {
+        rules: [
+            {
+                test: /\.(png|jpg|svg)$/,
+                use: {
+                    loader: 'url-loader',
+                    options: {
+                        limit: 15000,
+                        name: '[name].[ext]'
+                    }
+                }
+            }
+
+        ]
+    }
+}
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+There are many cool things you can do with Webpack.  These configurations along with development
+servers and hot module replacement helped make development work and code deployment a breeze.
+</p>
+<p>
+Once Webpack is all set up and working it really is an amazing tool that goes far beyond bundling JavaScript.  I'll
+be using Webpack and learning more of its intricacies for the foreseeable future.
+</p>
+<p>
+You can check out my Webpack config and React prototype on <a href="https://github.com/AJarombek/react-webpack-seed">GitHub</a>.
+</p>
+</div>

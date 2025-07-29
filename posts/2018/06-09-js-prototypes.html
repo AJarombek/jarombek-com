@@ -1,0 +1,401 @@
+<div>
+<p>
+For developers new to JavaScript understanding how prototypes work is quite confusing (myself included).  The construct
+itself is quite simple, however those of us accustomed to class based object oriented programming have difficulty
+grasping JavaScripts object model.  This discovery post attempts to clear up some confusing pieces
+of JavaScript prototypes and inheritance.
+</p>
+<SectionTitle title="What is a Prototype">What is a Prototype</SectionTitle>
+<p>
+Most of the building blocks in JavaScript are objects.  Besides for the primitives (
+<code className="jarombek-inline-code">string</code>, <code className="jarombek-inline-code">number</code>,
+<code className="jarombek-inline-code">boolean</code>, <code className="jarombek-inline-code">null</code>,
+<code className="jarombek-inline-code">undefined</code>, <code className="jarombek-inline-code">symbol</code>) everything
+in JavaScript is an object<sup>1</sup>.
+</p>
+<p>
+JavaScript has basic object types which we interact with every day in our code.  Lesser known is that
+functions and arrays are also types of objects.  This makes sense if you think about it - functions and arrays
+can be passed just like objects and have methods and properties just like objects.  Functions in JavaScript are
+first class citizens as it relates to other objects.
+</p>
+<Definition word="First Class Citizen">
+In programming terms an entity is a first class citizen when it has all the abilities of another entity<sup>2</sup>.
+For example, in JavaScript functions are first class citizens because they are treated just like any other object
+(in fact they are objects).  Functions can be instantiated, assigned to a variable, and passed as an
+argument just like any other object.  They can also have properties and methods like any object.  Functions have
+all the rights of other citizens in the programming language.
+</Definition>
+<p>
+Almost everything in JavaScript is an object with first class abilities.  Every object in JavaScript has an internal
+property called <code className="jarombek-inline-code">[[Prototype]]</code>.  While the prototype property seemed
+mysterious when I first learned JavaScript it is actually very simple.  A prototype is a reference to another object.
+</p>
+<p>
+So why would you want a JavaScript object to reference a different object?  Linking objects through prototypes allows
+for a natural form of inheritance.  Inheritance in JavaScript is known as prototypal inheritance.
+</p>
+<Definition word="Prototypal Inheritance">
+In JavaScript objects can be linked together through prototypes.  When an object is linked to a prototype, all the
+exposed methods and properties on the prototype object are exposed to the base object.  Importantly the prototype
+object is not copied into the base objects instance.  Instead, the <code className="jarombek-inline-code">[[Prototype]]
+</code> property on the base object holds a reference to the prototype object.  You can think of a prototype chain as a
+singly linked list of objects.  Each object has a reference to the next object (prototype object) in the chain.
+</Definition>
+<Definition word="Prototype Chain">
+The method by which prototypal inheritance occurs.  In JavaScript objects are linked together via the
+<code className="jarombek-inline-code">[[Prototype]]</code> property.  These linkages create a chain of objects, held
+together by the prototype reference.  This chain is known as the prototype chain.
+</Definition>
+<p>
+Lets look at some examples of natural prototype chains to get a better feel for these concepts.
+</p>
+<SectionTitle title="Prototype Chains">Prototype Chains</SectionTitle>
+<p>
+For starters lets check out what prototype chain is linked to an object literal.  The
+<code className="jarombek-inline-code">Object.getPrototypeOf(obj)</code> function is a simple way to find the prototype
+of an object.  This function can be used successively to traverse the prototype chain.
+</p>
+<CodeSnippet language="JavaScript">
+const person = {
+    name: "Andrew Jarombek",
+    age: 23
+};
+
+// Traverse the prototype chain of an object
+// person{name, age} -> Object.prototype -> null
+const objPrototype = Object.getPrototypeOf(person);
+const objProtoPrototype = Object.getPrototypeOf(objPrototype);
+
+console.info(objPrototype);
+console.info(objProtoPrototype);
+</CodeSnippet>
+<CodeSnippet language="Bash">
+# Object.prototype
+{constructor: ƒ, hasOwnProperty: ƒ, isPrototypeOf: ƒ, propertyIsEnumerable: ƒ, ...}
+
+# The prototype of Object.prototype is null
+null
+</CodeSnippet>
+<p>
+This code reveals what prototype is linked to an object literal - <code className="jarombek-inline-code">
+Object.prototype</code>.  All objects have this prototype somewhere in their chain unless explicitly defined not
+to.  <code className="jarombek-inline-code">Object.prototype</code> defines important functions such as
+<code className="jarombek-inline-code">toString()</code> and <code className="jarombek-inline-code">valueOf()</code>, so
+in most cases you wouldn't want to explicitly tell an object not to have <code className="jarombek-inline-code">
+Object.prototype</code> in its chain.  I will show you how to define an object without
+<code className="jarombek-inline-code">Object.prototype</code> later on.
+</p>
+<p>
+The object above <code className="jarombek-inline-code">Object.prototype</code> in the prototype chain is
+<code className="jarombek-inline-code">null</code>.  The reason for having <code className="jarombek-inline-code">null</code>
+in the prototype chain is to define the top of the chain.  There should be no prototype objects for
+<code className="jarombek-inline-code">Object.prototype</code>.
+</p>
+<p>
+Here is a visual representation of the prototype chain for an object literal:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-9-18-object-chain.png"/>
+</figure>
+<p>
+Arrays in JavaScript are simply objects with extra functionality.  The extra functions supplied to arrays can be
+found in <code className="jarombek-inline-code">Array.prototype</code>:
+</p>
+<CodeSnippet language="JavaScript">
+const array = [1,2,3,4];
+
+// Traverse the prototype chain of an array
+// [1,2,3,4] -> Array.prototype -> Object.prototype -> null
+const arrayPrototype = Object.getPrototypeOf(array);
+const arrayProtoPrototype = Object.getPrototypeOf(arrayPrototype);
+
+console.info(arrayPrototype);
+console.info(arrayProtoPrototype);
+</CodeSnippet>
+<CodeSnippet language="Bash">
+# Array.prototype
+[constructor: ƒ, concat: ƒ, find: ƒ, findIndex: ƒ, pop: ƒ, ...]
+
+# Object.prototype
+{constructor: ƒ, hasOwnProperty: ƒ, isPrototypeOf: ƒ, propertyIsEnumerable: ƒ, ...}
+</CodeSnippet>
+<p>
+Here is a visual representation of the prototype chain for an array:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-9-18-array-chain.png"/>
+</figure>
+<p>
+A function in JavaScript is a callable object.  Because of its object structure, functions also have prototype chains:
+</p>
+<CodeSnippet language="JavaScript">
+const addition = (x, y) => x + y;
+
+// Traverse the prototype chain of a function
+// {f(x, y)} -> Function.prototype -> Object.prototype -> null
+const funcPrototype = Object.getPrototypeOf(addition);
+const funcProtoPrototype = Object.getPrototypeOf(funcPrototype);
+
+console.info(funcPrototype);
+console.info(funcProtoPrototype);
+</CodeSnippet>
+<CodeSnippet language="Bash">
+# Function.prototype
+ƒ () { [native code] }
+
+# Object.prototype
+{constructor: ƒ, hasOwnProperty: ƒ, isPrototypeOf: ƒ, propertyIsEnumerable: ƒ, ...}
+</CodeSnippet>
+<p>
+Here is a visual representation of the prototype chain for a function:
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-9-18-function-chain.png"/>
+</figure>
+<p>
+Whether you knew it or not, all the objects used in JavaScript have a prototype chain.  There are a few different
+ways you can use prototype chains to define prototypal inheritance between objects.
+</p>
+<SectionTitle title="Prototypal Inheritance">Prototypal Inheritance</SectionTitle>
+<p>
+A more traditional way to define prototypes and prototypal inheritance is through functions and the ES6
+<code className="jarombek-inline-code">Object.setPrototypeOf()</code> function.  Here is the first object in my prototype
+chain:
+</p>
+<CodeSnippet language="JavaScript">
+function Exercise(type) {
+    this.type = type;
+    this.date = Date.now();
+}
+
+const newExercise = new Exercise('Run');
+
+// Add properties to the Exercise prototype
+// All objects created with the Exercise constructor function will have these prototype elements
+Exercise.prototype.distance = 3.39;
+Exercise.prototype.minutes = 25;
+Exercise.prototype.seconds = 46;
+
+// Able to access items on the prototype
+console.info(`${newExercise.minutes}:${newExercise.seconds}`);
+</CodeSnippet>
+<CodeSnippet language="Bash">
+25:46
+</CodeSnippet>
+<p>
+All <code className="jarombek-inline-code">Exercise()</code> does is bind some properties to
+<code className="jarombek-inline-code">this</code>.  I wrote an entire
+<a href="https://jarombek.com/blog/nov-11-2017-js-this">discovery post</a> on
+<code className="jarombek-inline-code">this</code> in JavaScript since it can get quite confusing.  Calling
+<code className="jarombek-inline-code">Exercise()</code> without a <code className="jarombek-inline-code">new</code>
+keyword does nothing, since it binds <code className="jarombek-inline-code">this</code> to the function scope which no longer exists after the call is
+completed.  However, when <code className="jarombek-inline-code">new Exercise()</code> is invoked an object is
+created as a side effect.  This object contains all elements in the function scope, so the object created from
+<code className="jarombek-inline-code">new Exercise()</code> contains the properties
+<code className="jarombek-inline-code">type</code> and <code className="jarombek-inline-code">date</code>.
+</p>
+<p>
+Every object has a prototype which is often modifiable (you could always freeze a prototype - remember it is just
+an object).  One way to access the prototype for modification is through the <code className="jarombek-inline-code">
+prototype</code> property.  In the code above the prototypes <code className="jarombek-inline-code">distance</code>,
+<code className="jarombek-inline-code">minutes</code>, and <code className="jarombek-inline-code">seconds</code> properties
+are defined.
+</p>
+<p>
+The final line of the code accesses two properties on the prototype - <code className="jarombek-inline-code">
+minutes</code> and <code className="jarombek-inline-code">seconds</code> - and prints them out.  The
+notation for accessing a prototype property is the same as accessing a base object property.  What is
+JavaScript doing behind the scenes to resolve variables on the prototype that are searched for on the base object
+instance?
+</p>
+<p>
+When searching for a property or method in a JavaScript object, the first thing JavaScript does is search
+through the base object.  If the method or property is not found on the base
+object, the search continues up the prototype chain.  The following diagram demonstrates a search JavaScript performs
+for the <code className="jarombek-inline-code">minutes</code> property.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/6-9-18-prototype-traverse.png"/>
+</figure>
+<p>
+Now that the <code className="jarombek-inline-code">Exercise</code> object is understood, how can we extend this object
+in a prototype chain?  Traditionally you could create another object and call the previous objects constructor
+function within it.  Here is an example of a specialized exercise object that defines a running workout:
+</p>
+<CodeSnippet language="JavaScript">
+function Run(surface) {
+    Exercise.call(this, 'Run');
+    this.surface = surface;
+}
+
+const firstRun = new Run('Grass');
+
+console.info(firstRun);
+
+// Cant find minutes and seconds - the prototype is not yet hooked up
+console.info(`${firstRun.minutes}:${firstRun.seconds} on ${firstRun.surface}`);
+</CodeSnippet>
+<CodeSnippet language="Bash">
+Run {type: "Run", date: 1528548053295, surface: "Grass"}
+undefined:undefined on Grass
+</CodeSnippet>
+<p>
+The <code className="jarombek-inline-code">call()</code> function is used in this example to explicitly bind
+<code className="jarombek-inline-code">this</code> to the <code className="jarombek-inline-code">Run()</code> functions
+scope.  Binding <code className="jarombek-inline-code">this</code> gives <code className="jarombek-inline-code">Run()</code>
+access to the <code className="jarombek-inline-code">
+type</code> and <code className="jarombek-inline-code">date</code> properties in the <code className="jarombek-inline-code">
+Exercise()</code> function.  Right now the <code className="jarombek-inline-code">Exercise()</code> constructor
+function is set as the prototype of <code className="jarombek-inline-code">firstRun</code>.  However there is still an
+issue which becomes apparent in the last call to <code className="jarombek-inline-code">console.info()</code>.  The
+prototype of <code className="jarombek-inline-code">Exercise</code> is still not in the prototype chain of
+<code className="jarombek-inline-code">firstRun</code>!  Because of this the properties <code className="jarombek-inline-code">
+minutes</code> and <code className="jarombek-inline-code">seconds</code> are not found.
+</p>
+<p>
+To fix the problem I called <code className="jarombek-inline-code">Object.setPrototypeOf()</code> to add
+<code className="jarombek-inline-code">Exercise.prototype</code>
+into the prototype chain.  The following code sets the prototype of <code className="jarombek-inline-code">Run.prototype
+</code> (the constructor function of <code className="jarombek-inline-code">Exercise</code>) to
+<code className="jarombek-inline-code">Exercise.prototype</code>.
+</p>
+<CodeSnippet language="JavaScript">
+Object.setPrototypeOf(Run.prototype, Exercise.prototype);
+</CodeSnippet>
+<p>
+Now the <code className="jarombek-inline-code">minutes</code> and <code className="jarombek-inline-code">seconds</code>
+variables are in the prototype chain.
+</p>
+<p>
+In the examples so far every property was defined once in the prototype chain.  What would happen if a property or
+method was defined in multiple levels of the prototype chain?  Looking back at the diagram that searched for the
+<code className="jarombek-inline-code">minutes</code> property, the search began at the base object and worked its way
+up the prototype chain.  If there are multiple instances of a property on a chain, the first time the search finds
+that property it returns its value, ignoring any properties further up the chain.  This process is known as
+shadowing, since any properties further up the prototype chain are covered up by matching properties lower on the
+chain<sup>3</sup>.
+</p>
+<SectionTitle title="Object.create()" isCode="true">Object.create()</SectionTitle>
+<p>
+In ES5 a cleaner way to define the prototype of an object was introduced that doesn’t depend on the object
+creation side effects of the <code className="jarombek-inline-code">new</code> operator.
+<code className="jarombek-inline-code">Object.create()</code> creates a new object whose prototype is passed in as
+the first argument.  This function also has an optional second parameter which sets some properties on the newly
+created object.  This approach is displayed below:
+</p>
+<CodeSnippet language="JavaScript">
+const Exercise = {
+    print: function() {
+        console.info(`${this.type} ${this.miles} Miles in ${this.minutes}:${this.seconds}`)
+    }
+};
+
+// Create a new object with Exercise as its prototype
+// Note that using this version of Object.create() means that objects are not immutable
+// if you want them to have properties
+let run = Object.create(Exercise);
+
+// Add new properties to the run object.
+run.type = 'Run';
+run.miles = 3.46;
+run.minutes = 20;
+run.seconds = 33;
+
+run.print();
+
+console.info(Object.getPrototypeOf(run));
+
+// Longer more verbose implementation of Object.create(prototype, object)
+// Now at least the object can be implicitly immutable
+let secondRun = Object.create(Exercise, {
+    type: {value: 'Run'},
+    miles: {value: 4.11},
+    minutes: {value: 29},
+    seconds: {value: 57}
+});
+
+secondRun.print();
+</CodeSnippet>
+<CodeSnippet language="Bash">
+Run 3.46 Miles in 20:33
+{print: ƒ}
+Run 4.11 Miles in 29:57
+</CodeSnippet>
+<p>
+Another way to use <code className="jarombek-inline-code">Object.create()</code> is to create an
+object without a prototype.  This can be done by passing <code className="jarombek-inline-code">null</code> as the
+only argument to the function like so - <code className="jarombek-inline-code">Object.create(null)</code>.  The newly
+created object from this function invocation has an internal <code className="jarombek-inline-code">[[Prototype]]</code>
+property that points to <code className="jarombek-inline-code">null</code>.  While this allows developers to easily
+create an object without a prototype chain, note the drawbacks of this approach mentioned earlier.
+</p>
+<SectionTitle title="ES6 Class">ES6 Class</SectionTitle>
+<p>
+ES6 introduced the <code className="jarombek-inline-code">class</code> syntax for creating objects, which confusingly
+is built on top of prototypal inheritance.  The following code defines the <code className="jarombek-inline-code">
+Exercise</code> class and its <code className="jarombek-inline-code">Run</code> subclass.
+</p>
+<CodeSnippet language="JavaScript">
+class Exercise {
+    constructor(type, miles, minutes, seconds) {
+        this.type = type;
+        this.miles = miles;
+        this.minutes = minutes;
+        this.seconds = seconds;
+    }
+
+    print() {
+        console.info(`${this.type} ${this.miles} Miles in ${this.minutes}:${this.seconds}`);
+    }
+}
+
+class Run extends Exercise {
+    constructor(miles, minutes, seconds, surface) {
+        super('Run', miles, minutes, seconds);
+        this.surface = surface;
+    }
+}
+
+const run = new Run(1, 5, 31, 'Track');
+
+run.print();
+</CodeSnippet>
+<CodeSnippet language="Bash">
+Run 1 Miles in 5:31
+</CodeSnippet>
+<p>
+To make it explicitly clear that classes in JavaScript are simply syntactic sugar on top of prototypes, the following
+code traverses the prototype chain of <code className="jarombek-inline-code">run</code> and prints its members out.
+</p>
+<CodeSnippet language="JavaScript">
+// Go through the prototype chain of Run
+const runPrototype = Object.getPrototypeOf(run);
+const runProtoPrototype = Object.getPrototypeOf(runPrototype);
+const runProtoProtoPrototype = Object.getPrototypeOf(runProtoPrototype);
+
+console.info(runPrototype);
+console.info(runProtoPrototype);
+console.info(runProtoProtoPrototype);
+</CodeSnippet>
+<CodeSnippet language="Bash">
+# Run
+Exercise {constructor: ƒ}
+
+# Exercise
+{constructor: ƒ, print: ƒ}
+
+# Object.prototype
+{constructor: ƒ, hasOwnProperty: ƒ, isPrototypeOf: ƒ, propertyIsEnumerable: ƒ, ...}
+</CodeSnippet>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Understanding prototype chains and prototypal inheritance is important when utilizing JavaScripts object oriented
+features.  Often I use a more functional approach with JavaScript, so I rarely run into problems with prototypes.
+However, understanding prototypes is crucial for being a well rounded JavaScript dev.
+</p>
+<p>
+All the code from this discovery is available on <a href="https://github.com/AJarombek/jarombek-com-sources/tree/
+master/2018/06-Jun/6-9-Prototype-Inheritance">GitHub</a>.
+</p>
+</div>

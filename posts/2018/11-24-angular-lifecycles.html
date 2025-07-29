@@ -1,0 +1,88 @@
+<div>
+<p>
+When I learned AngularJS on my <a href="https://jarombek.com/resume?page=3">first software
+development team</a> (June 2017), the biggest adjustment from JQuery was the addition of lifecycles for webpages.
+With modern front-end libraries and frameworks such as <a href="https://jarombek.com/blog/
+may-31-2018-react-seed">React</a> and <a href="https://jarombek.com/blog/mar-17-2018-mean-stack-prototype">
+Angular</a>, lifecycles are commonplace.  Although late to the party, in June 2017 they were brand
+new to me.  This post looks at the lifecycles introduced in the Angular framework.  In a future post
+I will look at lifecycles in React, drawing comparisons between the two front-end approaches.
+</p>
+<SectionTitle title="Angular at a High Level">Angular at a High Level</SectionTitle>
+<p>
+As I've discussed in <a href="https://jarombek.com/blog/jan-6-2018-angular-5-first-impressions">
+previous</a> <a href="https://jarombek.com/blog/jan-27-2018-angular-5-routing">posts</a>, Angular is
+a front-end framework.  While you can use JavaScript to write Angular projects, TypeScript is
+commonly used instead.  Angular projects consist of one or many modules.  Each module contains
+<a href="https://jarombek.com/blog/jan-6-2018-angular-5-first-impressions#modules-components">
+components</a>, <a href="https://jarombek.com/blog/jan-6-2018-angular-5-first-impressions#directives">
+directives</a>, and other services.  As of today the latest version of Angular is 7.0.0.
+</p>
+<p>
+Both Angular components and directives have lifecycles.  A common implementation of directives with lifecycles are
+spies<sup>1</sup>.  Spies track the lifecycle of an HTML element in the DOM.  In my MEAN stack prototype,
+I used a <a href="https://jarombek.com/blog/mar-17-2018-mean-stack-prototype#post-page">spy directive
+</a> to determine when <code className="jarombek-inline-code">&lt;input&gt;</code> elements were created and
+destroyed.  Spies utilize two lifecycle hook methods, <code className="jarombek-inline-code">ngOnInit()</code>
+and <code className="jarombek-inline-code">ngOnDestroy()</code>.  <code className="jarombek-inline-code">
+ngOnInit()</code> is invoked after a directive is initialized (its element is added to the DOM) and
+<code className="jarombek-inline-code">ngOnDestroy()</code> is invoked on directive destruction (its
+element is removed from the DOM).  You can view the full code for the spy directive on
+<a href="https://bit.ly/2DMzzdH">GitHub</a>.
+</p>
+<p>
+The rest of this post will focus on the lifecycles of Angular components!
+</p>
+<SectionTitle title="Component Lifecycles">Component Lifecycles</SectionTitle>
+<p>
+Components have three different types of lifecycles - those for initialization, destruction, and
+change detection<sup>2</sup>.  The Angular framework maintains a change detection mechanism which
+monitors a component for its entire lifetime.  Each component gets its own change detector which keeps
+the UI in sync with the component properties<sup>3</sup>.  Whenever a change occurs the UI is
+re-rendered, invoking the appropriate lifecycle.  Each lifecycle has a corresponding hook method,
+where custom logic is added.
+</p>
+<p>
+Let's take a look at some of the most important lifecycle hook methods.
+</p>
+<SectionTitle title="constructor()" isCode="true">constructor()</SectionTitle>
+<p>
+A component class <code className="jarombek-inline-code">constructor()</code> is not a lifecycle hook method,
+but I included it here since its invoked before any lifecycle hook methods are invoked.  The constructor also exists on every component class.
+The constructor is limited in use because component properties aren't initialized yet when its called<sup>4</sup>.
+</p>
+<SectionTitle title="ngOnChanges()" isCode="true">ngOnChanges()</SectionTitle>
+<p>
+<code className="jarombek-inline-code">ngOnChanges()</code> is a change detection lifecycle hook.  It's
+invoked right after the constructor finishes executing for child components that are passed 
+<code className="jarombek-inline-code">@Input</code> properties.  If no <code className="jarombek-inline-code">
+@Input</code> properties are bound to a component, this hook method isn't called.
+</p>
+<SectionTitle title="ngOnInit()" isCode="true">ngOnInit()</SectionTitle>
+<p>
+<code className="jarombek-inline-code">ngOnInit()</code> is an initialization lifecycle hook that is
+very commonly used.  Its invoked after all the component properties are initialized.  I often used
+<code className="jarombek-inline-code">ngOnInit()</code> to bind services to component properties.
+</p>
+<SectionTitle title="ngDoCheck()" isCode="true">ngDoCheck()</SectionTitle>
+<p>
+<code className="jarombek-inline-code">ngDoCheck()</code> is invoked every time a change occurs to a component.
+Be warned - implementing this lifecycle hook can be very expensive since it runs every time the UI changes.
+</p>
+<SectionTitle title="ngOnDestroy()" isCode="true">ngOnDestroy()</SectionTitle>
+<p>
+<code className="jarombek-inline-code">ngOnDestroy()</code> is invoked when the component is destroyed.
+</p>
+<SectionTitle title="Lifecycle Project">Lifecycle Project</SectionTitle>
+<p>
+I created an Angular project which displays each lifecycle hook invocation in the UI.  The code for
+this project is available on <a href="https://github.com/AJarombek/jarombek-com-sources/blob/master/
+2018/11-Nov/11-24-angular-lifecycle">GitHub</a>.
+</p>
+<figure>
+<img className="jarombek-blog-image" src="https://asset.jarombek.com/posts/11-24-18-angular-lifecycle.png"/>
+</figure>
+<p>
+In a future post I will look at lifecycles in React!
+</p>
+</div>

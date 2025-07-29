@@ -1,0 +1,350 @@
+<div>
+<p>
+I often think that processing strings of characters in an application is a simple process.  The
+reasoning behind this line of thought is that string APIs provided by programming languages are usually
+very simple.  However, processing characters is only straightforward when edge cases are
+avoided.  With the growth of Unicode and use of special characters (for localization, emojis, etc.), edge
+cases are increasingly common.  This post explores the complexities of Unicode and how
+programming languages support its edge cases.
+</p>
+<SectionTitle title="What is Unicode?">What is Unicode?</SectionTitle>
+<p>
+Unicode is a standard for creating character encodings and handling characters in a consistent
+manner<sup>1</sup>.  Unicode was built upon older character encodings such as
+<a href="https://en.wikipedia.org/wiki/ISO/IEC_8859">ISO 8859</a> and its subset
+<a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a>.  These old encodings have limited scope
+(ASCII has just 128 characters),  making them inapt for international applications.  While
+ASCII often works fine for applications used by English speakers in the United States (ASCII contains
+the characters A-Z, numbers 0-9, punctuation, and common symbols), anyone else is out of luck.  Unicode
+fixes these limitations, implementing characters from languages across the world, and even creating
+fun symbols and emojis.  As of Unicode 11.0 over <a href="https://en.wikipedia.org/wiki/
+List_of_Unicode_characters">137,000 characters exist</a>.
+</p>
+<p>
+Unicode is somewhat backwards compatible with ISO 8859 and ASCII.  For example, in some Unicode encodings the
+character 'A' is the same in Unicode and ASCII, and any valid ASCII encoding is valid Unicode.
+</p>
+<SectionTitle title="Character Encodings">Character Encodings</SectionTitle>
+<p>
+Unicode uses code points to identify each character.  Each code point is a four to six digit hexadecimal
+number<sup>3</sup>.  Most languages allow unicode code points to be used in strings as escaped
+sequences.  For example, the following JavaScript statement creates a string containing the Unicode
+code point 0394.
+</p>
+<CodeSnippet language="JavaScript">
+const delta = '\u0394';
+</CodeSnippet>
+<p>
+The hexadecimal number 0394 represents a single Unicode character - the greek delta (Δ).  Unicode code
+points are often prefixed with the character 'U' like so: <code className="jarombek-inline-code">U+0394</code>.
+</p>
+<p>
+Things get confusing when we consider which character encoding the string
+<code className="jarombek-inline-code"> '\u0394'</code> uses.  A reasonable guess is that it uses
+the Unicode character encoding.  Unfortunately
+it's not that simple.  Unicode is a standard for how to create character encodings, and there are
+many different encoding formats that match the Unicode spec.
+</p>
+<p>
+A character encoding is a way to identify a character with some kind of code<sup>2</sup>.  Unicode
+has many different encodings, the most common being UTF-8, UTF-16, UTF-32, and UCS-2.
+</p>
+<ComparisonTable title="Unicode Encodings">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+UTF-8
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A character encoding for Unicode that uses between 1 and 4 bytes.  Each unit in UTF-8 is 8 bits, or
+one byte.  The amount of bytes used to represent characters depends on the Unicode code point.  For
+code points less than <code className="jarombek-inline-code">U+0074</code>, the encoding uses a single
+byte<sup>4</sup>.  This encompasses most european languages and all of ASCII.  Since ASCII is also
+encoded using one byte, the UTF-8 encoding is backwards compatible to ASCII for the first 128
+characters<sup>5</sup>.  Since each unit in UTF-8 is one byte, the encoding is endianless.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+UTF-16
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A character encoding for Unicode that uses either 2 or 4 bytes.  Each unit in UTF-16 is 16 bits, or
+two bytes<sup>6</sup>.  Similar to UTF-8, the number of bytes used to represent characters depends on
+the Unicode code point.  Since each unit is two bytes long, the order in which these bytes are stored
+is important.  Bytes can be stored in a little endian or big endian manner.  The endianness of UTF-16
+is dependent on the Byte Order Mark (BOM), which consists of two byes at the beginning of the
+encoding<sup>7</sup>.  The BOM bytes <code className="jarombek-inline-code">0xFF 0xFE</code> are used to
+declare a little endian encoding, while the bytes <code className="jarombek-inline-code">0xFE 0xFF</code>
+are used to declare a big endian encoding<sup>8</sup>.  Java uses UTF-16 to represent characters
+<sup>9</sup> and most JavaScript engines use UTF-16 for character encoding<sup>10, 11</sup>.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+UTF-32
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A character encoding for Unicode that always uses 4 bytes.  Each unit in UTF-32 is 32 bits, or four
+bytes.  Unlike UTF-8 and UTF-16, the number of bytes used to represent characters does not depend on
+the Unicode code point.  All code points use 4 bytes.  Bytes can be stored in a little endian or big
+endian manner.  The endianness of UTF-32 is dependent on the BOM, which consists of four byes at the
+beginning of the encoding<sup>7</sup>.  The BOM bytes
+<code className="jarombek-inline-code">0xFF 0xFE 0x00 0x00</code> are used to declare a little endian
+encoding, while the bytes <code className="jarombek-inline-code">0x00 0x00 0xFE 0xFF</code> are used to
+declare a big endian encoding<sup>8</sup>.  Since all code points in UTF-32 use 4 bytes, it is very
+easy to determine the length of a string using this encoding.  However, UTF-32 is memory
+intensive, since there are often many wasted bytes (as you can see in the BOM where some bytes are
+empty - <code className="jarombek-inline-code">0x00</code>)<sup>12</sup>.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+UCS-2
+</h5>
+<div className="jarombek-cte-body">
+<p>
+A character encoding for Unicode that always uses 2 bytes.  Each unit in UCS-2 is 16 bits, or two
+bytes.  UTF-8, UTF-16, and UTF-32 all support the full Unicode standard.  On the other hand, UCS-2
+only supports a subsection of Unicode called the Basic Multilingual Plane (BMP).  The BMP contains
+characters from most modern languages and symbols, however some common characters (such as certain
+emojis) reside outside the BMP<sup>13</sup>.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<Definition word="Little Endian">
+Describes a byte ordering where groups of bytes are ordered from the little end<sup>14</sup>.  With little endian, 
+the first byte in the group is the least significant byte.  For example, the character 'a' in
+the UTF-16 little endian encoding is represented as <code className="jarombek-inline-code">0x61 0x00
+</code>, where <code className="jarombek-inline-code">0x61</code> is the least significant byte in the
+<code className="jarombek-inline-code">U+0061</code> code point.
+</Definition>
+<Definition word="Big Endian">
+Describes a byte ordering where groups of bytes are ordered from the big end.  With big endian, the first
+byte in the group is the most significant byte.  For example, the character 'a' in the UTF-16 big
+endian encoding is represented as <code className="jarombek-inline-code">0x00 0x61</code>, where
+<code className="jarombek-inline-code">0x00</code> is the most significant byte in the
+<code className="jarombek-inline-code">U+0061</code> code point.
+</Definition>
+<p>
+Let's look at different Unicode encodings in Python code.  The following strings represent two
+different ways of writing <code className="jarombek-inline-code">'beyoncé'</code> in Unicode.
+The escaped sequences (ex. <code className="jarombek-inline-code">\u0301</code>) are Unicode code points.
+</p>
+<CodeSnippet language="Python">
+# Two different unicode representations of 'beyoncé'
+b = 'beyonce\u0301'
+b2 = 'beyonc\u00E9'
+
+print(b)   # beyoncé
+print(b2)  # beyoncé
+
+# While both representations appear the same, they are not considered equal
+assert not b == b2
+
+# The UTF-8 byte encodings.  \xcc\x81 is equivalent to (U+0301), the unicode code point for
+# a 'combining acute accent' (https://bit.ly/2OGrmwC)
+assert b.encode('utf8') == b'beyonce\xcc\x81'
+
+# \xc3\xa9 is equivalent to (U+00E9), the unicode code point for 'é'
+assert b2.encode('utf8') == b'beyonc\xc3\xa9'
+
+# The UTF-16 encoding for 'beyonce\u0301'.  Each character is at least 2 bytes long, compared to
+# UTF-8 where characters that are compatible with ASCII are encoded with 1 byte.
+assert b.encode('utf-16') == b'\xff\xfeb\x00e\x00y\x00o\x00n\x00c\x00e\x00\x01\x03'
+
+# The UTF-32 encoding for 'beyonce\u0301'.
+assert b.encode('utf-32') == b'\xff\xfe\x00\x00b\x00\x00\x00e\x00\x00\x00y\x00\x00\x00' \
+                             b'o\x00\x00\x00n\x00\x00\x00c\x00\x00\x00e\x00\x00\x00\x01\x03\x00\x00'
+</CodeSnippet>
+<p>
+Note the differences between encoding in UTF-8, UTF-16, and UTF-32.  For this simple string, UTF-8
+is by far the most memory efficient.
+</p>
+<p>
+This code also reveals some complexities of the Unicode standard.  Strings can look the same, but
+use different code points under the hood.  Unicode complexities cause issues, especially
+when checking for equality between two strings.  Upon observing the strings in variables
+<code className="jarombek-inline-code">b</code> and <code className="jarombek-inline-code">b2</code>, you
+would expect them to be equal.  However, the first assertion statement reveals they are not.  If
+you checked the length of these two strings, the result may also be a surprise:
+</p>
+<CodeSnippet language="Python">
+# Both representations have different lengths.
+# 'beyoncé' appears to have length 7, however variable 'b' resolves to length 8
+assert len(b) == 8
+assert len(b2) == 7
+</CodeSnippet>
+<p>
+Since variable <code className="jarombek-inline-code">b</code> used two code points (
+<code className="jarombek-inline-code">\u0065\u0301</code>) to represent 'é', Python says it has length
+8, even though the human readable representation has 7 characters.  The 'e' code point (
+<code className="jarombek-inline-code">\u0065</code>) is called a
+base character and the accent code point (
+<code className="jarombek-inline-code">\u0301</code>) is called a combining character.  Code points are defined this way since
+combining characters are merged with base characters to create a single visible character<sup>15</sup>.
+To solve the issue of length and equality disparity in Unicode strings (in large part thanks to
+combining and base characters), normalization is used.
+</p>
+<SectionTitle title="Normalization">Normalization</SectionTitle>
+<p>
+Normalization in Unicode is the process of transforming code points to match a certain
+standard.  Once a standard is matched, it is likely that our prior issues of mismatching string
+lengths and inequality will be fixed.  There are four Unicode normalized forms: NFC, NFD, NFKC,
+and NFKD.
+</p>
+<ComparisonTable title="Unicode Normalization Forms">
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Normalization Form C (NFC)
+</h5>
+<div className="jarombek-cte-body">
+<p>
+NFC first decomposes each code point, expanding each into all its possible base characters and
+combining characters (ex. 'é' can be decomposed into 'e' and the accent character).  Once all
+the characters are decomposed, NFC recomposes each one based on canonical equivalence<sup>16</sup>.
+With canonical equivalence, two characters are equivalent if they have the same appearance and
+meaning when written<sup>17</sup>.  In many languages, NFC is the default normalization implementation.
+NFC is <a href="https://jarombek.com/blog/aug-5-2018-graphql-pt1#idempotent">idempotent</a>, so
+normalizing a string multiple times has the same result as normalizing it once.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Normalization Form D (NFD)
+</h5>
+<div className="jarombek-cte-body">
+<p>
+NFD decomposes each code point, expanding each into all its possible base characters and combining
+characters.  Decomposed characters are sorted in a standardized manner, and equivalence is
+determined by canonical equivalence.  Similar to NFC, NFD is idempotent.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Normalization Form KC (NFKC)
+</h5>
+<div className="jarombek-cte-body">
+<p>
+NFKC is the same as NFC except it decomposes and recomposes based on compatibility instead of
+canonical equivalence.  With compatibility, characters can look completely different, but still be deemed
+equivalent in certain contexts.  NFKC is a stronger form of normalization and is lossy, unlike NFC
+which is lossless.  However, NFKC is still idempotent like NFC.
+</p>
+</div>
+</ComparisonTableEntry>
+<ComparisonTableEntry>
+<h5 className="jarombek-cte-title">
+Normalization Form KD (NFKD)
+</h5>
+<div className="jarombek-cte-body">
+<p>
+NFKD is the same as NFD except it decomposes based on compatibility instead of canonical
+equivalence.  Just like NFKC, NFKD is lossy.  It is also idempotent, making all four Unicode normalization
+forms safe to use multiple times without side effects.
+</p>
+</div>
+</ComparisonTableEntry>
+</ComparisonTable>
+<p>
+The following code uses NFC to normalize the two 'beyoncé' strings in Python.  NFC can easily be
+replaced here with the other three normalization techniques:
+</p>
+<CodeSnippet language="Python">
+# Normalize both strings using the form NFC
+normalized_b = normalize('NFC', b)
+normalized_b2 = normalize('NFC', b2)
+
+assert len(normalized_b) == 7
+assert len(normalized_b2) == 7
+
+assert normalized_b == normalized_b2
+</CodeSnippet>
+<p>
+After normalization, both 'beyoncé' strings have the same length and are deemed equivalent.
+</p>
+<p>
+Almost all languages support Unicode to some extent.  The following JavaScript code
+attempts the same operations I showed throughout this post (along with a bonus look at emojis!).
+</p>
+<CodeSnippet language="JavaScript">
+const b = 'beyonce\u0301'; // beyoncé
+const b2 = 'beyonc\u00E9'; // beyoncé
+
+// Both appear to have 7 characters, yet variable 'b' which uses combining characters
+// (it combines 'e' and '\u0301', the second of which is a diacritic) is listed
+// as having length 8.
+assert(b.length === 8);
+assert(b2.length === 7);
+
+// While the two strings appear the same, JavaScript does not recognize them as equal
+assert(b !== b2);
+
+// Normalize defaults to NFC normalization
+const b_norm = b.normalize();
+assert(b_norm.length === 7);
+
+// Once normalized, the two strings are equal
+assert(b.normalize() === b2.normalize());
+
+// The length of emojis are also greater than one
+const smiley = '😊';
+assert(smiley.length === 2);
+
+// Find the actual length of an emoji
+assert([...smiley].length === 1);
+
+const emojis = '🦌\u{1F98C}';
+
+assert(emojis.length === 4);
+assert([...emojis].length === 2);
+</CodeSnippet>
+<p>
+And the following does the same in Java:
+</p>
+<CodeSnippet language="Java">
+public static void main(String... args) {
+  String b = "beyonce\u0301";
+  String b2 = "beyonc\u00E9";
+
+  assert b.length() == 8;
+  assert b2.length() == 7;
+
+  assert !b.equals(b2);
+
+  // Normalize both strings using NFC
+  String normalized_b = Normalizer.normalize(b, Normalizer.Form.NFC);
+  String normalized_b2 = Normalizer.normalize(b, Normalizer.Form.NFC);
+
+  assert normalized_b.length() == 7;
+  assert normalized_b2.length() == 7;
+
+  assert normalized_b.equals(normalized_b2);
+
+  String smiley = "😊";
+  assert smiley.length() == 2;
+
+  // In order to get the proper length of unicode,
+  // length must be measured by unicode code point instead of character.
+  assert smiley.codePointCount(0, smiley.length()) == 1;
+}
+</CodeSnippet>
+<UpdateInfo date="September 1st, 2019">
+I've also written Unicode code samples in <a href="https://github.com/AJarombek/misc-code-samples/blob/master/C%23/
+base/basic-framework-types/BasicFrameworkTypes/Unicode.cs">C#</a>.
+</UpdateInfo>
+<SectionTitle title="Conclusions">Conclusions</SectionTitle>
+<p>
+Unicode is much more complex than I initially thought, with many edge cases that creep up when using
+non-English characters.  I only scratched the surface of Unicode, but I know this research will help me
+detect Unicode bugs quicker and write better software with Strings.
+</p>
+</div>
