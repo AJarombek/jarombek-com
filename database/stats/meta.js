@@ -10,5 +10,5 @@ db = connection.getDB("jarombekcom");
 db.statisticsMeta.remove({});
 
 db.statisticsMeta.insertOne({
-    updated: new Date('2025-07-04T12:00:00')
+    updated: new Date('2026-01-01T12:00:00')
 });
