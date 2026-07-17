@@ -56,8 +56,8 @@ docker image tag jarombek-com-database:latest ajarombek/jarombek-com-database:la
 docker push ajarombek/jarombek-com-database:latest
 
 # Push image to Docker Hub with version tag
-docker image tag jarombek-com-database:latest ajarombek/jarombek-com-database:1.4.4
-docker push ajarombek/jarombek-com-database:1.4.4
+docker image tag jarombek-com-database:latest ajarombek/jarombek-com-database:1.4.7
+docker push ajarombek/jarombek-com-database:1.4.7
 ```
 
 ### Files

@@ -9,7 +9,7 @@ provider "aws" {
 }
 
 terraform {
-  required_version = "~> 1.12.2"
+  required_version = "~> 1.14.5"
 
   required_providers {
     aws = "~> 6.2.0"
@@ -26,8 +26,8 @@ terraform {
 locals {
   domain_cert      = "jarombek.com"
   www_domain_cert  = "*.jarombek.com"
-  database_version = "1.4.4"
-  web_version      = "1.4.4"
+  database_version = "1.4.7"
+  web_version      = "1.4.8"
 }
 
 data "aws_vpc" "application-vpc" {

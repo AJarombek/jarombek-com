@@ -51,7 +51,8 @@ const Statistics = () => {
       };
 
       stats?.forEach((item) => {
-        yearData[item.name] = item.lines[index];
+        const v = item.lines[index];
+        yearData[item.name] = v === 0 ? 1 : v;
       });
 
       return yearData;
@@ -81,8 +82,9 @@ const Statistics = () => {
           data={stats}
           chartData={chartData}
           lastUpdated={statsMeta?.updated}
-          start={0}
-          end={43000}
+          scale="log"
+          start={1}
+          end={100_000}
           title="Programming Language Lines Written"
         />
         <StatisticsTable data={stats} />

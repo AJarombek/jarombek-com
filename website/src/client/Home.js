@@ -29,7 +29,7 @@ class Home extends React.Component {
             </div>
             <p className="jarbek-home-sub-title">Software Engineering Website</p>
             <div className="jarbek-home-buttons">
-              <Link to="#features" className="jarbek-home-engineering-button">
+              <Link to="/stats" className="jarbek-home-engineering-button">
                 <Button activeColor="primary" passiveColor="primary">
                   ENGINEERING
                 </Button>
@@ -52,14 +52,11 @@ class Home extends React.Component {
         </div>
         <div className="jarbek-home-occupation">
           <div className="jarbek-home-occupation-text">
-            <div>
-              <p>Currently working as a </p>
-              <p className="jarbek-home-occupation-title">
-                <strong>Senior Staff Engineer/Software Engineering Senior Advisor</strong>
-              </p>
-            </div>
-            <p>
-              at <strong>Evernorth</strong>.
+            <p className="jarbek-home-occupation-title">
+              <strong>Consultant</strong> at <strong>CGI</strong>
+            </p>
+            <p className="jarbek-home-occupation-title">
+              <strong>RIA &amp; Software Engineer</strong> at <strong>Jarombek Capital LLC</strong>
             </p>
           </div>
         </div>

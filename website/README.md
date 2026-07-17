@@ -66,8 +66,8 @@ docker image build -t jarombek-com:latest .
 docker image tag jarombek-com:latest ajarombek/jarombek-com:latest
 docker push ajarombek/jarombek-com:latest
 
-docker image tag jarombek-com:latest ajarombek/jarombek-com:1.4.4
-docker push ajarombek/jarombek-com:1.4.4
+docker image tag jarombek-com:latest ajarombek/jarombek-com:1.4.8
+docker push ajarombek/jarombek-com:1.4.8
 ```
 
 ### Files
